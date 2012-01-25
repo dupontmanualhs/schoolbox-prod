@@ -1,0 +1,9 @@
+@(loginForm: Form[(String, String)])
+
+@main("Login") {
+  @helper.form(action = routes.Users.authenticate) {
+    @helper.inputText(loginForm("username"))
+    @helper.inputPassword(loginForm("password"))
+    <input type="submit" value="Submit" />
+  }
+}
