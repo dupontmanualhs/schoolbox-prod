@@ -11,7 +11,4 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 #Users
 GET		/login						controllers.Users.login()
 POST    /login						controllers.Users.authenticate() 
-
-# Questions
-#GET		/createQuestion				controllers.Application.questionForm()
-#POST	/createQuestion				controllers.Application.handleQuestionForm()
+GET     /logout                     controllers.Users.logout()

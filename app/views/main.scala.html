@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(implicit session: Session)
 
 <!DOCTYPE html>
 
@@ -10,7 +10,7 @@
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
     </head>
     <body>
-    
+        @controllers.Users.userInfo
         @content
     </body>
 </html>
