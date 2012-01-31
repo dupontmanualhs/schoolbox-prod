@@ -34,8 +34,6 @@ object DataStore {
     implicit val pm = getPersistenceManager()
     try {
       block(pm)
-    } finally {
-      pm.close()
     }
   }
   

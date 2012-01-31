@@ -8,6 +8,9 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
+      "org.joda" % "joda-convert" % "1.2",
+      "org.apache.poi" % "poi" % "3.8-beta5",
+      "org.apache.poi" % "poi-ooxml" % "3.8-beta5",
       "org.datanucleus" % "datanucleus-core" % "3.0.5",
       "org.datanucleus" % "datanucleus-api-jdo" % "3.0.4",
       "org.datanucleus" % "datanucleus-enhancer" % "3.0.1",
