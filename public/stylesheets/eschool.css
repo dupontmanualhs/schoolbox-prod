@@ -1,0 +1,156 @@
+html
+{
+background-color:white;
+repeat-x;
+}
+
+td{
+    padding-right:15px;
+    padding-left:0;
+    padding-top:2px;
+    padding-bottom:2px;
+    text-align:left;
+}
+
+th{
+    text-align:left;
+    padding-right:15px;
+    padding-left:0;
+    padding-top:2px;
+    padding-bottom:2px;
+}
+
+.edit_error_class {
+  display: block;
+  color: red;
+}
+
+.sidebar ul {
+	margin:0;
+	padding:0;
+	border-bottom:1px solid #ccc;
+}
+
+
+.sidebar ul li {
+	margin:0;
+	padding:0;
+	list-style:none;
+	border:1px solid #ccc;
+	border-bottom:none;
+}
+
+.sidebar ul li a {
+	display:block;
+	padding:3px;
+	text-indent:30px;
+	text-decoration:none;
+}
+
+.sidebar ul li span {
+	display:block;
+	padding:3px;
+	text-indent:30px;
+	text-decoration:none;
+}
+
+.sidebar ul li a:hover {
+	background-color: #eee;
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+div.NavBar{
+    float:left;
+    width:790px;
+    margin:0;
+    padding:0;
+    height:auto;
+    border-bottom-style:solid;
+    border-bottom-color:black;
+    border-bottom-width:1px;
+}
+
+#MenuList{
+    margin:0;
+    padding:0;
+}
+
+#container{
+    width:950px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+#leftBar{
+    width:150px;
+    height:auto;
+    min-height:400px;
+    margin:0;
+    padding-top:0;
+    padding-bottom:0;
+    padding-right:10px;
+    padding-left:0;
+    float:left;
+}
+
+#header{
+    text-align:right;
+    width:790px;
+    height:50px;
+    margin:0;
+    float:left;
+    padding:0;
+}
+
+img.logo{
+    margin-top:8px;
+    border-style:none;
+}
+
+.logoLink{
+    text-decoration:none;
+    border-style:none;
+}
+
+#navTree{
+    width:146px;
+    margin:0;
+    white-space:normal !important;
+    height: auto;
+    padding:1px 2px;
+    overflow:auto; /* Change to hidden to get rid of the scroll bar */
+}
+
+ul.errorList{
+    color: red;
+}
+
+div.contentArea{
+    float:left;
+    width:786px;
+    margin:0;
+    padding-left:2px;
+    padding-right:2px;
+    padding-top:5px;
+    padding-bottom:5px;
+    border-bottom-style:solid;
+    border-bottom-color:black;
+    border-bottom-width:1px;
+}
+
+.formBody{
+    width:786px;
+    float:left;
+    margin:0px;
+    padding:0px;
+}
+
+/*
+#navTree a { white-space:normal !important; height: auto; padding:1px 2px; }
+#navTree li > ins { vertical-align:top; }
+#navTree .jstree-hovered, #navTree .jstree-clicked { border:0; }
+*/
