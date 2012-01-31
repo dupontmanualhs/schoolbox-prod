@@ -31,7 +31,7 @@ object DataStore {
   def getPersistenceManager(): ScalaPersistenceManager = new ScalaPersistenceManager(pmf.getPersistenceManager.asInstanceOf[JDOPersistenceManager])
   
   def withManager[A](block: (ScalaPersistenceManager => A)): A = {
-    val pm = getPersistenceManager()
+    implicit val pm = getPersistenceManager()
     try {
       block(pm)
     } finally {
@@ -40,7 +40,7 @@ object DataStore {
   }
   
   def withTransaction[A](block: (ScalaPersistenceManager => A)): A = {
-	val pm = getPersistenceManager()
+	implicit val pm = getPersistenceManager()
     pm.beginTransaction()
     val r = block(pm)
     pm.commitTransactionAndClose()

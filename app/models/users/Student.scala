@@ -3,6 +3,7 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 class Student extends Perspective {
@@ -36,13 +37,13 @@ class Student extends Perspective {
 }
 
 object Student {
-  def getByUsername(username: String): Box[Student] = {
+  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager): Option[Student] = {
     User.getByUsername(username) match {
-      case Full(user) => {
+      case Some(user) => {
         val cand = QStudent.candidate
-        DataStore.pm.query[Student].filter(cand.user.eq(user)).executeOption
+        pm.query[Student].filter(cand.user.eq(user)).executeOption
       }
-      case _ => Empty
+      case _ => None
     }
   }
 }

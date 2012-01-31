@@ -1,4 +1,4 @@
-@(title: String)(content: Html)(implicit session: Session)
+@(title: String)(content: Html)(implicit session: Session, pm: util.ScalaPersistenceManager)
 
 <!DOCTYPE html>
 
@@ -10,7 +10,7 @@
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
     </head>
     <body>
-        @controllers.Users.userInfo
+        @userInfo()
         @content
     </body>
 </html>

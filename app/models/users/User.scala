@@ -5,6 +5,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.DataStore
 import play.api.mvc.Session
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 class User {
@@ -95,21 +96,24 @@ class User {
 }
 
 object User {  
-  def getById(id: Long): Option[User] = {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[User] = {
     val cand = QUser.candidate
-    DataStore.withManager { pm =>
-      pm.query[User].filter(cand.id.eq(id)).executeOption()
+    pm.query[User].filter(cand.id.eq(id)).executeOption()
+  }
+
+  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager): Option[User] = {
+    val cand = QUser.candidate
+    pm.query[User].filter(cand.username.eq(username)).executeOption()
+  }
+  
+  def current(implicit pm: ScalaPersistenceManager, session: Session): Option[User] = {
+    session.get("username") match {
+      case None => None
+      case Some(username) => getByUsername(username)
     }
   }
 
-  def getByUsername(username: String): Option[User] = {
-    val cand = QUser.candidate
-    DataStore.withManager { pm =>
-      pm.query[User].filter(cand.username.eq(username)).executeOption()
-    }
-  }
-
-  def authenticate(username: String, password: String): Option[User] = {
+  def authenticate(username: String, password: String)(implicit pm: ScalaPersistenceManager): Option[User] = {
     getByUsername(username) match {
       case Some(user) => authenticate(user, password)
       case _ => None
