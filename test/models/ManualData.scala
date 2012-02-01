@@ -166,20 +166,25 @@ object ManualData {
     val doc = XML.load(getClass.getResourceAsStream("/manual-data/Schedule.xml"))
     val enrollments = doc \\ "student"
     enrollments foreach  ((enrollment: Node) => {
+      var isOk = true
       val sectionId = asIdNumber((enrollment \ "@courseSection.sectionID").text)
-      val section = pm.query[Section].filter(QSection.candidate.sectionId.eq(sectionId)).executeOption() match {
-        case Some(s) => s
-        case None => throw new RuntimeException("missing section #%s".format(sectionId))
-      }
+      val maybeSection: Option[Section] = pm.query[Section].filter(QSection.candidate.sectionId.eq(sectionId)).executeOption()
       val studentNumber = asIdNumber((enrollment \ "@student.studentNumber").text)
       val student = pm.query[Student].filter(QStudent.candidate.studentNumber.eq(studentNumber)).executeOption().get
-      if (debug) println("Adding student #%s to section #%s".format(studentNumber, sectionId))
-      val startDate = asLocalDate((enrollment \ "@roster.startDate").text)
-      val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
-      asScalaSet[Term](section.terms) foreach ((term: Term) => {
-        val dbEnrollment = new StudentEnrollment(student, section, term, startDate, endDate)
-        pm.makePersistent(dbEnrollment)
-      })
+      maybeSection match {
+        case Some(section) => {
+          if (debug) println("Adding student #%s to section #%s".format(studentNumber, sectionId))
+          val startDate = asLocalDate((enrollment \ "@roster.startDate").text)
+          val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
+          asScalaSet[Term](section.terms) foreach ((term: Term) => {
+            val dbEnrollment = new StudentEnrollment(student, section, term, startDate, endDate)
+            pm.makePersistent(dbEnrollment)
+          })
+        }
+        case None => {
+          println("Student %s (id #%s) is in section #%s, which doesn't exist.".format(student.user.formalName, studentNumber, sectionId))
+        }
+      }
     })
     pm.commitTransaction()
   }

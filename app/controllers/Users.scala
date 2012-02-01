@@ -35,7 +35,10 @@ object Users extends Controller {
     DataStore.withTransaction { implicit pm: ScalaPersistenceManager => 
       loginForm.bindFromRequest.fold(
         formWithErrors => BadRequest(html.login(formWithErrors)),
-        usernameAndPassword => Redirect(routes.Application.index()).withSession("username" -> usernameAndPassword._1)
+        usernameAndPassword => {
+          Redirect(routes.Application.index()).withSession(
+              "username" -> usernameAndPassword._1).flashing("message" -> "You successfully logged in!")
+        }
       )
     }
   }
@@ -44,9 +47,49 @@ object Users extends Controller {
    * Logout and clean the session.
    */
   def logout = Action { implicit request =>
-    Redirect(routes.Users.login).withNewSession.flashing(
-      "success" -> "You've been logged out"
+    Redirect(routes.Application.index()).withNewSession.flashing(
+      "message" -> "You've been logged out..."
     )
+  }
+  
+  def cpForm(user: User) = Form(tuple(
+      "currentPassword" -> text,
+      "newPassword" -> text,
+      "verifyNewPassword" -> text
+    ) verifying("Current password is incorrect.", _ match {
+      case (cp, np, vnp) => User.authenticate(user, cp).isDefined
+    }) verifying("New password and verify password must match.", _ match {
+      case (cp, np, vnp) => np == vnp
+    })
+  )
+  
+  def changePassword = Action { implicit req => 
+    if (!req.session.get("username").isDefined) {
+      Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
+    } else {
+      DataStore.withTransaction { implicit pm: ScalaPersistenceManager =>
+        val user = User.getByUsername(req.session("username")).get
+        Ok(html.users.changePassword(cpForm(user)))
+      }
+    }
+  }
+  
+  def updatePassword = Action { implicit req =>
+    if (!req.session.get("username").isDefined) {
+      Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
+    } else {
+      DataStore.withTransaction { implicit pm: ScalaPersistenceManager =>
+        val user = User.getByUsername(req.session("username")).get
+        cpForm(user).bindFromRequest.fold(
+          formWithErrors => BadRequest(html.users.changePassword(formWithErrors)),
+          cpNpAndVnp => {
+            user.password = cpNpAndVnp._2
+            pm.makePersistent(user)
+            Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
+          }
+        )
+      }
+    }
   }
   
   def list = Action { implicit request =>

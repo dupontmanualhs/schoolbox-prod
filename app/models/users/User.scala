@@ -4,7 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.DataStore
-import play.api.mvc.Session
+import play.api.mvc.{RequestHeader, Session}
 import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
@@ -106,8 +106,8 @@ object User {
     pm.query[User].filter(cand.username.eq(username)).executeOption()
   }
   
-  def current(implicit pm: ScalaPersistenceManager, session: Session): Option[User] = {
-    session.get("username") match {
+  def current(implicit pm: ScalaPersistenceManager, request: RequestHeader): Option[User] = {
+    request.session.get("username") match {
       case None => None
       case Some(username) => getByUsername(username)
     }

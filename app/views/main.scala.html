@@ -1,4 +1,4 @@
-@(title: String)(content: Html)(implicit session: Session, pm: util.ScalaPersistenceManager)
+@(title: String)(content: Html)(implicit req: RequestHeader, pm: util.ScalaPersistenceManager)
 
 <!DOCTYPE html>
 
@@ -18,6 +18,10 @@
       <div id="header">@userInfo()</div>
       
       <div class="NavBar">Menu here</div>
+      
+      @if(req.flash.get("message").isDefined) {
+        <div class="message">@req.flash("message")</div>
+      }
       
       <div class="contentArea">
         <div id="content">@content</div>
