@@ -1,4 +1,4 @@
-@(users: List[models.users.User])(implicit req: RequestHeader, pm: util.ScalaPersistenceManager)
+@(users: List[models.users.User])(implicit req: util.DbRequest[_])
 
 @main("List of All Users") {
 

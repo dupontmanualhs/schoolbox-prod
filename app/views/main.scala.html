@@ -1,4 +1,4 @@
-@(title: String)(content: Html)(implicit req: RequestHeader, pm: util.ScalaPersistenceManager)
+@(title: String)(content: Html)(implicit req: util.DbRequest[_])
 
 <!DOCTYPE html>
 

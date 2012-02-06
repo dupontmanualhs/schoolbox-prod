@@ -1,4 +1,4 @@
-@(loginForm: Form[(String, String)])(implicit req: RequestHeader, pm: util.ScalaPersistenceManager)
+@(loginForm: Form[(String, String)])(implicit req: util.DbRequest[_])
 
 @main("Login") {
   @helper.form(action = routes.Users.authenticate) {

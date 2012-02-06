@@ -2,14 +2,12 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-
 import util.{DataStore, ScalaPersistenceManager}
+import util.DbAction
 
 object Application extends Controller {
   
-  def index() = Action { implicit request =>
-    DataStore.withTransaction { implicit pm => 
-      Ok(views.html.index("Your new application is ready."))
-    }
+  def index() = DbAction { implicit req =>
+    Ok(views.html.index("Your new application is ready."))
   }
 }

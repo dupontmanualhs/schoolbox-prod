@@ -6,6 +6,7 @@ import org.datanucleus.query.typesafe._
 import util.DataStore
 import play.api.mvc.{RequestHeader, Session}
 import util.ScalaPersistenceManager
+import util.DbRequest
 
 @PersistenceCapable(detachable="true")
 class User {
@@ -106,10 +107,10 @@ object User {
     pm.query[User].filter(cand.username.eq(username)).executeOption()
   }
   
-  def current(implicit pm: ScalaPersistenceManager, request: RequestHeader): Option[User] = {
+  def current(implicit request: DbRequest[_]): Option[User] = {
     request.session.get("username") match {
       case None => None
-      case Some(username) => getByUsername(username)
+      case Some(username) => getByUsername(username)(request.pm)
     }
   }
 

@@ -1,4 +1,4 @@
-@(message: String)(implicit req: RequestHeader, pm: util.ScalaPersistenceManager)
+@(message: String)(implicit req: util.DbRequest[_])
 
 @main("JCPS eSchool") {
     

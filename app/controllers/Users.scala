@@ -9,44 +9,41 @@ import models.users.User
 import util.DataStore
 import util.ScalaPersistenceManager
 import models.users.QUser
+import util.{DbAction, DbRequest}
 
 object Users extends Controller {
-  def loginForm(implicit pm: ScalaPersistenceManager) = Form(
+  def loginForm(implicit req: DbRequest[_]) = Form(
     tuple("username" -> text,
        "password" -> text
     ) verifying ("Incorrect username or password.", result => result match {
-      case (username, password) => User.authenticate(username, password).isDefined
+      case (username, password) => User.authenticate(username, password)(req.pm).isDefined
     })
   )
   
   /**
    * Login page.
    */
-  def login = Action { implicit request =>
-    DataStore.withTransaction { implicit pm: ScalaPersistenceManager => 
-      Ok(html.login(loginForm))
-    }
+  def login = DbAction { implicit request =>
+    Ok(html.login(loginForm))
   }
 
   /**
    * Handle login form submission.
    */
-  def authenticate = Action { implicit request =>
-    DataStore.withTransaction { implicit pm: ScalaPersistenceManager => 
-      loginForm.bindFromRequest.fold(
-        formWithErrors => BadRequest(html.login(formWithErrors)),
-        usernameAndPassword => {
-          Redirect(routes.Application.index()).withSession(
-              "username" -> usernameAndPassword._1).flashing("message" -> "You successfully logged in!")
-        }
-      )
-    }
+  def authenticate = DbAction { implicit request =>
+    loginForm.bindFromRequest.fold(
+      formWithErrors => BadRequest(html.login(formWithErrors)),
+      usernameAndPassword => {
+        Redirect(routes.Application.index()).withSession(
+            "username" -> usernameAndPassword._1).flashing("message" -> "You successfully logged in!")
+      }
+    )
   }
 
   /**
    * Logout and clean the session.
    */
-  def logout = Action { implicit request =>
+  def logout = DbAction { implicit request =>
     Redirect(routes.Application.index()).withNewSession.flashing(
       "message" -> "You've been logged out..."
     )
@@ -63,39 +60,33 @@ object Users extends Controller {
     })
   )
   
-  def changePassword = Action { implicit req => 
+  def changePassword = DbAction { implicit req => 
     if (!req.session.get("username").isDefined) {
       Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
     } else {
-      DataStore.withTransaction { implicit pm: ScalaPersistenceManager =>
-        val user = User.getByUsername(req.session("username")).get
-        Ok(html.users.changePassword(cpForm(user)))
-      }
+      val user = User.getByUsername(req.session("username"))(req.pm).get
+      Ok(html.users.changePassword(cpForm(user)))
     }
   }
   
-  def updatePassword = Action { implicit req =>
+  def updatePassword = DbAction { implicit req =>
     if (!req.session.get("username").isDefined) {
       Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
     } else {
-      DataStore.withTransaction { implicit pm: ScalaPersistenceManager =>
-        val user = User.getByUsername(req.session("username")).get
-        cpForm(user).bindFromRequest.fold(
-          formWithErrors => BadRequest(html.users.changePassword(formWithErrors)),
-          cpNpAndVnp => {
-            user.password = cpNpAndVnp._2
-            pm.makePersistent(user)
-            Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
-          }
-        )
-      }
+      val user = User.getByUsername(req.session("username"))(req.pm).get
+      cpForm(user).bindFromRequest.fold(
+        formWithErrors => BadRequest(html.users.changePassword(formWithErrors)),
+        cpNpAndVnp => {
+          user.password = cpNpAndVnp._2
+          req.pm.makePersistent(user)
+          Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
+        }
+      )
     }
   }
   
-  def list = Action { implicit request =>
-    DataStore.withTransaction { implicit pm =>
-      val cand = QUser.candidate
-      Ok(html.users.list(pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
-    }
+  def list = DbAction { implicit request =>
+    val cand = QUser.candidate
+    Ok(html.users.list(request.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
   }
 }
