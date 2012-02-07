@@ -31,9 +31,9 @@ object ManualData {
     pm.beginTransaction()
     val acadYear = new AcademicYear("2011-12")
     pm.makePersistent(acadYear)
-    val fall2011 = new Term("Fall 2011", acadYear, new LocalDate(2011, 8, 17), new LocalDate(2012, 12, 16))
+    val fall2011 = new Term("Fall 2011", acadYear, "f11", new LocalDate(2011, 8, 17), new LocalDate(2012, 12, 16))
     pm.makePersistent(fall2011)
-    val spring2012 = new Term("Spring 2012", acadYear, new LocalDate(2012, 1, 3), new LocalDate(2012, 5, 25))
+    val spring2012 = new Term("Spring 2012", acadYear, "s12", new LocalDate(2012, 1, 3), new LocalDate(2012, 5, 25))
     pm.makePersistent(spring2012)
     val periods: List[Period] = List(
         new Period("Red 1", 1), new Period("Red 2", 2), new Period("Red 3", 3), new Period("Red 4", 4),
@@ -125,8 +125,8 @@ object ManualData {
     pm.beginTransaction()
     val doc = XML.load(getClass.getResourceAsStream("/manual-data/Sections.xml"))
     val sections = doc \\ "curriculum"
-    val fall11 = pm.query[Term].filter(QTerm.candidate.name.eq("Fall 2011")).executeOption().get
-    val spring12 = pm.query[Term].filter(QTerm.candidate.name.eq("Fall 2011")).executeOption().get
+    val fall11 = Term.getBySlug("f11").get
+    val spring12 = Term.getBySlug("s12").get
     sections foreach ((section: Node) => {
       val sectionId = (section \ "@sectionInfo.sectionID").text
       if (debug) println("Working on section: %s".format(sectionId))

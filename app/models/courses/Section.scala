@@ -1,11 +1,11 @@
 package models.courses
 
 import javax.jdo.annotations._
-
 import scala.collection.JavaConverters._
-
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import models.users.Teacher
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 class Section {
@@ -51,6 +51,12 @@ class Section {
   
   def periodNames: String = {
     periods.map(_.name).mkString(", ")
+  }
+  
+  def teachers(implicit pm: ScalaPersistenceManager): List[Teacher] = {
+    val cand = QTeacherAssignment.candidate
+    val assignments = pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
+    assignments.map(_.teacher)
   }
 }
 

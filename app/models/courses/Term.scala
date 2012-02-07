@@ -14,15 +14,18 @@ class Term {
   private[this] var _id: Long = _
   private[this] var _name: String = _
   private[this] var _year: AcademicYear = _
+  @Unique
+  private[this] var _slug: String = _
   @Persistent
   private[this] var _start: java.sql.Date = _
   @Persistent
   private[this] var _end: java.sql.Date = _
   
-  def this(name: String, year: AcademicYear, start: LocalDate, end: LocalDate) = {
+  def this(name: String, year: AcademicYear, slug: String, start: LocalDate, end: LocalDate) = {
     this()
     _name = name
     _year = year
+    _slug = slug
     start_=(start)
     end_=(end)
   }
@@ -34,6 +37,9 @@ class Term {
 
   def year: AcademicYear = _year
   def year_=(theYear: AcademicYear) { _year = theYear }
+  
+  def slug: String = _slug
+  def slug_=(theSlug: String) { _slug = theSlug }
 
   def start: LocalDate = new DateTime(_start).toLocalDate
   def start_=(theStart: LocalDate) { _start = new java.sql.Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) }
@@ -54,11 +60,10 @@ object Term {
     _current.get
   }
   
-  /*def current: Term = {
-    println(JDOHelper.getObjectState(_current))
+  def getBySlug(slug: String)(implicit pm: ScalaPersistenceManager): Option[Term] = {
     val cand = QTerm.candidate
-    DataStore.pm.query[Term].filter(cand.name.eq("Fall 2011")).executeOption().get           
-  }*/
+    pm.query[Term].filter(cand.slug.eq(slug)).executeOption()
+  }
 }
 
 trait QTerm extends PersistableExpression[Term] {
@@ -67,6 +72,9 @@ trait QTerm extends PersistableExpression[Term] {
   
   private[this] lazy val _year: ObjectExpression[AcademicYear] = new ObjectExpressionImpl[AcademicYear](this, "_year")
   def term: ObjectExpression[AcademicYear] = _year
+  
+  private[this] lazy val _slug: StringExpression = new StringExpressionImpl(this, "_slug")
+  def slug: StringExpression = _slug
   
   private[this] lazy val _start: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Date](this, "_start")
   def start: DateExpression[java.util.Date] = _start
