@@ -24,7 +24,7 @@ object Users extends Controller {
    * Login page.
    */
   def login = DbAction { implicit request =>
-    Ok(html.login(loginForm))
+    Ok(html.users.login(loginForm))
   }
 
   /**
@@ -32,7 +32,7 @@ object Users extends Controller {
    */
   def authenticate = DbAction { implicit request =>
     loginForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.login(formWithErrors)),
+      formWithErrors => BadRequest(html.users.login(formWithErrors)),
       usernameAndPassword => {
         Redirect(routes.Application.index()).withSession(
             "username" -> usernameAndPassword._1).flashing("message" -> "You successfully logged in!")

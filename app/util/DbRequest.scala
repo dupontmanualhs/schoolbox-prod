@@ -9,14 +9,18 @@ import play.api.mvc.Action
 import play.api.mvc.AnyContent
 
 class DbRequest[A](val request: Request[A]) extends WrappedRequest[A](request) {
-  implicit val pm = DataStore.getPersistenceManager()
+  val pm = DataStore.getPersistenceManager()
 }
 
 object DbAction {
   def apply[A](p: BodyParser[A])(f: DbRequest[A] => Result) = {
-    Action(p) { implicit request =>
-      f(new DbRequest[A](request))
-    }
+    Action(p) (request => {
+      val dbReq = new DbRequest[A](request)
+      dbReq.pm.beginTransaction()
+      val res = f(dbReq)
+      dbReq.pm.commitTransactionAndClose()
+      res
+    })
   }
 
   def apply(f: DbRequest[AnyContent] => Result) = {

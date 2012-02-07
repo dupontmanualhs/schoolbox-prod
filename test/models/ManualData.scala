@@ -33,7 +33,7 @@ object ManualData {
     pm.makePersistent(acadYear)
     val fall2011 = new Term("Fall 2011", acadYear, new LocalDate(2011, 8, 17), new LocalDate(2012, 12, 16))
     pm.makePersistent(fall2011)
-    val spring2012 = new Term("Spring2012", acadYear, new LocalDate(2012, 1, 3), new LocalDate(2012, 5, 25))
+    val spring2012 = new Term("Spring 2012", acadYear, new LocalDate(2012, 1, 3), new LocalDate(2012, 5, 25))
     pm.makePersistent(spring2012)
     val periods: List[Period] = List(
         new Period("Red 1", 1), new Period("Red 2", 2), new Period("Red 3", 3), new Period("Red 4", 4),
