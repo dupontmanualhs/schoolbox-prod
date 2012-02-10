@@ -23,3 +23,6 @@ GET	    /schedule/teacher/:username             controllers.Courses.getTeacherSc
 GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSchedule2(username, termSlug)
 GET     /schedule/student/:username             controllers.Courses.getStudentSchedule1(username)
 GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSchedule2(username, termSlug)
+
+#Assignments
+GET     /assignments/sources                    controllers.Assignments.sources()

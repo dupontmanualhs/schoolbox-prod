@@ -9,6 +9,7 @@ import models.users._
 import models.courses._
 import util.{DataStore, ScalaPersistenceManager}
 import java.io.File
+import models.assignments.AssignmentData
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()
@@ -17,14 +18,19 @@ object ManualData {
     val dbFile = new File("data.h2.db")
     dbFile.delete()
     DataStore.withManager { implicit pm => 
+      loadManualData(debug)
+      AssignmentData.load(debug)
+	  pm.close()
+    }
+  }
+  
+  def loadManualData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
 	  createYearsAndTerms(debug)
 	  loadStudents(debug)
 	  loadTeachers(debug)
 	  loadCourses(debug)
 	  loadSections(debug)
-	  loadEnrollments(debug)
-	  pm.close()
-    }
+	  loadEnrollments(debug)    
   }
 
   def createYearsAndTerms(debug: Boolean)(implicit pm: ScalaPersistenceManager) {

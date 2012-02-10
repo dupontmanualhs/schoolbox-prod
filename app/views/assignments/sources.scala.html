@@ -1,0 +1,15 @@
+@(topLevelSources: List[models.assignments.Source])(implicit req: util.DbRequest[_])
+
+@import controllers.Assignments.asListItem
+
+@main("Question Sources") {
+
+<h1>Question Sources</h1>
+
+<ul>
+  @for(s <- topLevelSources) {
+    @asListItem(s)
+  }
+</ul>
+
+}
