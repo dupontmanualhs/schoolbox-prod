@@ -5,9 +5,10 @@ import scala.xml.NodeSeq
 import util.Helpers.string2nodeSeq
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import javax.jdo.listener.{LoadCallback, StoreCallback}
 
 @PersistenceCapable(detachable="true")
-class DbQuestion {
+abstract class DbQuestion extends LoadCallback with StoreCallback {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -30,9 +31,9 @@ class DbQuestion {
   def number: String = _number
   def number_=(theNumber: String) { _number = theNumber }
   
-  def content: NodeSeq = string2nodeSeq(_content)
-  def content_=(html: NodeSeq) { _content = html.toString }
-  def content_=(htmlString: String) { content_=(string2nodeSeq(htmlString)) }
+  protected def content: NodeSeq = string2nodeSeq(_content)
+  protected def content_=(html: NodeSeq) { _content = html.toString }
+  protected def content_=(htmlString: String) { content_=(string2nodeSeq(htmlString)) }
 }
 
 trait QDbQuestion extends PersistableExpression[DbQuestion] {
