@@ -1,4 +1,4 @@
-package models
+package models.assignments
 
 import javax.jdo.annotations._
 import scala.xml.NodeSeq
@@ -12,20 +12,20 @@ class DbQuestion {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   
-//  @Column(allowsNull="false")
-//  private[this] var _subject : Subject = _
-//  @Column(allowsNull="false")
-//  private[this] var _source: Source = _
+  @Column(allowsNull="false")
+  private[this] var _subject : Subject = _
+  @Column(allowsNull="false")
+  private[this] var _source: Source = _
   private[this] var _number: String = _
   private[this] var _content: String = _
   
   def id: Long = _id
   
-//  def subject: Subject = _subject
-//  def subject_=(theSubject: Subject) { _subject = theSubject }
+  def subject: Subject = _subject
+  def subject_=(theSubject: Subject) { _subject = theSubject }
   
-//  def source: Source = _source
-//  def source_=(theSource: Source) { _source = theSource }
+  def source: Source = _source
+  def source_=(theSource: Source) { _source = theSource }
   
   def number: String = _number
   def number_=(theNumber: String) { _number = theNumber }
@@ -39,11 +39,11 @@ trait QDbQuestion extends PersistableExpression[DbQuestion] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
 
-//  private[this] lazy val _subject: ObjectExpression[Subject] = new ObjectExpressionImpl[Subject](this, "_subject")
-//  def subject: ObjectExpression[Subject] = _subject
+  private[this] lazy val _subject: ObjectExpression[Subject] = new ObjectExpressionImpl[Subject](this, "_subject")
+  def subject: ObjectExpression[Subject] = _subject
   
-//  private[this] lazy val _source: ObjectExpression[Source] = new ObjectExpressionImpl[Source](this, "_source")
-//  def source: ObjectExpression[Source] = _source
+  private[this] lazy val _source: ObjectExpression[Source] = new ObjectExpressionImpl[Source](this, "_source")
+  def source: ObjectExpression[Source] = _source
   
   private[this] lazy val _number: StringExpression = new StringExpressionImpl(this, "_number")
   def number: StringExpression = _number

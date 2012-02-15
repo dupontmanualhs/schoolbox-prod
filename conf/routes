@@ -26,3 +26,4 @@ GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSc
 
 #Assignments
 GET     /assignments/sources                    controllers.Assignments.sources()
+GET     /assignments/subjects                   controllers.Assignments.subjects()

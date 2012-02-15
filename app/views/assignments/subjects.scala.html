@@ -1,0 +1,15 @@
+@(topLevelSubjects: List[models.assignments.Subject])(implicit req: util.DbRequest[_])
+
+@import controllers.Assignments.asListItem
+
+@main("Question Subjects") {
+
+<h1>Question Subjects</h1>
+
+<ul>
+  @for(s <- topLevelSubjects) {
+    @asListItem(s)
+  }
+</ul>
+
+}
