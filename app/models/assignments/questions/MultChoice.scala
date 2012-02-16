@@ -4,6 +4,7 @@ import xml.NodeSeq
 import play.api.data._
 import javax.jdo.annotations._
 import models.assignments.DbQuestion
+import scala.xml.Elem
 
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 @Discriminator(strategy=DiscriminatorStrategy.CLASS_NAME)
@@ -34,12 +35,20 @@ class MultChoice extends DbQuestion {
   def explanation = _explanation
   def explanation_=(theExpl: NodeSeq) { this._explanation = theExpl }
   
-  def contentXml: NodeSeq = {
+  def asXml: NodeSeq = {
     <question type="MultChoice" hasMultipleAnswers={ this.hasMultipleAnswers.toString } canScrambleAnswers={ this.canScrambleAnswers.toString }>
+      <text>{ text }</text>
+      <answers>{ answers.flatMap(_.asXml) }</answers>
+      <explanation>{ explanation }</explanation>
     </question>
   }
   
+  def populateFields() {
+    val xml: NodeSeq = this.content \ "question"
+  }
+  
   def jdoPreStore() {
+    this.content = asXml
   }
   
   def jdoPostLoad() {
@@ -48,4 +57,7 @@ class MultChoice extends DbQuestion {
 }
 
 case class MultChoiceAnswer(val text: NodeSeq, val isCorrect: Boolean) {
+  def asXml: NodeSeq = {
+    <answer correct={ isCorrect.toString }>{ text }</answer>
+  }
 }
