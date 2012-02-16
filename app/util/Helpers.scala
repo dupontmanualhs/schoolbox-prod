@@ -1,6 +1,6 @@
 package util
 
-import xml.NodeSeq
+import xml.{Elem, NodeSeq}
 import java.util.Locale
 import scala.xml.Node
 import scala.xml.Text
@@ -11,6 +11,11 @@ object Helpers {
     // TODO: this just crashes if someone passes in malformed XML
     val node = XML.loadString("<dummy>" + legalNodeSeq + "</dummy>")
     NodeSeq.fromSeq(node.child);
+  }
+  
+  def string2elem(legalElem: String): Elem = {
+    // TODO: this just crashes if someone passes in malformed XML
+    XML.loadString(legalElem)
   }
   
   def pluralizeInformal(num: Int, word: String): String = {

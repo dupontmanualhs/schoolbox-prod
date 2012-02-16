@@ -1,8 +1,8 @@
 package models.assignments
 
 import javax.jdo.annotations._
-import scala.xml.NodeSeq
-import util.Helpers.string2nodeSeq
+import scala.xml.{NodeSeq, Elem}
+import util.Helpers.{string2elem, string2nodeSeq}
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import javax.jdo.listener.{LoadCallback, StoreCallback}
@@ -31,9 +31,11 @@ abstract class DbQuestion extends LoadCallback with StoreCallback {
   def number: String = _number
   def number_=(theNumber: String) { _number = theNumber }
   
-  protected def content: NodeSeq = string2nodeSeq(_content)
-  protected def content_=(html: NodeSeq) { _content = html.toString }
-  protected def content_=(htmlString: String) { content_=(string2nodeSeq(htmlString)) }
+  protected def content: Elem = string2elem(_content)
+  protected def content_=(xml: Elem) { 
+    // make sure this is a <question>...</question> element
+    _content = xml.toString
+  }
 }
 
 trait QDbQuestion extends PersistableExpression[DbQuestion] {
