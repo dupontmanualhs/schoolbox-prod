@@ -1,33 +1,10 @@
 @(loginForm: Form[(String, String)])(implicit req: util.DbRequest[_])
 
+@import util.Helpers.tableFields
+
 @main("Login") {
-  @helper.form(action = routes.Users.authenticate) {
-  <table>
-  <tr>
-    <td>
-      <label for="@loginForm("username").name">Username</label>
-    </td>
-    <td>
-      <input type="text" name="@loginForm("username").name" value="@loginForm("username").value"/>
-      @loginForm("username").errors.map { error => <br/><div class="error">@error.message</div> }
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <label for="@loginForm("password").name">Password</label>
-    </td>
-    <td>
-      <input type="password" name="@loginForm("password").name" value="@loginForm("password").value"/>
-      @loginForm("password").errors.map { error => <br/><div class="error">@error.message</div> }
-    </td>
-  </tr>
-  @if(!loginForm.errors.isEmpty) {
-    <tr>
-      <td></td>
-      <td><ul class="errorList">@loginForm.errors.map { error => <li class="error">@error.message</li> }</ul></td>
-    </tr>
-  } 
-  </table>
-  <input type="submit" value="Submit" />
+  @views.html.templates.formAsTable(loginForm, routes.Users.authenticate, false) {
+    @helper.inputText(loginForm("username"))
+    @helper.inputPassword(loginForm("password"))
   }
 }

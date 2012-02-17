@@ -5,8 +5,37 @@ import java.util.Locale
 import scala.xml.Node
 import scala.xml.Text
 import scala.xml.XML
+import views.html.helper.FieldConstructor
 
 object Helpers {
+  implicit val tableFields = FieldConstructor(views.html.templates.fieldAsTableRow(_))
+  
+  def camel2TitleCase(camel: Any): Any = {
+    camel match {
+      case s: String if (s.length > 0) => {
+        val buf: StringBuilder = new StringBuilder(s.substring(0, 1).toUpperCase)
+        (1 until s.length) foreach ((index: Int) => {
+          if ((index < s.length - 2) && 
+              Character.isUpperCase(s.charAt(index - 1)) &&
+              Character.isUpperCase(s.charAt(index)) &&
+              Character.isLowerCase(s.charAt(index + 1))) {
+            buf ++= (" " + s.substring(index, index + 1))
+          } else if (Character.isUpperCase(s.charAt(index)) && 
+              !Character.isUpperCase(s.charAt(index - 1))) {
+            buf ++= (" " + s.substring(index, index + 1))
+          } else if (!Character.isLetter(s.charAt(index)) &&
+              Character.isLetter(s.charAt(index - 1))) {
+            buf ++= (" " + s.substring(index, index + 1))
+          } else {
+            buf += s.charAt(index)
+          }
+        })
+        buf.toString
+      }
+      case _ => camel
+    }
+  }
+  
   def string2nodeSeq(legalNodeSeq: String): NodeSeq = {
     // TODO: this just crashes if someone passes in malformed XML
     val node = XML.loadString("<dummy>" + legalNodeSeq + "</dummy>")
