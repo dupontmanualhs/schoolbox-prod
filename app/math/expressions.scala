@@ -1,4 +1,4 @@
-package eschool.math
+package math
 
 //MathExpression subclasses: MathOperation & MathValue (see below),
 //                                         MathTerm

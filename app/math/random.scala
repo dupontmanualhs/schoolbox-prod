@@ -1,6 +1,8 @@
-package eschool.math
+package math
 
-import util.Random
+import scala.math.{round, pow}
+
+import scala.util.Random
 
 object MathRandom {
   private var NumberGenerator = new Random()
@@ -107,8 +109,8 @@ object MathRandom {
   def getRandomDecimal: MathDecimal = getRandomDecimal(defaultRange)
   def getRandomDecimal(range: Range): MathDecimal = getRandomDecimal(range, defaultDecimals)
   def getRandomDecimal(range: Range, decimals: Double): MathDecimal = {
-    val decimal = MathDecimal(math.round((NumberGenerator.nextDouble()*(range.last-range.head) + range.head)*math.pow(10.0, decimals))/math.pow(10.0, decimals))
-    if(decimal.getValue*math.pow(10.0, decimals) % 10 == 0) getRandomDecimal(range, decimals) else decimal
+    val decimal = MathDecimal(round((NumberGenerator.nextDouble()*(range.last-range.head) + range.head)*pow(10.0, decimals))/pow(10.0, decimals))
+    if(decimal.getValue*pow(10.0, decimals) % 10 == 0) getRandomDecimal(range, decimals) else decimal
   }
 
   def getRandomApproximateNumber: MathApproximateNumber = getRandomApproximateNumber(defaultRange)

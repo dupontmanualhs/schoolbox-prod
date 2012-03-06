@@ -1,6 +1,6 @@
-package eschool.math
+package math
 
-import collection.immutable.TreeMap
+import scala.collection.immutable.TreeMap
 
 class MathTerm(coefficient: MathConstant, variableSequence: TreeMap[String, MathInteger]) extends MathExpression {
 	def getCoefficient: MathConstant = coefficient

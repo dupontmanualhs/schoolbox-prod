@@ -1,4 +1,4 @@
-package eschool.math
+package math
 
 object MathImplicitConversions {
 	implicit def bigIntToMathInteger(i: BigInt) = MathInteger(i)

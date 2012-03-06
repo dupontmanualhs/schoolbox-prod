@@ -21,7 +21,7 @@ class MultChoice extends DbQuestion {
   @Persistent(persistenceModifier=PersistenceModifier.NONE)
   private[this] var _explanation: NodeSeq = _
   
-  def hasMultipleAnswers = _hasMultipleAnswers
+  def   hasMultipleAnswers = _hasMultipleAnswers
   def hasMultipleAnswers_=(multAns: Boolean) { this._hasMultipleAnswers = multAns}
   
   def canScrambleAnswers = _canScrambleAnswers
@@ -65,6 +65,8 @@ class MultChoice extends DbQuestion {
   def jdoPostLoad() {
     populateFields() 
   }
+  
+  
 }
 
 case class MultChoiceAnswer(val text: NodeSeq, val isCorrect: Boolean) {

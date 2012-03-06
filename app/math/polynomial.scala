@@ -1,4 +1,4 @@
-package eschool.math
+package math
 
 class MathPolynomial(terms: List[MathTerm]) extends MathExpression {
 	def getTerms: List[MathTerm] = terms

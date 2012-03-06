@@ -1,6 +1,6 @@
-package eschool.math
+package math
 
-import util.matching.Regex
+import scala.util.matching.Regex
 
 abstract class MathOperation(expressions: List[MathExpression]) extends MathExpression {
     def getExpressions = expressions

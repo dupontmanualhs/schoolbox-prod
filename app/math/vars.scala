@@ -1,4 +1,4 @@
-package eschool.math
+package math
 
 class MathVariable(val name: String) extends MathValue {
 	require(name.length == 1 && name.charAt(0).isLetter && !name.equalsIgnoreCase("e") && name != "i", "%s is not a valid MathVariable. MathVariable cannot be \"e\", \"E\", or \"i\"".format(name))

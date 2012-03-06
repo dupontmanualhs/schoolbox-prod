@@ -1,7 +1,4 @@
-package eschool.math
-
-import ch.qos.logback.core.joran.conditional.ElseAction
-import reflect.This
+package math
 
 //MathConstant subclasses: MathConstantPi & MathConstantE (see below)
 //                                      MathNumber (Math numbers.scala)
