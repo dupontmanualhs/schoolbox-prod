@@ -1,5 +1,7 @@
 package math
 
+import scala.collection.immutable.HashMap
+
 class MathPolynomial(terms: List[MathTerm]) extends MathExpression {
 	def getTerms: List[MathTerm] = terms
 	def simplify: MathExpression = new MathPolynomial(this.getTerms)
@@ -38,6 +40,8 @@ class MathPolynomial(terms: List[MathTerm]) extends MathExpression {
 			case _ => false
 		}
 	}
+	
+	override def evaluate(variables : HashMap[MathExpression, MathValue]) = MathInteger(0)
 }
 
 object MathPolynomial {

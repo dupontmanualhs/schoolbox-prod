@@ -49,7 +49,7 @@ object MathNumber {
 		if (i < Integer.MIN_VALUE || i > Integer.MAX_VALUE) {
 			"BigInt(%s)".format(i.toString())
 		} else {
-			"%d".format(i)
+    		"%d".format(i)
 		}
 	}
 }
