@@ -65,7 +65,7 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
         val expression = expressionToSimplify(expressions.head, operationSimplifyExpressions(expressions.tail))
         if(!expression._1.isDefined) expressions.head :: operationSimplifyExpressions(expressions.tail)
         else expression._1.get :: operationSimplifyExpressions(expressions.slice(1, expressions.indexOf(expression._2)) :::
-                                                            expressions.slice(expressions.indexOf(expression) + 1,
+                                                            expressions.slice(expressions.indexOf(expression._2) + 1,
                                                             expressions.size))
     }
 
@@ -147,7 +147,14 @@ class MathSum(expressions: List[MathExpression]) extends MathOperation(expressio
     override def getOperator: String = "+"
     override def getClassName: String = "MathSum"
     override def getPrecedence: Int = 0
-    override def simplify = MathSum(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def simplify: MathExpression = {
+      val simplifiedExpressions = this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions))
+      simplifiedExpressions.size match{
+        case 0 => MathInteger(0)
+        case 1 => simplifiedExpressions.head
+        case _ => MathSum(simplifiedExpressions)
+      }
+    }
     override def binarySimplify(left: MathExpression, right: MathExpression): Option[MathExpression] = {                          //TODO: decide how to simplify decimals with fractions
         (left, right) match{
             case (left: MathConstant, right: MathConstant) => Some(left + right)
