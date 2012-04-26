@@ -64,8 +64,8 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
     private def binarySimplifyExpressions(expressions: List[MathExpression]): List[MathExpression] = {
         val expression = expressionToSimplify(expressions.head, operationSimplifyExpressions(expressions.tail))
         if(!expression._1.isDefined) expressions.head :: operationSimplifyExpressions(expressions.tail)
-        else expression._1.get :: operationSimplifyExpressions(expressions.slice(1, expressions.indexOf(expression._2)) :::
-                                                            expressions.slice(expressions.indexOf(expression._2) + 1,
+        else expression._1.get :: operationSimplifyExpressions(expressions.tail.slice(0, expressions.tail.indexOf(expression._2)) :::
+                                                            expressions.tail.slice(expressions.tail.indexOf(expression._2) + 1,
                                                             expressions.size))
     }
 

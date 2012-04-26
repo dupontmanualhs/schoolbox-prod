@@ -29,4 +29,6 @@ GET     /assignments/sources                    controllers.Assignments.sources(
 GET     /assignments/subjects                   controllers.Assignments.subjects()
 
 #Math
-GET     /math/random                            controllers.Math.randomProblem
+GET     /tatro/mastery                          controllers.Mastery.testMenu()                          
+GET     /math/random                            controllers.Math.randomProblem()
+POST    /math/random                            controllers.Math.checkAnswer(temp)
