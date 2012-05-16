@@ -185,22 +185,43 @@ object MathFraction {
 }
 
 class MathInteger(anInt: BigInt) extends MathExactNumber {
-	def getInt = anInt
-	override def getValue: BigDecimal = BigDecimal(anInt)
-	override def simplify = MathInteger(this.getInt)
-	override def toApproximation: MathApproximateNumber = MathApproximateNumber(BigDecimal(anInt))
-	override def description: String = "MathInteger(%s)".format(MathNumber.intDescription(anInt))
-	override def toLaTeX: String = "" + this.getInt
+  def getInt = anInt
+  override def getValue: BigDecimal = BigDecimal(anInt)
+  override def simplify = MathInteger(this.getInt)
+  override def toApproximation: MathApproximateNumber = MathApproximateNumber(BigDecimal(anInt))
+  override def description: String = "MathInteger(%s)".format(MathNumber.intDescription(anInt))
+  override def toLaTeX: String = "" + this.getInt
+  
+  /**
+   * returns false for any number <= 1. For all other numbers,
+   * checks to see if the number is divisible by 2, 3, and 6k+/-1 for
+   * all k up to the square root of this number. This is very slow for
+   * large numbers.
+   */
+  def isPrime: Boolean = {
+    if (anInt < 2) false
+    else if (anInt == 2 || anInt == 3) true
+    else if (anInt % 2 == 0) false
+    else if (anInt % 3 == 0) false
+    else {
+      def check6kpm1(i: BigInt): Boolean = {
+        val possFact = 6 * i - 1
+        if (possFact * possFact > anInt) true
+        else (anInt % possFact != 0 && anInt % (possFact + 2) != 0 && check6kpm1(i + 1))
+      }
+      check6kpm1(1)
+    }
+  }
 }
 
 object MathInteger {
-	def apply(anInt: BigInt): MathInteger = new MathInteger(anInt)
-	def apply(s: String): Option[MathInteger] = {
-		MathNumber.stringToInt(s) match {
-			case Some(bigInt) => Some(MathInteger(bigInt))
-			case _ => None
-		}
+  def apply(anInt: BigInt): MathInteger = new MathInteger(anInt)
+  def apply(s: String): Option[MathInteger] = {
+	MathNumber.stringToInt(s) match {
+	  case Some(bigInt) => Some(MathInteger(bigInt))
+	  case _ => None
 	}
+  }
 }
 
 
