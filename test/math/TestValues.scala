@@ -82,7 +82,7 @@ class TestValues extends FunSuite {
   test("complex") {
     val oneI = MathExpression("0+1i").get
     assert(oneI.description === "MathComplexNumber(MathInteger(0), MathInteger(1))")
-    assert(oneI.toLaTeX === "0+i")
+    assert(oneI.toLaTeX === "i")
     val approx = MathExpression("\\approx(\\frac{3}{5}-\\frac{2}{3}i)").get
     assert(approx.description === "MathComplexNumber(MathApproximateNumber(0.6), MathApproximateNumber(-0.6666666666666666))")
     assert(approx.toLaTeX === "\\approx(0.6-0.6666666666666666i)")

@@ -20,8 +20,8 @@ class TestOperations extends FunSuite {
 	
   test("products" ){
 	val sixTimesSix = MathInteger(6) * MathInteger(6)
-	assert(sixTimesSix.description === "MathProduct(MathInteger(6), MathInteger(6))")
-	assert(sixTimesSix.toLaTeX === "6\\cdot6")
+	assert(sixTimesSix.description === "MathIneger(36)")
+	assert(sixTimesSix.toLaTeX === "36")
 	//assert(sixTimesSix.simplify === MathInteger(36))
 
 	val sixTimesSixTimesTwo = MathInteger(6) * MathInteger(6) * MathInteger(2)
