@@ -95,6 +95,10 @@ object MathRandom {
       case 2 => getRandomDecimal(range, decimals)
     }
   }
+  
+  def getInt(min: Int, max: Int): MathInteger = {
+    MathInteger(NumberGenerator.nextInt(max - min + 1) + min) 
+  }
 
   def getRandomInteger: MathInteger = getRandomInteger(defaultRange, defaultDecimals)
   def getRandomInteger(range: Range): MathInteger = getRandomInteger(range, defaultDecimals)

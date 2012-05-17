@@ -35,6 +35,12 @@ class TestValues extends FunSuite {
     val negative: MathValue = MathValue("-1").get
     assert(negative.description === "MathInteger(-1)")
     assert(negative.toLaTeX === "-1")
+    for (i <- List(-3, 0, 1, 4, 9, 12, 51, 95)) {
+      assert(MathInteger(i).isPrime === false, i.toString + " is not prime")
+    }
+    for (i <- List(2, 3, 5, 7, 11, 13, 97, 1493)) {
+      assert(MathInteger(i).isPrime === true, i.toString + " is prime")
+    }
   }
 
   test("fractions") {
