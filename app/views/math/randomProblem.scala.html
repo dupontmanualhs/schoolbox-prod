@@ -3,7 +3,7 @@
 @import helper._
 
 @main("Look Ma' I'm Random") {
-	<pre>@expr @temp</pre>
+	<pre>@expr</pre>
 	<br />
 	@form(routes.Math.checkAnswer(temp)) {
 		@inputText(ansForm("answer"))
@@ -11,9 +11,9 @@
 	}
 	<br />
 	@if(isCorrect == 1) {
-		SWEET!
-	} 
+		<div style = color:Green> You are correct! </div>
+	}
 	@if(isCorrect == 2) {
-		DOH
+		<div style = color:Red> You are wrong, and you and your spawn will face the consequences of this failure for all of eternity!</div>
 	}
 }

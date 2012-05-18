@@ -82,10 +82,6 @@ object MathRandom {
       case 2 => getDecimal(range, decimals)
     }
   }
-  
-  def getInt(min: Int, max: Int): MathInteger = {
-    MathInteger(NumberGenerator.nextInt(max - min + 1) + min) 
-  }
 
   def getInteger(range: (Int, Int) = defaultRange) = MathInteger(NumberGenerator.nextInt(range._2 - range._1 + 1) + range._1)
 
