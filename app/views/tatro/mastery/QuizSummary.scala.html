@@ -1,11 +1,11 @@
-@(answers: Answers)(implicit req: util.DbRequest[_])
+@(answers: List[String])(implicit req: util.DbRequest[_])
 
 @import helper._
 @import quizzes._
 
 @main("Quiz Report") {
 <h2>why wont anything work</h2>
-	@answers.answers.map { answer =>
-		<p>@answer.ans</p>
+	@answers.map { answer =>
+		<p>@answer</p>
 	}
 }

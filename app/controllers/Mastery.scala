@@ -17,13 +17,7 @@ object Mastery extends Controller {
   
   
   val ansForm = Form {
-    mapping(
-    		"answers" -> seq(
-    				mapping(
-    		        "answer" -> text
-    		        )(Answer.apply)(Answer.unapply)
-    		    )
-    		)(Answers.apply)(Answers.unapply)
+    	"answer" -> list(text)
   }
   
   def menuOfTests() = DbAction { implicit req =>
