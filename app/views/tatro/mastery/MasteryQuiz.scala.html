@@ -1,0 +1,19 @@
+@(quizName: String, ansForm: Form[Answers])(implicit req: util.DbRequest[_])
+
+@import helper._
+@import quizzes._
+
+@main(quizName) {
+	
+	@form(routes.Mastery.checkAnswers(quizName)) {
+		<ol>
+			@Quiz.quiz1.questions.map { question =>
+				<li> @question.question 
+				@inputText(ansForm("answer"), '_label -> "")
+				</li>
+			}
+		</ol>
+		<input type="submit" value="Submit" />
+	}
+	
+}

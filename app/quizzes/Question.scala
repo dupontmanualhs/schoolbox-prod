@@ -1,7 +1,5 @@
 package quizzes
 
-class Question(question: String, answer: String) {
+class Question(val question: String,val answer: String) {
 	
-	def getQuestion: String = question
-	def getAnswer: String = answer
 }
