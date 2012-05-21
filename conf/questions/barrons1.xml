@@ -1,0 +1,13 @@
+<questions>
+<question type="MultChoice" hasMultipleAnswers="false" canScrambleAnswers="true" source="Barrons Chapter 1" number="1">
+<text format="markdownExtended">Which of the following pairs of declarations will cause an error message?
+
+I)    double x = 14.7;
+    int y = x;
+II)    double x = 14.7;
+    int y = (int) x;
+III)     int x = 14;
+    doubly y = x;</text>
+<answers>{ answers.flatMap(_.asXml) }</answers>
+      <explanation>{ explanation }</explanation>
+    </question>
