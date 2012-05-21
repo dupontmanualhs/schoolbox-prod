@@ -1,0 +1,29 @@
+@(newQuestion: Form[(String, String, String)], kinds: List[(String, String)], newKind: Boolean)(implicit req: util.DbRequest[_])
+
+@import helper._
+
+@main("Questions") {
+	<h2>Insert New Questions</h2>
+	@form(routes.Assignments.submitQuestion(newKind)){
+		@if(newKind){
+			@inputText(newQuestion("kind"), '_label -> "Question Type")
+		}
+		@if(!newKind){
+			@select( 
+				field = newQuestion("kind"),
+				options = kinds,
+				args = '_label -> "Question Type"
+			)
+			<a href = @routes.Assignments.newKind()>Add new type</a>
+		}
+	
+		@inputText(newQuestion("question"), '_label -> "Question Text")
+	
+		@inputText(newQuestion("answer"), '_label -> "Answer")
+	
+		<p class="buttons">
+            <input type="submit" id="submit">
+    	</p>
+    }
+}
+		

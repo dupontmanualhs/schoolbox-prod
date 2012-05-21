@@ -7,8 +7,21 @@ import models.assignments.{QSource, Source, QSubject, Subject}
 import util.ScalaPersistenceManager
 import util.DbRequest
 import play.api.templates.Html
+import play.api.data._
+import play.api.data.Forms._
+
 
 object Assignments extends Controller {
+  val newQuestion = Form {
+    tuple(
+   		"kind" -> nonEmptyText,
+    	"question" -> nonEmptyText,
+    	"answer" -> nonEmptyText
+    )
+  }
+  
+  val options = List(("math", "Math"), ("science", "Science"), ("english", "English"), ("social Studies", "Social Studies"))
+  
   def sources() = DbAction { implicit req =>
     implicit val pm = req.pm
     val cand = QSource.candidate
@@ -37,6 +50,23 @@ object Assignments extends Controller {
       case Nil => <li>{ subject.name }</li>
       case children: List[_] => <li>{ subject.name }<ul>{ children.map(asListItem(_)) }</ul></li>
     }
+  }
+  
+  def addQuestion() = DbAction { implicit req =>
+  	Ok(views.html.questions(newQuestion, options, false))
+  } 
+  
+  def submitQuestion(newKind: Boolean) = DbAction{ implicit req =>
+    newQuestion.bindFromRequest.fold(
+   	  errors => BadRequest(views.html.questions(errors, options, newKind)),
+      value =>
+      //add question to the database
+      Ok(views.html.questions(newQuestion, options, newKind))
+    )
+  }
+  
+  def newKind() = DbAction{ implicit req =>
+    Ok(views.html.questions(newQuestion, options, true))
   }
 
 
