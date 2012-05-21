@@ -31,7 +31,7 @@ object Mastery extends Controller {
   def checkAnswers(quizName: String) = DbAction { implicit req =>
       ansForm.bindFromRequest.fold(
     		  errors => BadRequest(views.html.tatro.mastery.MasteryQuiz(quizName, errors)),
-    		  answers => Ok(views.html.tatro.mastery.QuizSummary(answers))
+    		  value => Ok(views.html.tatro.mastery.QuizSummary(value))
     )
   }
 
