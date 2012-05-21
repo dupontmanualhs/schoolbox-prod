@@ -4,8 +4,16 @@
 @import quizzes._
 
 @main("Quiz Report") {
-<h2>why wont anything work</h2>
-	@answers.map { answer =>
-		<p>@answer</p>
-	}
+<h2>Did you master?</h2>
+	<ol>
+		@for(index <- 0 to (Quiz.quiz1.questions.size - 1)) {
+			<li> @Quiz.quiz1.questions(index).question 
+				@if(Quiz.quiz1.questions(index).answer == answers(index)){  
+				<div style = color:Green> Your Answer: @answers(index) </div> }
+				@if(Quiz.quiz1.questions(index).answer != answers(index)) {
+					<div style = color:Red> Your Answer: @answers(index) </div> 
+					Correct Answer: @Quiz.quiz1.questions(index).answer}
+			</li>
+	 	}
+	</ol>
 }

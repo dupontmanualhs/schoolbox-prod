@@ -3,13 +3,21 @@
 @import helper._
 @import quizzes._
 
+@** @val questions = Quiz.quiz1.questions **@
+ 
+@ansField(form: Form[List[String]], index: Integer) = {
+<div>
+@inputText(form("answer[" + index + "]"), '_label -> "")
+</div>
+}
+
 @main(quizName) {
 	
 	@form(routes.Mastery.checkAnswers(quizName)) {
 		<ol>
-			@Quiz.quiz1.questions.map { question =>
-				<li> @question.question 
-				@inputText(ansForm("answer[x]"), '_label -> "")
+			@for(index <- 0 to (Quiz.quiz1.questions.size - 1)) {
+				<li> @Quiz.quiz1.questions(index).question 
+				@ansField(ansForm, index)
 				</li>
 			}
 		</ol>
