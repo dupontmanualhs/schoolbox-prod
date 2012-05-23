@@ -1,11 +1,11 @@
 @(quizName: String, ansForm: Form[List[String]])(implicit req: util.DbRequest[_])
 
 @import helper._
-@import quizzes._
+@import _root_.quizzes.{Question, Quiz}
 
 @** @val questions = Quiz.quiz1.questions **@
  
-@ansField(form: Form[List[String]], index: Integer) = {
+@ansField(form: Form[List[String]], index: Int) = {
 <div>
 @inputText(form("answer[" + index + "]"), '_label -> "")
 </div>

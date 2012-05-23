@@ -1,4 +1,4 @@
-package models.quizzes
+package models.mastery
 
 import java.sql.Timestamp
 import javax.jdo.annotations._

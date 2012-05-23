@@ -1,4 +1,4 @@
-package models.quizzes
+package models.mastery
 
 import javax.jdo.annotations._
 

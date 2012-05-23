@@ -21,7 +21,7 @@ object ApplicationBuild extends Build {
       "javax.jdo" % "jdo-api" % "3.0",
       "org.datanucleus" % "datanucleus-rdbms" % "3.0.5",
       "org.datanucleus" % "datanucleus-jodatime" % "3.0.1",
-      "com.h2database" % "h2" % "1.3.160",
+      "com.h2database" % "h2" % "1.3.165",
       "org.scalatest" %% "scalatest" % "1.7.2" % "test"
     )
 

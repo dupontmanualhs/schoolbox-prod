@@ -1,4 +1,4 @@
-package models.quizzes
+package models.mastery
 
 import javax.jdo.annotations._
 
@@ -17,14 +17,14 @@ class QuizTemplate {
   @Column(allowsNull="false")
   private[this] var _name: String = _
   
-  @Element(types=Array(classOf[Kind]))
+  @Element(types=Array(classOf[QuestionSet]))
   @Join
-  private[this] var _questions: java.util.List[Kind] = _
+  private[this] var _questionSets: java.util.List[QuestionSet] = _
   
-  def this(name: String, questions: List[Kind]) = {
+  def this(name: String, questionSets: List[QuestionSet]) = {
     this()
     name_=(name)
-    questions_=(questions)
+    questionSets_=(questionSets)
   }
   
   def id: Long = _id
@@ -32,8 +32,8 @@ class QuizTemplate {
   def name: String = _name
   def name_=(theName: String) { _name = theName }
   
-  def questions: List[Kind] = _questions.asScala.toList
-  def questions_=(theQuestions: List[Kind]) { _questions = theQuestions.asJava }
+  def questionSets: List[QuestionSet] = _questionSets.asScala.toList
+  def questionSets_=(theQuestionSets: List[QuestionSet]) { _questionSets = theQuestionSets.asJava }
 }
 
 trait QQuizTemplate extends PersistableExpression[QuizTemplate] {
@@ -43,9 +43,9 @@ trait QQuizTemplate extends PersistableExpression[QuizTemplate] {
   private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
   def name: StringExpression = _name
   
-  private[this] lazy val _questions: CollectionExpression[java.util.List[Kind], Kind] = 
-      new CollectionExpressionImpl[java.util.List[Kind], Kind](this, "_questions")
-  def questions: CollectionExpression[java.util.List[Kind], Kind] = _questions
+  private[this] lazy val _questionSets: CollectionExpression[java.util.List[QuestionSet], QuestionSet] = 
+      new CollectionExpressionImpl[java.util.List[QuestionSet], QuestionSet](this, "_questionSets")
+  def questions: CollectionExpression[java.util.List[QuestionSet], QuestionSet] = _questionSets
 }
 
 object QQuizTemplate {

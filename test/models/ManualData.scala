@@ -1,13 +1,13 @@
 package models
 
 import scala.collection.JavaConversions._
-import xml.{Node, Elem, XML}
+import xml.{ Node, Elem, XML }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
-import org.apache.poi.ss.usermodel.{Sheet, Row, WorkbookFactory}
+import org.apache.poi.ss.usermodel.{ Sheet, Row, WorkbookFactory }
 import models.users._
 import models.courses._
-import util.{DataStore, ScalaPersistenceManager}
+import util.{ DataStore, ScalaPersistenceManager }
 import java.io.File
 import models.assignments.AssignmentData
 
@@ -17,20 +17,20 @@ object ManualData {
   def load(debug: Boolean = false) {
     val dbFile = new File("data.h2.db")
     dbFile.delete()
-    DataStore.withManager { implicit pm => 
+    DataStore.withManager { implicit pm =>
       loadManualData(debug)
       AssignmentData.load(debug)
-	  pm.close()
+      pm.close()
     }
   }
-  
+
   def loadManualData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
-	  createYearsAndTerms(debug)
-	  loadStudents(debug)
-	  loadTeachers(debug)
-	  loadCourses(debug)
-	  loadSections(debug)
-	  loadEnrollments(debug)    
+    createYearsAndTerms(debug)
+    loadStudents(debug)
+    loadTeachers(debug)
+    loadCourses(debug)
+    loadSections(debug)
+    loadEnrollments(debug)
   }
 
   def createYearsAndTerms(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
@@ -42,10 +42,10 @@ object ManualData {
     val spring2012 = new Term("Spring 2012", acadYear, "s12", new LocalDate(2012, 1, 3), new LocalDate(2012, 5, 25))
     pm.makePersistent(spring2012)
     val periods: List[Period] = List(
-        new Period("Red 1", 1), new Period("Red 2", 2), new Period("Red 3", 3), new Period("Red 4", 4),
-        new Period("Red Activity", 5), new Period("Red Advisory", 6),
-        new Period("White 1", 7), new Period("White 2", 8), new Period("White 3", 9), new Period("White 4", 10),
-        new Period("White Activity", 11), new Period("White Advisory", 12))
+      new Period("Red 1", 1), new Period("Red 2", 2), new Period("Red 3", 3), new Period("Red 4", 4),
+      new Period("Red Activity", 5), new Period("Red Advisory", 6),
+      new Period("White 1", 7), new Period("White 2", 8), new Period("White 3", 9), new Period("White 4", 10),
+      new Period("White Activity", 11), new Period("White Advisory", 12))
     pm.makePersistentAll(periods)
     if (debug) println("Created AcademicYear, Terms, and Periods")
     pm.commitTransaction()
@@ -72,7 +72,7 @@ object ManualData {
         println("#: %s, id: %s, grade: %d".format(studentNumber, stateId, grade))
         println("name: %s, magnet: %s, gender: %s".format(username, teamName, gender))
       }
-       // create User
+      // create User
       val user = new User(username, first, Some(middle), last, None, gender, null, "temp123")
       pm.makePersistent(user)
       if (debug) println("user saved")
@@ -168,10 +168,10 @@ object ManualData {
 
   def loadEnrollments(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
     pm.beginTransaction()
-	import scala.collection.JavaConversions.asScalaSet
+    import scala.collection.JavaConversions.asScalaSet
     val doc = XML.load(getClass.getResourceAsStream("/manual-data/Schedule.xml"))
     val enrollments = doc \\ "student"
-    enrollments foreach  ((enrollment: Node) => {
+    enrollments foreach ((enrollment: Node) => {
       var isOk = true
       val sectionId = asIdNumber((enrollment \ "@courseSection.sectionID").text)
       val maybeSection: Option[Section] = pm.query[Section].filter(QSection.candidate.sectionId.eq(sectionId)).executeOption()
@@ -199,12 +199,12 @@ object ManualData {
     val format = DateTimeFormat.forPattern("MM/dd/yyyy")
     date match {
       case "" => null
-      case _ =>  format.parseDateTime(date).toLocalDate
+      case _ => format.parseDateTime(date).toLocalDate
     }
   }
 
   def periodNames(dayStart: String, dayEnd: String,
-                  periodStart: String, periodEnd: String): List[String] = {
+    periodStart: String, periodEnd: String): List[String] = {
     val days = List(dayStart, dayEnd).distinct map ((d: String) => {
       d match {
         case "RED" => "Red"
