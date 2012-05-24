@@ -36,6 +36,6 @@ GET 	/assignments/newType					controllers.Assignments.newKind()
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
 GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
-POST    /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
+#POST    /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
 GET     /math/random                            controllers.Math.randomProblem()
 POST    /math/random                            controllers.Math.checkAnswer(temp)

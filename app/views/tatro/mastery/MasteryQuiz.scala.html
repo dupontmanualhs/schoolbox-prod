@@ -1,27 +1,17 @@
-@(quizName: String, ansForm: Form[List[String]])(implicit req: util.DbRequest[_])
+@(quizName: String, questions: List[mastery.Question])(implicit req: util.DbRequest[_])
 
 @import helper._
 @import _root_.quizzes.{Question, Quiz}
 
-@** @val questions = Quiz.quiz1.questions **@
- 
-@ansField(form: Form[List[String]], index: Int) = {
-<div>
-@inputText(form("answer[" + index + "]"), '_label -> "")
-</div>
-}
-
 @main(quizName) {
 	
-	@form(routes.Mastery.checkAnswers(quizName)) {
+	@** @form(routes.Mastery.checkAnswers(quizName)) { **@
 		<ol>
-			@for(index <- 0 to (Quiz.quiz1.questions.size - 1)) {
-				<li> @Quiz.quiz1.questions(index).question 
-				@ansField(ansForm, index)
+			@for(index <- 0 to (questions.size - 1)) {
+				<li> @questions(index).text ==== @questions(index).answer
 				</li>
 			}
 		</ol>
 		<input type="submit" value="Submit" />
-	}
 	
 }

@@ -1,8 +1,9 @@
 package models.mastery
 import javax.jdo.annotations._
-
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import util.ScalaPersistenceManager
+import scala.util.Random
 
 @PersistenceCapable(detachable="true")
 class QuestionSet {
@@ -30,6 +31,14 @@ class QuestionSet {
   
   def kind: Kind = _kind
   def kind_=(theKind: Kind) { _kind = theKind }
+  
+  def getRandom(implicit pm: ScalaPersistenceManager): List[Question] = {
+    val candKind: QKind = QKind.candidate
+    val candQuest: QQuestion = QQuestion.candidate
+    //TODO: this grabs all questions from the database and is probably inefficient
+    val qsOfKind: List[Question] = Random.shuffle(pm.query[Question].filter(candQuest.kind.eq(kind)).executeList())
+    qsOfKind.slice(0, howMany)
+  }
 }
 
 trait QQuestionSet extends PersistableExpression[QuestionSet] {
