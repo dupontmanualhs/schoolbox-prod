@@ -1,4 +1,5 @@
 package math
+import scala.collection.immutable.HashMap
 
 //MathExpression subclasses: MathOperation & MathValue (see below),
 //                                         MathTerm
@@ -7,6 +8,7 @@ trait MathExpression {
 	def getPrecedence: Int
 	def toLaTeX: String
 	def description: String
+	def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression
 	override def toString = this.toLaTeX
 	def +(operand: MathExpression): MathExpression = {
 	  (this, operand) match {
@@ -42,11 +44,13 @@ trait MathExpression {
 			case constant: MathConstant => constant.getValue < 0
 			case term: MathTerm => term.getCoefficient.getValue < 0
 			case neg: MathNegation => true
-			case basicOp: MathOperation if (basicOp != Nil && basicOp.is_Sum_or_Difference_or_Product_or_Quotient) => basicOp.getExpressions.head.isNegative
+			case basicOp: MathOperation if (basicOp != Nil && basicOp.hasTwoSides) => basicOp.getExpressions.head.isNegative
 			case _ => false
 		}
 	}
-	def is_Sum_or_Difference_or_Product_or_Quotient: Boolean = {
+	
+	//returns true if an operator takes two arguments
+	def hasTwoSides: Boolean = {
 		this match {
 			case sum: MathSum => true
 			case dif: MathDifference => true
@@ -57,7 +61,7 @@ trait MathExpression {
 	}
 	def simplePrecedence: Int = {
 		this match {
-			case expr: MathOperation if (expr.is_Sum_or_Difference_or_Product_or_Quotient) => expr.getPrecedence / 2
+			case expr: MathOperation if (expr.hasTwoSides) => expr.getPrecedence / 2
 			case _ => this.getPrecedence
 		}
 	}
@@ -106,6 +110,14 @@ object MathExpression {
 	}
 	private def removeFirstPlusIn(s: String): String = {
 		"""^\+""".r.replaceFirstIn(s, "")
+	}
+	//returns either the original variable/expression or the value it represents in the HashMap
+	def checkVar(expr: MathExpression, variables: HashMap[MathExpression, MathValue]): MathExpression = {
+	  if(expr.isInstanceOf[MathVariable]){
+	    variables.getOrElse(expr.asInstanceOf[MathVariable], expr)
+	  } else {
+	    expr
+	  }
 	}
 }
 

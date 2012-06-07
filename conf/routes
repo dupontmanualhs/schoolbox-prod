@@ -5,6 +5,9 @@
 # Home page
 GET     /                           controllers.Application.index()
 
+# Stub 
+GET     /stub						controllers.Application.stub()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
@@ -12,8 +15,8 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET		/login						controllers.Users.login()
 POST    /login						controllers.Users.authenticate() 
 GET     /logout                     controllers.Users.logout()
-#GET     /settings                   controllers.Users.settings()
-#POST    /settings                   controllers.Users.updateSettings()
+#GET    /settings                   controllers.Users.settings()
+#POST   /settings                   controllers.Users.updateSettings()
 GET     /changePassword             controllers.Users.changePassword()
 POST    /changePassword             controllers.Users.updatePassword()
 GET     /listUsers                  controllers.Users.list()
@@ -27,3 +30,12 @@ GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSc
 #Assignments
 GET     /assignments/sources                    controllers.Assignments.sources()
 GET     /assignments/subjects                   controllers.Assignments.subjects()
+GET     /assignments/questions					controllers.Assignments.addQuestion()
+POST    /assignments/questions					controllers.Assignments.submitQuestion(newKind: Boolean)
+GET 	/assignments/newType					controllers.Assignments.newKind()
+#Math
+GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
+GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
+#POST    /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
+GET     /math/random                            controllers.Math.randomProblem()
+POST    /math/random                            controllers.Math.checkAnswer(temp)

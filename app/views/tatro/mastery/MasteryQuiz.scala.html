@@ -1,0 +1,17 @@
+@(quizName: String, questions: List[mastery.Question])(implicit req: util.DbRequest[_])
+
+@import helper._
+@import _root_.quizzes.{Question, Quiz}
+
+@main(quizName) {
+	
+	@** @form(routes.Mastery.checkAnswers(quizName)) { **@
+		<ol>
+			@for(index <- 0 to (questions.size - 1)) {
+				<li> @questions(index).text ==== @questions(index).answer
+				</li>
+			}
+		</ol>
+		<input type="submit" value="Submit" />
+	
+}

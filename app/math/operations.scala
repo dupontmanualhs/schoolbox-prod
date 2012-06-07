@@ -1,6 +1,7 @@
 package math
 
 import scala.util.matching.Regex
+import scala.collection.immutable.HashMap
 
 abstract class MathOperation(expressions: List[MathExpression]) extends MathExpression {
     def getExpressions = expressions
@@ -33,7 +34,7 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
         ((outsideExpression.isInstanceOf[MathDifference] || outsideExpression.isInstanceOf[MathQuotient]) && (expressionToTest.getPrecedence <= outsideExpression.getPrecedence || expressionToTest.isNegative)) ||
             (expressionToTest.getPrecedence < outsideExpression.getPrecedence) ||
             (expressionToTest.isInstanceOf[MathNegation]) ||
-            (expressionToTest.isNegative && (outsideExpression.is_Sum_or_Difference_or_Product_or_Quotient || outsideExpression.isInstanceOf[MathNegation]))
+            (expressionToTest.isNegative && (outsideExpression.hasTwoSides || outsideExpression.isInstanceOf[MathNegation]))
     }
 
     override def equals(that: Any): Boolean = {
@@ -62,18 +63,18 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
 
     private def binarySimplifyExpressions(expressions: List[MathExpression]): List[MathExpression] = {
         val expression = expressionToSimplify(expressions.head, operationSimplifyExpressions(expressions.tail))
-        if(!expression.isDefined) expressions.head :: operationSimplifyExpressions(expressions.tail)
-        else expression.get :: operationSimplifyExpressions(expressions.slice(1, expressions.indexOf(expression)) :::
-                                                             expressions.slice(expressions.indexOf(expression) + 1,
-                                                         expressions.size))
+        if(!expression._1.isDefined) expressions.head :: operationSimplifyExpressions(expressions.tail)
+        else expression._1.get :: operationSimplifyExpressions(expressions.tail.slice(0, expressions.tail.indexOf(expression._2)) :::
+                                                            expressions.tail.slice(expressions.tail.indexOf(expression._2) + 1,
+                                                            expressions.size))
     }
 
-    private def expressionToSimplify(firstExpression: MathExpression, expressions: List[MathExpression]): Option[MathExpression] = {
+    private def expressionToSimplify(firstExpression: MathExpression, expressions: List[MathExpression]): (Option[MathExpression], MathExpression) = {
         for(expression <- expressions){
             val potentialSimplify: Option[MathExpression] = binarySimplify(firstExpression, expression)
-            if(potentialSimplify.isDefined) return potentialSimplify
+            if(potentialSimplify.isDefined) return (potentialSimplify, expression)
         }
-        None
+        (None, MathInteger(0))
     }
 }
 object MathOperation {
@@ -146,12 +147,22 @@ class MathSum(expressions: List[MathExpression]) extends MathOperation(expressio
     override def getOperator: String = "+"
     override def getClassName: String = "MathSum"
     override def getPrecedence: Int = 0
-    override def simplify = MathSum(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def simplify: MathExpression = {
+      val simplifiedExpressions = this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions))
+      simplifiedExpressions.size match{
+        case 0 => MathInteger(0)
+        case 1 => simplifiedExpressions.head
+        case _ => MathSum(simplifiedExpressions)
+      }
+    }
     override def binarySimplify(left: MathExpression, right: MathExpression): Option[MathExpression] = {                          //TODO: decide how to simplify decimals with fractions
         (left, right) match{
             case (left: MathConstant, right: MathConstant) => Some(left + right)
             case _ => None
         }
+    }
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+      MathSum(this.expressions.map(n => MathExpression.checkVar(n, variables))).simplify
     }
 }
 
@@ -165,6 +176,9 @@ class MathDifference(expressions: List[MathExpression]) extends MathOperation(ex
     override def getClassName: String = "MathDifference"
     override def getPrecedence: Int = 1
     override def simplify = MathDifference(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+      this
+    }
 }
 object MathDifference {
     def apply(expressions: List[MathExpression]) = new MathDifference(expressions)
@@ -176,6 +190,9 @@ class MathProduct(expressions: List[MathExpression]) extends MathOperation(expre
     override def getClassName: String = "MathProduct"
     override def getPrecedence: Int = 2
     override def simplify = MathProduct(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+      this
+    }
 }
 object MathProduct {
     def apply(expressions: List[MathExpression]) = new MathProduct(expressions)
@@ -187,6 +204,9 @@ class MathQuotient(expressions: List[MathExpression]) extends MathOperation(expr
     override def getClassName: String = "MathQuotient"
     override def getPrecedence: Int = 2
     override def simplify = MathQuotient(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+      this
+    }
 }
 object MathQuotient {
     def apply(expressions: List[MathExpression]) = new MathQuotient(expressions)
@@ -202,6 +222,9 @@ class MathExponentiation(expression: MathExpression, exponent: MathExpression) e
     override def getOperator: String = "^"
     override def getClassName: String = "MathExponentiation"
     override def toLaTeX: String = this.expressionLaTeX(this.getExpression) + this.getOperator + "{" + this.getExponent.toLaTeX + "}"
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+      this
+    }
 }
 
 object MathExponentiation {
@@ -217,6 +240,9 @@ class MathLogarithm(val base: MathExpression, expression: MathExpression) extend
     override def getClassName: String = "MathLogarithm"
     override def simplify: MathExpression = new MathLogarithm(this.getBase, this.getExpression)
     override def description: String = "MathLogarithm(Base: %s, Expression: %s)".format(this.getBase.description, this.getExpression.description)
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+      this
+    }
 }
 
 object MathLogarithm {
@@ -365,6 +391,9 @@ class MathNegation(expression: MathExpression) extends MathOperation(List[MathEx
     override def getPrecedence: Int = MathNegation.getPrecedence
     override def simplify: MathExpression = new MathNegation(this.getExpression)
     override def toLaTeX: String = this.getOperator + this.expressionLaTeX(this.getExpression)
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+      this
+    }
 }
 
 object MathNegation {

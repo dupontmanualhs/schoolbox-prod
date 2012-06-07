@@ -1,6 +1,7 @@
 package math
 
 import scala.collection.immutable.TreeMap
+import scala.collection.immutable.HashMap
 
 class MathTerm(coefficient: MathConstant, variableSequence: TreeMap[String, MathInteger]) extends MathExpression {
 	def getCoefficient: MathConstant = coefficient
@@ -69,6 +70,8 @@ class MathTerm(coefficient: MathConstant, variableSequence: TreeMap[String, Math
 			case _ => false
 		}
 	}
+	
+	override def evaluate(variables : HashMap[MathExpression, MathValue]) = MathInteger(0)
 }
 
 object MathTerm {

@@ -1,5 +1,7 @@
 package math
 
+import scala.collection.immutable.HashMap
+
 class MathVariable(val name: String) extends MathValue {
 	require(name.length == 1 && name.charAt(0).isLetter && !name.equalsIgnoreCase("e") && name != "i", "%s is not a valid MathVariable. MathVariable cannot be \"e\", \"E\", or \"i\"".format(name))
 	def getName: String = name
@@ -13,6 +15,9 @@ class MathVariable(val name: String) extends MathValue {
 			case that: MathVariable => (that.getName == this.getName)
 			case _ => false
 		}
+	}
+	override def evaluate(variables : HashMap[MathExpression, MathValue]) = {
+	  MathExpression.checkVar(this, variables)
 	}
 }
 

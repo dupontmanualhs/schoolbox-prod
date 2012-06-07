@@ -1,5 +1,7 @@
 package math
 
+import scala.collection.immutable.HashMap
+
 //MathConstant subclasses: MathConstantPi & MathConstantE (see below)
 //                                      MathNumber (Math numbers.scala)
 abstract class MathConstant extends MathValue {
@@ -63,6 +65,7 @@ abstract class MathConstant extends MathValue {
             case _ => if(this == right) MathInteger(1) else MathQuotient(this, right)
         }
     }
+    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = this
 }
 
 object MathConstant {

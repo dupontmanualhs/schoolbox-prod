@@ -1,6 +1,6 @@
 package util
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import javax.jdo.JDOHelper
 import org.datanucleus.api.jdo.JDOPersistenceManager
 import org.datanucleus.query.typesafe.{BooleanExpression, OrderExpression, TypesafeQuery}
@@ -10,6 +10,7 @@ import javax.jdo.PersistenceManagerFactory
 import org.datanucleus.api.jdo.query.JDOTypesafeQuery
 import javax.jdo.PersistenceManager
 import javax.jdo.spi.PersistenceCapable
+import org.datanucleus.query.typesafe.Expression
 
 object DataStore {
   private[this] var _pmf: Option[JDOPersistenceManagerFactory] = None
@@ -85,7 +86,7 @@ class ScalaPersistenceManager(val jpm: JDOPersistenceManager) {
   }
   
   def makePersistentAll[T](dataObjs: Iterable[T]): Iterable[T] = {
-    jpm.makePersistentAll[T](dataObjs)
+    jpm.makePersistentAll[T](dataObjs.toList: _*)
   }
   
   def query[T: ClassManifest](): ScalaQuery[T] = ScalaQuery[T](jpm)
@@ -110,8 +111,11 @@ class ScalaQuery[T](val query: TypesafeQuery[T]) {
   }
   
   def executeList(): List[T] = {
-    import scala.collection.JavaConverters._
     query.executeList().asScala.toList
+  }
+  
+  def executeResultList[R](distinct: Boolean, expr: Expression[R])(implicit man: Manifest[R]): List[R] = {
+    query.executeResultList[R](classManifest[R].erasure.asInstanceOf[Class[R]], distinct, expr).asScala.toList
   }
   
   def filter(expr: BooleanExpression): ScalaQuery[T] = {
