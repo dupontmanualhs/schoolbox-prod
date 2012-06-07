@@ -346,7 +346,7 @@ class MathComplexNumber(val real: MathRealNumber, val imag: MathRealNumber) exte
 		if (isApproximation) "\\approx(%s)".format(complexString) else complexString
 	}
 
-	def description: String = "MathComplexNumber(%s, %s)".format(getReal.description, getImaginary.description)
+	def description: String = "MathComplexNumber(%s, %s)".format(real.description, imag.description)
 
 	override def equals(that: Any): Boolean = {
 		that match {
