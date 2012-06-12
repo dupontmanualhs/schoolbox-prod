@@ -10,6 +10,7 @@ import scala.xml.NodeSeq
 import play.api.mvc.Result
 import util.DbRequest
 import util.ScalaPersistenceManager
+import scala.xml.Text
 
 
 object Courses extends Controller {  
@@ -33,6 +34,7 @@ object Courses extends Controller {
     studentSchedule(Student.getByUsername(username), Term.getBySlug(termSlug))
   }
   
+  // only this student, his/her parent, or a teacher should be able to see this schedule
   def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term])(implicit req: DbRequest[_]): Result = {
     implicit val pm = req.pm
     if (!maybeStudent.isDefined) {
@@ -52,14 +54,15 @@ object Courses extends Controller {
 	    val sectionsThisPeriod = sections.filter(_.periods.contains(p))
 	    <tr>
           <td>{ p.name }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(_.course.name), <br/>) }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(_.teachers.map(_.user.formalName).mkString("; ")), <br/>) }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(_.room.name), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.formalName).mkString("; "))), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
         </tr>
 	  }
 	  Ok(html.courses.studentSchedule(student.user, term, table))
     }
   }
+  
   
   def teacherSchedule(maybeTeacher: Option[Teacher], maybeTerm: Option[Term])(implicit req: DbRequest[_]): Result = {
     if (!maybeTeacher.isDefined) {
@@ -80,11 +83,34 @@ object Courses extends Controller {
 	    val sectionsThisPeriod = sections.filter(_.periods.contains(p))
 	    <tr>
           <td>{ p.name }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(_.course.name), <br/>) }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(_.room.name), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => linkToRoster(s)), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
         </tr>
 	  }
 	  Ok(html.courses.teacherSchedule(teacher.user, term, table))
+    }
+  }
+  
+  def linkToRoster(section: Section): NodeSeq = {
+    val link = controllers.routes.Courses.roster(section.id)
+    <a href={ link.url }>{ section.course.name }</a>
+  }
+
+  
+  // only the teacher of this section or an admin should be able to see the roster
+  def roster(sectionId: Long) = DbAction { implicit req =>
+    implicit val pm = req.pm
+    val cand = QSection.candidate
+    pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
+      case None => NotFound("No section with that id.")
+      case Some(sect) => {
+        val course = sect.course.name
+        val terms = sect.terms.toList.map(_.name).mkString(", ")
+        val periods = sect.periods.toList.map(_.name).mkString(", ")
+        val teachers = sect.teachers.sortWith(_ < _).map(_.displayName).mkString(", ")
+        val enrollments = sect.enrollments.sortWith(_.student < _.student)
+        Ok(html.courses.roster(course, terms, periods, teachers, enrollments))
+      }
     }
   }
 

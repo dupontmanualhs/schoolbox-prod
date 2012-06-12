@@ -4,8 +4,9 @@ import javax.jdo.annotations._
 import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import models.users.Teacher
+import models.users.{Student, Teacher}
 import util.ScalaPersistenceManager
+import scala.xml.NodeSeq
 
 @PersistenceCapable(detachable="true")
 class Section {
@@ -53,10 +54,21 @@ class Section {
     periods.map(_.name).mkString(", ")
   }
   
+  // TODO: figure out which teachers to get in what order
   def teachers(implicit pm: ScalaPersistenceManager): List[Teacher] = {
     val cand = QTeacherAssignment.candidate
     val assignments = pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
     assignments.map(_.teacher)
+  }
+  
+  // TODO: figure out which students to get in what order
+  def students(implicit pm: ScalaPersistenceManager): List[Student] = {
+    enrollments.map(_.student)
+  }
+  
+  def enrollments(implicit pm: ScalaPersistenceManager): List[StudentEnrollment] = {
+    val cand = QStudentEnrollment.candidate
+    pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()    
   }
 }
 

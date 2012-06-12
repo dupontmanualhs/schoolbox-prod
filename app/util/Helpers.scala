@@ -154,11 +154,11 @@ object Helpers {
     10 -> "ten"
   )
 
-  def mkNodeSeq(strs: List[String], sep: Node): NodeSeq = {
-    strs match {
+  def mkNodeSeq(els: List[NodeSeq], sep: Node): NodeSeq = {
+    els match {
       case Nil => NodeSeq.Empty
-      case one :: Nil => Text(one)
-      case fst :: rst => Text(fst) ++ sep ++ mkNodeSeq(rst, sep)
+      case one :: Nil => one
+      case fst :: rst => fst ++ sep ++ mkNodeSeq(rst, sep)
     }
   }
   

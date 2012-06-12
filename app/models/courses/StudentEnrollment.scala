@@ -41,10 +41,10 @@ class StudentEnrollment {
   def term_=(theTerm: Term) { _term = theTerm }
 
   
-  def start: LocalDate = new DateTime(_start).toLocalDate
+  def start: LocalDate = if (_start != null) new DateTime(_start).toLocalDate else term.start
   def start_=(theStart: LocalDate) { _start = if (theStart != null) new java.sql.Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) else null }
   
-  def end: LocalDate = new DateTime(_end).toLocalDate
+  def end: LocalDate = if (_end != null) new DateTime(_end).toLocalDate else term.end
   def end_=(theEnd: LocalDate) { _end = if (theEnd != null) new java.sql.Date(theEnd.toDateTimeAtStartOfDay.toDate.getTime) else null }
 
 }
