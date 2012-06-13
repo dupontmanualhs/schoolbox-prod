@@ -1,0 +1,14 @@
+@(course: String, sections: List[models.courses.Section])(implicit req: util.DbRequest[_])
+
+@main("Sections of: " + course) {
+	<h2>@course</h2>
+
+	<table>
+		<thead><th>Teacher</th><th>Block</th><th>Term</th>
+		@for(s <- sections) {
+			<tr>
+				<td>@s.periods.toList.map(_.name).mkString(", ") - @s.room.name</td>
+			</tr>
+	</table>
+		}
+}
