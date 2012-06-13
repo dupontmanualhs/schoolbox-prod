@@ -22,11 +22,17 @@ POST    /changePassword             controllers.Users.updatePassword()
 GET     /listUsers                  controllers.Users.list()
 
 #Courses
+# current schedules
 GET	    /schedule/teacher/:username             controllers.Courses.getTeacherSchedule1(username)
-GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSchedule2(username, termSlug)
 GET     /schedule/student/:username             controllers.Courses.getStudentSchedule1(username)
+# schedules for given term
+GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSchedule2(username, termSlug)
 GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSchedule2(username, termSlug)
+# section classes
 GET		/classes								controllers.Courses.classList()
+# section roster
+GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
+
 
 #Assignments
 GET     /assignments/sources                    controllers.Assignments.sources()

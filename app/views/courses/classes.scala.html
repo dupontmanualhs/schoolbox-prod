@@ -1,0 +1,10 @@
+@(courses: List[String])(implicit req: util.DbRequest[_])
+@import helper._
+@main("Class List") {
+	<ul>
+		@for(course <- courses) {
+			<li>@course</li>
+		}
+	</ul>	
+	
+}	

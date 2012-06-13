@@ -6,7 +6,7 @@ import org.datanucleus.api.jdo.query._
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUBCLASS_TABLE)
-class Perspective {
+class Perspective extends Ordered[Perspective] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -22,6 +22,13 @@ class Perspective {
 
   def user: User = _user
   def user_=(theUser: User) { _user = theUser }
+  
+  def displayName = user.displayName
+  def formalName = user.formalName
+  
+  def compare(that: Perspective) = {
+    this.user.compare(that.user)
+  }
 }
 
 trait QPerspective[PC <: Perspective] extends PersistableExpression[PC] {

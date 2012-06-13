@@ -9,7 +9,7 @@ import util.ScalaPersistenceManager
 import util.DbRequest
 
 @PersistenceCapable(detachable="true")
-class User {
+class User extends Ordered[User] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -89,6 +89,12 @@ class User {
   
   def formalName: String = {
     last + ", " + first + (if (middle.isDefined) " " + middle.get else "")
+  }
+  
+  def compare(that: User): Int = {
+    Ordering.Tuple3(Ordering.String, Ordering.String, Ordering.String).compare(
+      (last, first, middle.getOrElse("")),
+      (that.last, that.first, that.middle.getOrElse("")))
   }
   
   override def toString: String = {
