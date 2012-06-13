@@ -87,5 +87,13 @@ object Courses extends Controller {
 	  Ok(html.courses.teacherSchedule(teacher.user, term, table))
     }
   }
+  
+  def classList() = DbAction { implicit req =>
+    val pm = req.pm
+    val cand = QCourse.candidate
+    val courses = pm.query[Course].orderBy(cand.name.asc).executeList().map(_.name).distinct
+    Ok(views.html.courses.classes(courses))
+  }
+  
 
 }
