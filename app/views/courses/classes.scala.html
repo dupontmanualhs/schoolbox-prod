@@ -1,9 +1,9 @@
-@(courses: List[String])(implicit req: util.DbRequest[_])
+@(courses: List[models.courses.Course])(implicit req: util.DbRequest[_])
 @import helper._
 @main("Class List") {
 	<ul>
 		@for(course <- courses) {
-			<li>@course</li>
+			<li><a href= @routes.Courses.sectionTable(course.id)>@course.name - @course.masterNumber</a></li>
 		}
 	</ul>	
 	

@@ -114,10 +114,20 @@ object Courses extends Controller {
     }
   }
   
+  def sectionTable(courseId: Long) = DbAction { implicit req =>
+    val pm = req.pm
+    val cand = QCourse.candidate
+    val cand2 = QSection.candidate
+    val course = pm.query[Course].filter(cand.id.eq(courseId)).executeList.head
+    val sections = pm.query[Section].filter(cand2.course.eq(course)).executeList
+    Ok(views.html.courses.sections(course.name, sections))
+  }
+  
+  
   def classList() = DbAction { implicit req =>
     val pm = req.pm
     val cand = QCourse.candidate
-    val courses = pm.query[Course].orderBy(cand.name.asc).executeList().map(_.name).distinct
+    val courses = pm.query[Course].orderBy(cand.name.asc).executeList()
     Ok(views.html.courses.classes(courses))
   }
   

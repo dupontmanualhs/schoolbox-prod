@@ -30,6 +30,7 @@ GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSche
 GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSchedule2(username, termSlug)
 # section classes
 GET		/classes								controllers.Courses.classList()
+GET		/classes/:courseId						controllers.Courses.sectionTable(courseId: Long)
 # section roster
 GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
 
