@@ -36,6 +36,19 @@ abstract class DbQuestion extends LoadCallback with StoreCallback {
     // make sure this is a <question>...</question> element
     _content = xml.toString
   }
+  
+  def asXml: Elem
+  def populateFields(): Unit
+  
+  def jdoPreStore() {
+    this.content = asXml
+  }
+  
+  def jdoPostLoad() {
+    populateFields() 
+  }
+  
+
 }
 
 trait QDbQuestion extends PersistableExpression[DbQuestion] {

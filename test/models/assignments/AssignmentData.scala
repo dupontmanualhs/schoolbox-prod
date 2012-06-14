@@ -3,7 +3,12 @@ import util.ScalaPersistenceManager
 
 object AssignmentData {
   def load(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
-	val barrons = new Source("Barron's Book", null)
+    loadSourcesAndSubjects(debug)
+  }
+  
+  def loadSourcesAndSubjects(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
+	if (debug) println("Adding sources to the database.")
+    val barrons = new Source("Barron's Book", null)
 	val barCh1 = new Source("Chapter 1", barrons)
 	val barCh2 = new Source("Chapter 2", barrons)
 	val litvin = new Source("Be Prepared for the AP Comp Sci Exam", null)
@@ -11,6 +16,7 @@ object AssignmentData {
 	val litCh2 = new Source("Ch 2", litvin)
 	val litCh3 = new Source("Ch 3", litvin)
 	pm.makePersistentAll(List(barrons, barCh1, barCh2, litvin, litCh1, litCh2, litCh3))
+	if (debug) println("Adding subjects to the database.")
 	val javaLang = new Subject("Java Language Features", null)
 	val types = new Subject("Types", javaLang)
 	val ops = new Subject("Operators", javaLang)
@@ -27,5 +33,8 @@ object AssignmentData {
 	val interfaces = new Subject("Interfaces", inhPol)
 	pm.makePersistentAll(List(javaLang, types, ops, loops, fors, whiles, ifs,
 	    standardClasses, string, objectClass, arrayList, inhPol, comp, interfaces))
+  }
+  
+  def loadQuestions(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
   }
 }

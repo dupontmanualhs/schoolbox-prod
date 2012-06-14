@@ -56,17 +56,7 @@ class MultChoice extends DbQuestion {
       MultChoiceAnswer(text, isCorrect)
     }
     this.answers = (q \\ "answer").map(xmlToAns(_))
-  }
-  
-  def jdoPreStore() {
-    this.content = asXml
-  }
-  
-  def jdoPostLoad() {
-    populateFields() 
-  }
-  
-  
+  }  
 }
 
 case class MultChoiceAnswer(val text: NodeSeq, val isCorrect: Boolean) {
