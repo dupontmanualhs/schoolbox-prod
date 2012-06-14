@@ -11,3 +11,4 @@ tmp
 .settings
 .cache
 .directory
+*.swp

@@ -1,4 +1,4 @@
-@(title: String)(content: Html)(implicit req: util.DbRequest[_])
+@(title: String, javascripts: List[String] = Nil)(content: Html)(implicit req: util.DbRequest[_])
 
 <!DOCTYPE html>
 
@@ -6,11 +6,26 @@
     <head>
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/eschool.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")"> 
         <script type="text/javascript"
           src="https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full">
         </script>
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
+	@for(js <- javascripts) {
+      <script src="@routes.Assets.at("javascripts/" + js)" type="text/javascript"></script>
+        }
+	<script type="text/javascript">
+	$(document).ready(function() {
+			$("textarea").tinymce({
+				"script_url" : "@routes.Assets.at("javascripts/tinymce/jscripts/tiny_mce/tiny_mce.js")",
+            "theme" : "advanced",
+            "plugins" : "save",
+				"theme_advanced_toolbar_location" : "top",
+            "theme_advanced_toolbar_align" : "left",
+            "theme_advanced_buttons1_add" : "save"
+			});
+	});
+	</script>
     </head>
     <body>
     <div id="container">

@@ -43,3 +43,7 @@ GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)
 #POST    /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
 GET     /math/random                            controllers.Math.randomProblem()
 POST    /math/random                            controllers.Math.checkAnswer(temp)
+
+#Blogs
+GET     /blog/editor                            controllers.Blogs.editor()
+POST    /blog/editor                            controllers.Blogs.testSubmit()
