@@ -35,6 +35,11 @@ GET		/classes/:courseId						controllers.Courses.sectionTable(courseId: Long)
 GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
 
 
+#Assessments
+GET     /assessments                            controllers.Assessments.menu()
+POST    /assessments                            controllers.Assessments.checkAnswer(temp: Int)
+GET     /assessments/newQuestion                controllers.Assessments.newQuestion()
+
 #Assignments
 GET     /assignments/sources                    controllers.Assignments.sources()
 GET     /assignments/subjects                   controllers.Assignments.subjects()
