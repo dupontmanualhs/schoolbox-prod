@@ -1,0 +1,19 @@
+@(course: String, sections: List[models.courses.Section])(implicit req: util.DbRequest[_])
+
+@main("Sections of: " + course) {
+	<h2>@course</h2>
+
+	<table>
+		<thead><th>Teacher</th><th>Block</th><th>Term</th>
+		@for(s <- sections) {
+			@for(i <- 0 to (s.teachers(req.pm).length - 1)) {
+				<tr>
+					<td>@s.teachers(req.pm)(i).user.first @s.teachers(req.pm).head.user.last</td>
+					<td>@s.periods.toList.map(_.name).mkString(", ")</td>
+					<td>@s.terms.toList.map(_.name).mkString(", ")</td>
+				</tr>
+			}
+		}
+	</table>
+		
+}
