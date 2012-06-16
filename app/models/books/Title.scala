@@ -20,7 +20,7 @@ class Title {
   // TODO: Add image field
   private[this] var _verified: Boolean = _
   private[this] var _lastModified: java.sql.Date = _
-  
+
   def this(name: String, author: String, publisher: String, isbn: String, numPages: Int,
     dimensions: String, weight: Double, verified: Boolean, lastModified: java.sql.Date) = {
     this()
