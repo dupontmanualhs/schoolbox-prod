@@ -5,7 +5,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 
 @PersistenceCapable(detachable="true")
-class Course {
+class PurchaseGroup {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
