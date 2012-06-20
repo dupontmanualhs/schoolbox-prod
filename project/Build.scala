@@ -13,17 +13,19 @@ object ApplicationBuild extends Build {
       "org.joda" % "joda-convert" % "1.2",
       "org.apache.poi" % "poi" % "3.8-beta5",
       "org.apache.poi" % "poi-ooxml" % "3.8-beta5",
-      "org.datanucleus" % "datanucleus-core" % "3.0.5",
-      "org.datanucleus" % "datanucleus-api-jdo" % "3.0.4",
+      "org.datanucleus" % "datanucleus-core" % "3.0.11",
+      "org.datanucleus" % "datanucleus-api-jdo" % "3.0.8",
       "org.datanucleus" % "datanucleus-enhancer" % "3.0.1",
-      "org.datanucleus" % "datanucleus-jdo-query" % "3.0.1",
+      "org.datanucleus" % "datanucleus-jdo-query" % "3.0.2",
       "asm" % "asm" % "3.3.1",
       "javax.jdo" % "jdo-api" % "3.0",
-      "org.datanucleus" % "datanucleus-rdbms" % "3.0.5",
+      "org.datanucleus" % "datanucleus-rdbms" % "3.0.10",
       "org.datanucleus" % "datanucleus-jodatime" % "3.0.1",
       "com.h2database" % "h2" % "1.3.165",
+      "log4j" % "log4j" % "1.2.17",
       "org.scalatest" %% "scalatest" % "1.7.2" % "test"
     )
+    System.setProperty("log4j.configuration", "file:conf/log4j.properties")
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
         ((testOptions in Test := Nil) +: Nucleus.settings): _*
