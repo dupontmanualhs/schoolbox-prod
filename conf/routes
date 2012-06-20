@@ -25,6 +25,7 @@ GET     /listUsers                  controllers.Users.list()
 # current schedules
 GET	    /schedule/teacher/:username             controllers.Courses.getTeacherSchedule1(username)
 GET     /schedule/student/:username             controllers.Courses.getStudentSchedule1(username)
+GET 	/schedule/mySchedule					controllers.Courses.getMySchedule()
 # schedules for given term
 GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSchedule2(username, termSlug)
 GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSchedule2(username, termSlug)
@@ -34,6 +35,11 @@ GET		/classes/:courseId						controllers.Courses.sectionTable(courseId: Long)
 # section roster
 GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
 
+
+#Assessments
+GET     /assessments                            controllers.Assessments.menu()
+POST    /assessments                            controllers.Assessments.checkAnswer(temp: Int)
+GET     /assessments/newQuestion                controllers.Assessments.newQuestion()
 
 #Assignments
 GET     /assignments/questions                    controllers.Assignments.allQuestions()
