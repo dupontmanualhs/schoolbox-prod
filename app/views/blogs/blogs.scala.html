@@ -1,0 +1,10 @@
+@(blogs: List[models.blogs.Blog], user: models.users.User)(implicit req: util.DbRequest[_])
+
+@main("User's Blogs") {
+   <ul>
+      @for(blog <- blogs) {
+         <li>@blog.title</li>
+      }
+   </ul>
+}
+
