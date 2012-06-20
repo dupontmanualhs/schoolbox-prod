@@ -18,7 +18,7 @@ object Answer {
   def fromXml(ans: Node): Answer = {
     val text = (ans \ "text").flatMap(_.child)
     val worth = MathExactNumber((ans \ "@worth").text).getOrElse(MathInteger(0))
-    val feedback = (ans \ "feedback").flatMap(_.child)
+    val feedback = if ((ans \ "feedback").isEmpty) NodeSeq.Empty else (ans \ "feedback").flatMap(_.child)
     Answer(text, worth, feedback)
   }
 }

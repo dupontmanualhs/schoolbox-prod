@@ -11,21 +11,35 @@ import scala.xml.Node
 @Discriminator(strategy=DiscriminatorStrategy.CLASS_NAME)
 class MultChoice extends DbQuestion {
   @Persistent(persistenceModifier=PersistenceModifier.NONE)
-  var hasMultipleAnswers: Boolean = false
+  var singleAnswer: Boolean = false
   @Persistent(persistenceModifier=PersistenceModifier.NONE)
-  var canScrambleAnswers: Boolean = true
+  var scramble: Boolean = true
   @Persistent(persistenceModifier=PersistenceModifier.NONE)
   var text: NodeSeq = _
   @Persistent(persistenceModifier=PersistenceModifier.NONE)
-  var answers: Seq[Answer] = _
+  var feedback: NodeSeq = _
   @Persistent(persistenceModifier=PersistenceModifier.NONE)
-  var explanation: NodeSeq = _
+  var answers: Seq[Answer] = _
+  
+  def this(q: Node) = {
+    this()
+    assignFieldsFromXml(q)
+  }
+  
+  private[this] def assignFieldsFromXml(q: Node) {
+    this.singleAnswer = ((q \ "@singleAnswer").isEmpty || (q \ "@singleAnswer").text == "true")
+    this.scramble = ((q \ "@scramble").isEmpty || (q \ "@scramble").text == "true")
+    this.text = (q \ "text").flatMap(_.child)
+    this.feedback = (q \ "feedback").flatMap(_.child)
+    this.answers = (q \ "answer").map(ans => Answer.fromXml(ans))
+    
+  }
   
   def toXml: Elem = {
-    <question type="MultChoice" hasMultipleAnswers={ this.hasMultipleAnswers.toString } canScrambleAnswers={ this.canScrambleAnswers.toString }>
+    <question kind="mult-choice" singleAnswer={ this.singleAnswer.toString } scramble={ this.scramble.toString }>
       <text>{ text }</text>
-      <answers>{ answers.flatMap(_.asXml) }</answers>
-      <explanation>{ explanation }</explanation>
+      <feedback>{ feedback }</feedback>
+      { answers.flatMap(_.asXml) }
     </question>
   }
   
@@ -36,14 +50,15 @@ class MultChoice extends DbQuestion {
   
   def populateFields() {
     val q: Elem = this.content
-    this.hasMultipleAnswers = ((q \ "@hasMultipleAnswers").text == "true")
-    this.canScrambleAnswers = ((q \ "@canScrambleAnswers").text == "true")
-    this.text = (q \ "text").flatMap(_.child)
-    this.explanation = (q \ "explanation").flatMap(_.child)
-    this.answers = (q \ "answer").map(ans => Answer.fromXml(ans))
   }  
 }
 
 object MultChoice {
-  def apply(q: Node): Option[MultChoice] = None
+  def apply(q: Node): Option[MultChoice] = {
+    try {
+      Some(new MultChoice(q))
+    } catch {
+      case e: Exception => None
+    }
+  }
 }

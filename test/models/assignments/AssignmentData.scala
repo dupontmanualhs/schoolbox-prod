@@ -60,6 +60,25 @@ object AssignmentData {
             <feedback>Make sure you study vocabulary!</feedback>
           </answer>
         </question>
+        <question kind="mult-choice" scramble="true" format="html" single-select="true">
+    	  <text>The boolean expression <code>a[i] == max || !(max != a[i])</code> can be simplified to</text>
+          <feedback>The expression <code>!(max != a[i])</code> is equivalent to <code>max == a[i]</code>, so the given expression is equivalent to <code>a[i] == max || max == a[i]</code>, which is equivalent to <code>a[i] == max</code>.</feedback>
+          <answer worth="1">
+            <text><code>a[i] == max</code></text>
+          </answer>
+          <answer worth="0">
+            <text><code>a[i] != max</code></text>
+          </answer>
+          <answer worth="0">
+            <text><code>a[i] &lt; max || a[i] &gt; max</code></text>
+          </answer>
+          <answer worth="0">
+            <text><code>true</code></text>
+          </answer>
+          <answer worth="0">
+            <text><code>false</code></text>
+          </answer>
+        </question>
       </questions>
     pm.beginTransaction()
     for (q <- (qs \ "question")) {
