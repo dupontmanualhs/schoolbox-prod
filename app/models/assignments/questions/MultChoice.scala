@@ -7,8 +7,8 @@ import models.assignments.DbQuestion
 import scala.xml.Elem
 import scala.xml.Node
 
+@PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
-@Discriminator(strategy=DiscriminatorStrategy.CLASS_NAME)
 class MultChoice extends DbQuestion {
   @Persistent(persistenceModifier=PersistenceModifier.NONE)
   var singleAnswer: Boolean = false
