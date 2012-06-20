@@ -44,12 +44,22 @@ class MultChoice extends DbQuestion {
   }
   
   def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem = {
-    <span></span>
+    val id: String = maybeId.getOrElse(name)
+    <div class="mult-choice">
+      <label for={ id }>{ label }</label>
+      <span class="text">{ text }</span> <br/>
+      { answers.zipWithIndex.flatMap(ansWithIndex => {
+        val ans = ansWithIndex._1
+        val index = ansWithIndex._2
+        <input type="radio" name={ name } value={ index.toString }/> ++ { ans.text } ++ <br/>
+      })}      
+    </div>
   }
 
   
   def populateFields() {
     val q: Elem = this.content
+    assignFieldsFromXml(q)
   }  
 }
 
