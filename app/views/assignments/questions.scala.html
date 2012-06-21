@@ -8,5 +8,6 @@
   @for((q, num) <- qs.zipWithIndex) {
     @q.toQuizHtml(Text((num + 1).toString), num.toString)
   }
+  <input type="submit" value="Submit" />
   </form>  
 }
