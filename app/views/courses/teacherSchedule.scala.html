@@ -1,16 +1,20 @@
-@(user: models.users.User, term: models.courses.Term, table: List[xml.NodeSeq])(implicit req: util.DbRequest[_])
+@(user: models.users.User, term: models.courses.Term, table: List[xml.NodeSeq], hasAssignments: Boolean)(implicit req: util.DbRequest[_])
 
 @main(user.displayName +"'s Schedule") {
 
-<h2>@user.displayName</h2>
+	<h2>@user.displayName</h2>
 
-<h2>@term.name</h2>
+	<h2>@term.name</h2>
 
-<table>
-  <thead><th>Period</th><th>Course(s)</th><th>Room(s)</th></thead>
-  @for(row <- table) {
-    @row
-  }
-</table>
-
+	@if(hasAssignments) { 
+		<table>
+  			<thead><th>Period</th><th>Course(s)</th><th>Room(s)</th></thead>
+  			@for(row <- table) {
+    			@row
+  			}
+		</table>
+	}
+	@if(!hasAssignments) {
+		<p>This teacher is not assigned to any courses during this term.</p>
+	}
 }

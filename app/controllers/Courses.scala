@@ -23,7 +23,7 @@ object Courses extends Controller {
         studentSchedule(Student.getByUsername(currentUser.get.username)(pm).get, Term.current(pm))
       }
     } else {
-      NotFound("You are not logged in.")
+      NotFound(views.html.notFound("You are not logged in."))
     }
   }
   
@@ -51,9 +51,9 @@ object Courses extends Controller {
   def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term])(implicit req: DbRequest[_]): Result = {
     implicit val pm = req.pm
     if (!maybeStudent.isDefined) {
-      NotFound("No such student.")
+      NotFound(views.html.notFound("No such student."))
     } else if (!maybeTerm.isDefined) {
-      NotFound("No such term.")
+      NotFound(views.html.notFound("No such term."))
     } else {
       studentSchedule(maybeStudent.get, maybeTerm.get)
     }
@@ -65,6 +65,7 @@ object Courses extends Controller {
       val cand = QStudentEnrollment.candidate()
       pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.term.eq(term))).executeList()
     }
+    val hasEnrollments = enrollments.size != 0
     val sections: List[Section] = enrollments.map(_.section)
     val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
     val table: List[NodeSeq] = periods.map { p =>
@@ -76,14 +77,14 @@ object Courses extends Controller {
         <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
       </tr>
     }
-    Ok(html.courses.studentSchedule(student.user, term, table))
+    Ok(html.courses.studentSchedule(student.user, term, table, hasEnrollments))
   }
 
   def teacherSchedule(maybeTeacher: Option[Teacher], maybeTerm: Option[Term])(implicit req: DbRequest[_]): Result = {
     if (!maybeTeacher.isDefined) {
-      NotFound("No such teacher.")
+      NotFound(views.html.notFound("No such teacher."))
     } else if (!maybeTerm.isDefined) {
-      NotFound("No such term.")
+      NotFound(views.html.notFound("No such term."))
     } else {
       val teacher = maybeTeacher.get
       val term = maybeTerm.get
@@ -91,6 +92,7 @@ object Courses extends Controller {
         val cand = QTeacherAssignment.candidate
         req.pm.query[TeacherAssignment].filter(cand.teacher.eq(teacher).and(cand.term.eq(term))).executeList()
       }
+      val hasAssignments = assignments.size != 0
       val sections: List[Section] = assignments.map(_.section)
       // TODO: do we need to have Periods be attached to a Term?
       val periods: List[Period] = req.pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
@@ -102,7 +104,7 @@ object Courses extends Controller {
           <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
         </tr>
       }
-      Ok(html.courses.teacherSchedule(teacher.user, term, table))
+      Ok(html.courses.teacherSchedule(teacher.user, term, table, hasAssignments))
     }
   }
 
@@ -116,7 +118,7 @@ object Courses extends Controller {
     implicit val pm = req.pm
     val cand = QSection.candidate
     pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
-      case None => NotFound("No section with that id.")
+      case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
         val course = sect.course.name
         val terms = sect.terms.toList.map(_.name).mkString(", ")
