@@ -2,7 +2,7 @@ package controllers
 
 import play.api.mvc.Controller
 import util.DbAction
-//import models.blogs._
+import models.blogs._
 import util.ScalaPersistenceManager
 import util.DbRequest
 import play.api.data._
@@ -14,8 +14,7 @@ object Blogs extends Controller {
   val newPost = Form {
     tuple(
       "title" -> nonEmptyText,
-      "content" -> text,
-      "tags" -> text
+      "content" -> text
     )
   }
 
@@ -56,8 +55,27 @@ object Blogs extends Controller {
   *
   *   @param blog the blog to be shown
   */
-  def showBlog(blog: Blog) = DbAction { implicit req =>
-    Ok(views.html.stub())
+  def showBlogByBlog(blogOpt: Option[Blog]) = DbAction { implicit req =>
+    blogOpt match {
+      case None => NotFound("This blog does not exist")
+      case Some(blog) => {
+         implicit val pm: ScalaPersistenceManager = req.pm
+         val cand = QPost.candidate()
+         val posts: List[Post] = pm.query[Post].filter(cand.blog.eq(blog)).executeList()
+         Ok(views.html.blogs.blog(blog, posts))
+      }
+    }
+  }
+
+  /** Show a blog given only its ID. Calls showBlogByBlog. Yay for silly names.
+  *
+  *   @param id the id of the blog to be shown
+  */
+  def showBlog(id: Long) = DbAction { implicit req =>
+    implicit val pm: ScalaPersistenceManager = req.pm
+    val cand = QBlog.candidate()
+    val blog = pm.query[Blog].filter(cand.id.eq(id)).executeOption()
+    showBlogByBlog(blog)
   }
 
   def testSubmit() = DbAction { implicit req =>
