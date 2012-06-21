@@ -62,6 +62,7 @@ object DbQuestion {
       (q \ "@kind").text match {
         case "true-false" => TrueFalse(q)
         case "mult-choice" => MultChoice(q)
+        case "fill-blanks" => FillBlanks(q)
         case _ => None
       }
     }
