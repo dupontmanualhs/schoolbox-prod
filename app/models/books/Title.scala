@@ -3,6 +3,7 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 class Title {
@@ -64,4 +65,91 @@ class Title {
 
   def lastModified: java.sql.Date = _lastModified
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
+}
+
+object Title {
+  def getByIsbn(isbn: String)(implicit pm: ScalaPersistenceManager): Option[Title] = {
+    val cand = QTitle.candidate
+    pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
+  }
+
+  def hasSameValues(other: Title): Boolean = {
+    true //TODO - Write the implementation
+  }
+
+  def howManyCopies(): Int = {
+    123 //TODO - Write the implementation
+  }
+
+  def howManyCheckedOut(): Int = {
+    23 //TODO - Write the implementation
+  }
+
+  def convertStrToDecimal(str: String): Double = {
+    12.0 //TODO - Write the implementation
+  }
+
+  def makeDimensionStrings(dim: Tuple3[Int, Int, Int]): String = {
+    // Return the dimension as a String in the format l x w x h
+    dim._1 + " x " + dim._2 + " x " + dim._3
+    // TODO - Test this code
+  }
+
+  // def setSizeCallback
+  // I have no idea what this is suposed to do
+  //TODO - Figure out what this does and write the implementation
+}
+
+trait QTitle extends PersistableExpression[Title] {
+  private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
+  def id: NumericExpression[Long] = _id
+
+  private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
+  def name: StringExpression = _name
+
+  private[this] lazy val _author: StringExpression = new StringExpressionImpl(this, "_author")
+  def author: StringExpression = _author
+
+  private[this] lazy val _publisher: StringExpression = new StringExpressionImpl(this, "_publisher")
+  def publisher: StringExpression = _publisher
+
+  private[this] lazy val _isbn: StringExpression = new StringExpressionImpl(this, "_isbn")
+  def isbn: StringExpression = _isbn
+
+  private[this] lazy val _numPages: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_numPages")
+  def numPages: NumericExpression[Int] = _numPages
+
+  private[this] lazy val _dimensions: StringExpression = new StringExpressionImpl(this, "_dimensions")
+  def dimensions: StringExpression = _dimensions
+
+  private[this] lazy val _weight: NumericExpression[Double] = new NumericExpressionImpl[Double](this, "_weight")
+  def weight: NumericExpression[Double] = _weight
+
+  // Add image field
+
+  private[this] lazy val _verified: BooleanExpression = new BooleanExpressionImpl(this, "_verified")
+  def verified: BooleanExpression = _verified
+
+  private[this] lazy val _lastModified: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_lastModified")
+  def lastModified: ObjectExpression[java.sql.Date] = _lastModified
+}
+
+object QTitle {
+  def apply(parent: PersistableExpression[Title], name: String, depth: Int): QTitle = {
+    new PersistableExpressionImpl[Title](parent, name) with QTitle
+  }
+
+  def apply(cls: Class[Title], name: String, exprType: ExpressionType): QTitle = {
+    new PersistableExpressionImpl[Title](cls, name, exprType) with QTitle
+  }
+
+  private[this] lazy val jdoCandidate: QTitle = candidate("this")
+
+  def candidate(name: String): QTitle = QTitle(null, name, 5)
+
+  def candidate(): QTitle = jdoCandidate
+
+  def parameter(name: String): QTitle = QTitle(classOf[Title], name, ExpressionType.PARAMETER)
+
+  def variable(name: String): QTitle = QTitle(classOf[Title], name, ExpressionType.VARIABLE)
 }
