@@ -60,14 +60,24 @@ trait QPost extends PersistableExpression[Post] {
   def id: NumericExpression[Long] = _id
   
   // content
+  private[this] lazy val _content: StringExpression = new StringExpressionImpl(this, "_content")
+  def content: StringExpression = _content
   
   // published
+  private[this] lazy val published: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Date](this, "_published")
+  def published: DateExpression[java.util.Date] = _published
   
   // edited
+  private[this] lazy val _edited: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Date](this, "_edited")
+  def edited: DateExpression[java.util.Date] = _edited
   
   // title
+  private[this] lazy val _title: StringExpression = new StringExpressionImpl(this, "_title")
+  def title: StringExpression = _title
   
   // blog
+  private[this] lazy val _blog: ObjectExpression[Blog] = new ObjectExpressionImpl[Blog](this, "_blog")
+  def blog: ObjectExpression[Blog] = _blog
 }
 
 object QPost {
