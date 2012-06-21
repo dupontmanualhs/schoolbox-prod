@@ -19,7 +19,12 @@ class Post {
   @Column(allowsNull="false")
   private[this] var _title: String = _
 
-  def this(title: String, content: String) = {
+  private[this] var _blog: Blog = _
+
+  def this(title: String, content: String, blog: Blog) = {
     this()
     _title = title
     _content = content
+    _blog = blog
+  }
+}
