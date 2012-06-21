@@ -5,6 +5,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.DataStore
 import util.ScalaPersistenceManager
+import models.courses._
 
 @PersistenceCapable(detachable="true")
 class Teacher extends Perspective {
@@ -25,6 +26,11 @@ class Teacher extends Perspective {
   
   def stateId: String = _stateId
   def stateId_=(theStateId: String) { _stateId = theStateId }
+  
+  def allStudents(term: Term)(implicit pm: ScalaPersistenceManager): List[Student] = {
+    //TODO
+    Nil
+  }
 }
 
 object Teacher {

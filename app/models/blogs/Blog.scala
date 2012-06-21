@@ -29,12 +29,6 @@ class Blog {
 
   def title: String = _title
   def title_=(theTitle: String) { _title = theTitle }
-  
-  // If it's okay with you, let's leave out slug -- we can just use the id
-  // or number each person's blogs and we won't have to worry about 
-  // checking the length or having users pick reasonable slugs
-  // def slug: String = _slug
-  // def slug_=(theSlug: String) { _slug = theSlug }
 
   def owner: Perspective = _owner
 }
