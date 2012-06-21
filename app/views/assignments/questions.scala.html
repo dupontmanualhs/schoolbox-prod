@@ -1,12 +1,12 @@
-@(qs: List[models.assignments.DbQuestion])(implicit req: util.DbRequest[_])
+@(task: models.assignments.Task)(implicit req: util.DbRequest[_])
 
 @import scala.xml.Text
 
 @main("All Questions") {
   <h1>All Questions</h1>
-  <form action=".">
-  @for((q, num) <- qs.zipWithIndex) {
-    @q.toQuizHtml(Text((num + 1).toString), num.toString)
+  <form action=@routes.Assignments.check(task.id) method="post" >
+  @for((q, num) <- task.questions.zipWithIndex) {
+    @q.toQuizHtml(Text((num + 1).toString), "answers[%d]".format(num))
   }
   <input type="submit" value="Submit" />
   </form>  

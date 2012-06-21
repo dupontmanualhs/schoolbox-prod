@@ -7,6 +7,7 @@ import util.ScalaPersistenceManager
 object AssignmentData {
   def load(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
     loadQuestions(debug)
+    loadTasks(debug)
   }
     
   def loadQuestions(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
@@ -128,5 +129,12 @@ object AssignmentData {
       }
     }
     pm.commitTransaction()
+  }
+  
+  def loadTasks(debug: Boolean = false)(implicit pm: ScalaPersistenceManager)  {
+    if (debug) println("Adding a task with all questions in it.")
+	val qs: List[DbQuestion] = pm.query[DbQuestion].executeList()
+    val task = new Task(qs)
+    pm.makePersistent(task)
   }
 }

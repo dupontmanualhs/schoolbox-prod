@@ -48,7 +48,7 @@ class FillBlanks extends DbQuestion {
     val id: String = maybeId.getOrElse(name)
     <div class="fill-blanks">
       <label for={ id }>{ label }</label>
-      <span class="text">{ new BlankReplacer().transform(text) }</span>
+      <span class="text">{ new BlankReplacer(name, id).transform(text) }</span>
     </div>
   }
 
@@ -69,13 +69,13 @@ object FillBlanks {
   }
 }
 
-class BlankReplacer extends BasicTransformer {
+class BlankReplacer(name: String, id: String) extends BasicTransformer {
   var i = 0
 
   override def transform(n: Node): NodeSeq = n match {
     case <blank/> => {
       i += 1
-      <input type="text" name={ "blank.%d".format(i) }/>
+      <input type="text" name={ "%s[%d]".format(name, i) } id={ "%s[%d]".format(id, i) }/>
     }
     case elem: Elem => elem.copy(child=elem.child.flatMap(transform _))
     case _ => n

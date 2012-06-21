@@ -42,7 +42,8 @@ POST    /assessments                            controllers.Assessments.checkAns
 GET     /assessments/newQuestion                controllers.Assessments.newQuestion()
 
 #Assignments
-GET     /assignments/questions                    controllers.Assignments.allQuestions()
+GET     /assignments/doTask/:taskId             controllers.Assignments.doTask(taskId: Long)
+POST     /assignments/check/:taskId              controllers.Assignments.check(taskId: Long)
 
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     

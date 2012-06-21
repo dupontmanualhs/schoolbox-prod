@@ -1,0 +1,9 @@
+@(answers: List[String])(implicit req: util.DbRequest[_])
+
+@main("Check Quiz") {
+  <h1>Check a Quiz</h1>
+  
+  @for((ans, num) <- answers.zipWithIndex) {
+    <p>Question #@(num + 1) - You said <b>@ans</b></p>
+  }
+}
