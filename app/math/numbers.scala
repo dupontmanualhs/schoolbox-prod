@@ -84,7 +84,7 @@ abstract class MathRealNumber extends MathNumber {
 }
 object MathRealNumber {
 	def apply(s: String): Option[MathNumber] = {
-		MathInteger(s) orElse MathFraction(s) orElse MathDecimal(s) orElse MathApproximateNumber(s)
+		 MathExactNumber(s) orElse MathApproximateNumber(s)
 	}
 }
 
@@ -124,6 +124,12 @@ abstract class MathExactNumber extends MathRealNumber{
             case (_, _) => MathDecimal(this.getValue / right.getValue)
         }
     }
+}
+
+object MathExactNumber {
+  def apply(s: String): Option[MathExactNumber] = {
+    MathInteger(s) orElse MathFraction(s) orElse MathDecimal(s)
+  }
 }
 
 class MathFraction(val numerator: BigInt, val denominator: BigInt) extends MathExactNumber {

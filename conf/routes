@@ -35,12 +35,14 @@ GET             /classes/:courseId                                              
 # section roster
 GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
 
+#Assessments
+GET     /assessments                            controllers.Assessments.menu()
+POST    /assessments                            controllers.Assessments.checkAnswer(temp: Int)
+GET     /assessments/newQuestion                controllers.Assessments.newQuestion()
+
 #Assignments
-GET     /assignments/sources                    controllers.Assignments.sources()
-GET     /assignments/subjects                   controllers.Assignments.subjects()
-GET     /assignments/questions					controllers.Assignments.addQuestion()
-POST    /assignments/questions					controllers.Assignments.submitQuestion(newKind: Boolean)
-GET 	/assignments/newType					controllers.Assignments.newKind()
+GET     /assignments/questions                    controllers.Assignments.allQuestions()
+
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
 GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
