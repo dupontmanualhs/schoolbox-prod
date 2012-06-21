@@ -7,7 +7,8 @@ import util.ScalaPersistenceManager
 import util.DbRequest
 import play.api.data._
 import play.api.data.Forms._
-import models.Users._
+import models.users._
+import models.blogs._
 
 object Blogs extends Controller {
   val newPost = Form {
