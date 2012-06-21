@@ -47,3 +47,49 @@ GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)
 #POST    /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
 GET     /math/random                            controllers.Math.randomProblem()
 POST    /math/random                            controllers.Math.checkAnswer(temp)
+
+#Books
+GET     /books/addBooks                         controllers.Books.addBooks()
+POST    /books/addBooks                         controllers.Books.addBooksSubmit()
+GET     /books/confirmation/                    controllers.Books.confirmation()
+POST    /books/confirmation/                    controllers.Books.confirmationSubmit()
+GET     /books/verifyTitle/:isbnNum             controllers.Books.verifyTitle(isbnNum: Long)
+POST    /books/verifyTitle/:isbnNum             controllers.Books.verifyTitleSubmit(isbnNum: Long) 
+GET     /books/addCopiesToPurchaseGroup/:pgId   controllers.Books.addCopiesToPg(pgId: Long)
+POST    /books/addCopiesToPurchaseGroup/:pgId   controllers.Books.addCopiesToPgSubmit(pgId: Long)
+GET     /books/addPurchaseGroup/title/:titleId  controllers.Books.addPurchaseGroup(titleId: Long)
+POST    /books/addPurchaseGroup/title/:titleId  controllers.Books.addPurchaseGroupSubmit(titleId: Long)
+GET     /books/addLabelsToQueue                 controllers.Books.addLabelsToQueue
+POST    /books/addLabelsToQueue                 controllers.Books.addLabelsToQueueSubmit
+GET     /books/printCenter                      controllers.Books.printCenter
+POST    /books/printCenter                      controllers.Books.printCenterSubmit
+POST    /books/bulkCheckoutHelper               controllers.Books.bulkCheckoutHelper
+GET     /books/bulkCheckout                     controllers.Books.bulkCheckout
+POST    /books/bulkCheckout                     controllers.Books.bulkCheckoutSubmit
+GET     /books/checkOut                         controllers.Books.checkout
+POST    /books/checkOut                         controllers.Books.checkoutSubmit
+GET     /books/lookup                           controllers.Books.lookup
+GET     /books/inspect                          controllers.Books.inspect
+GET     /books/findBooksOut                     controllers.Books.findBooksOut
+POST    /books/findBooksOut                     controllers.Books.findBooksOutSubmit
+GET     /books/booksOut/:perspectiveId/books    controllers.Books.booksOut(perspectiveId: Long)
+GET     /books/findCopyHistory                  controllers.Books.findCopyHistory
+POST    /books/findCopyHistory                  controllers.Books.findCopyHistorySubmit
+GET     /books/copyHistory/:copyId              controllers.Books.copyHistory(copyId: Long)
+#*      /books/confirmCopyLost/:copyId          controllers.Books.confirmCopyLost(copyId: Long)
+GET     /books/checkIn                          controllers.Books.checkIn
+POST    /books/checkIn                          controllers.Books.checkInSubmit
+#*      /books/checkInLostCopy/:copyId          controllers.Books.checkInLostCopy(copyId: Long)
+GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
+#GET     /books/allBooksOut                      controllers.Books.allBooksOut(13)
+GET     /books/delete/:id                       controllers.Books.delete(id: Long)
+POST    /books/delete/:id                       controllers.Books.deleteSubmit(id: Long)
+GET     /books/confirmDelete                    controllers.Books.confirmDelete
+POST    /books/confirmDelete                    controllers.Books.confirmDeleteSubmit
+GET     /books/checkoutHistory                  controllers.Books.checkoutHistory
+POST    /books/checkoutHistory                  controllers.Books.checkoutHistorySubmit
+GET     /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudents
+POST    /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudentsSubmit
+GET     /books/copiesOutByTitle                 controllers.Books.copiesOutByTitle
+POST    /books/copiesOutByTitle                 controllers.Books.copiesOutByTitleSubmit
+GET     /books/statistics                       controllers.Books.statistics
