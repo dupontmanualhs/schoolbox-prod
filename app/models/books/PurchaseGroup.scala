@@ -67,7 +67,7 @@ trait QPurchaseGroup extends PersistableExpression[PurchaseGroup] {
   private[this] lazy val _purchaseDate: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_purchaseDate")
   def purchaseDate: ObjectExpression[java.sql.Date] = _purchaseDate
 
-  private[this] lazy val _price: NumericExpression[Double] = new NumericExpression[Double](this, "_price")
+  private[this] lazy val _price: NumericExpression[Double] = new NumericExpressionImpl[Double](this, "_price")
   def price: NumericExpression[Double] = _price
 }
 
@@ -77,12 +77,12 @@ object QPurchaseGroup {
   }
 
   def apply(cls: Class[PurchaseGroup], name: String, exprType: ExpressionType): QPurchaseGroup = {
-    new PersistableExpressionImpl[PurchaseGroup](cls, name, exprType) with PurchaseGroup
+    new PersistableExpressionImpl[PurchaseGroup](cls, name, exprType) with QPurchaseGroup
   }
 
   private[this] lazy val jdoCandidate: QPurchaseGroup = candidate("this")
 
-  def candidate(name: String): QUser = QUser(null, name, 5)
+  def candidate(name: String): QPurchaseGroup = QPurchaseGroup(null, name, 5)
 
   def candidate(): QPurchaseGroup = jdoCandidate
 

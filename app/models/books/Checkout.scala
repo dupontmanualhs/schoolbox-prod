@@ -6,7 +6,7 @@ import org.datanucleus.query.typesafe._
 import models.users.Perspective
 
 @PersistenceCapable(detachable="true")
-class PurchaseGroup {
+class Checkout {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
