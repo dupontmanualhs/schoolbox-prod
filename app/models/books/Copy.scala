@@ -31,3 +31,59 @@ class Copy {
   def isLost: Boolean = _isLost
   def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
 }
+
+object Copy {
+  //def unicode()
+  //TODO - Write this method. Should return the barcode
+
+  //def save
+  //TODO - Write the implmentation
+
+  def isCheckedOut(): Boolean = {
+    true
+    //TODO - Write the implementation
+  }
+
+  //def getBarcode
+  //TODO - Write the implementation
+
+  //def getByBarcode
+  //TODO - Write the implementation
+
+  //def makeUniqueCopies
+  //TODO - Write the implementation
+}
+
+trait QCopy extends PersistableExpression[Copy] {
+  private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
+  def id: NumericExpression[Long] = _id
+
+  private[this] lazy val _purchaseGroup: ObjectExpression[PurchaseGroup] = new ObjectExpressionImpl[PurchaseGroup](this, "_purchaseGroup")
+  def purchaseGroup: ObjectExpression[PurchaseGroup] = _purchaseGroup
+
+  private[this] lazy val _number: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_number")
+  def number: NumericExpression[Long] = _number
+
+  private[this] lazy val _isLost: BooleanExpression = new BooleanExpressionImpl(this, "_isLost")
+  def isLost: BooleanExpression = _isLost
+}
+
+object QCopy {
+  def apply(parent: PersistableExpression[Copy], name: String, depth: Int): QCopy = {
+    new PersistableExpressionImpl[Copy](parent, name) with QCopy
+  }
+
+  def apply(cls: Class[Copy], name: String, exprType: ExpressionType): QCopy = {
+    new PersistableExpressionImpl[Copy](cls, name, exprType) with QCopy
+  }
+
+  private[this] lazy val jdoCandidate: QCopy = candidate("this")
+
+  def candidate(name: String): QCopy = QCopy(null, name, 5)
+
+  def candidate(): QCopy = jdoCandidate
+
+  def parameter(name: String): QCopy = QCopy(classOf[Copy], name, ExpressionType.PARAMETER)
+
+  def variable(name: String): QCopy = QCopy(classOf[Copy], name, ExpressionType.VARIABLE)
+}

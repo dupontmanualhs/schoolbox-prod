@@ -78,7 +78,9 @@ object Title {
   }
 
   def howManyCopies(): Int = {
-    123 //TODO - Write the implementation
+    val cand = QCopy.candidate
+    // pm.query[Copy].filter(cand.purchaseGroup.title.eq(this).and(c and.isLost.eq(false)).executeList().size
+    123 //TODO - Uncomment the implementation and test it
   }
 
   def howManyCheckedOut(): Int = {

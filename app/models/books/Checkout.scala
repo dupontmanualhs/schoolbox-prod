@@ -37,3 +37,45 @@ class Checkout {
   def endDate: java.sql.Date = _endDate
   def endDate_=(theEndDate: java.sql.Date) { _endDate = theEndDate }
 }
+
+object Checkout {
+  //def save
+  //TODO - Write the implementation
+}
+
+trait QCheckout extends PersistableExpression[Checkout] {
+  private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
+  def id: NumericExpression[Long] = _id
+
+  private[this] lazy val _perspective: ObjectExpression[Perspective] = new ObjectExpressionImpl[Perspective](this, "_perspective")
+  def perspective: ObjectExpression[Perspective] = _perspective
+
+  private[this] lazy val _copy: ObjectExpression[Copy] = new ObjectExpressionImpl[Copy](this, "_copy")
+  def copy: ObjectExpression[Copy] = _copy
+
+  private[this] lazy val _startDate: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_startDate")
+  def startDate: ObjectExpression[java.sql.Date] = _startDate
+
+  private[this] lazy val _endDate: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_endDate")
+  def endDate: ObjectExpression[java.sql.Date] = _endDate
+}
+
+object QCheckout {
+  def apply(parent: PersistableExpression[Checkout], name: String, depth: Int): QCheckout = {
+    new PersistableExpressionImpl[Checkout](parent, name) with QCheckout
+  }
+
+  def apply(cls: Class[Checkout], name: String, exprType: ExpressionType): QCheckout = {
+    new PersistableExpressionImpl[Checkout](cls, name, exprType) with QCheckout
+  }
+
+  private[this] lazy val jdoCandidate: QCheckout = candidate("this")
+
+  def candidate(name: String): QCheckout = QCheckout(null, name, 5)
+
+  def candidate(): QCheckout = jdoCandidate
+
+  def parameter(name: String): QCheckout = QCheckout(classOf[Checkout], name, ExpressionType.PARAMETER)
+
+  def variable(name: String): QCheckout = QCheckout(classOf[Checkout], name, ExpressionType.VARIABLE)
+}
