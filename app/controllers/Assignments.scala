@@ -20,14 +20,7 @@ object Assignments extends Controller {
       case None => NotFound("no task with that id")
       case Some(task) => Ok(views.html.assignments.questions(task))
     }
-
   }
-  
-  val taskForm = Form(
-    mapping(
-      "answers" -> list(text)
-    )(answers => List.apply(answers: _*))(List.unapplySeq _)
-  )
   
   def check(taskId: Long) = DbAction { implicit req => 
     implicit val pm = req.pm
