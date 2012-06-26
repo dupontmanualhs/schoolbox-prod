@@ -65,9 +65,24 @@ class Title {
 
   def lastModified: java.sql.Date = _lastModified
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
+
+  def howManyCopies(implicit pm: ScalaPersistenceManager): Int = {
+    //TODO
+    0
+  }
+  
+  def howManyCheckedOut(implicit pm: ScalaPersistenceManager): Int = {
+    //TODO
+    0
+  }
 }
 
 object Title {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Title] = {
+    val cand = QTitle.candidate
+    pm.query[Title].filter(cand.id.eq(id)).executeOption()
+  }
+  
   def getByIsbn(isbn: String)(implicit pm: ScalaPersistenceManager): Option[Title] = {
     val cand = QTitle.candidate
     pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
@@ -75,12 +90,6 @@ object Title {
 
   def hasSameValues(other: Title): Boolean = {
     true //TODO - Write the implementation
-  }
-
-  def howManyCopies(): Int = {
-    val cand = QCopy.candidate
-    // pm.query[Copy].filter(cand.purchaseGroup.title.eq(this).and(c and.isLost.eq(false)).executeList().size
-    123 //TODO - Uncomment the implementation and test it
   }
 
   def howManyCheckedOut(): Int = {

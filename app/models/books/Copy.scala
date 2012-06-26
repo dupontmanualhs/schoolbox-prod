@@ -10,10 +10,10 @@ class Copy {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _purchaseGroup: PurchaseGroup = _
-  private[this] var _number: Long = _
+  private[this] var _number: Int = _
   private[this] var _isLost: Boolean = _ // TODO: Make this false by default
 
-  def this(purchaseGroup: PurchaseGroup, number: Long, isLost: Boolean) = {
+  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean) = {
     this()
     _purchaseGroup = purchaseGroup
     _number = number
@@ -26,10 +26,14 @@ class Copy {
   def purchaseGroup_=(thePurchaseGroup: PurchaseGroup) { _purchaseGroup = thePurchaseGroup }
 
   def number: Long = _number
-  def number_=(theNumber: Long) { _number = theNumber }
+  def number_=(theNumber: Int) { _number = theNumber }
 
   def isLost: Boolean = _isLost
   def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
+  
+  override def toString: String = {
+    "%s-200-%05d".format(purchaseGroup.title.isbn, number)
+  }
 }
 
 object Copy {
@@ -61,8 +65,8 @@ trait QCopy extends PersistableExpression[Copy] {
   private[this] lazy val _purchaseGroup: ObjectExpression[PurchaseGroup] = new ObjectExpressionImpl[PurchaseGroup](this, "_purchaseGroup")
   def purchaseGroup: ObjectExpression[PurchaseGroup] = _purchaseGroup
 
-  private[this] lazy val _number: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_number")
-  def number: NumericExpression[Long] = _number
+  private[this] lazy val _number: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_number")
+  def number: NumericExpression[Int] = _number
 
   private[this] lazy val _isLost: BooleanExpression = new BooleanExpressionImpl(this, "_isLost")
   def isLost: BooleanExpression = _isLost

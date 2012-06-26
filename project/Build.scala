@@ -26,7 +26,8 @@ object ApplicationBuild extends Build {
       "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
       "com.lowagie" % "itext" % "2.1.7",
       "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
-      "com.lowagie" % "itext" % "2.1.7"
+      "com.lowagie" % "itext" % "2.1.7",
+      "org.tukaani" % "xz" % "1.0"      
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(

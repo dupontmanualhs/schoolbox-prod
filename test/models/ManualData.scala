@@ -1,7 +1,8 @@
 package models
 
 import scala.collection.JavaConversions._
-import xml.{ Node, Elem, XML }
+import scala.collection.mutable
+import xml.{ Node, NodeSeq, Elem, XML }
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 import org.apache.poi.ss.usermodel.{ Sheet, Row, WorkbookFactory }
@@ -10,6 +11,13 @@ import models.courses._
 import util.{ DataStore, ScalaPersistenceManager }
 import java.io.File
 import models.assignments.AssignmentData
+import org.tukaani.xz.XZInputStream
+import java.text.SimpleDateFormat
+import models.books.Title
+import java.text.DateFormat
+import java.text.ParseException
+import models.books.PurchaseGroup
+import models.books.Copy
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()
@@ -25,12 +33,13 @@ object ManualData {
   }
 
   def loadManualData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
-    createYearsAndTerms(debug)
-    loadStudents(debug)
-    loadTeachers(debug)
-    loadCourses(debug)
-    loadSections(debug)
-    loadEnrollments(debug)
+    //createYearsAndTerms(debug)
+    //loadStudents(debug)
+    //loadTeachers(debug)
+    //loadCourses(debug)
+    //loadSections(debug)
+    //loadEnrollments(debug)
+    loadBookData(debug)
   }
 
   def createYearsAndTerms(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
@@ -236,5 +245,79 @@ object ManualData {
       row.getCell(0).getNumericCellValue.toInt.toString -> row.getCell(6).getStringCellValue
     })).toList
     Map(pairs: _*)
+  }
+  
+  def loadBookData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
+    if (debug) println("Loading book data...")
+    val data = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/bookData.xml.xz")))
+    val titleIdMap = loadTitles((data \ "titles"), debug)
+    val pgIdMap = loadPurchaseGroups((data \ "purchaseGroups"), titleIdMap, debug)
+    val copyIdMap = loadCopies((data \ "copies"), pgIdMap, debug)
+  }
+  
+  def asInt(s: String): Int = {
+    try {
+      s.toInt
+    } catch {
+      case e: NumberFormatException => null.asInstanceOf[Int]
+    }
+  }
+  
+  def asDouble(s: String): Double = {
+    try {
+      s.toDouble
+    } catch {
+      case e: NumberFormatException => null.asInstanceOf[Double]
+    }
+  }
+  
+  def asDate(s: String, df: DateFormat): java.sql.Date = {
+    try {
+      new java.sql.Date(df.parse(s).getTime)
+    } catch {
+      case e: ParseException => null.asInstanceOf[java.sql.Date]
+    }
+  }
+  
+  def loadTitles(titles: NodeSeq, debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
+    val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    val titleIdMap = mutable.Map[Long, Long]()
+    for (t <- (titles \ "title")) {
+      val djId = (t \ "id").text.toLong
+      val title = new Title((t \ "name").text, (t \ "author").text, (t \ "publisher").text, (t \ "isbn").text,
+                            asInt((t \ "numPages").text), (t \ "dimensions").text, asDouble((t \ "weight").text),
+                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df))
+      if (debug) println("Adding title: %s...".format(title.name))
+      pm.makePersistent(title)
+      titleIdMap += (djId -> title.id)
+    }
+    titleIdMap
+  }
+
+  def loadPurchaseGroups(pgs: NodeSeq, titleIdMap: mutable.Map[Long, Long], debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
+    val df = new SimpleDateFormat("yyyy-MM-dd")
+    val pgIdMap = mutable.Map[Long, Long]()
+    for (pg <- (pgs \ "purchaseGroup")) {
+      val djId = (pg \ "id").text.toLong
+      val title = Title.getById(titleIdMap((pg \ "titleId").text.toLong)).get
+      val purchaseGroup = new PurchaseGroup(title, asDate((pg \ "purchaseDate").text, df), asDouble((pg \ "price").text))
+      if (debug) println("Adding purchase group: %s...".format(purchaseGroup))
+      pm.makePersistent(purchaseGroup)
+      pgIdMap += (djId -> purchaseGroup.id)
+    }
+    pgIdMap
+  }
+  
+  def loadCopies(copies: NodeSeq, pgIdMap: mutable.Map[Long, Long], debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
+    val copyIdMap = mutable.Map[Long, Long]()
+    for (c <- (copies \ "copy")) {
+      val djId = (c \ "id").text.toLong
+      val pg = PurchaseGroup.getById(pgIdMap((c \ "purchaseGroupId").text.toLong)).get
+      val copy = new Copy(pg, (c \ "number").text.toInt, (c \ "isLost").text.toBoolean)
+      if (debug) println("Adding copy: %s...".format(copy))
+      pm.makePersistent(copy)
+      copyIdMap += (djId -> copy.id)
+    }
+    copyIdMap
   }
 }
