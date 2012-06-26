@@ -2,7 +2,7 @@ package controllers
 
 import play.api.mvc.Controller
 import models.courses._
-import models.users.{ Student, Teacher }
+import models.users._
 import util.DbAction
 import util.Helpers.mkNodeSeq
 import views.html
@@ -13,6 +13,20 @@ import util.ScalaPersistenceManager
 import scala.xml.Text
 
 object Courses extends Controller {
+  def getMySchedule() = DbAction { implicit req =>
+    implicit val pm: ScalaPersistenceManager = req.pm
+  	val currentUser: Option[User] = User.current
+    if(currentUser.isDefined) {
+      if (Teacher.getByUsername(currentUser.get.username)(pm).isDefined) {
+        teacherSchedule(Teacher.getByUsername(currentUser.get.username)(pm), Some(Term.current(pm)))
+      } else {
+        studentSchedule(Student.getByUsername(currentUser.get.username)(pm).get, Term.current(pm))
+      }
+    } else {
+      NotFound("You are not logged in.")
+    }
+  }
+  
   def getTeacherSchedule2(username: String, termSlug: String) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
     teacherSchedule(Teacher.getByUsername(username), Term.getBySlug(termSlug))

@@ -6,9 +6,14 @@
 	<table>
 		<thead><th>Teacher</th><th>Block</th><th>Term</th>
 		@for(s <- sections) {
-			<tr>
-				<td>@s.periods.toList.map(_.name).mkString(", ") - @s.room.name</td>
-			</tr>
-	</table>
+			@for(i <- 0 to (s.teachers(req.pm).length - 1)) {
+				<tr>
+					<td>@s.teachers(req.pm)(i).user.first @s.teachers(req.pm).head.user.last</td>
+					<td>@s.periods.toList.map(_.name).mkString(", ")</td>
+					<td>@s.terms.toList.map(_.name).mkString(", ")</td>
+				</tr>
+			}
 		}
+	</table>
+		
 }
