@@ -8,9 +8,9 @@ import util.ScalaPersistenceManager
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Student extends Perspective {
-  @Unique
+  @Unique(name="STUDENT_STATEID")
   private[this] var _stateId: String = _
-  @Unique
+  @Unique(name="STUDENT_STUDENTNUMBER")
   private[this] var _studentNumber: String = _
   private[this] var _grade: Int = _
   private[this] var _teamName: String = _

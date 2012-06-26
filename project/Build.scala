@@ -26,8 +26,6 @@ object ApplicationBuild extends Build {
       "org.scalatest" %% "scalatest" % "1.7.2" % "test",
       "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
       "com.lowagie" % "itext" % "2.1.7",
-      "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
-      "com.lowagie" % "itext" % "2.1.7",
       "org.tukaani" % "xz" % "1.0"      
     )
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")

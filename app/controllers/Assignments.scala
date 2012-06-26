@@ -22,7 +22,8 @@ object Assignments extends Controller {
     }
   }
   
-  def check(taskId: Long) = DbAction { implicit req => 
+  def check(taskId: Long) = TODO
+  /*DbAction { implicit req => 
     implicit val pm = req.pm
     Task.getById(taskId) match {
       case None => NotFound("no task with that id")
@@ -33,5 +34,5 @@ object Assignments extends Controller {
         )        
       }
     }
-  }
+  }*/
 }

@@ -62,7 +62,7 @@ object Books extends Controller {
   
   def copyHistory(copyId: Long) = DbAction { implicit req =>
     implicit val pm = req.pm
-    val df = new java.text.SimpleDateFormat("dd/mm/yyyy")
+    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
     val copyCand = QCopy.candidate
     pm.query[Copy].filter(copyCand.id.eq(copyId)).executeOption() match {
       case None => NotFound("no copy with the given id")
