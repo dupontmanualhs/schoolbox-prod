@@ -6,6 +6,7 @@ import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
+@Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Student extends Perspective {
   @Unique
   private[this] var _stateId: String = _

@@ -5,8 +5,9 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 
 @PersistenceCapable(detachable="true")
-@Inheritance(strategy=InheritanceStrategy.SUBCLASS_TABLE)
-class Perspective extends Ordered[Perspective] {
+@Inheritance(strategy=InheritanceStrategy.NEW_TABLE)
+@Discriminator(strategy=DiscriminatorStrategy.CLASS_NAME)
+abstract class Perspective extends Ordered[Perspective] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _

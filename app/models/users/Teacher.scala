@@ -7,6 +7,7 @@ import util.DataStore
 import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
+@Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Teacher extends Perspective {
   @Unique
   private[this] var _personId: String = _

@@ -6,6 +6,7 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 
 @PersistenceCapable(detachable="true")
+@Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Guardian extends Perspective {
   private[this] var _children: java.util.Set[Student] = _
   

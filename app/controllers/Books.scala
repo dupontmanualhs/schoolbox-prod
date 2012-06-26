@@ -4,6 +4,7 @@ import play.api._
 import play.api.mvc._
 import util.{DataStore, ScalaPersistenceManager}
 import util.DbAction
+import models.books._
 
 object Books extends Controller {
 
@@ -59,7 +60,22 @@ object Books extends Controller {
   
   def findCopyHistorySubmit() = TODO
   
-  def copyHistory(copyId: Long) = TODO
+  def copyHistory(copyId: Long) = DbAction { implicit req =>
+    implicit val pm = req.pm
+    val df = new java.text.SimpleDateFormat("dd/mm/yyyy")
+    val copyCand = QCopy.candidate
+    pm.query[Copy].filter(copyCand.id.eq(copyId)).executeOption() match {
+      case None => NotFound("no copy with the given id")
+      case Some(copy) => {
+        val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
+        val coCand = QCheckout.candidate
+        val rows: List[(String, String, String)] = pm.query[Checkout].filter(coCand.copy.eq(copy)).executeList().map(co => {
+          (co.perspective.formalName, df.format(co.startDate), if (co.endDate == null) "" else df.format(co.endDate))
+        })
+        Ok(views.html.books.copyHistory(header, rows))
+      }
+    }
+  }
   
   def confirmCopyLost(copyId: Long) = TODO
   
