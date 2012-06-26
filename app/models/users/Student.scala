@@ -46,6 +46,11 @@ object Student {
       case _ => None
     }
   }
+  
+  def getByStudentNumber(studentNumber: String)(implicit pm: ScalaPersistenceManager): Option[Student] = {
+    val cand = QStudent.candidate
+    pm.query[Student].filter(cand.studentNumber.eq(studentNumber)).executeOption()
+  }
 }
 
 trait QStudent extends QPerspective[Student] {

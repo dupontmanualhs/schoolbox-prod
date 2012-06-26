@@ -18,6 +18,7 @@ import java.text.DateFormat
 import java.text.ParseException
 import models.books.PurchaseGroup
 import models.books.Copy
+import models.books.Checkout
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()
@@ -33,12 +34,12 @@ object ManualData {
   }
 
   def loadManualData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
-    //createYearsAndTerms(debug)
-    //loadStudents(debug)
-    //loadTeachers(debug)
-    //loadCourses(debug)
-    //loadSections(debug)
-    //loadEnrollments(debug)
+    createYearsAndTerms(debug)
+    loadStudents(debug)
+    loadTeachers(debug)
+    loadCourses(debug)
+    loadSections(debug)
+    loadEnrollments(debug)
     loadBookData(debug)
   }
 
@@ -253,6 +254,7 @@ object ManualData {
     val titleIdMap = loadTitles((data \ "titles"), debug)
     val pgIdMap = loadPurchaseGroups((data \ "purchaseGroups"), titleIdMap, debug)
     val copyIdMap = loadCopies((data \ "copies"), pgIdMap, debug)
+    loadCheckouts((data \ "checkouts"), copyIdMap, debug)
   }
   
   def asInt(s: String): Int = {
@@ -282,6 +284,7 @@ object ManualData {
   def loadTitles(titles: NodeSeq, debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
     val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
     val titleIdMap = mutable.Map[Long, Long]()
+    pm.beginTransaction()
     for (t <- (titles \ "title")) {
       val djId = (t \ "id").text.toLong
       val title = new Title((t \ "name").text, (t \ "author").text, (t \ "publisher").text, (t \ "isbn").text,
@@ -291,12 +294,14 @@ object ManualData {
       pm.makePersistent(title)
       titleIdMap += (djId -> title.id)
     }
+    pm.commitTransaction()
     titleIdMap
   }
 
   def loadPurchaseGroups(pgs: NodeSeq, titleIdMap: mutable.Map[Long, Long], debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
     val df = new SimpleDateFormat("yyyy-MM-dd")
     val pgIdMap = mutable.Map[Long, Long]()
+    pm.beginTransaction()
     for (pg <- (pgs \ "purchaseGroup")) {
       val djId = (pg \ "id").text.toLong
       val title = Title.getById(titleIdMap((pg \ "titleId").text.toLong)).get
@@ -305,11 +310,13 @@ object ManualData {
       pm.makePersistent(purchaseGroup)
       pgIdMap += (djId -> purchaseGroup.id)
     }
+    pm.commitTransaction()
     pgIdMap
   }
   
   def loadCopies(copies: NodeSeq, pgIdMap: mutable.Map[Long, Long], debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
     val copyIdMap = mutable.Map[Long, Long]()
+    pm.beginTransaction()
     for (c <- (copies \ "copy")) {
       val djId = (c \ "id").text.toLong
       val pg = PurchaseGroup.getById(pgIdMap((c \ "purchaseGroupId").text.toLong)).get
@@ -318,6 +325,33 @@ object ManualData {
       pm.makePersistent(copy)
       copyIdMap += (djId -> copy.id)
     }
+    pm.commitTransaction()
     copyIdMap
+  }
+  
+  def loadCheckouts(checkouts: NodeSeq, copyIdMap: mutable.Map[Long, Long], debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
+    val df = new SimpleDateFormat("yyyy-MM-dd")
+    // only loads items checked out to students in the db; older students aren't included
+    pm.beginTransaction()
+    for (co <- (checkouts \ "checkout")) {
+      Student.getByStudentNumber((co \ "studentNumber").text) match {
+        case None => // do nothing
+        case Some(student) => {
+          val copy = Copy.getById(copyIdMap((co \ "copyId").text.toLong)).get
+          val startDate = (co \ "startDate").text match {
+            case "None" => null
+            case s: String => asDate(s, df)
+          }
+          val endDate = (co \ "endDate").text match {
+            case "None" => null
+            case s: String => asDate(s, df)
+          }
+          val checkout = new Checkout(student, copy, startDate, endDate)
+          if (debug) println("Adding checkout: %s".format(checkout))
+          pm.makePersistent(checkout)
+        }
+      }
+    }
+    pm.commitTransaction()
   }
 }

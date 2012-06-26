@@ -11,6 +11,7 @@ class PurchaseGroup {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _title: Title = _
+  @Persistent
   private[this] var _purchaseDate: java.sql.Date = _
   private[this] var _price: Double = _
 

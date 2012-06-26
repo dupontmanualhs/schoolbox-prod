@@ -3,6 +3,7 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 class Copy {
@@ -37,6 +38,10 @@ class Copy {
 }
 
 object Copy {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Copy] = {
+    val cand = QCopy.candidate
+    pm.query[Copy].filter(cand.id.eq(id)).executeOption()
+  }
   //def unicode()
   //TODO - Write this method. Should return the barcode
 

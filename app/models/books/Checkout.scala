@@ -12,7 +12,9 @@ class Checkout {
   private[this] var _id: Long = _
   private[this] var _perspective: Perspective = _
   private[this] var _copy: Copy = _
+  @Persistent
   private[this] var _startDate: java.sql.Date = _
+  @Persistent
   private[this] var _endDate: java.sql.Date = _
 
   def this(perspective: Perspective, copy: Copy, startDate: java.sql.Date, endDate: java.sql.Date) = {
@@ -20,7 +22,7 @@ class Checkout {
     _perspective = perspective
     _copy = copy
     _startDate = startDate
-    _endDate
+    _endDate = endDate
   }
 
   def id: Long = _id
@@ -36,6 +38,10 @@ class Checkout {
 
   def endDate: java.sql.Date = _endDate
   def endDate_=(theEndDate: java.sql.Date) { _endDate = theEndDate }
+  
+  override def toString: String = {
+    "Checkout: Copy %s to %s from %s to %s".format(copy, perspective.displayName, startDate, endDate)
+  }
 }
 
 object Checkout {
