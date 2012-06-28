@@ -67,13 +67,22 @@ class Title {
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
 
   def howManyCopies(implicit pm: ScalaPersistenceManager): Int = {
-    //TODO
-    0
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+        copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this))).executeList().length
   }
   
   def howManyCheckedOut(implicit pm: ScalaPersistenceManager): Int = {
-    //TODO
-    0
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    val coVar = QCheckout.variable("co")
+    pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+        copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this)).and(
+        coVar.copy.eq(copyCand)).and(
+        coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
   }
 }
 
@@ -104,6 +113,11 @@ object Title {
     // Return the dimension as a String in the format l x w x h
     dim._1 + " x " + dim._2 + " x " + dim._3
     // TODO - Test this code
+  }
+  
+  def count()(implicit pm: ScalaPersistenceManager): Long = {
+    val cand = QTitle.candidate
+    pm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
   }
 
   // def setSizeCallback
