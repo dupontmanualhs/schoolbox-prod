@@ -2,6 +2,7 @@ package forms.widgets
 
 import scala.xml._
 
+//TODO: what about forms where a list of checkboxes refers to the same name
 class CheckboxInput(
     attrs: MetaData = Null,
     val checkFun: (Seq[String] => Boolean) = CheckboxInput.defaultCheckFun(_))

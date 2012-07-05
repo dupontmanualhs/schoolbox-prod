@@ -19,9 +19,9 @@ class Title {
   private[this] var _numPages: Int = _
   private[this] var _dimensions: String = _
   private[this] var _weight: Double = _
-  @Persistent(defaultFetchGroup="true")
-  @Embedded  
-  private[this] var _image: PersistableFile = _
+  // @Persistent(defaultFetchGroup="true")
+  // @Embedded  
+  // private[this] var _image: PersistableFile = _
   private[this] var _verified: Boolean = _
   private[this] var _lastModified: java.sql.Date = _
 
@@ -63,8 +63,8 @@ class Title {
   def weight: Double = _weight
   def weight_=(theWeight: Double) { _weight = theWeight }
   
-  def image: PersistableFile = _image
-  def image_=(theImage: PersistableFile) { _image = theImage }
+  // def image: PersistableFile = _image
+  // def image_=(theImage: PersistableFile) { _image = theImage }
 
   def verified: Boolean = _verified
   def verified_(theVerified: Boolean) { _verified = theVerified }
