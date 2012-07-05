@@ -94,6 +94,6 @@ GET     /books/checkoutHistory                  controllers.Books.checkoutHistor
 POST    /books/checkoutHistory                  controllers.Books.checkoutHistorySubmit
 GET     /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudents
 POST    /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudentsSubmit
-GET     /books/copiesOutByTitle                 controllers.Books.copiesOutByTitle
-POST    /books/copiesOutByTitle                 controllers.Books.copiesOutByTitleSubmit
+GET     /books/copyStatusByTitle                controllers.Books.copyStatusByTitle
+POST    /books/copyStatusOutByTitle             controllers.Books.copyStatusByTitleSubmit
 GET     /books/statistics                       controllers.Books.statistics

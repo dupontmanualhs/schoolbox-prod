@@ -4,6 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
+import util.PersistableFile
 
 @PersistenceCapable(detachable="true")
 class Title {
@@ -18,7 +19,9 @@ class Title {
   private[this] var _numPages: Int = _
   private[this] var _dimensions: String = _
   private[this] var _weight: Double = _
-  // TODO: Add image field
+  @Persistent(defaultFetchGroup="true")
+  @Embedded  
+  private[this] var _image: PersistableFile = _
   private[this] var _verified: Boolean = _
   private[this] var _lastModified: java.sql.Date = _
 
@@ -59,6 +62,9 @@ class Title {
 
   def weight: Double = _weight
   def weight_=(theWeight: Double) { _weight = theWeight }
+  
+  def image: PersistableFile = _image
+  def image_=(theImage: PersistableFile) { _image = theImage }
 
   def verified: Boolean = _verified
   def verified_(theVerified: Boolean) { _verified = theVerified }
@@ -99,10 +105,6 @@ object Title {
 
   def hasSameValues(other: Title): Boolean = {
     true //TODO - Write the implementation
-  }
-
-  def howManyCheckedOut(): Int = {
-    23 //TODO - Write the implementation
   }
 
   def convertStrToDecimal(str: String): Double = {

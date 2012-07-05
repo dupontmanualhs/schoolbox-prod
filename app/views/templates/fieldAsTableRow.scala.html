@@ -4,7 +4,7 @@
 
 <tr>
   <td>
-    <label for="@elements.id">@camel2TitleCase(elements.label)</label>
+    <label for="@elements.id">@camel2TitleCase(elements.label.asInstanceOf[String])</label>
   </td>
   <td>
     @elements.input
