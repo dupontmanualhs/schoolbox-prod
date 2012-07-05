@@ -3,6 +3,7 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.NEW_TABLE)
@@ -32,6 +33,13 @@ abstract class Perspective extends Ordered[Perspective] {
   }
 }
 
+object Perspective {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Perspective] = {
+    val cand = QPerspective.candidate
+    pm.query[Perspective].filter(cand.id.eq(id)).executeOption()
+  }
+}
+
 trait QPerspective[PC <: Perspective] extends PersistableExpression[PC] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
@@ -39,3 +47,25 @@ trait QPerspective[PC <: Perspective] extends PersistableExpression[PC] {
   private[this] lazy val _user: ObjectExpression[User] = new ObjectExpressionImpl[User](this, "_user")
   def user: ObjectExpression[User] = _user 
 }
+
+object QPerspective {
+  def apply(parent: PersistableExpression[Perspective], name: String, depth: Int): QPerspective[Perspective] = {
+    new PersistableExpressionImpl[Perspective](parent, name) with QPerspective[Perspective]
+  }
+  
+  def apply(cls: Class[Perspective], name: String, exprType: ExpressionType): QPerspective[Perspective] = {
+    new PersistableExpressionImpl[Perspective](cls, name, exprType) with QPerspective[Perspective]
+  }
+  
+  private[this] lazy val jdoCandidate: QPerspective[Perspective] = candidate("this")
+  
+  def candidate(name: String): QPerspective[Perspective] = QPerspective(null, name, 5)
+  
+  def candidate(): QPerspective[Perspective] = jdoCandidate
+
+  def parameter(name: String): QPerspective[Perspective] = QPerspective(classOf[Perspective], name, ExpressionType.PARAMETER)
+  
+  def variable(name: String): QPerspective[Perspective] = QPerspective(classOf[Perspective], name, ExpressionType.VARIABLE)
+
+}
+

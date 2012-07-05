@@ -69,12 +69,12 @@ trait QStudent extends QPerspective[Student] {
 }
 
 object QStudent {
-  def apply(parent: PersistableExpression[_], name: String, depth: Int): QStudent = {
-    new PersistableExpressionImpl[Student](parent, name) with QPerspective[Student] with QStudent
+  def apply(parent: PersistableExpression[Student], name: String, depth: Int): QStudent = {
+    new PersistableExpressionImpl[Student](parent, name) with QStudent
   }
   
   def apply(cls: Class[Student], name: String, exprType: ExpressionType): QStudent = {
-    new PersistableExpressionImpl[Student](cls, name, exprType) with QPerspective[Student] with QStudent
+    new PersistableExpressionImpl[Student](cls, name, exprType) with QStudent
   }
   
   private[this] lazy val jdoCandidate: QStudent = candidate("this")
