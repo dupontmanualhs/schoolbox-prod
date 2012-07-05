@@ -36,7 +36,7 @@
 
          ed.addButton('dragmath', {
             title : 'Drag Math',
-            command : 'mcedragInsert',
+            command : 'mceDragInsert',
             image : url + '/img/sqrt.png'
          });
 		},
@@ -55,57 +55,6 @@
 				infourl : '',
 				version : "1.0"
 			};
-		},
-
-		//start LaTeX functions
-
-		//roots
-		_sqrt : function(s) {
-		    return "\\sqrt[Index]{" + s + "}";
-		},
-
-		//fraction
-		_frac : function(n, d) {
-		    return "\\frac{" + n + "}{" + d + "}";
-		},
-
-		//exponentiation
-		_expo : function(b, e) {
-		    return "{" + b + "}^{" + e + "}";
-		},
-
-		//subscripts
-		_subscript : function(b, i) {
-		    return "{" + b + "}_{" + i + "}";
-		},
-
-		//natural log
-		_ln : function(x) {
-		    return "\\ln{" + x + "}";
-		},
-
-		//log base 10
-		_log : function(x) {
-		    return "\\log{" + x + "}";
-		},
-
-		//log base b
-		_logb : function(b, x) {
-		    return "\\log_{" + b + "}{" + x + "}";
-		},
-
-		//liebniz notation
-		_derLieb : function() {
-		    return "\\frac{dx}{dy}"
-		},
-
-		//newton notation
-		_derNewt : function() {
-		    return "{Function}\\prime";
-		},
-
-		_indefInt : function() {
-		    return "\\int{Function}";
 		}
 	});
 

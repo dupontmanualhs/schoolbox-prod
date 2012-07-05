@@ -64,12 +64,12 @@ trait QPost extends PersistableExpression[Post] {
   def content: StringExpression = _content
   
   // published
-  private[this] lazy val published: DateExpression[java.sql.Timestamp] = new DateExpressionImpl[java.sql.Timestamp](this, "_published")
-  def published: DateExpression[java.sql.Timestamp] = _published
+  private[this] lazy val _published: DateTimeExpression[java.util.Date] = new DateTimeExpressionImpl(this, "_published")
+  def published: DateTimeExpression[java.util.Date] = _published
   
   // edited
-  private[this] lazy val _edited: DateExpression[java.sql.Timestamp] = new DateExpressionImpl[java.sql.Timestamp](this, "_edited")
-  def edited: DateExpression[java.sql.Timestamp] = _edited
+  private[this] lazy val _edited: DateTimeExpression[java.util.Date] = new DateTimeExpressionImpl(this, "_edited")
+  def edited: DateTimeExpression[java.util.Date] = _edited
   
   // title
   private[this] lazy val _title: StringExpression = new StringExpressionImpl(this, "_title")

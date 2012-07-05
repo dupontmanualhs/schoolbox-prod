@@ -9,6 +9,8 @@ import play.api.data._
 import play.api.data.Forms._
 import models.users._
 import models.blogs._
+import play.api.mvc.Result
+import models.users.QPerspective
 
 object Blogs extends Controller {
   val newPost = Form {
@@ -29,10 +31,26 @@ object Blogs extends Controller {
 
   /** List the blogs for a given user. If the user passed is the current user, the user can manage their blog.
   *
-  *   @param user the user whose blogs to display
+  *   @param perspective the user whose blogs to display
   */
-  def listUserBlogs(user: User) = DbAction { implicit req =>
-    Ok(views.html.stub())
+  def listUserBlogs(perspectiveOpt: Option[Perspective]) = DbAction { implicit req =>
+    perspectiveOpt match {
+      case None => NotFound("That user doesn't exist.")
+      case Some(perspective) => {
+        implicit val pm: ScalaPersistenceManager = req.pm
+        val cand = QBlog.candidate
+        val blogs: List[Blog] = pm.query[Blog].filter(cand.owner.eq(perspective)).executeList
+        Ok(views.html.blogs.blogs(blogs, perspective.user))
+      }
+    }
+  }
+  
+  def viewCurrentUserBlogs()(implicit req: DbRequest[_]): Result = {
+    val currentUser = User.current
+    implicit val pm: ScalaPersistenceManager = req.pm
+    val cand = QPerspective.candidate
+    val perspective = pm.query[Perspective].filter(cand.user.eq(currentUser)).executeOption
+    listUserBlogs(perspective)
   }
 
   /** Show the control panel for a given blog. Checks to see if the correct user is stored in the session var first.
@@ -55,12 +73,12 @@ object Blogs extends Controller {
   *
   *   @param blog the blog to be shown
   */
-  def showBlogByBlog(blogOpt: Option[Blog]) = DbAction { implicit req =>
+  def showBlogByBlog(blogOpt: Option[Blog])(implicit req: DbRequest[_]): Result = {
     blogOpt match {
       case None => NotFound("This blog does not exist")
       case Some(blog) => {
          implicit val pm: ScalaPersistenceManager = req.pm
-         val cand = QPost.candidate()
+         val cand = QPost.candidate
          val posts: List[Post] = pm.query[Post].filter(cand.blog.eq(blog)).executeList()
          Ok(views.html.blogs.blog(blog, posts))
       }
@@ -71,9 +89,9 @@ object Blogs extends Controller {
   *
   *   @param id the id of the blog to be shown
   */
-  def showBlog(id: Long) = DbAction { implicit req =>
+  def showBlog(id: Long)(implicit req: DbRequest[_]): Result = {
     implicit val pm: ScalaPersistenceManager = req.pm
-    val cand = QBlog.candidate()
+    val cand = QBlog.candidate
     val blog = pm.query[Blog].filter(cand.id.eq(id)).executeOption()
     showBlogByBlog(blog)
   }
