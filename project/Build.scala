@@ -22,12 +22,16 @@ object ApplicationBuild extends Build {
       "org.datanucleus" % "datanucleus-rdbms" % "3.0.5",
       "org.datanucleus" % "datanucleus-jodatime" % "3.0.1",
       "com.h2database" % "h2" % "1.3.165",
-      "org.scalatest" %% "scalatest" % "1.7.2" % "test"
+      "org.scalatest" %% "scalatest" % "1.7.2" % "test",
+      "jp.t2v" %% "play20.auth" % "0.2"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-        ((testOptions in Test := Nil) +: Nucleus.settings): _*
+      ((resolvers += "t2v.jp repo" at "http://www.t2v.jp/maven-repo/") +:
+       (testOptions in Test := Nil) +: 
+       Nucleus.settings): _*
     )
+    
 
 }
 
