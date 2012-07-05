@@ -90,6 +90,14 @@ class Title {
         coVar.copy.eq(copyCand)).and(
         coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
   }
+
+  def hasSameValues(other: Title): Boolean = {
+    this.name == other.name && this.publisher == other.publisher && 
+    this.author == other.author && this.isbn == other.isbn && 
+    this.numPages == other.numPages && this.dimensions == other.dimensions && 
+    this.weight == other.weight && this.verified == other.verified && 
+    this.lastModified == other.lastModified
+  }
 }
 
 object Title {
@@ -103,18 +111,13 @@ object Title {
     pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
   }
 
-  def hasSameValues(other: Title): Boolean = {
-    true //TODO - Write the implementation
-  }
-
   def convertStrToDecimal(str: String): Double = {
-    12.0 //TODO - Write the implementation
+    str.toDouble
   }
 
   def makeDimensionStrings(dim: Tuple3[Int, Int, Int]): String = {
     // Return the dimension as a String in the format l x w x h
     dim._1 + " x " + dim._2 + " x " + dim._3
-    // TODO - Test this code
   }
   
   def count()(implicit pm: ScalaPersistenceManager): Long = {
