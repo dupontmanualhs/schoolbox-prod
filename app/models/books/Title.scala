@@ -4,6 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
+import util.PersistableFile
 
 @PersistenceCapable(detachable="true")
 class Title {
@@ -18,7 +19,9 @@ class Title {
   private[this] var _numPages: Int = _
   private[this] var _dimensions: String = _
   private[this] var _weight: Double = _
-  // TODO: Add image field
+  // @Persistent(defaultFetchGroup="true")
+  // @Embedded  
+  // private[this] var _image: PersistableFile = _
   private[this] var _verified: Boolean = _
   private[this] var _lastModified: java.sql.Date = _
 
@@ -59,40 +62,67 @@ class Title {
 
   def weight: Double = _weight
   def weight_=(theWeight: Double) { _weight = theWeight }
+  
+  // def image: PersistableFile = _image
+  // def image_=(theImage: PersistableFile) { _image = theImage }
 
   def verified: Boolean = _verified
   def verified_(theVerified: Boolean) { _verified = theVerified }
 
   def lastModified: java.sql.Date = _lastModified
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
+
+  def howManyCopies(implicit pm: ScalaPersistenceManager): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+        copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this))).executeList().length
+  }
+  
+  def howManyCheckedOut(implicit pm: ScalaPersistenceManager): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    val coVar = QCheckout.variable("co")
+    pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+        copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this)).and(
+        coVar.copy.eq(copyCand)).and(
+        coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
+  }
+
+  def hasSameValues(other: Title): Boolean = {
+    this.name == other.name && this.publisher == other.publisher && 
+    this.author == other.author && this.isbn == other.isbn && 
+    this.numPages == other.numPages && this.dimensions == other.dimensions && 
+    this.weight == other.weight && this.verified == other.verified && 
+    this.lastModified == other.lastModified
+  }
 }
 
 object Title {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Title] = {
+    val cand = QTitle.candidate
+    pm.query[Title].filter(cand.id.eq(id)).executeOption()
+  }
+  
   def getByIsbn(isbn: String)(implicit pm: ScalaPersistenceManager): Option[Title] = {
     val cand = QTitle.candidate
     pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
   }
 
-  def hasSameValues(other: Title): Boolean = {
-    true //TODO - Write the implementation
-  }
-
-  def howManyCopies(): Int = {
-    123 //TODO - Write the implementation
-  }
-
-  def howManyCheckedOut(): Int = {
-    23 //TODO - Write the implementation
-  }
-
   def convertStrToDecimal(str: String): Double = {
-    12.0 //TODO - Write the implementation
+    str.toDouble
   }
 
   def makeDimensionStrings(dim: Tuple3[Int, Int, Int]): String = {
     // Return the dimension as a String in the format l x w x h
     dim._1 + " x " + dim._2 + " x " + dim._3
-    // TODO - Test this code
+  }
+  
+  def count()(implicit pm: ScalaPersistenceManager): Long = {
+    val cand = QTitle.candidate
+    pm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
   }
 
   // def setSizeCallback

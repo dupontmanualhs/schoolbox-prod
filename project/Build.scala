@@ -13,22 +13,23 @@ object ApplicationBuild extends Build {
       "org.joda" % "joda-convert" % "1.2",
       "org.apache.poi" % "poi" % "3.8-beta5",
       "org.apache.poi" % "poi-ooxml" % "3.8-beta5",
-      "org.datanucleus" % "datanucleus-core" % "3.0.5",
-      "org.datanucleus" % "datanucleus-api-jdo" % "3.0.4",
-      "org.datanucleus" % "datanucleus-enhancer" % "3.0.1",
-      "org.datanucleus" % "datanucleus-jdo-query" % "3.0.1",
+      "org.datanucleus" % "datanucleus-core" % "3.1.0-m4",
+      "org.datanucleus" % "datanucleus-api-jdo" % "3.1.0-m2",
+      "org.datanucleus" % "datanucleus-enhancer" % "3.1.0-m1",
+      "org.datanucleus" % "datanucleus-jdo-query" % "3.0.2",
       "asm" % "asm" % "3.3.1",
       "javax.jdo" % "jdo-api" % "3.0",
-      "org.datanucleus" % "datanucleus-rdbms" % "3.0.5",
-      "org.datanucleus" % "datanucleus-jodatime" % "3.0.1",
+      "org.datanucleus" % "datanucleus-rdbms" % "3.1.0-m4",
+      "org.datanucleus" % "datanucleus-jodatime" % "3.1.0-m2",
       "com.h2database" % "h2" % "1.3.165",
+      "log4j" % "log4j" % "1.2.17",
       "org.scalatest" %% "scalatest" % "1.7.2" % "test",
       "jp.t2v" %% "play20.auth" % "0.2",
       "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
       "com.lowagie" % "itext" % "2.1.7",
-      "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
-      "com.lowagie" % "itext" % "2.1.7"
+      "org.tukaani" % "xz" % "1.0"      
     )
+    System.setProperty("log4j.configuration", "file:conf/log4j.properties")
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
       ((resolvers += "t2v.jp repo" at "http://www.t2v.jp/maven-repo/") +:

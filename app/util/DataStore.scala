@@ -11,6 +11,9 @@ import org.datanucleus.api.jdo.query.JDOTypesafeQuery
 import javax.jdo.PersistenceManager
 import javax.jdo.spi.PersistenceCapable
 import org.datanucleus.query.typesafe.Expression
+import javax.jdo.Extent
+import javax.jdo.Query
+import org.datanucleus.query.typesafe.TypesafeSubquery
 
 object DataStore {
   private[this] var _pmf: Option[JDOPersistenceManagerFactory] = None
@@ -89,6 +92,12 @@ class ScalaPersistenceManager(val jpm: JDOPersistenceManager) {
     jpm.makePersistentAll[T](dataObjs.toList: _*)
   }
   
+  def extent[T: ClassManifest](includeSubclasses: Boolean = true): Extent[T] = {
+    jpm.getExtent[T](classManifest[T].erasure.asInstanceOf[Class[T]], includeSubclasses)
+  }
+  
+  def newQuery[T](extent: Extent[T]): Query = jpm.newQuery(extent)
+  
   def query[T: ClassManifest](): ScalaQuery[T] = ScalaQuery[T](jpm)
   
   def detachCopy[T: ClassManifest](obj: T): T = jpm.detachCopy(obj)
@@ -118,12 +127,28 @@ class ScalaQuery[T](val query: TypesafeQuery[T]) {
     query.executeResultList[R](classManifest[R].erasure.asInstanceOf[Class[R]], distinct, expr).asScala.toList
   }
   
+  def executeResultUnique[R](distinct: Boolean, expr: Expression[R])(implicit man: Manifest[R]): R = {
+    query.executeResultUnique[R](classManifest[R].erasure.asInstanceOf[Class[R]], distinct, expr)
+  }
+  
   def filter(expr: BooleanExpression): ScalaQuery[T] = {
     ScalaQuery[T](query.filter(expr))
   }
   
   def orderBy(orderExpr: OrderExpression[_]*): ScalaQuery[T] = {
     ScalaQuery[T](query.orderBy(orderExpr: _*))
+  }
+  
+  def excludeSubclasses(): ScalaQuery[T] = {
+    ScalaQuery[T](query.excludeSubclasses())
+  }
+  
+  def includeSubclasses(): ScalaQuery[T] = {
+    ScalaQuery[T](query.includeSubclasses())
+  }
+  
+  def subquery[R](alias: String)(implicit man: Manifest[R]): TypesafeSubquery[R] = {
+    query.subquery(classManifest[R].erasure.asInstanceOf[Class[R]], alias)
   }
 }
 

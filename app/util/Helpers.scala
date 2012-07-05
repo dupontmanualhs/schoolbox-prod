@@ -10,7 +10,7 @@ import views.html.helper.FieldConstructor
 object Helpers {
   implicit val tableFields = FieldConstructor(views.html.templates.fieldAsTableRow(_))
   
-  def camel2TitleCase(camel: Any): Any = {
+  def camel2TitleCase(camel: String): String = {
     camel match {
       case s: String if (s.length > 0) => {
         val buf: StringBuilder = new StringBuilder(s.substring(0, 1).toUpperCase)

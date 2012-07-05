@@ -3,6 +3,7 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 class PurchaseGroup {
@@ -10,6 +11,7 @@ class PurchaseGroup {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _title: Title = _
+  @Persistent
   private[this] var _purchaseDate: java.sql.Date = _
   private[this] var _price: Double = _
 
@@ -30,9 +32,18 @@ class PurchaseGroup {
 
   def price: Double = _price
   def price_=(thePrice: Double) { _price = thePrice }
+  
+  override def toString = {
+    "<PurchaseGroup title: %s, date: %s, price: $%.2f>".format(title.name, purchaseDate, price)
+  }
 }
 
 object PurchaseGroup {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[PurchaseGroup] = {
+    val cand = QPurchaseGroup.candidate
+    pm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
+  }
+  
   def numCopies(): Int = {
     123
     //TODO - Write the implementation
