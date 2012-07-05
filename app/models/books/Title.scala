@@ -1,0 +1,155 @@
+package models.books
+
+import javax.jdo.annotations._
+import org.datanucleus.api.jdo.query._
+import org.datanucleus.query.typesafe._
+import util.ScalaPersistenceManager
+
+@PersistenceCapable(detachable="true")
+class Title {
+  @PrimaryKey
+  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  private[this] var _id: Long = _
+  private[this] var _name: String = _
+  private[this] var _author: String = _
+  private[this] var _publisher: String = _
+  @Unique
+  private[this] var _isbn: String = _
+  private[this] var _numPages: Int = _
+  private[this] var _dimensions: String = _
+  private[this] var _weight: Double = _
+  // TODO: Add image field
+  private[this] var _verified: Boolean = _
+  private[this] var _lastModified: java.sql.Date = _
+
+  def this(name: String, author: String, publisher: String, isbn: String, numPages: Int,
+    dimensions: String, weight: Double, verified: Boolean, lastModified: java.sql.Date) = {
+    this()
+    _name = name
+    _author = author
+    _publisher = publisher
+    _isbn = isbn
+    _numPages = numPages
+    _dimensions = dimensions
+    _weight = weight
+    // _image = image
+    _verified = verified
+    _lastModified = lastModified
+  }
+
+  def id: Long = _id
+
+  def name: String = _name
+  def name_=(theName: String) { _name = theName }
+
+  def author: String = _author
+  def author_=(theAuthor: String) { _author = theAuthor }
+
+  def publisher: String = _publisher
+  def publisher_=(thePublisher: String) { _publisher = thePublisher }
+
+  def isbn: String = _isbn
+  def isbn_=(theIsbn: String) { _isbn = theIsbn }
+
+  def numPages: Int = _numPages
+  def numPages_=(theNumPages: Int) { _numPages = theNumPages }
+
+  def dimensions: String = _dimensions
+  def dimensions_=(theDimensions: String) { _dimensions = theDimensions }
+
+  def weight: Double = _weight
+  def weight_=(theWeight: Double) { _weight = theWeight }
+
+  def verified: Boolean = _verified
+  def verified_(theVerified: Boolean) { _verified = theVerified }
+
+  def lastModified: java.sql.Date = _lastModified
+  def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
+}
+
+object Title {
+  def getByIsbn(isbn: String)(implicit pm: ScalaPersistenceManager): Option[Title] = {
+    val cand = QTitle.candidate
+    pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
+  }
+
+  def hasSameValues(other: Title): Boolean = {
+    true //TODO - Write the implementation
+  }
+
+  def howManyCopies(): Int = {
+    123 //TODO - Write the implementation
+  }
+
+  def howManyCheckedOut(): Int = {
+    23 //TODO - Write the implementation
+  }
+
+  def convertStrToDecimal(str: String): Double = {
+    12.0 //TODO - Write the implementation
+  }
+
+  def makeDimensionStrings(dim: Tuple3[Int, Int, Int]): String = {
+    // Return the dimension as a String in the format l x w x h
+    dim._1 + " x " + dim._2 + " x " + dim._3
+    // TODO - Test this code
+  }
+
+  // def setSizeCallback
+  // I have no idea what this is suposed to do
+  //TODO - Figure out what this does and write the implementation
+}
+
+trait QTitle extends PersistableExpression[Title] {
+  private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
+  def id: NumericExpression[Long] = _id
+
+  private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
+  def name: StringExpression = _name
+
+  private[this] lazy val _author: StringExpression = new StringExpressionImpl(this, "_author")
+  def author: StringExpression = _author
+
+  private[this] lazy val _publisher: StringExpression = new StringExpressionImpl(this, "_publisher")
+  def publisher: StringExpression = _publisher
+
+  private[this] lazy val _isbn: StringExpression = new StringExpressionImpl(this, "_isbn")
+  def isbn: StringExpression = _isbn
+
+  private[this] lazy val _numPages: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_numPages")
+  def numPages: NumericExpression[Int] = _numPages
+
+  private[this] lazy val _dimensions: StringExpression = new StringExpressionImpl(this, "_dimensions")
+  def dimensions: StringExpression = _dimensions
+
+  private[this] lazy val _weight: NumericExpression[Double] = new NumericExpressionImpl[Double](this, "_weight")
+  def weight: NumericExpression[Double] = _weight
+
+  // Add image field
+
+  private[this] lazy val _verified: BooleanExpression = new BooleanExpressionImpl(this, "_verified")
+  def verified: BooleanExpression = _verified
+
+  private[this] lazy val _lastModified: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_lastModified")
+  def lastModified: ObjectExpression[java.sql.Date] = _lastModified
+}
+
+object QTitle {
+  def apply(parent: PersistableExpression[Title], name: String, depth: Int): QTitle = {
+    new PersistableExpressionImpl[Title](parent, name) with QTitle
+  }
+
+  def apply(cls: Class[Title], name: String, exprType: ExpressionType): QTitle = {
+    new PersistableExpressionImpl[Title](cls, name, exprType) with QTitle
+  }
+
+  private[this] lazy val jdoCandidate: QTitle = candidate("this")
+
+  def candidate(name: String): QTitle = QTitle(null, name, 5)
+
+  def candidate(): QTitle = jdoCandidate
+
+  def parameter(name: String): QTitle = QTitle(classOf[Title], name, ExpressionType.PARAMETER)
+
+  def variable(name: String): QTitle = QTitle(classOf[Title], name, ExpressionType.VARIABLE)
+}
