@@ -7,6 +7,7 @@ import util.ScalaPersistenceManager
 object AssignmentData {
   def load(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
     loadQuestions(debug)
+    loadTasks(debug)
   }
     
   def loadQuestions(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
@@ -79,6 +80,44 @@ object AssignmentData {
             <text><code>false</code></text>
           </answer>
         </question>
+        <question kind="fill-blanks" format="html">
+          <text>The capital of Peru is <blank/>.</text>
+          <answer blank="0" worth="1">
+            <text>Lima</text>
+          </answer>
+          <answer blank="0" worth="0">
+            <text>Cuzco</text>
+            <feedback>Cuzco was the Inca capital, but is not the modern capital of Peru.</feedback>
+          </answer>
+        </question>
+        <question kind="fill-blanks" format="html">
+          <text>In alphabetical order, the three primitive types on the AP test are <blank/>, <blank/>, and <blank/>.</text>
+          <answer blank="0" worth="1">
+            <text>boolean</text>
+          </answer>
+          <answer blank="0" worth="1/2">
+            <text>Boolean</text>
+            <feedback>This is the wrapper class; the primitive is lower-case.</feedback>
+          </answer>
+          <answer blank="1" worth="1">
+            <text>double</text>
+          </answer>
+          <answer blank="1" worth="1/2">
+            <text>Double</text>
+            <feedback>This is the wrapper class; the primitive is lower-case.</feedback>
+          </answer>
+          <answer blank="2" worth="1">
+            <text>int</text>
+          </answer>
+          <answer blank="2" worth="1/2">
+            <text>Integer</text>
+            <feedback>This is the wrapper class; the primitive is lower-case.</feedback>
+          </answer>
+          <answer blank="2" worth="0">
+            <text>Int</text>
+            <feedback>There is no <code>Int</code> in Java. The primitive is <code>int</code> and the wrapper class is <code>Integer</code>.</feedback>
+          </answer>
+        </question>
       </questions>
     pm.beginTransaction()
     for (q <- (qs \ "question")) {
@@ -90,5 +129,12 @@ object AssignmentData {
       }
     }
     pm.commitTransaction()
+  }
+  
+  def loadTasks(debug: Boolean = false)(implicit pm: ScalaPersistenceManager)  {
+    if (debug) println("Adding a task with all questions in it.")
+	val qs: List[DbQuestion] = pm.query[DbQuestion].executeList()
+    val task = new Task(qs)
+    pm.makePersistent(task)
   }
 }

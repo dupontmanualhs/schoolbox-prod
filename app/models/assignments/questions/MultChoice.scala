@@ -39,7 +39,7 @@ class MultChoice extends DbQuestion {
     <question kind="mult-choice" singleAnswer={ this.singleAnswer.toString } scramble={ this.scramble.toString }>
       <text>{ text }</text>
       <feedback>{ feedback }</feedback>
-      { answers.flatMap(_.asXml) }
+      { answers.flatMap(_.toXml) }
     </question>
   }
   

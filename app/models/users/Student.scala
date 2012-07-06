@@ -6,10 +6,11 @@ import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
+@Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Student extends Perspective {
-  @Unique
+  @Unique(name="STUDENT_STATEID")
   private[this] var _stateId: String = _
-  @Unique
+  @Unique(name="STUDENT_STUDENTNUMBER")
   private[this] var _studentNumber: String = _
   private[this] var _grade: Int = _
   private[this] var _teamName: String = _
@@ -46,6 +47,11 @@ object Student {
       case _ => None
     }
   }
+  
+  def getByStudentNumber(studentNumber: String)(implicit pm: ScalaPersistenceManager): Option[Student] = {
+    val cand = QStudent.candidate
+    pm.query[Student].filter(cand.studentNumber.eq(studentNumber)).executeOption()
+  }
 }
 
 trait QStudent extends QPerspective[Student] {
@@ -63,12 +69,12 @@ trait QStudent extends QPerspective[Student] {
 }
 
 object QStudent {
-  def apply(parent: PersistableExpression[_], name: String, depth: Int): QStudent = {
-    new PersistableExpressionImpl[Student](parent, name) with QPerspective[Student] with QStudent
+  def apply(parent: PersistableExpression[Student], name: String, depth: Int): QStudent = {
+    new PersistableExpressionImpl[Student](parent, name) with QStudent
   }
   
   def apply(cls: Class[Student], name: String, exprType: ExpressionType): QStudent = {
-    new PersistableExpressionImpl[Student](cls, name, exprType) with QPerspective[Student] with QStudent
+    new PersistableExpressionImpl[Student](cls, name, exprType) with QStudent
   }
   
   private[this] lazy val jdoCandidate: QStudent = candidate("this")

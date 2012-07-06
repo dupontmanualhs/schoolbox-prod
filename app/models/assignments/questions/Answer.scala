@@ -5,13 +5,13 @@ import math.MathExactNumber
 import math.MathInteger
 
 case class Answer(text: NodeSeq, worth: MathExactNumber, feedback: NodeSeq) {
-  def asXml: Elem = <answer worth={ worth.toString }><text>{ text }</text><feedback>{ feedback }</feedback></answer>
+  def toXml: Elem = <answer worth={ worth.toString }><text>{ text }</text><feedback>{ feedback }</feedback></answer>
 }
 case class TrueAnswer(worth: MathExactNumber, feedback: NodeSeq) {
-  def asXml: Elem = <answer worth={ worth.toString }><text>true</text><feedback>{ feedback }</feedback></answer>
+  def toXml: Elem = <answer worth={ worth.toString }><text>true</text><feedback>{ feedback }</feedback></answer>
 }
 case class FalseAnswer(worth: MathExactNumber, feedback: NodeSeq) {
-  def asXml: Elem = <answer worth={ worth.toString }><text>false</text><feedback>{ feedback }</feedback></answer>
+  def toXml: Elem = <answer worth={ worth.toString }><text>false</text><feedback>{ feedback }</feedback></answer>
 }
 
 object Answer {

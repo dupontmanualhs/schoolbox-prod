@@ -8,10 +8,11 @@ import util.ScalaPersistenceManager
 import models.courses._
 
 @PersistenceCapable(detachable="true")
+@Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Teacher extends Perspective {
-  @Unique
+  @Unique(name="TEACHER_PERSONID")
   private[this] var _personId: String = _
-  @Unique
+  @Unique(name="TEACHER_STATEID")
   private[this] var _stateId: String = _
   
   def this(user: User, personId: String, stateId: String) = {
@@ -54,12 +55,12 @@ trait QTeacher extends QPerspective[Teacher] {
 }
 
 object QTeacher {
-  def apply(parent: PersistableExpression[_], name: String, depth: Int): QTeacher = {
-    new PersistableExpressionImpl[Teacher](parent, name) with QPerspective[Teacher] with QTeacher
+  def apply(parent: PersistableExpression[Teacher], name: String, depth: Int): QTeacher = {
+    new PersistableExpressionImpl[Teacher](parent, name) with QTeacher
   }
   
   def apply(cls: Class[Teacher], name: String, exprType: ExpressionType): QTeacher = {
-    new PersistableExpressionImpl[Teacher](cls, name, exprType) with QPerspective[Teacher] with QTeacher
+    new PersistableExpressionImpl[Teacher](cls, name, exprType) with QTeacher
   }
   
   private[this] lazy val jdoCandidate: QTeacher = candidate("this")

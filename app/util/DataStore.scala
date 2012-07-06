@@ -13,6 +13,7 @@ import javax.jdo.spi.PersistenceCapable
 import org.datanucleus.query.typesafe.Expression
 import javax.jdo.Extent
 import javax.jdo.Query
+import org.datanucleus.query.typesafe.TypesafeSubquery
 
 object DataStore {
   private[this] var _pmf: Option[JDOPersistenceManagerFactory] = None
@@ -126,6 +127,10 @@ class ScalaQuery[T](val query: TypesafeQuery[T]) {
     query.executeResultList[R](classManifest[R].erasure.asInstanceOf[Class[R]], distinct, expr).asScala.toList
   }
   
+  def executeResultUnique[R](distinct: Boolean, expr: Expression[R])(implicit man: Manifest[R]): R = {
+    query.executeResultUnique[R](classManifest[R].erasure.asInstanceOf[Class[R]], distinct, expr)
+  }
+  
   def filter(expr: BooleanExpression): ScalaQuery[T] = {
     ScalaQuery[T](query.filter(expr))
   }
@@ -140,6 +145,10 @@ class ScalaQuery[T](val query: TypesafeQuery[T]) {
   
   def includeSubclasses(): ScalaQuery[T] = {
     ScalaQuery[T](query.includeSubclasses())
+  }
+  
+  def subquery[R](alias: String)(implicit man: Manifest[R]): TypesafeSubquery[R] = {
+    query.subquery(classManifest[R].erasure.asInstanceOf[Class[R]], alias)
   }
 }
 

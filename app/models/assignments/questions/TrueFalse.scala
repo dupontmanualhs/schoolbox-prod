@@ -39,7 +39,7 @@ class TrueFalse extends DbQuestion {
   }
   
   def toXml: Elem = {
-    <question kind="true-false"><text>{ text }</text><feedback>{ feedback }</feedback>{ trueAnswer.asXml }{ falseAnswer.asXml }</question>
+    <question kind="true-false"><text>{ text }</text><feedback>{ feedback }</feedback>{ trueAnswer.toXml }{ falseAnswer.toXml }</question>
   }
   
   def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem = {
