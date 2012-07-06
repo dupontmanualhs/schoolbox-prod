@@ -2,7 +2,9 @@ package forms
 import org.scalatest.FunSuite
 import scala.collection.immutable.ListMap
 import forms.fields._
-import scala.xml.NodeSeq
+import scala.xml.{Elem, NodeSeq}
+import scala.xml.Utility.trim
+import scala.xml.Equality.compareBlithely
 
 class PersonForm extends Form {
   def fields: ListMap[String, Field[_]] = ListMap(
@@ -12,15 +14,24 @@ class PersonForm extends Form {
   )
 }
 
+object PersonForm {
+  val unbound: Elem = 
+<form>
+  <label for="id_firstName">First name:</label> <input type="text" name="firstName" id="id_firstName" />
+  <label for="id_lastName">Last name:</label> <input id="id_lastName" type="text" name="lastName" />
+  <label for="id_age">Age:</label> <input id="id_age" type="text" name="age" />
+</form>
+
+}
+
 class TestForms extends FunSuite {
+  
   test("unbound form") {
     val f = new PersonForm()
     assert(f.isBound === false)
     assert(f.errors === Map())
     assert(f.isValid === false)
     assert(f.cleanData === None)
-    assert(f.asHtml === List(<label for="id_first_name">First name:</label> <input type="text" name="first_name" id="id_first_name" />,
-        <label for="id_last_name">Last name:</label> <input type="text" name="last_name" id="id_last_name" />,
-        <label for="id_birthday">Birthday:</label> <input type="text" name="birthday" id="id_birthday" />))
+    assert(f.asHtml == PersonForm.unbound, f.asHtml.diff(PersonForm.unbound))
   }
 }

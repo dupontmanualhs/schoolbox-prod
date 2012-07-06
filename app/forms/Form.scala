@@ -32,6 +32,20 @@ class BoundField[T](val form: Form, val field: Field[T], val name: String) {
     else field.boundData(data, form.initial.getOrElse(name, field.initial))
   }
   
+  def labelTag(contents: Option[String] = None, attrs: MetaData = Null): NodeSeq = {
+    val text = contents.getOrElse(label)
+    val widget = field.widget
+    val id = widget.attrs.get("id") match {
+      case Some(theId) => Some(theId)
+      case None => autoId.map(Text(_))
+    }
+    if (id.isDefined) {
+      <label>{ text }</label> % new UnprefixedAttribute("for", id, attrs)
+    } else {
+      Text(text)
+    }    
+  }
+  
   def autoId: Option[String] = {
     form.autoId.map(id => {
       if (id.contains("%s")) id.format(htmlName)
@@ -62,7 +76,25 @@ abstract class Form(
   def isValid: Boolean = isBound && errors.isEmpty
   def cleanData: Option[Map[String, BoundField[_]]] = None
   
-  def asHtml: NodeSeq = {
-    NodeSeq.Empty
+  def getField(name: String): Option[BoundField[_]] = {
+    fields.get(name).map(new BoundField(this, _, name))
+  }
+  
+  def asHtml: Elem = {
+    <form>{
+    fields.flatMap(namePlusField => {
+      val name = namePlusField._1
+      val field: BoundField[_] = getField(name).get
+      val label = field.label
+      val labelName = if (label == "") "" else {
+        if (":?.!".contains(label.substring(label.length - 1, label.length))) label
+        else label + labelSuffix
+      }
+      val labelPart = 
+        if (labelName != "") field.labelTag(Some(labelName)) ++ Text(" ")
+        else NodeSeq.Empty
+      labelPart ++ field.asWidget()
+    }).toList
+    }</form>
   }
 }
