@@ -268,4 +268,79 @@ class TestFields extends FunSuite {
     assert(f.maxValue === Some(2.1))
     assert(f.minValue === Some(-3.5))   
   }
+  
+  // EmailField *********************************************************************
+  
+  test("1. emailfield") {
+    val f = new EmailField()
+    assert(f.clean("") === Left(ValidationError(List("This field is required."))))
+    assert(f.clean(Nil) === Left(ValidationError(List("This field is required."))))
+    assert(f.clean("person@example.com") === Right(Some("person@example.com")))
+    assert(f.clean("foo") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("foo@") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("foo@bar") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("example@invalid-.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("example@-invalid.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("example@inv-.alid-.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("example@inv-.-alid.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("example@valid-----hyphens.com") === Right(Some("example@valid-----hyphens.com")))
+    assert(f.clean("example@valid-with-hyphens.com") === Right(Some("example@valid-with-hyphens.com")))
+    assert(f.clean("example@.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
+    assert(f.clean("local@domain.with.idn.xyz\xe4\xf6\xfc\xdfabc.part.com") === Right(Some("local@domain.with.idn.xyz\xe4\xf6\xfc\xdfabc.part.com")))
+  }
+  
+  test("email regexp for performance") {
+    val f = new EmailField()
+   	// Check for runaway regex security problem. This will take for-freeking-ever
+    // if the security fix isn't in place.
+    assert(f.clean("viewx3dtextx26qx3d@yahoo.comx26latlngx3d15854521645943074058") === Left(ValidationError(List("Enter a valid e-mail address."))))
+  }
+  
+  test("2. emailfield") {
+    val f = new EmailField(required=False)
+    assert(f.clean("") === Right(Some("")))
+    assert(f.clean(Nil) === Right(Some("")))
+    assert(f.clean("person@example.com") === Right(Some("person@example.com")))
+    assert(f.clean("      example@example.com  \t   \t ") === Right(Some("example@example.com")))
+    assert(f.clean("foo") === Left(ValidationError(List("Enter a valid e-mail adress."))))
+    assert(f.clean("foo@") === Left(ValidationError(List("Enter a valid e-mail adress."))))
+    assert(f.clean("foo@bar") === Left(ValidationError(List("Enter a valid e-mail adress."))))
+  }
+  
+  test("3. emailfield") {
+    val f = new EmailField(minLength=10, maxLength=15)
+    assert(f.clean("a@foo.com") === Left(ValidationError(List("Ensure this value has at least 10 characters (it has 9)."))))
+    assert(f.clean("alf@foo.com") === Right(Some("alf@foo.com")))  
+    assert(f.clean("alf123456788@foo.com") === Left(ValidationError(List("Ensure this value has at most 15 characters (it has 20)"))))
+  }
+  
+  //BooleanField******************************************************************
+  
+  test("1. booleanfield") {
+    val f = BooleanField()
+    assert(f.clean("") === Left(ValidationError(List("This field is required"))))
+    assert(f.clean(Nil) === Left(ValidationError(List("This field is requried"))))
+    assert(f.clean(true) === Right(Some(true)))
+    assert(f.clean(false) === Left(ValidationError(List("This field is requried"))))
+    assert(f.clean("1") === Right(Some(true)))
+    assert(f.clean("0") === Left(ValidationError(List("This field is requried"))))
+    assert(f.clean("I rock") === Right(Some(true)))
+    assert(f.clean("True") === Right(Some(true)))
+    assert(f.clean("False") === Left(ValidationError(List("This field is requried"))))
+  }
+  
+  test("2. booleanfield") {
+    val f = BooleanField(required = false)
+    assert(f.clean("") === Right(Some(false)))
+    assert(f.clean(Nil) === Right(Some(false)))
+    assert(f.clean(true) === Right(Some(true)))
+    assert(f.clean(false) === Right(Some(false)))
+    assert(f.clean("1") === Right(Some(true)))
+    assert(f.clean("0") === Right(Some(false)))
+    assert(f.clean("Andrew Hamm rocks") === Right(Some(true)))
+    assert(f.clean("False") === Right(Some(false)))
+    assert(f.clean("false") === Right(Some(false)))
+    assert(f.clean("FaLsE") === Right(Some(false)))
+  }
+  
 }
