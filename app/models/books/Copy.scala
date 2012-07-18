@@ -31,9 +31,14 @@ class Copy {
 
   def isLost: Boolean = _isLost
   def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
-  
+
   override def toString: String = {
-    "%s-200-%05d".format(purchaseGroup.title.isbn, number)
+    this.getBarcode
+  }
+
+  def getBarcode(): String = {
+    // Schoolcode is currently hardcoded - change this to use a variable
+    "%s-%s-%05d".format(purchaseGroup.title.isbn, "200", number)
   }
 }
 
@@ -42,8 +47,6 @@ object Copy {
     val cand = QCopy.candidate
     pm.query[Copy].filter(cand.id.eq(id)).executeOption()
   }
-  //def unicode()
-  //TODO - Write this method. Should return the barcode
 
   //def save
   //TODO - Write the implmentation
@@ -53,11 +56,15 @@ object Copy {
     //TODO - Write the implementation
   }
 
-  //def getBarcode
-  //TODO - Write the implementation
-
-  //def getByBarcode
-  //TODO - Write the implementation
+  def getByBarcode(barcode: String)(implicit pm: ScalaPersistenceManager): Option[Copy] = {
+    val isbn = barcode.substring(0, 13)
+    val copyNumber = barcode.substring(18).toInt
+    val cand = QCopy.candidate
+    val titleVar = QTitle.variable("titleVar")
+    val pgVar = QPurchaseGroup.variable("pgVar")
+    pm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
+      pgVar.title.eq(titleVar)).and(titleVar.isbn.eq(isbn))).executeOption()
+  }
 
   //def makeUniqueCopies
   //TODO - Write the implementation
