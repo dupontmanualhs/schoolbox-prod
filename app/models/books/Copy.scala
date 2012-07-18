@@ -4,21 +4,24 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
+import javax.jdo.listener.StoreCallback
 
 @PersistenceCapable(detachable="true")
-class Copy {
+class Copy extends StoreCallback {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _purchaseGroup: PurchaseGroup = _
   private[this] var _number: Int = _
   private[this] var _isLost: Boolean = _ // TODO: Make this false by default
+  private[this] var _checkout: Checkout = _
 
-  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean) = {
+  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false, checkout: Checkout) = {
     this()
     _purchaseGroup = purchaseGroup
     _number = number
     _isLost = isLost
+    _checkout = checkout
   }
 
   def id: Long = _id
@@ -32,6 +35,11 @@ class Copy {
   def isLost: Boolean = _isLost
   def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
 
+  def checkout: Checkout = _checkout
+  def checkout_=(theCheckout: Checkout) { _checkout = theCheckout }
+
+  val maxCopyNumber: Int = 99999
+
   override def toString: String = {
     this.getBarcode
   }
@@ -40,20 +48,24 @@ class Copy {
     // Schoolcode is currently hardcoded - change this to use a variable
     "%s-%s-%05d".format(purchaseGroup.title.isbn, "200", number)
   }
+
+  def isCheckedOut(): Boolean = {
+    checkout.endDate == null
+  }
+
+  def jdoPreStore()/*(implicit pm: ScalaPersistenceManager)*/: Unit = {
+    // TODO - We need real exceptions
+    if (number > maxCopyNumber) {
+      throw new Exception("Copy number greater than 5 digits")
+    }
+    // Make this check to make sure that the number doesn't already exist
+  }
 }
 
 object Copy {
   def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Copy] = {
     val cand = QCopy.candidate
     pm.query[Copy].filter(cand.id.eq(id)).executeOption()
-  }
-
-  //def save
-  //TODO - Write the implmentation
-
-  def isCheckedOut(): Boolean = {
-    true
-    //TODO - Write the implementation
   }
 
   def getByBarcode(barcode: String)(implicit pm: ScalaPersistenceManager): Option[Copy] = {
@@ -82,6 +94,9 @@ trait QCopy extends PersistableExpression[Copy] {
 
   private[this] lazy val _isLost: BooleanExpression = new BooleanExpressionImpl(this, "_isLost")
   def isLost: BooleanExpression = _isLost
+
+  private[this] lazy val _checkout: ObjectExpression[Checkout] = new ObjectExpressionImpl[Checkout](this, "_checkout")
+  def checkout: ObjectExpression[Checkout] = _checkout
 }
 
 object QCopy {
