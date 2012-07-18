@@ -5,6 +5,14 @@ import Numeric._
 abstract class Validator[T] extends Function[T, ValidationError] {
 }
 
+object Validator {
+  def apply[T](f: Function[T, ValidationError]): Validator[T] = {
+    new Validator[T] {
+      def apply(t: T) = f(t)
+    }
+  }
+}
+
 class MinLengthValidator(minLength: Int, msg: (String => String)) extends Validator[String] {
   def apply(str: String): ValidationError = {
     if (str.length < minLength) ValidationError(msg(str)) else ValidationError(Nil)

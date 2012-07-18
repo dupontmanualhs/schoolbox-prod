@@ -1,43 +1,52 @@
 package controllers
 
 import play.api.mvc.{Action, Controller, Session}
+import play.api.data.Forms._
 import play.api.templates.Html
-import play.api.data.Form
-import play.api.data.Forms.{text, tuple}
 import views.html
 import models.users.User
 import util.DataStore
 import util.ScalaPersistenceManager
 import models.users.QUser
 import util.{DbAction, DbRequest}
+import forms.Form
+import forms.fields._
+import forms.widgets._
+import forms.{Binding, InvalidBinding, ValidBinding}
+import forms.validators.ValidationError
+import forms.validators.Validator
 
-object Users extends Controller {
-  def loginForm(implicit req: DbRequest[_]) = Form(
-    tuple("username" -> text,
-       "password" -> text
-    ) verifying ("Incorrect username or password.", result => result match {
-      case (username, password) => User.authenticate(username, password)(req.pm).isDefined
-    })
-  )
-  
+object Users extends Controller {  
   /**
    * Login page.
    */
   def login = DbAction { implicit request =>
-    Ok(html.users.login(loginForm))
-  }
-
-  /**
-   * Handle login form submission.
-   */
-  def authenticate = DbAction { implicit request =>
-    loginForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.users.login(formWithErrors)),
-      usernameAndPassword => {
-        Redirect(routes.Application.index()).withSession(
-            "username" -> usernameAndPassword._1).flashing("message" -> "You successfully logged in!")
+    object LoginForm extends Form {
+      val username = new TextField("username")
+      val password = new PasswordField("password")
+      
+      def fields = List(username, password)
+      
+      override def validate(vb: ValidBinding): ValidationError = {
+        DataStore.withTransaction { implicit pm => 
+          User.authenticate(vb.valueOf(username), vb.valueOf(password)) match {
+            case None => ValidationError("Incorrect username or password.")
+            case Some(user) => ValidationError(Nil)
+          }
+        }
       }
-    )
+    }
+    if (request.method == "GET") {
+      Ok(html.users.login(Binding(LoginForm)))
+    } else {
+      Binding(LoginForm, request) match {
+        case ib: InvalidBinding => Ok(html.users.login(ib))
+        case vb: ValidBinding => {
+          Redirect(routes.Application.index()).withSession(
+            "username" -> vb.valueOf(LoginForm.username)).flashing("message" -> "You successfully logged in!")
+        }
+      }
+    }
   }
 
   /**
@@ -49,7 +58,7 @@ object Users extends Controller {
     )
   }
   
-  def cpForm(user: User) = Form(tuple(
+  def cpForm(user: User) = play.api.data.Form(tuple(
       "currentPassword" -> text,
       "newPassword" -> text,
       "verifyNewPassword" -> text
@@ -59,6 +68,30 @@ object Users extends Controller {
       case (cp, np, vnp) => np == vnp
     })
   )
+  
+  class ChangePasswordForm(user: User) extends Form {
+    val currentPassword = new PasswordField("currentPassword") {
+      override def validators: List[Validator[String]] = {
+        List(Validator((str: String) => {
+          ValidationError(
+            if (User.authenticate(user, str).isDefined) Nil
+            else List("Current password is incorrect.")
+          )
+        }))
+      }
+    }
+    val newPassword = new PasswordField("newPassword")
+    val verifyNewPassword = new PasswordField("verifyNewPassword")
+    
+    def fields = List(currentPassword, newPassword, verifyNewPassword)
+    
+    override def validate(vb: ValidBinding): ValidationError = {
+      if (vb.valueOf(newPassword) != vb.valueOf(verifyNewPassword)) {
+        ValidationError("New password and verify password must match.")
+      } else ValidationError(Nil)
+    }
+    
+  }
   
   def changePassword = DbAction { implicit req => 
     if (!req.session.get("username").isDefined) {

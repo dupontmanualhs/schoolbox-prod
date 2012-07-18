@@ -1,5 +1,5 @@
-@(loginForm: Form[_])(implicit req: util.DbRequest[_])
+@(loginForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Login") {
-  @loginForm
+  @loginForm.asHtml
 }

@@ -35,9 +35,10 @@ class PurchaseGroup {
   def price: Double = _price
   def price_=(thePrice: Double) { _price = thePrice }
 
-  override def toString = DataStore.withTransaction { implicit pm =>
+  /*override def toString = {
+    implicit val pm: ScalaPersistenceManager = DataStore.getPersistenceManager()
     val str = "Purchased %s: %d copies of %s at $%.2f each".format(purchaseDate, this.numCopies, title.name, price)
-
+    pm.close()
     var verb = this.numLost match {
       case 1 => "has"
       case _ => "have"
@@ -48,7 +49,7 @@ class PurchaseGroup {
     } else {
       str
     }
-  }
+  }*/
 
   def numCopies(implicit pm: ScalaPersistenceManager): Int = {
     val copyCand = QCopy.candidate
