@@ -5,6 +5,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
 import util.PersistableFile
+import util.DataStore
 
 @PersistenceCapable(detachable="true")
 class PurchaseGroup {
@@ -34,9 +35,7 @@ class PurchaseGroup {
   def price: Double = _price
   def price_=(thePrice: Double) { _price = thePrice }
 
-/*
-TODO - Need to figure out how to get this to work
-  override def toString = {
+  override def toString = DataStore.withTransaction { implicit pm =>
     val str = "Purchased %s: %d copies of %s at $%.2f each".format(purchaseDate, this.numCopies, title.name, price)
 
     var verb = this.numLost match {
@@ -50,7 +49,6 @@ TODO - Need to figure out how to get this to work
       str
     }
   }
-*/
 
   def numCopies(implicit pm: ScalaPersistenceManager): Int = {
     val copyCand = QCopy.candidate
