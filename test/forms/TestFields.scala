@@ -271,11 +271,11 @@ class TestFields extends FunSuite {
   
   // EmailField *********************************************************************
   
-  test("1. emailfield") {
-    val f = new EmailField()
+  /*test("1. emailfield") {
+    val f = new EmailField("default")
     assert(f.clean("") === Left(ValidationError(List("This field is required."))))
     assert(f.clean(Nil) === Left(ValidationError(List("This field is required."))))
-    assert(f.clean("person@example.com") === Right(Some("person@example.com")))
+    assert(f.clean("person@example.com") === Right("person@example.com"))
     assert(f.clean("foo") === Left(ValidationError(List("Enter a valid e-mail address."))))
     assert(f.clean("foo@") === Left(ValidationError(List("Enter a valid e-mail address."))))
     assert(f.clean("foo@bar") === Left(ValidationError(List("Enter a valid e-mail address."))))
@@ -283,10 +283,10 @@ class TestFields extends FunSuite {
     assert(f.clean("example@-invalid.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
     assert(f.clean("example@inv-.alid-.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
     assert(f.clean("example@inv-.-alid.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
-    assert(f.clean("example@valid-----hyphens.com") === Right(Some("example@valid-----hyphens.com")))
-    assert(f.clean("example@valid-with-hyphens.com") === Right(Some("example@valid-with-hyphens.com")))
+    assert(f.clean("example@valid-----hyphens.com") === Right("example@valid-----hyphens.com"))
+    assert(f.clean("example@valid-with-hyphens.com") === Right("example@valid-with-hyphens.com"))
     assert(f.clean("example@.com") === Left(ValidationError(List("Enter a valid e-mail address."))))
-    assert(f.clean("local@domain.with.idn.xyz\xe4\xf6\xfc\xdfabc.part.com") === Right(Some("local@domain.with.idn.xyz\xe4\xf6\xfc\xdfabc.part.com")))
+    assert(f.clean("local@domain.with.idn.xyz\xe4\xf6\xfc\xdfabc.part.com") === Right("local@domain.with.idn.xyz\xe4\xf6\xfc\xdfabc.part.com"))
   }
   
   test("email regexp for performance") {
@@ -297,7 +297,7 @@ class TestFields extends FunSuite {
   }
   
   test("2. emailfield") {
-    val f = new EmailField(required=False)
+    val f = new EmailFieldOptional("optional")
     assert(f.clean("") === Right(Some("")))
     assert(f.clean(Nil) === Right(Some("")))
     assert(f.clean("person@example.com") === Right(Some("person@example.com")))
@@ -317,20 +317,20 @@ class TestFields extends FunSuite {
   //BooleanField******************************************************************
   
   test("1. booleanfield") {
-    val f = BooleanField()
+    val f = new BooleanField("default")
     assert(f.clean("") === Left(ValidationError(List("This field is required"))))
     assert(f.clean(Nil) === Left(ValidationError(List("This field is requried"))))
-    assert(f.clean(true) === Right(Some(true)))
+    assert(f.clean(true) === Right(true))
     assert(f.clean(false) === Left(ValidationError(List("This field is requried"))))
-    assert(f.clean("1") === Right(Some(true)))
+    assert(f.clean("1") === Right(true))
     assert(f.clean("0") === Left(ValidationError(List("This field is requried"))))
-    assert(f.clean("I rock") === Right(Some(true)))
-    assert(f.clean("True") === Right(Some(true)))
+    assert(f.clean("I rock") === Right(true))
+    assert(f.clean("True") === Right(true))
     assert(f.clean("False") === Left(ValidationError(List("This field is requried"))))
   }
   
   test("2. booleanfield") {
-    val f = BooleanField(required = false)
+    val f = new BooleanFieldOptional("optional")
     assert(f.clean("") === Right(Some(false)))
     assert(f.clean(Nil) === Right(Some(false)))
     assert(f.clean(true) === Right(Some(true)))
@@ -341,6 +341,6 @@ class TestFields extends FunSuite {
     assert(f.clean("False") === Right(Some(false)))
     assert(f.clean("false") === Right(Some(false)))
     assert(f.clean("FaLsE") === Right(Some(false)))
-  }
+  }*/
   
 }
