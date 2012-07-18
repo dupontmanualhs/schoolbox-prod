@@ -4,6 +4,8 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
+import util.PersistableFile
+import util.DataStore
 
 @PersistenceCapable(detachable="true")
 class PurchaseGroup {
@@ -32,10 +34,34 @@ class PurchaseGroup {
 
   def price: Double = _price
   def price_=(thePrice: Double) { _price = thePrice }
-  
-  override def toString = {
-    "<PurchaseGroup title: %s, date: %s, price: $%.2f>".format(title.name, purchaseDate, price)
+
+  override def toString = DataStore.withTransaction { implicit pm =>
+    val str = "Purchased %s: %d copies of %s at $%.2f each".format(purchaseDate, this.numCopies, title.name, price)
+
+    var verb = this.numLost match {
+      case 1 => "has"
+      case _ => "have"
+    }
+
+    if (this.numLost > 0) {
+      str + " (%d %s been lost)".format(this.numLost, verb)
+    } else {
+      str
+    }
   }
+
+  def numCopies(implicit pm: ScalaPersistenceManager): Int = {
+    val copyCand = QCopy.candidate
+    pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+      copyCand.purchaseGroup.eq(this))).executeList().length
+  }
+
+  def numLost(implicit pm: ScalaPersistenceManager): Int = {
+    val copyCand = QCopy.candidate
+    pm.query[Copy].filter(copyCand.isLost.eq(true).and(
+      copyCand.purchaseGroup.eq(this))).executeList().length
+  }
+
 }
 
 object PurchaseGroup {
@@ -43,29 +69,7 @@ object PurchaseGroup {
     val cand = QPurchaseGroup.candidate
     pm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
   }
-  
-  def numCopies(): Int = {
-    123
-    //TODO - Write the implementation
-  }
 
-  def numLost(): Int = {
-    23
-    //TODO - Write the implementation
-  }
-
-  def shortDescription(): String = {
-    // Returns a description in the form: "x copies purchased on <date> at $<amount> each"
-    "123 copies purchased on January 1, 2000 at $60.00 each"
-    //TODO - Write the implementation
-  }
-
-  def unicode(): String = {
-    // Returns the short description with the title
-    // title: description
-    // TODO - Write the implementation
-    "title: description"
-  }
 }
 
 trait QPurchaseGroup extends PersistableExpression[PurchaseGroup] {

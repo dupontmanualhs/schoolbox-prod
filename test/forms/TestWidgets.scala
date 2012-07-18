@@ -7,27 +7,27 @@ import org.scalatest.FunSuite
 
 class TestWidgets extends FunSuite {
   test("TextInput widget") {
-    val ti1 = new TextInput(attrs = Map("class"->"foo"))
-    assert(ti1.render("entry", Nil) === <input type="text" name="entry" class="foo" />)
+    val ti1 = new TextInput(true, attrs = Map("class"->"foo"))
+    assert(ti1.render("entry", Nil) === <input type="text" name="entry" class="foo" required="required" />)
     assert(ti1.render("entry", List("abc")) === 
-      <input type="text" name="entry" value="abc" class="foo" />)
+      <input type="text" name="entry" value="abc" class="foo" required="required" />)
   }
   
   test("PasswordInput widget") {
-    val pi1 = new PasswordInput()
-    val pi2 = new PasswordInput(renderValue = true)
-    assert(pi1.render("pw", List("pass")) === <input type="password" name="pw" />)
-    assert(pi2.render("pw", List("pass")) === <input type="password" name="pw" value="pass" />)
+    val pi1 = new PasswordInput(true)
+    val pi2 = new PasswordInput(true, renderValue = true)
+    assert(pi1.render("pw", List("pass")) === <input type="password" name="pw" required="required"/>)
+    assert(pi2.render("pw", List("pass")) === <input type="password" name="pw" value="pass" required="required" />)
   }
   
   test("HiddenInput widget") {
-    val hi1 = new HiddenInput(attrs = Map("class"->"foo"))
+    val hi1 = new HiddenInput(true, attrs = Map("class"->"foo"))
     assert(hi1.render("key1", List("value1")) === 
-        <input type="hidden" name="key1" value="value1" class="foo" />)
+        <input type="hidden" name="key1" value="value1" class="foo" required="required" />)
   }
   
   test("Textarea widget") {
-    val ta = new Textarea()
+    val ta = new Textarea(false)
     assert(ta.render("words", List("abc")) ===
       <textarea name="words" cols="40" rows="10">abc</textarea>)
     assert(ta.render("moreWords", Nil, Map("rows"->"4")) ===

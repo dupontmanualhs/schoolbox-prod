@@ -20,12 +20,12 @@ trait QGuardian extends QPerspective[Guardian] {
 }
 
 object QGuardian {
-  def apply(parent: PersistableExpression[_], name: String, depth: Int): QGuardian = {
-    new PersistableExpressionImpl[Guardian](parent, name) with QPerspective[Guardian] with QGuardian
+  def apply(parent: PersistableExpression[Guardian], name: String, depth: Int): QGuardian = {
+    new PersistableExpressionImpl[Guardian](parent, name) with QGuardian
   }
   
   def apply(cls: Class[Guardian], name: String, exprType: ExpressionType): QGuardian = {
-    new PersistableExpressionImpl[Guardian](cls, name, exprType) with QPerspective[Guardian] with QGuardian
+    new PersistableExpressionImpl[Guardian](cls, name, exprType) with QGuardian
   }
   
   private[this] lazy val jdoCandidate: QGuardian = candidate("this")

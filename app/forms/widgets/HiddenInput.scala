@@ -3,15 +3,10 @@ package forms.widgets
 import scala.xml._
 
 class HiddenInput(
-    attrs: MetaData = Null,
-    isRequired: Boolean = false) 
-    extends Input(attrs, isRequired) {
+    required: Boolean,
+    attrs: MetaData = Null) extends Input(required, attrs) {
   
   override def isHidden: Boolean = true
   
   def inputType: String = "hidden"
-}
-
-object HiddenInput extends WidgetCompanion {
-  
 }

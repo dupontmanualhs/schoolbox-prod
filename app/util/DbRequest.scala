@@ -27,3 +27,8 @@ object DbAction {
     apply[AnyContent](parse.anyContent)(f)
   }
 }
+
+object Method {
+  val GET = "GET"
+  val POST = "POST"
+}

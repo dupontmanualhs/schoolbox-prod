@@ -2,10 +2,11 @@ package forms.widgets
 
 import scala.xml._
 
+//TODO: what about forms where a list of checkboxes refers to the same name
 class CheckboxInput(
     attrs: MetaData = Null,
     val checkFun: (Seq[String] => Boolean) = CheckboxInput.defaultCheckFun(_))
-  extends Widget(attrs, false) {
+  extends Widget(false, attrs) {
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     val checked = if (checkFun(value)) new UnprefixedAttribute("checked", Text("checked"), Null)

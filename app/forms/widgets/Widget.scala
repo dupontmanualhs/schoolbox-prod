@@ -6,8 +6,8 @@ import scala.xml.UnprefixedAttribute
 import play.api.mvc.MultipartFormData.FilePart
 
 abstract class Widget(
-    val attrs: MetaData = Null,
-    val isRequired: Boolean = false) {
+    val required: Boolean,
+    val attrs: MetaData = Null) {
 
   def isHidden: Boolean = false
 
@@ -27,8 +27,4 @@ object Widget {
 	  (keyValue: (String, String), rest: MetaData) => 
 	    new UnprefixedAttribute(keyValue._1, keyValue._2, rest))
   }
-}
-
-abstract class WidgetCompanion {
-  
 }
