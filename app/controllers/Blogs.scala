@@ -12,6 +12,8 @@ import models.blogs._
 import play.api.mvc.Result
 import models.users.QPerspective
 
+//TODO: Actually check permissions where applicable
+
 object Blogs extends Controller {
   val newPost = Form {
     tuple(
@@ -39,18 +41,26 @@ object Blogs extends Controller {
       case Some(perspective) => {
         implicit val pm: ScalaPersistenceManager = req.pm
         val cand = QBlog.candidate
-        val blogs: List[Blog] = pm.query[Blog].filter(cand.owner.eq(perspective)).executeList
+        val blogs: List[Blog] = Blog.listUserBlogs(perspective)
         Ok(views.html.blogs.blogs(blogs, perspective.user))
       }
     }
   }
   
-  def viewCurrentUserBlogs()(implicit req: DbRequest[_]): Result = {
+  def listCurrentUserBlogs() = DbAction { implicit req =>
     val currentUser = User.current
-    implicit val pm: ScalaPersistenceManager = req.pm
-    val cand = QPerspective.candidate
-    val perspective = pm.query[Perspective].filter(cand.user.eq(currentUser)).executeOption
-    listUserBlogs(perspective)
+    currentUser match {
+      case Some(usr) => {
+         implicit val pm: ScalaPersistenceManager = req.pm
+         val cand = QPerspective.candidate
+         val perspective = pm.query[Perspective].filter(cand.user.eq(usr)).executeList
+         perspective match {
+           case Nil => NotFound("Somehow, you are logged in as a non-extant user. Welp.")
+           case (x :: xs) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(x), x.user))
+         }
+      }
+      case None => NotFound("You must log in to view your own blogs.")
+    }
   }
 
   /** Show the control panel for a given blog. Checks to see if the correct user is stored in the session var first.
@@ -73,7 +83,7 @@ object Blogs extends Controller {
   *
   *   @param blog the blog to be shown
   */
-  def showBlogByBlog(blogOpt: Option[Blog])(implicit req: DbRequest[_]): Result = {
+  def showBlogByBlog(blogOpt: Option[Blog]) = DbAction { implicit req =>
     blogOpt match {
       case None => NotFound("This blog does not exist")
       case Some(blog) => {
@@ -90,10 +100,7 @@ object Blogs extends Controller {
   *   @param id the id of the blog to be shown
   */
   def showBlog(id: Long)(implicit req: DbRequest[_]): Result = {
-    implicit val pm: ScalaPersistenceManager = req.pm
-    val cand = QBlog.candidate
-    val blog = pm.query[Blog].filter(cand.id.eq(id)).executeOption()
-    showBlogByBlog(blog)
+   Ok(views.html.stub())
   }
 
   def testSubmit() = DbAction { implicit req =>

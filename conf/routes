@@ -51,11 +51,10 @@ GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)
 GET     /math/random                            controllers.Math.randomProblem()
 POST    /math/random                            controllers.Math.checkAnswer(temp)
 
-<<<<<<< HEAD
 #Blogs
 GET     /blog/editor                            controllers.Blogs.editor()
 POST    /blog/editor                            controllers.Blogs.testSubmit()
-=======
+GET     /blog/me                                controllers.Blogs.listCurrentUserBlogs
 #Books
 GET     /books/addBooks                         controllers.Books.addBooks()
 POST    /books/addBooks                         controllers.Books.addBooksSubmit()
@@ -101,4 +100,3 @@ POST    /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTea
 GET     /books/copyStatusByTitle                controllers.Books.copyStatusByTitle
 POST    /books/copyStatusOutByTitle             controllers.Books.copyStatusByTitleSubmit
 GET     /books/statistics                       controllers.Books.statistics
->>>>>>> zbrewer13

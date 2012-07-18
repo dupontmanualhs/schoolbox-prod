@@ -19,6 +19,7 @@ import java.text.ParseException
 import models.books.PurchaseGroup
 import models.books.Copy
 import models.books.Checkout
+import models.blogs.Blog
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()
@@ -90,6 +91,10 @@ object ManualData {
       val dbStudent = new Student(user, stateId, studentNumber, grade, teamName)
       pm.makePersistent(dbStudent)
       if (debug) println("student saved")
+      // create Blog
+      val blog = new Blog(username + "'s Blog", dbStudent)
+      pm.makePersistent(blog)
+      if (debug) println("blog saved")
     })
     pm.commitTransaction()
   }

@@ -5,6 +5,7 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 
 import models.users.Perspective
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 @Unique(members=Array("_owner", "_title"))
@@ -19,7 +20,7 @@ class Blog {
   @Column(allowsNull="false")
   private[this] var _owner: Perspective = _
 
-  def this(slug: String, title: String, owner: Perspective) = {
+  def this(title: String, owner: Perspective) = {
     this()
     _title = title
     _owner = owner
@@ -64,3 +65,16 @@ object QBlog {
   def variable(name: String): QBlog = QBlog(classOf[Blog], name, ExpressionType.VARIABLE)
 }
 
+object Blog {
+  def listUserBlogs(perspective: Perspective)(implicit pm: ScalaPersistenceManager): List[Blog] = {
+    val realPer = Perspective.getById(perspective.id)
+    realPer match {
+      case None => Nil
+      case Some(realPer) => {
+         println(realPer.id)
+         val cand = QBlog.candidate
+         pm.query[Blog].filter(cand.owner.eq(realPer)).executeList
+      }
+    }
+  }
+}

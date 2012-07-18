@@ -5,4 +5,4 @@ datanucleus.autoCreateSchema=true
 datanucleus.DetachAllOnCommit=true
 
 datanucleus.autoStartMechanism=Classes
-datanucleus.autoStartClassNames=models.assignments.questions.TrueFalse,models.assignments.questions.MultChoice,models.assignments.questions.FillBlanks
+datanucleus.autoStartClassNames=models.assignments.questions.TrueFalse,models.assignments.questions.MultChoice,models.assignments.questions.FillBlanks,models.users.Perspective,models.users.Student,models.users.Teacher
