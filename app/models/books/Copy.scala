@@ -96,7 +96,14 @@ object Copy {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  //def makeUniqueCopies
+  def makeUniqueCopies(pGroup: PurchaseGroup, quantity: Int)(implicit pm: ScalaPersistenceManager = null): Unit = {
+    def query(epm: ScalaPersistenceManager): List[Copy] = {
+      val cand = QCopy.candidate
+      val nTitle = pGroup.title
+      val pgVar = QPurchaseGroup.variable("pgVar")
+      epm.query[Copy].filter(pgVar.title.eq(nTitle)).orderBy(cand.number.desc).executeList()
+    }
+  }
   //TODO - Write the implementation
 }
 
