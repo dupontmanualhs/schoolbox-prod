@@ -3,17 +3,17 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-
 import util.ScalaPersistenceManager
+import util.DataStore
 
-@PersistenceCapable(detachable="true")
+@PersistenceCapable(detachable = "true")
 class Room {
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   @Unique
   private[this] var _name: String = _
-  
+
   def this(name: String) = {
     this()
     _name = name
@@ -26,15 +26,19 @@ class Room {
 }
 
 object Room {
-  def getOrCreate(name: String)(implicit pm: ScalaPersistenceManager): Room = {
-    val cand = QRoom.candidate
-    pm.query[Room].filter(cand.name.eq(name)).executeOption() match {
-      case Some(room) => room
-      case None => {
-        val room = new Room(name)
-        pm.makePersistent(room)
+  def getOrCreate(name: String)(implicit pm: ScalaPersistenceManager = null): Room = {
+    def query(epm: ScalaPersistenceManager): Room = {
+      val cand = QRoom.candidate
+      pm.query[Room].filter(cand.name.eq(name)).executeOption() match {
+        case Some(room) => room
+        case None => {
+          val room = new Room(name)
+          pm.makePersistent(room)
+        }
       }
     }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction(tpm => query(tpm))
   }
 }
 
@@ -50,18 +54,18 @@ object QRoom {
   def apply(parent: PersistableExpression[_], name: String, depth: Int): QRoom = {
     new PersistableExpressionImpl[Room](parent, name) with QRoom
   }
-  
+
   def apply(cls: Class[Room], name: String, exprType: ExpressionType): QRoom = {
     new PersistableExpressionImpl[Room](cls, name, exprType) with QRoom
   }
-  
+
   private[this] lazy val jdoCandidate: QRoom = candidate("this")
-  
+
   def candidate(name: String): QRoom = QRoom(null, name, 5)
-  
+
   def candidate: QRoom = jdoCandidate
-  
+
   def parameter(name: String): QRoom = QRoom(classOf[Room], name, ExpressionType.PARAMETER)
-  
+
   def variable(name: String): QRoom = QRoom(classOf[Room], name, ExpressionType.VARIABLE)
 }

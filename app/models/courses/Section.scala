@@ -7,6 +7,7 @@ import org.datanucleus.api.jdo.query._
 import models.users.{Student, Teacher}
 import util.ScalaPersistenceManager
 import scala.xml.NodeSeq
+import util.DataStore
 
 @PersistenceCapable(detachable="true")
 class Section {
@@ -55,20 +56,32 @@ class Section {
   }
   
   // TODO: figure out which teachers to get in what order
-  def teachers(implicit pm: ScalaPersistenceManager): List[Teacher] = {
-    val cand = QTeacherAssignment.candidate
-    val assignments = pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
-    assignments.map(_.teacher)
+  def teachers(implicit pm: ScalaPersistenceManager = null): List[Teacher] = {
+    def query(epm: ScalaPersistenceManager): List[Teacher] = {	
+    	val cand = QTeacherAssignment.candidate
+    	val assignments = pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
+    	assignments.map(_.teacher)
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
   
   // TODO: figure out which students to get in what order
-  def students(implicit pm: ScalaPersistenceManager): List[Student] = {
-    enrollments.map(_.student)
+  def students(implicit pm: ScalaPersistenceManager = null): List[Student] = {
+    def query(epm: ScalaPersistenceManager): List[Student] = {	
+    	enrollments.map(_.student)
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
   
-  def enrollments(implicit pm: ScalaPersistenceManager): List[StudentEnrollment] = {
-    val cand = QStudentEnrollment.candidate
-    pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()    
+  def enrollments(implicit pm: ScalaPersistenceManager = null): List[StudentEnrollment] = {
+    def query(epm: ScalaPersistenceManager): List[StudentEnrollment] = {	
+    	val cand = QStudentEnrollment.candidate
+    	pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
 }
 
