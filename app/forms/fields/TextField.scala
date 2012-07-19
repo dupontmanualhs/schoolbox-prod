@@ -40,16 +40,7 @@ class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name
     }
   }
   
-  def validators: List[Validator[Option[String]]] = {
-    TextField.minAndMaxValidators(minLength, maxLength).map(validator => 
-      new Validator[Option[String]] {
-        def apply(os: Option[String]) = os match {
-          case None => ValidationError(Nil)
-          case Some(s) => validator(s)
-        }
-      }
-    )
-  }
+  def validators = OptionValidator(TextField.minAndMaxValidators(minLength, maxLength))
 }
 
 object TextField {

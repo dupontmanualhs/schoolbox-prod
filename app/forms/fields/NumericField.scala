@@ -42,16 +42,7 @@ class NumericFieldOptional[T](name: String)(implicit n: Numeric[T], man: Manifes
     }
   }
   
-  def validators: List[Validator[Option[T]]] = {
-    NumericField.minAndMaxValidators[T](minValue, maxValue).map(validator => 
-      new Validator[Option[T]] {
-        def apply(ot: Option[T]) = ot match {
-          case None => ValidationError(Nil)
-          case Some(s) => validator(s)
-        }
-      }
-    )
-  }
+  def validators = OptionValidator(NumericField.minAndMaxValidators(minValue, maxValue))
 }
 
 object NumericField {

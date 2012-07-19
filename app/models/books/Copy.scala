@@ -14,14 +14,12 @@ class Copy extends StoreCallback {
   private[this] var _purchaseGroup: PurchaseGroup = _
   private[this] var _number: Int = _
   private[this] var _isLost: Boolean = _ // TODO: Make this false by default
-  private[this] var _checkout: Checkout = _
 
-  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false, checkout: Checkout) = {
+  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false) = {
     this()
     _purchaseGroup = purchaseGroup
     _number = number
     _isLost = isLost
-    _checkout = checkout
   }
 
   def id: Long = _id
@@ -35,9 +33,6 @@ class Copy extends StoreCallback {
   def isLost: Boolean = _isLost
   def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
 
-  def checkout: Checkout = _checkout
-  def checkout_=(theCheckout: Checkout) { _checkout = theCheckout }
-
   val maxCopyNumber: Int = 99999
 
   override def toString: String = {
@@ -49,8 +44,9 @@ class Copy extends StoreCallback {
     "%s-%s-%05d".format(purchaseGroup.title.isbn, "200", number)
   }
 
-  def isCheckedOut(): Boolean = {
-    checkout.endDate == null
+  def isCheckedOut(implicit pm: ScalaPersistenceManager): Boolean = {
+    val cand = QCheckout.candidate
+    pm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().isEmpty
   }
 
   def jdoPreStore()/*(implicit pm: ScalaPersistenceManager)*/: Unit = {

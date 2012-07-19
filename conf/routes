@@ -18,7 +18,7 @@ GET     /logout                     controllers.Users.logout()
 #GET    /settings                   controllers.Users.settings()
 #POST   /settings                   controllers.Users.updateSettings()
 GET     /changePassword             controllers.Users.changePassword()
-POST    /changePassword             controllers.Users.updatePassword()
+POST    /changePassword             controllers.Users.changePassword()
 GET     /listUsers                  controllers.Users.list()
 
 #Courses

@@ -98,23 +98,19 @@ object Users extends Controller {
       Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
     } else {
       val user = User.getByUsername(req.session("username"))(req.pm).get
-      Ok(html.users.changePassword(cpForm(user)))
-    }
-  }
-  
-  def updatePassword = DbAction { implicit req =>
-    if (!req.session.get("username").isDefined) {
-      Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
-    } else {
-      val user = User.getByUsername(req.session("username"))(req.pm).get
-      cpForm(user).bindFromRequest.fold(
-        formWithErrors => BadRequest(html.users.changePassword(formWithErrors)),
-        cpNpAndVnp => {
-          user.password = cpNpAndVnp._2
-          req.pm.makePersistent(user)
-          Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
+      val form = new ChangePasswordForm(user)
+      if (req.method == "GET") {
+        Ok(html.users.changePassword(Binding(form)))
+      } else {
+        Binding(form, req) match {
+          case ib: InvalidBinding => Ok(html.users.changePassword(ib))
+          case vb: ValidBinding => {
+            user.password = vb.valueOf(form.newPassword)
+            req.pm.makePersistent(user)
+            Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
+          }
         }
-      )
+      }
     }
   }
   

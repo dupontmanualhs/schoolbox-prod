@@ -4,7 +4,7 @@ import scala.xml._
 
 class TextInput(
     required : Boolean,
-    attrs: MetaData = Null) extends Input(required, attrs) {
+    attrs: MetaData = Null, _inputType: String = "text") extends Input(required, attrs) {
   
-  def inputType: String = "text"
+  def inputType: String = _inputType
 }
