@@ -8,7 +8,7 @@ import javax.jdo.listener.StoreCallback
 import util.DataStore
 
 @PersistenceCapable(detachable="true")
-class Copy extends StoreCallback {
+class Copy /*extends StoreCallback*/ {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -54,6 +54,7 @@ class Copy extends StoreCallback {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
+  /* Causes a problem loading the data
   def jdoPreStore(): Unit = {
     // TODO - We need real exceptions
     if (number > maxCopyNumber) {
@@ -68,6 +69,7 @@ class Copy extends StoreCallback {
       if (!others.isEmpty) throw new Exception("Copy number already used")
     }
   }
+  */
 }
 
 object Copy {
