@@ -35,34 +35,26 @@ class PurchaseGroup {
   def price: Double = _price
   def price_=(thePrice: Double) { _price = thePrice }
 
-  /*override def toString = {
-    implicit val pm: ScalaPersistenceManager = DataStore.getPersistenceManager()
-    val str = "Purchased %s: %d copies of %s at $%.2f each".format(purchaseDate, this.numCopies, title.name, price)
-    pm.close()
-    var verb = this.numLost match {
-      case 1 => "has"
-      case _ => "have"
-    }
-
-    if (this.numLost > 0) {
-      str + " (%d %s been lost)".format(this.numLost, verb)
-    } else {
-      str
-    }
-  }*/
-
-  def numCopies(implicit pm: ScalaPersistenceManager): Int = {
-    val copyCand = QCopy.candidate
-    pm.query[Copy].filter(copyCand.isLost.eq(false).and(
-      copyCand.purchaseGroup.eq(this))).executeList().length
+  override def toString: String = {
+    "Purchased %s: copies of %s at $%.2f each".format(
+        purchaseDate, title.name, price)
   }
 
-  def numLost(implicit pm: ScalaPersistenceManager): Int = {
-    val copyCand = QCopy.candidate
-    pm.query[Copy].filter(copyCand.isLost.eq(true).and(
-      copyCand.purchaseGroup.eq(this))).executeList().length
+  lazy val numCopies: Int = {
+    DataStore.withTransaction { tpm => 
+      val copyCand = QCopy.candidate
+      tpm.query[Copy].filter(copyCand.isLost.eq(false).and(
+          copyCand.purchaseGroup.eq(this))).executeList().length
+    }
   }
 
+  lazy val numLost: Int = {
+    DataStore.withTransaction { tpm =>
+      val copyCand = QCopy.candidate
+      tpm.query[Copy].filter(copyCand.isLost.eq(true).and(
+    	  copyCand.purchaseGroup.eq(this))).executeList().length
+    }
+  }
 }
 
 object PurchaseGroup {
