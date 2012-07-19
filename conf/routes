@@ -55,6 +55,9 @@ POST    /math/random                            controllers.Math.checkAnswer(tem
 GET     /blog/editor                            controllers.Blogs.editor()
 POST    /blog/editor                            controllers.Blogs.testSubmit()
 GET     /blog/me                                controllers.Blogs.listCurrentUserBlogs
+GET     /blog/user/:id                          controllers.Blogs.listBlogsByPerspectiveId(id: Long)
+GET     /blog/:id                               controllers.Blogs.showBlog(id: Long)
+
 #Books
 GET     /books/addBooks                         controllers.Books.addBooks()
 POST    /books/addBooks                         controllers.Books.addBooksSubmit()

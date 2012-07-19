@@ -71,10 +71,19 @@ object Blog {
     realPer match {
       case None => Nil
       case Some(realPer) => {
-         println(realPer.id)
          val cand = QBlog.candidate
          pm.query[Blog].filter(cand.owner.eq(realPer)).executeList
       }
     }
+  }
+
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Blog] = {
+    val cand = QBlog.candidate
+    pm.query[Blog].filter(cand.id.eq(id)).executeOption
+  }
+
+  def getPosts(blog: Blog)(implicit pm: ScalaPersistenceManager): List[Post] = {
+    val cand = QPost.candidate
+    pm.query[Post].filter(cand.blog.eq(blog)).executeList
   }
 }

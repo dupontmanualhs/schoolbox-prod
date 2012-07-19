@@ -63,6 +63,14 @@ object Blogs extends Controller {
     }
   }
 
+  def listBlogsByPerspectiveId(id: Long) = DbAction { implicit req =>
+   implicit val pm: ScalaPersistenceManager = req.pm
+   val perOpt = Perspective.getById(id)
+   perOpt match {
+      case Some(per) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per.user))
+      case None => NotFound("That perspective doesn't exist!")
+    }
+  }
   /** Show the control panel for a given blog. Checks to see if the correct user is stored in the session var first.
   *
   *   @param blog the blog to show the control panel for
@@ -79,28 +87,17 @@ object Blogs extends Controller {
     Ok(views.html.stub())
   }
 
-  /** Show a blog. Check to see if the currently logged-in user is allowed to view the blog
-  *
-  *   @param blog the blog to be shown
-  */
-  def showBlogByBlog(blogOpt: Option[Blog]) = DbAction { implicit req =>
-    blogOpt match {
-      case None => NotFound("This blog does not exist")
-      case Some(blog) => {
-         implicit val pm: ScalaPersistenceManager = req.pm
-         val cand = QPost.candidate
-         val posts: List[Post] = pm.query[Post].filter(cand.blog.eq(blog)).executeList()
-         Ok(views.html.blogs.blog(blog, posts))
-      }
-    }
-  }
-
-  /** Show a blog given only its ID. Calls showBlogByBlog. Yay for silly names.
+  /** Show a blog given only its ID.
   *
   *   @param id the id of the blog to be shown
   */
-  def showBlog(id: Long)(implicit req: DbRequest[_]): Result = {
-   Ok(views.html.stub())
+  def showBlog(id: Long) = DbAction {  implicit req =>
+    implicit val pm: ScalaPersistenceManager = req.pm
+    val blogOpt = Blog.getById(id)
+    blogOpt match {
+      case None => NotFound("This blog is not found.")
+      case Some(blog) => Ok(views.html.blogs.blog(blog, Blog.getPosts(blog)))
+    }
   }
 
   def testSubmit() = DbAction { implicit req =>
