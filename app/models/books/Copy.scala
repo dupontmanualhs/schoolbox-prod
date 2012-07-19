@@ -60,11 +60,13 @@ class Copy extends StoreCallback {
       throw new Exception("Copy number greater than 5 digits")
     }
     // Make this check to make sure that the number doesn't already exist
-    def query(epm: ScalaPersistenceManager): Option[Copy] = {
+    DataStore.withTransaction { tpm =>
       val cand = QCopy.candidate
-      epm.query[Copy].filter(cand.id.eq(id)).executeOption()
+      val pgVar = QPurchaseGroup.variable("pgVar")
+      val others = tpm.query[Copy].filter(cand.number.eq(this.number).and(cand.purchaseGroup.eq(pgVar)).and(
+          pgVar.title.eq(this.purchaseGroup.title)).and(cand.id.ne(this.id))).executeList()
+      if (!others.isEmpty) throw new Exception("Copy number already used")
     }
-    val other = DataStore.withTransaction( tpm => query(tpm) )
   }
 }
 
