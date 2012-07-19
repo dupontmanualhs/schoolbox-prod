@@ -4,8 +4,8 @@ import scala.xml._
 import forms.validators.ValidationError
 
 abstract class Input(
-    attrs: MetaData = Null,
-    isRequired : Boolean = false) extends Widget(attrs, isRequired) {
+    required : Boolean,
+    attrs: MetaData = Null) extends Widget(required, attrs) {
 
   def inputType: String
   
@@ -15,6 +15,7 @@ abstract class Input(
       // fails silently if we get too many values for a single-valued field
       case _ => Null
     }
-    <input type={ inputType } name={ name } /> % attrs % attrList % valueAttr       
+    val reqAttr = if (required) new UnprefixedAttribute("required", Text("required"), Null) else Null
+    <input type={ inputType } name={ name } /> % attrs % reqAttr % attrList % valueAttr       
   }
 }

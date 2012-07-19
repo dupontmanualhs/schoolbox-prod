@@ -1,10 +1,5 @@
-@(loginForm: Form[(String, String)])(implicit req: util.DbRequest[_])
-
-@import util.Helpers.tableFields
+@(loginForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Login") {
-  @views.html.templates.formAsTable(loginForm, routes.Users.authenticate, false) {
-    @helper.inputText(loginForm("username"))
-    @helper.inputPassword(loginForm("password"))
-  }
+  @loginForm.asHtml
 }

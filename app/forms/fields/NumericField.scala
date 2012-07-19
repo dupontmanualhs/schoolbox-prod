@@ -3,21 +3,31 @@ package forms.fields
 import forms.widgets._
 import forms.validators._
 
-class NumericField[T](
-    required: Boolean = true,
-    widget: Option[Widget] = None,
-    label: Option[String] = None,
-    initial: Option[T] = None,
-    helpText: Option[String] = None,
-    extraErrorMessages: Map[String, String] = Map(),
-    extraValidators: List[Validator[T]] = Nil,
-    localize: Boolean = false,
-    val minValue: Option[T] = None,
-    val maxValue: Option[T] = None)(implicit n: Numeric[T], man: Manifest[T])
-        extends Field[T](required, widget, label, initial, helpText,
-            extraErrorMessages,
-            extraValidators ++ NumericField.minAndMaxValidators[T](minValue, maxValue),
-            localize) {
+trait BaseNumericField[T] {
+  val minValue: Option[T] = None
+  val maxValue: Option[T] = None
+}
+
+class NumericField[T](name: String)(implicit n: Numeric[T], man: Manifest[T]) 
+    extends Field[T](name) with BaseNumericField[T] {
+  def asValue(strs: Seq[String]): Either[ValidationError, T] = {
+    val (toT, errorMsg) = NumericField.conversionFunction[T]
+    strs match {
+      case Seq(s) => try {
+        Right(toT(s.trim))
+      } catch {
+        case e: NumberFormatException => Left(ValidationError(errorMsg(s)))
+      }
+      case _ => Left(ValidationError("Expected a single value, got none or many."))
+    }
+  }
+  
+  def validators = NumericField.minAndMaxValidators(minValue, maxValue)
+}
+
+class NumericFieldOptional[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
+    extends Field[Option[T]](name) with BaseNumericField[T] {
+  override def required = false
   
   def asValue(strs: Seq[String]): Either[ValidationError, Option[T]] = {
     val (toT, errorMsg) = NumericField.conversionFunction[T]
@@ -28,9 +38,11 @@ class NumericField[T](
       } catch {
         case e: NumberFormatException => Left(ValidationError(errorMsg(s)))
       }
-      case _ => Left(ValidationError("Got multiple values for a single NumericField."))
+      case _ => Left(ValidationError("Expected a single value, got multiples."))
     }
   }
+  
+  def validators = OptionValidator(NumericField.minAndMaxValidators(minValue, maxValue))
 }
 
 object NumericField {

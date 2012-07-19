@@ -1,10 +1,7 @@
 package util
 
-import xml.{Elem, NodeSeq}
+import xml.{Atom, Comment, Elem, MetaData, Node, NodeSeq, Text, XML}
 import java.util.Locale
-import scala.xml.Node
-import scala.xml.Text
-import scala.xml.XML
 import views.html.helper.FieldConstructor
 
 object Helpers {
@@ -45,6 +42,47 @@ object Helpers {
   def string2elem(legalElem: String): Elem = {
     // TODO: this just crashes if someone passes in malformed XML
     XML.loadString(legalElem)
+  }
+  
+  /**
+   * return None if the two are equal except for whitespace at the end of
+   * a line and the order of attributes, the difference otherwise
+   */
+  def xmlEquals(n1: Node, n2: Node): Option[String] = (n1, n2) match {
+    case (Comment(c1), Comment(c2)) => if (c1 == c2) None else Some("%s does not equal %s".format(c1, c2))
+    case (e1: Elem, e2: Elem) => equalElems(e1, e2)
+    case (a1: Atom[_], a2: Atom[_]) => if (a1.data.toString == a2.data.toString) None else Some("'%s' does not equal '%s'".format(a1, a2))
+    case _ => Some("What happened?\n%s: %s\n%s: %s".format(n1.getClass, n1, n2.getClass, n2))
+  }
+  
+  def equalElems(e1: Elem, e2: Elem): Option[String] = {
+    val attrCheck = equalMetaData(e1.attributes, e2.attributes)
+    if (e1.prefix != e2.prefix) Some("Element prefix %s does not equal %s".format(e1.prefix, e2.prefix))
+    else if (e1.label != e2.label) Some("Element label %s does not equal %s".format(e1.label, e2.label))
+    else if (e1.namespace != e2.namespace) Some("Element namespace %s does not equal %s".format(e1.namespace, e2.namespace))
+    else if (attrCheck.isDefined) attrCheck
+    else equalChildren(e1, e2)
+  }
+  
+  def equalMetaData(m1: MetaData, m2: MetaData): Option[String] = {
+    if (m1.asAttrMap == m2.asAttrMap) None
+    else Some("Attribute set %s does not equal %s".format(m1, m2))
+  }
+  
+  def equalChildren(e1: Elem, e2: Elem): Option[String] = {
+    val c1 = e1.child.filter(nonWhitespaceText _)
+    val c2 = e2.child.filter(nonWhitespaceText _)
+    if (c1.length != c2.length) Some("%s does not equal %s".format(e1, e2))
+    else {
+      val nonEqualChildren = (c1 zip c2).toList map { case (x, y) => xmlEquals(x, y) } filter(_.isDefined)
+      if (nonEqualChildren.isEmpty) None
+      else nonEqualChildren(0)
+    }
+  }
+  
+  def nonWhitespaceText(n: Node): Boolean = n match {
+    case Text(s) => !s.matches("(?m)^\\s*\\n\\s*$")
+    case _ => true
   }
   
   def pluralizeInformal(num: Int, word: String): String = {

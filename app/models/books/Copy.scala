@@ -4,9 +4,11 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.ScalaPersistenceManager
+import javax.jdo.listener.StoreCallback
+import util.DataStore
 
 @PersistenceCapable(detachable="true")
-class Copy {
+class Copy extends StoreCallback {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -14,7 +16,7 @@ class Copy {
   private[this] var _number: Int = _
   private[this] var _isLost: Boolean = _ // TODO: Make this false by default
 
-  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean) = {
+  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false) = {
     this()
     _purchaseGroup = purchaseGroup
     _number = number
@@ -31,33 +33,64 @@ class Copy {
 
   def isLost: Boolean = _isLost
   def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
-  
+
+  val maxCopyNumber: Int = 99999
+
   override def toString: String = {
-    "%s-200-%05d".format(purchaseGroup.title.isbn, number)
+    this.getBarcode
+  }
+
+  def getBarcode(): String = {
+    // Schoolcode is currently hardcoded - change this to use a variable
+    "%s-%s-%05d".format(purchaseGroup.title.isbn, "200", number)
+  }
+
+  def isCheckedOut(implicit pm: ScalaPersistenceManager = null): Boolean = {
+    def query(epm: ScalaPersistenceManager): Boolean = {
+      val cand = QCheckout.candidate
+      epm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().isEmpty
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
+
+  def jdoPreStore(): Unit = {
+    // TODO - We need real exceptions
+    if (number > maxCopyNumber) {
+      throw new Exception("Copy number greater than 5 digits")
+    }
+    // Make this check to make sure that the number doesn't already exist
+    def query(epm: ScalaPersistenceManager): Option[Copy] = {
+      val cand = QCopy.candidate
+      epm.query[Copy].filter(cand.id.eq(id)).executeOption()
+    }
+    val other = DataStore.withTransaction( tpm => query(tpm) )
   }
 }
 
 object Copy {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Copy] = {
-    val cand = QCopy.candidate
-    pm.query[Copy].filter(cand.id.eq(id)).executeOption()
-  }
-  //def unicode()
-  //TODO - Write this method. Should return the barcode
-
-  //def save
-  //TODO - Write the implmentation
-
-  def isCheckedOut(): Boolean = {
-    true
-    //TODO - Write the implementation
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Copy] = {
+    def query(epm: ScalaPersistenceManager): Option[Copy] = {
+      val cand = QCopy.candidate
+      epm.query[Copy].filter(cand.id.eq(id)).executeOption()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  //def getBarcode
-  //TODO - Write the implementation
-
-  //def getByBarcode
-  //TODO - Write the implementation
+  def getByBarcode(barcode: String)(implicit pm: ScalaPersistenceManager = null): Option[Copy] = {
+    def query(epm: ScalaPersistenceManager): Option[Copy] = {
+      val isbn = barcode.substring(0, 13)
+      val copyNumber = barcode.substring(18).toInt
+      val cand = QCopy.candidate
+      val titleVar = QTitle.variable("titleVar")
+      val pgVar = QPurchaseGroup.variable("pgVar")
+      epm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(titleVar)).and(titleVar.isbn.eq(isbn))).executeOption()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
 
   //def makeUniqueCopies
   //TODO - Write the implementation
@@ -75,6 +108,9 @@ trait QCopy extends PersistableExpression[Copy] {
 
   private[this] lazy val _isLost: BooleanExpression = new BooleanExpressionImpl(this, "_isLost")
   def isLost: BooleanExpression = _isLost
+
+  private[this] lazy val _checkout: ObjectExpression[Checkout] = new ObjectExpressionImpl[Checkout](this, "_checkout")
+  def checkout: ObjectExpression[Checkout] = _checkout
 }
 
 object QCopy {

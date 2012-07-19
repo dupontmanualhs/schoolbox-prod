@@ -6,7 +6,7 @@ import scala.xml._
 class CheckboxInput(
     attrs: MetaData = Null,
     val checkFun: (Seq[String] => Boolean) = CheckboxInput.defaultCheckFun(_))
-  extends Widget(attrs, false) {
+  extends Widget(false, attrs) {
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     val checked = if (checkFun(value)) new UnprefixedAttribute("checked", Text("checked"), Null)

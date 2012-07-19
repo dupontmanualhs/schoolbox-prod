@@ -3,9 +3,9 @@ package forms.widgets
 import scala.xml._
 
 class PasswordInput(
+    required: Boolean,
     attrs: MetaData = Null,
-    isRequired: Boolean = false,
-    val renderValue: Boolean = false) extends Input(attrs, isRequired) {
+    val renderValue: Boolean = false) extends Input(required, attrs) {
 
   def inputType: String = "password"
     

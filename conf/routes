@@ -13,12 +13,12 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 #Users
 GET		/login						controllers.Users.login()
-POST    /login						controllers.Users.authenticate() 
+POST    /login						controllers.Users.login() 
 GET     /logout                     controllers.Users.logout()
 #GET    /settings                   controllers.Users.settings()
 #POST   /settings                   controllers.Users.updateSettings()
 GET     /changePassword             controllers.Users.changePassword()
-POST    /changePassword             controllers.Users.updatePassword()
+POST    /changePassword             controllers.Users.changePassword()
 GET     /listUsers                  controllers.Users.list()
 
 #Courses

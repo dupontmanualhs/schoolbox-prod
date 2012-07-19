@@ -6,30 +6,9 @@ import scala.xml.{Attribute, MetaData, Null, Text}
 import forms.validators._
 import forms.widgets._
 
-class TextField(
-	required: Boolean = true,
-    widget: Option[Widget] = None,
-    label: Option[String] = None,
-    initial: Option[String] = None,
-    helpText: Option[String] = None,
-    extraErrorMessages: Map[String, String] = Map(),
-    extraValidators: List[Validator[String]] = Nil,
-    localize: Boolean = false,
-    val minLength: Option[Int] = None,
-    val maxLength: Option[Int] = None) 
-        extends Field[String](required, widget, label, 
-            initial, helpText, 
-            extraErrorMessages, 
-            extraValidators ++ TextField.minAndMaxValidators(minLength, maxLength),
-            localize) {
-    
-  def asValue(strs: Seq[String]): Either[ValidationError, Option[String]] = {
-    strs match {
-      case Seq() => Right(None)
-      case Seq(s) => Right(if (s == "") None else Some(s))
-      case _ => Left(ValidationError("Got multiple values for a single TextField."))
-    }
-  }
+abstract class BaseTextField[T](name: String) extends Field[T](name) {
+  val minLength: Option[Int] = None
+  val maxLength: Option[Int] = None
   
   override def widgetAttrs(widget: Widget): MetaData = {
     val maxLengthAttr: MetaData = if (this.maxLength.isDefined && (widget.isInstanceOf[TextInput] || widget.isInstanceOf[PasswordInput])) {
@@ -37,6 +16,31 @@ class TextField(
     } else Null
     super.widgetAttrs(widget).append(maxLengthAttr)
   }
+}
+
+class TextField(name: String) extends BaseTextField[String](name) {
+  def asValue(strs: Seq[String]): Either[ValidationError, String] = {
+    strs match {
+      case Seq(s) => Right(s)
+      case _ => Left(ValidationError("Expected a single value, got none or many."))
+    }
+  }
+
+  def validators = TextField.minAndMaxValidators(minLength, maxLength)
+}
+
+class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name) {
+  override def required = false
+  
+  def asValue(strs: Seq[String]): Either[ValidationError, Option[String]] = {
+    strs match {
+      case Seq() => Right(None)
+      case Seq(s) => Right(Some(s))
+      case _ => Left(ValidationError("Expected a single value, got multiples."))
+    }
+  }
+  
+  def validators = OptionValidator(TextField.minAndMaxValidators(minLength, maxLength))
 }
 
 object TextField {

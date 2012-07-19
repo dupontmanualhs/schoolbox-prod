@@ -3,13 +3,13 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-
 import util.ScalaPersistenceManager
+import util.DataStore
 
-@PersistenceCapable(detachable="true")
+@PersistenceCapable(detachable = "true")
 class Department {
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
 
   private[this] var _name: String = _
@@ -18,7 +18,7 @@ class Department {
     this()
     _name = name
   }
-  
+
   def id: Long = _id
 
   def name: String = _name
@@ -26,15 +26,19 @@ class Department {
 }
 
 object Department {
-  def getOrCreate(name: String)(implicit pm: ScalaPersistenceManager): Department = {
-    val cand = QDepartment.candidate
-    pm.query[Department].filter(cand.name.eq(name)).executeOption() match {
-      case Some(dept) => dept
-      case None => {
-        val dept = new Department(name)
-        pm.makePersistent(dept)
+  def getOrCreate(name: String)(implicit pm: ScalaPersistenceManager = null): Department = {
+    def query(epm: ScalaPersistenceManager): Department = {
+      val cand = QDepartment.candidate
+      pm.query[Department].filter(cand.name.eq(name)).executeOption() match {
+        case Some(dept) => dept
+        case None => {
+          val dept = new Department(name)
+          pm.makePersistent(dept)
+        }
       }
     }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction(tpm => query(tpm))
   }
 }
 
@@ -50,18 +54,18 @@ object QDepartment {
   def apply(parent: PersistableExpression[_], name: String, depth: Int): QDepartment = {
     new PersistableExpressionImpl[Department](parent, name) with QDepartment
   }
-  
+
   def apply(cls: Class[Department], name: String, exprType: ExpressionType): QDepartment = {
     new PersistableExpressionImpl[Department](cls, name, exprType) with QDepartment
   }
-  
+
   private[this] lazy val jdoCandidate: QDepartment = candidate("this")
-  
+
   def candidate(name: String): QDepartment = QDepartment(null, name, 5)
-  
+
   def candidate(): QDepartment = jdoCandidate
-  
+
   def parameter(name: String): QDepartment = QDepartment(classOf[Department], name, ExpressionType.PARAMETER)
-  
+
   def variable(name: String): QDepartment = QDepartment(classOf[Department], name, ExpressionType.VARIABLE)
 }

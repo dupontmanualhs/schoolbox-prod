@@ -35,14 +35,18 @@ class Teacher extends Perspective {
 }
 
 object Teacher {
-  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager): Option[Teacher] = {
-    User.getByUsername(username) match {
-      case Some(user) => {
-        val cand = QTeacher.candidate
-        pm.query[Teacher].filter(cand.user.eq(user)).executeOption
-      }
-      case _ => None
+  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager = null): Option[Teacher] = {
+	def query(epm: ScalaPersistenceManager): Option[Teacher] = {
+	  User.getByUsername(username) match {
+      	case Some(user) => {
+      	  val cand = QTeacher.candidate
+      	  pm.query[Teacher].filter(cand.user.eq(user)).executeOption
+      	}
+      	case _ => None
+	  }
     }
+	if(pm != null) query(pm)
+	else DataStore.withTransaction( tpm => query(tpm) )
   }
 }
 

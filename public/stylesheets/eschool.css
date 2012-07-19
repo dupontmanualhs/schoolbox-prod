@@ -63,6 +63,10 @@ table, th, td {
     border-collapse: collapse;
 }
 
+form table, form th, form td {
+  border-style: none
+}
+
 div.NavBar{
     float:left;
     width:790px;
