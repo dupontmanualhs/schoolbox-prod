@@ -103,9 +103,13 @@ class User extends Ordered[User] {
 }
 
 object User {  
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[User] = {
-    val cand = QUser.candidate
-    pm.query[User].filter(cand.id.eq(id)).executeOption()
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
+    def query(epm: ScalaPersistenceManager): Option[User] = {
+      val cand = QUser.candidate
+      epm.query[User].filter(cand.id.eq(id)).executeOption()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
   def getByUsername(username: String)(implicit pm: ScalaPersistenceManager): Option[User] = {
