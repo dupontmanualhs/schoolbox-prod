@@ -8,7 +8,7 @@ import javax.jdo.listener.StoreCallback
 import util.DataStore
 
 @PersistenceCapable(detachable="true")
-class Copy extends StoreCallback {
+class Copy /*extends StoreCallback*/ {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -69,8 +69,8 @@ class Copy extends StoreCallback {
       if (!others.isEmpty) throw new Exception("Copy number already used")
     }
   }
+  */
 }
-*/
 
 object Copy {
   def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Copy] = {
