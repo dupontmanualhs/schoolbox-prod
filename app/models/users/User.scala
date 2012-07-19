@@ -112,9 +112,13 @@ object User {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager): Option[User] = {
-    val cand = QUser.candidate
-    pm.query[User].filter(cand.username.eq(username)).executeOption()
+  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
+    def query(epm: ScalaPersistenceManager): Option[User] = {
+      val cand = QUser.candidate
+      pm.query[User].filter(cand.username.eq(username)).executeOption()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
   
   def current(implicit request: DbRequest[_]): Option[User] = {
