@@ -68,11 +68,11 @@ trait AuthConfigImpl extends AuthConfig {
    * A function that authorizes a user by `Authority`.
    * Describe the procedure according to your application.
    */
-  def authorize(user: User, authority: Authority): Boolean = 
-    (user.permission, authority) match {
-      case (Teacher, _) => true
-      case (Student, _) => true
-      case (Guardian, _) => true
+  def authorize(persp: Perspective, perm: Permission): Boolean = 
+    (persp, perm) match {
+      case (t: Teacher, _) => true
+      case (s: Student, _) => true
+      case (g: Guardian, _) => true
       case _ => false
     }
 
