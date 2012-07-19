@@ -54,6 +54,7 @@ class Copy extends StoreCallback {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
+  /* Causes a problem loading the data
   def jdoPreStore(): Unit = {
     // TODO - We need real exceptions
     if (number > maxCopyNumber) {
@@ -69,6 +70,7 @@ class Copy extends StoreCallback {
     }
   }
 }
+*/
 
 object Copy {
   def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Copy] = {
