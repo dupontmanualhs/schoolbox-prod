@@ -128,11 +128,15 @@ object User {
     }
   }
 
-  def authenticate(username: String, password: String)(implicit pm: ScalaPersistenceManager): Option[User] = {
-    getByUsername(username) match {
-      case Some(user) => authenticate(user, password)
-      case _ => None
+  def authenticate(username: String, password: String)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
+    def query(epm: ScalaPersistenceManager): Option[User] = {
+	  getByUsername(username) match {
+	  	case Some(user) => authenticate(user, password)
+      	case _ => None
+	  }
     }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
   def authenticate(user: User, password: String): Option[User] = {
