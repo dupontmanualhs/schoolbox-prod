@@ -40,27 +40,36 @@ class PurchaseGroup {
         purchaseDate, title.name, price)
   }
 
-  lazy val numCopies: Int = {
-    DataStore.withTransaction { tpm => 
+  def numCopies(implicit pm: ScalaPersistenceManager = null): Int = {
+    def query(epm: ScalaPersistenceManager): Int = {
       val copyCand = QCopy.candidate
-      tpm.query[Copy].filter(copyCand.isLost.eq(false).and(
-          copyCand.purchaseGroup.eq(this))).executeList().length
+      epm.query[Copy].filter(copyCand.isLost.eq(false).and(
+        copyCand.purchaseGroup.eq(this))).executeList().length
     }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  lazy val numLost: Int = {
-    DataStore.withTransaction { tpm =>
+  def numLost(implicit pm: ScalaPersistenceManager = null): Int = {
+    def query(epm: ScalaPersistenceManager): Int = {
       val copyCand = QCopy.candidate
-      tpm.query[Copy].filter(copyCand.isLost.eq(true).and(
-    	  copyCand.purchaseGroup.eq(this))).executeList().length
+      epm.query[Copy].filter(copyCand.isLost.eq(true).and(
+        copyCand.purchaseGroup.eq(this))).executeList().length
     }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
+
 }
 
 object PurchaseGroup {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[PurchaseGroup] = {
-    val cand = QPurchaseGroup.candidate
-    pm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[PurchaseGroup] = {
+    def query(epm: ScalaPersistenceManager): Option[PurchaseGroup] = {
+      val cand = QPurchaseGroup.candidate
+      epm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
 }

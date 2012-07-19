@@ -4,6 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import util.ScalaPersistenceManager
+import util.DataStore
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.NEW_TABLE)
@@ -34,9 +35,13 @@ abstract class Perspective extends Ordered[Perspective] {
 }
 
 object Perspective {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Perspective] = {
-    val cand = QPerspective.candidate
-    pm.query[Perspective].filter(cand.id.eq(id)).executeOption()
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Perspective] = {
+    def query(epm: ScalaPersistenceManager): Option[Perspective] = {
+    	val cand = QPerspective.candidate
+    	pm.query[Perspective].filter(cand.id.eq(id)).executeOption()
+    }
+    if(pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
   }
 }
 
