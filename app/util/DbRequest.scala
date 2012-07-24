@@ -9,9 +9,10 @@ import play.api.mvc.Action
 import play.api.mvc.AnyContent
 
 class DbRequest[A](val request: Request[A]) extends WrappedRequest[A](request) {
-  val pm = DataStore.getPersistenceManager()
+  implicit val pm = DataStore.getPersistenceManager()
 }
 
+// TODO: we need a cache system
 object DbAction {
   def apply[A](p: BodyParser[A])(f: DbRequest[A] => Result) = {
     Action(p) (request => {

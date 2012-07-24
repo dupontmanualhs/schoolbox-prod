@@ -100,6 +100,15 @@ class User extends Ordered[User] {
   override def toString: String = {
     "User(ID: %d, %s)".format(id, formalName)
   }
+  
+  def perspectives(implicit pm: ScalaPersistenceManager = null): List[Perspective] = {
+    def query(epm: ScalaPersistenceManager): List[Perspective] = {
+      val cand = QPerspective.candidate
+      epm.query[Perspective].filter(cand.user.eq(this)).executeList()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm))
+  }
 }
 
 object User {  

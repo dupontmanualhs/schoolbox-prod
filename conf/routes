@@ -53,8 +53,8 @@ GET     /math/random                            controllers.Math.randomProblem()
 POST    /math/random                            controllers.Math.checkAnswer(temp)
 
 #Books
-GET     /books/addBooks                         controllers.Books.addBooks()
-POST    /books/addBooks                         controllers.Books.addBooksSubmit()
+GET     /books/addTitle                         controllers.Books.addTitle()
+POST    /books/addTitle                         controllers.Books.addTitle()
 GET     /books/confirmation/                    controllers.Books.confirmation()
 POST    /books/confirmation/                    controllers.Books.confirmationSubmit()
 GET     /books/verifyTitle/:isbnNum             controllers.Books.verifyTitle(isbnNum: Long)

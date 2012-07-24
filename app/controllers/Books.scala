@@ -1,12 +1,14 @@
 package controllers
 
 import play.api._
-import play.api.data._
-import play.api.data.Forms._
 import play.api.mvc._
 import util.{DataStore, ScalaPersistenceManager}
 import util.DbAction
 import models.books._
+import forms._
+import forms.fields._
+import forms.validators.Validator
+import forms.validators.ValidationError
 
 object Books extends Controller {
   /**
@@ -87,27 +89,34 @@ object Books extends Controller {
     }
   }
   
-  def addBooks = DbAction { implicit request =>
-    
-    object AddForm extends Form {
-      val isbn = new TextField("isbn") {
-        override val minLength = Some(10)
-        override val maxLength = Some(13)
-        override val validators = List(validator(str => 
-        asValidIsbn13(str) match {
-	  case None => ValidationError("Not valid ISBN.")
-	  case Some(isbn) => ValidationError(Nil)
-	}
-      }
-      def fields = List(isbn)
+  object TitleForm extends Form {
+    val isbn = new TextField("isbn") {
+      override val minLength = Some(10)
+      override val maxLength = Some(13)
+      override val validators = List(Validator((str: String) => asValidIsbn13(str) match {
+        case None => ValidationError("This value must be a valid 10- or 13-digit ISBN.")
+	    case Some(isbn) => ValidationError(Nil)
+      }))
     }
+    val name = new TextField("name") { override val maxLength = Some(80) }
+    val author = new TextFieldOptional("author(s)") { override val maxLength = Some(80) }
+    val publisher = new TextFieldOptional("publisher") { override val maxLength = Some(80) }
+    val numPages = new NumericFieldOptional[Int]("numberOfPages")
+    val dimensions = new TextFieldOptional("dimensions")
+    val weight = new NumericFieldOptional[Double]("weight")
+    val imageUrl = new UrlFieldOptional("imageUrl")
     
-    if (request.method == "GET") Ok(html.books.add(Binding(AddForm)))
+    val fields = List(isbn, name, author, publisher, numPages, dimensions, weight, imageUrl)
+  }
+  
+  def addTitle = DbAction { implicit request =>
+    if (request.method == "GET") Ok(views.html.books.addTitle(Binding(TitleForm)))
     else {
-      Binding(AddForm, request) match {
-        case ib: InvalidBinding => Ok(html.books.add(ib))
+      Binding(TitleForm, request) match {
+        case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
         case vb: ValidBinding => {
-          Redirect(routes.Application.verifyTitle(vb.valueOf(AddForm.isbn))
+          // TODO: try to get image from url
+          Redirect(routes.Application.index)
         }
       }
     }
@@ -205,14 +214,14 @@ object Books extends Controller {
   def statistics() = TODO
   
  
-  def copyStatusByTitle() = DbAction { implicit req =>
+  def copyStatusByTitle() = TODO /* DbAction { implicit req =>
     implicit val pm = req.pm
     val form = Form(
       "titleId" -> longNumber
     )
     Ok(views.html.books.copyStatusByTitleForm())
     
-  }
+  }*/
   
   def copyStatusByTitleSubmit() = TODO
   
