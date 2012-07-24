@@ -9,7 +9,7 @@ import util.ScalaPersistenceManager
 import util.DbRequest
 
 @PersistenceCapable(detachable="true")
-class Permission {
+class Group {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -18,10 +18,5 @@ class Permission {
   @Column(allowsNull="false")
   private[this] var _name: String = _
 
-  @Column(allowsNull="false")
-  private[this] var _description: String = _
-  
   private[this] var _perspectives: List[Perspective] = _
- 
-  private[this] var _groups: List[Group] = _
 }

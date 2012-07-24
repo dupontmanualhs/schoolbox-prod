@@ -43,12 +43,12 @@ GET     /assessments/newQuestion                controllers.Assessments.newQuest
 
 #Assignments
 GET     /assignments/doTask/:taskId             controllers.Assignments.doTask(taskId: Long)
-POST     /assignments/check/:taskId              controllers.Assignments.check(taskId: Long)
+POST    /assignments/check/:taskId              controllers.Assignments.check(taskId: Long)
 
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
 GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
-#POST    /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
+#POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
 GET     /math/random                            controllers.Math.randomProblem()
 POST    /math/random                            controllers.Math.checkAnswer(temp)
 
@@ -85,7 +85,7 @@ GET     /books/checkIn                          controllers.Books.checkIn
 POST    /books/checkIn                          controllers.Books.checkInSubmit
 #*      /books/checkInLostCopy/:copyId          controllers.Books.checkInLostCopy(copyId: Long)
 GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
-#GET     /books/allBooksOut                      controllers.Books.allBooksOut(13)
+#GET    /books/allBooksOut                      controllers.Books.allBooksOut(13)
 GET     /books/delete/:id                       controllers.Books.delete(id: Long)
 POST    /books/delete/:id                       controllers.Books.deleteSubmit(id: Long)
 GET     /books/confirmDelete                    controllers.Books.confirmDelete
