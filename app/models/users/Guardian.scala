@@ -12,6 +12,8 @@ class Guardian extends Perspective {
   
   def children: Set[Student] = _children.asScala.toSet
   def children_=(theChildren: Set[Student]) { _children = theChildren.asJava }
+  
+  def role = "Parent/Guardian"
 }
 
 trait QGuardian extends QPerspective[Guardian] {

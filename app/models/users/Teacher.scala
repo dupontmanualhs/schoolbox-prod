@@ -26,6 +26,8 @@ class Teacher extends Perspective {
   
   def stateId: String = _stateId
   def stateId_=(theStateId: String) { _stateId = theStateId }
+  
+  def role = "Teacher"
 }
 
 object Teacher {

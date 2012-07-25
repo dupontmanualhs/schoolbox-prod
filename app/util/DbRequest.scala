@@ -9,12 +9,13 @@ import play.api.mvc.Action
 import play.api.mvc.AnyContent
 import models.users.Visit
 import play.api.mvc.PlainResult
+import javax.jdo.JDOHelper
 
 class DbRequest[A](val request: Request[A]) extends WrappedRequest[A](request) {
   implicit val pm = DataStore.getPersistenceManager()
   implicit val visit = request.session.get("visit").flatMap(
       Visit.getByUuid(_)).filter(!_.isExpired).getOrElse{
-    pm.deletePersistent(Visit.allExpired)
+    pm.deletePersistentAll(Visit.allExpired)
     new Visit(System.currentTimeMillis + DbRequest.sessionLength, None, None)
   }
 }
@@ -30,11 +31,16 @@ object DbAction {
       val dbReq = new DbRequest[A](request)
       dbReq.pm.beginTransaction()
       val res = f(dbReq)
-      dbReq.visit.expiration = System.currentTimeMillis + DbRequest.sessionLength
-      dbReq.pm.makePersistent(dbReq.visit)
-      dbReq.pm.commitTransactionAndClose()
-      if (request.session.get(dbReq.visit.uuid).isDefined) res
-      else res.withSession("visit" -> dbReq.visit.uuid)
+      if (JDOHelper.isDeleted(dbReq.visit)) {
+        dbReq.pm.commitTransactionAndClose()
+        res.withNewSession
+      } else {
+        dbReq.visit.expiration = System.currentTimeMillis + DbRequest.sessionLength
+        dbReq.pm.makePersistent(dbReq.visit)
+        dbReq.pm.commitTransactionAndClose()
+        if (request.session.get(dbReq.visit.uuid).isDefined) res
+        else res.withSession("visit" -> dbReq.visit.uuid)
+      }
     })
   }
 

@@ -1,0 +1,6 @@
+@()(implicit req: util.DbRequest[_])
+
+@(req.visit.perspective match {
+  case Some(persp) => <p>You are logged in as { persp.displayName }. <a href={ controllers.routes.Users.logout().toString }>Log out</a></p>
+  case None => <p><a href={ controllers.routes.Users.login().toString }>Log in</a></p>
+})

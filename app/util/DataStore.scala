@@ -48,6 +48,11 @@ object DataStore {
     pm.commitTransactionAndClose()
     r
   }
+  
+  def execute[A](block: (ScalaPersistenceManager => A))(implicit pm: ScalaPersistenceManager): A = {
+    if (pm != null) block(pm)
+    else DataStore.withTransaction( tpm => block(tpm) )
+  }
 }
 
 class ScalaPersistenceManager(val jpm: JDOPersistenceManager) {
@@ -84,20 +89,20 @@ class ScalaPersistenceManager(val jpm: JDOPersistenceManager) {
     jpm.close()
   }
   
-  def deletePersistent(dataObj: Any) {
+  def deletePersistent[T](dataObj: T) {
     jpm.deletePersistent(dataObj)
   }
   
-  def deletePersistent(dataObjs: Iterable[_]) {
-    jpm.deletePersistentAll(dataObjs)
+  def deletePersistentAll[T](dataObjs: Seq[T]) {
+    jpm.deletePersistentAll(dataObjs.asJava)
   }
   
   def makePersistent[T](dataObj: T): T = { // TODO: can this be PersistenceCapable
     jpm.makePersistent[T](dataObj)
   }
   
-  def makePersistent[T](dataObjs: Iterable[T]): Iterable[T] = {
-    jpm.makePersistentAll[T](dataObjs.toList: _*)
+  def makePersistentAll[T](dataObjs: Seq[T]): Seq[T] = {
+    jpm.makePersistentAll[T](dataObjs.asJava).asScala.toList
   }
   
   def extent[T: ClassManifest](includeSubclasses: Boolean = true): Extent[T] = {

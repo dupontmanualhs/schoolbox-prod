@@ -12,8 +12,10 @@ GET     /stub						controllers.Application.stub()
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 #Users
-GET		/login						controllers.Users.login()
-POST    /login						controllers.Users.login() 
+GET		/login						            controllers.Users.login()
+POST    /login						          controllers.Users.login()
+GET     /choosePerspective          controllers.Users.choosePerspective()
+POST    /choosePerspective          controllers.Users.choosePerspective() 
 GET     /logout                     controllers.Users.logout()
 #GET    /settings                   controllers.Users.settings()
 #POST   /settings                   controllers.Users.updateSettings()

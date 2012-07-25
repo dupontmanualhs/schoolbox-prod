@@ -7,7 +7,7 @@ object QuizData {
     val addLike = new Kind("add like terms")
     val multLike = new Kind("multiply like terms")
     val multUnlike = new Kind("multiply unlike terms")
-    pm.makePersistent(List(addLike, multLike, multUnlike))
+    pm.makePersistentAll(List(addLike, multLike, multUnlike))
     val questions = List(
         new Question("`5a+a`", "`6a`", addLike),
         new Question("`3b+2b`", "`5b`", addLike),
@@ -21,7 +21,7 @@ object QuizData {
         new Question("`2d*a`", "`2ad`", multUnlike),
         new Question("`3b*2c`", "`6bc`", multUnlike),
         new Question("`5c*3d`", "`10cd`", multUnlike))
-    pm.makePersistent(questions)
+    pm.makePersistentAll(questions)
     val template = new QuizTemplate("Quiz 1", 
                                     List(new QuestionSet(1, addLike),
                                          new QuestionSet(2, multLike),

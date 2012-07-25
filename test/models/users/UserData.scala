@@ -34,6 +34,6 @@ object UserData {
     val christinaTeacher = new Teacher(christina, "542358", "8795177958")
     val richardTeacher = new Teacher(richard, "423423", "4478340832")
     val jackTeacher = new Teacher(jack, "323423", "3042093480")
-    pm.makePersistent(List(mary, christina, jack, richard, john, fitzgerald, emma, laura, tyler, jordan, todd, eric, mac, meriadoc, peregrin, maryTeacher, christinaTeacher, jackTeacher, richardTeacher, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, toddStud, ericStud, macStud, meriadocStud, peregrinStud))
+    pm.makePersistentAll(List(mary, christina, jack, richard, john, fitzgerald, emma, laura, tyler, jordan, todd, eric, mac, meriadoc, peregrin, maryTeacher, christinaTeacher, jackTeacher, richardTeacher, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, toddStud, ericStud, macStud, meriadocStud, peregrinStud))
   }
 }
