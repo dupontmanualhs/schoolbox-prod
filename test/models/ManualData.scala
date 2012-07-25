@@ -56,7 +56,7 @@ object ManualData {
       new Period("Red Activity", 5), new Period("Red Advisory", 6),
       new Period("White 1", 7), new Period("White 2", 8), new Period("White 3", 9), new Period("White 4", 10),
       new Period("White Activity", 11), new Period("White Advisory", 12))
-    pm.makePersistentAll(periods)
+    pm.makePersistent(periods)
     if (debug) println("Created AcademicYear, Terms, and Periods")
     pm.commitTransaction()
   }

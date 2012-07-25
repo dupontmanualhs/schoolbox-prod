@@ -84,11 +84,19 @@ class ScalaPersistenceManager(val jpm: JDOPersistenceManager) {
     jpm.close()
   }
   
+  def deletePersistent(dataObj: Any) {
+    jpm.deletePersistent(dataObj)
+  }
+  
+  def deletePersistent(dataObjs: Iterable[_]) {
+    jpm.deletePersistentAll(dataObjs)
+  }
+  
   def makePersistent[T](dataObj: T): T = { // TODO: can this be PersistenceCapable
     jpm.makePersistent[T](dataObj)
   }
   
-  def makePersistentAll[T](dataObjs: Iterable[T]): Iterable[T] = {
+  def makePersistent[T](dataObjs: Iterable[T]): Iterable[T] = {
     jpm.makePersistentAll[T](dataObjs.toList: _*)
   }
   
