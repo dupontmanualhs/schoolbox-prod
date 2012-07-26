@@ -71,6 +71,42 @@ object Blogs extends Controller {
       case None => NotFound("That perspective doesn't exist!")
     }
   }
+
+  class CreatePostForm extends Form {
+    val title = new TextField("title")
+    val content = new TinyMCEField("content")
+
+    def fields = List(title, content)
+  }
+
+  /** Create a new post.
+  * If the blog id shown in the url corresponds to a blog, go for it. If not, error.
+  */
+
+  def createPost(blogId: Long) = DbAction { implicit req =>
+    val blog = Blog.getById(blogId)
+    blog match {
+      None => NotFound("This blog doesn't exist.")
+      Some(b) => {
+        if(b.owner != Visit.perspective) {
+          Redirect(routes.Users.login()).flashing("message" -> "You must log in to create a blog post.")
+        } else {
+          val form = new CreatePostForm
+          if(req.method == "GET") {
+            Ok(html.blogs.createPost(b.title, Binding(form))
+          } else {
+            Binding(form, req) match {
+              case ib: InvalidBinding => Ok(html.blogs.createPost(b.title, ib)
+              case vb: ValidBinding => {
+                  b.createPost(vb.valueOf(form.title), vb.valueOf(form.content))
+                  Redirect(routes.Blog.showBlog(b.id)).flashing("message" -> "New post created!")
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   /** Show the control panel for a given blog. Checks to see if the correct user is stored in the session var first.
   *
   *   @param blog the blog to show the control panel for

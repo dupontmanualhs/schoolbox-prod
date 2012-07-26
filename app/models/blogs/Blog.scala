@@ -32,6 +32,12 @@ class Blog {
   def title_=(theTitle: String) { _title = theTitle }
 
   def owner: Perspective = _owner
+
+  def createPost(title: String, content: String)(implicit pm: ScalaPersistenceManager = null) {
+    val p = new Post(title, content, this)
+    if(pm != null) pm.makePersistent(p)
+    else DataStore.withTransaction( tpm => tpm.makePersistent(p))
+  }
 }
 
 trait QBlog extends PersistableExpression[Blog] {
@@ -77,9 +83,13 @@ object Blog {
     }
   }
 
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager): Option[Blog] = {
-    val cand = QBlog.candidate
-    pm.query[Blog].filter(cand.id.eq(id)).executeOption
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Blog] = {
+    def query(epm: ScalaPersistenceManager) = {
+      val cand = QBlog.candidate
+      epm.query[Blog].filter(cand.id.eq(id)).executeOption
+    }
+    if (pm != null) query(pm)
+    DataStore.withTransaction( tpm => query(tpm))
   }
 
   def getPosts(blog: Blog)(implicit pm: ScalaPersistenceManager): List[Post] = {
