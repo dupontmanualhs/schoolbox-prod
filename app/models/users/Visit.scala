@@ -6,8 +6,9 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import scala.collection.immutable.HashSet
 import scala.collection.JavaConverters._
-
-import util.{DataStore, ScalaPersistenceManager}
+import util.Helpers.{string2elem, string2nodeSeq}
+import util.{Menu, DataStore, ScalaPersistenceManager}
+import scala.xml.Elem
 
 @PersistenceCapable(detachable="true")
 class Visit {
@@ -17,13 +18,15 @@ class Visit {
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
   private[this] var _permissions: java.util.Set[Permission] = _
+  private[this] var _menu: String = _
   
-  def this(expiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
+  def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
     this()
-    user_=(user)
-    expiration_=(expiration)
-    perspective_=(perspective)
-    permissions_=(new HashSet[Permission]())
+    _expiration = theExpiration
+    _user = maybeUser.getOrElse(null)
+    _perspective = maybePerspective.getOrElse(null)
+    permissions_=(Set[Permission]())
+    menu_=(Menu.buildMenu(perspective))
   }
   
   def uuid: String = _uuid
@@ -40,7 +43,12 @@ class Visit {
   def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
   def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }
   
+  def menu: Elem = string2elem(_menu)
+  def menu_=(theMenu: Elem) { _menu = theMenu.toString }
+  
   def isExpired: Boolean = System.currentTimeMillis > expiration
+  
+  def updateMenu { menu = Menu.buildMenu(perspective) }
 }
 
 object Visit {

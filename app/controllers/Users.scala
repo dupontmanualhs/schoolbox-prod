@@ -8,7 +8,7 @@ import models.users.User
 import util.DataStore
 import util.ScalaPersistenceManager
 import models.users.QUser
-import util.{DbAction, DbRequest}
+import util.{DbAction, DbRequest, Menu}
 import forms.Form
 import forms.fields._
 import forms.widgets._
@@ -52,6 +52,7 @@ object Users extends Controller {
             case persp :: Nil => {
               // set it in the session
               request.visit.perspective = Some(persp)
+              request.visit.updateMenu
               Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
             }
             // multiple perspectives
