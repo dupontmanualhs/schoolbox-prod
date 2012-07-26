@@ -3,6 +3,7 @@ package forms.fields
 import forms.widgets._
 import forms.validators._
 
+// TODO: use type="number" from HTML5
 trait BaseNumericField[T] {
   val minValue: Option[T] = None
   val maxValue: Option[T] = None

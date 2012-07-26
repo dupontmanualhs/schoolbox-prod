@@ -26,8 +26,9 @@ abstract class Perspective extends Ordered[Perspective] {
   def user: User = _user
   def user_=(theUser: User) { _user = theUser }
   
-  def displayName = user.displayName
-  def formalName = user.formalName
+  def displayName = "%s (%s)".format(user.displayName, role)
+  def formalName = "%s (%s)".format(user.formalName, role)
+  def role: String
   
   def compare(that: Perspective) = {
     this.user.compare(that.user)

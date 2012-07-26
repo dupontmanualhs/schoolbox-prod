@@ -24,6 +24,7 @@ object ApplicationBuild extends Build {
       "com.h2database" % "h2" % "1.3.165",
       "log4j" % "log4j" % "1.2.17",
       "org.scalatest" %% "scalatest" % "1.7.2" % "test",
+      "jp.t2v" %% "play20.auth" % "0.2",
       "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
       "com.lowagie" % "itext" % "2.1.7",
       "org.tukaani" % "xz" % "1.0",
@@ -32,8 +33,11 @@ object ApplicationBuild extends Build {
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-        ((testOptions in Test := Nil) +: Nucleus.settings): _*
+      ((resolvers += "t2v.jp repo" at "http://www.t2v.jp/maven-repo/") +:
+       (testOptions in Test := Nil) +: 
+       Nucleus.settings): _*
     )
+    
 
 }
 

@@ -42,32 +42,37 @@ object Users extends Controller {
       Binding(LoginForm, request) match {
         case ib: InvalidBinding => Ok(html.users.login(ib))
         case vb: ValidBinding => {
-          Redirect(routes.Application.index()).withSession(
-            "username" -> vb.valueOf(LoginForm.username)).flashing("message" -> "You successfully logged in!")
+          // set the session user
+          request.visit.user = User.getByUsername(vb.valueOf(LoginForm.username))
+          // set the session perspective
+          request.visit.user.map(_.perspectives).getOrElse(Nil) match {
+            // no perspectives attached to this user
+            case Nil => Redirect(routes.Application.index()).flashing("message" -> "That user has no active perspectives.")
+            // there's only one
+            case persp :: Nil => {
+              // set it in the session
+              request.visit.perspective = Some(persp)
+              Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
+            }
+            // multiple perspectives
+            case _ => Redirect(routes.Users.choosePerspective()).flashing("message" -> "Choose which perspective to use.")
+          }
         }
       }
     }
   }
+  
+  def choosePerspective = TODO
 
   /**
    * Logout and clean the session.
    */
   def logout = DbAction { implicit request =>
-    Redirect(routes.Application.index()).withNewSession.flashing(
+    request.pm.deletePersistent(request.visit)
+    Redirect(routes.Application.index()).flashing(
       "message" -> "You've been logged out..."
     )
   }
-  
-  def cpForm(user: User) = play.api.data.Form(tuple(
-      "currentPassword" -> text,
-      "newPassword" -> text,
-      "verifyNewPassword" -> text
-    ) verifying("Current password is incorrect.", _ match {
-      case (cp, np, vnp) => User.authenticate(user, cp).isDefined
-    }) verifying("New password and verify password must match.", _ match {
-      case (cp, np, vnp) => np == vnp
-    })
-  )
   
   class ChangePasswordForm(user: User) extends Form {
     val currentPassword = new PasswordField("currentPassword") {

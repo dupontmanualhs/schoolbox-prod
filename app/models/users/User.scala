@@ -100,25 +100,28 @@ class User extends Ordered[User] {
   override def toString: String = {
     "User(ID: %d, %s)".format(id, formalName)
   }
+  
+  def perspectives(implicit pm: ScalaPersistenceManager = null): List[Perspective] = {
+    DataStore.execute { epm =>
+      val cand = QPerspective.candidate
+      epm.query[Perspective].filter(cand.user.eq(this)).executeList()
+    }
+  }
 }
 
 object User {  
   def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
-    def query(epm: ScalaPersistenceManager): Option[User] = {
+    DataStore.execute { epm =>
       val cand = QUser.candidate
       epm.query[User].filter(cand.id.eq(id)).executeOption()
     }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
-    def query(epm: ScalaPersistenceManager): Option[User] = {
+  def getByUsername(username: String)(implicit ipm: ScalaPersistenceManager = null): Option[User] = {
+    DataStore.execute { epm => 
       val cand = QUser.candidate
-      pm.query[User].filter(cand.username.eq(username)).executeOption()
+      epm.query[User].filter(cand.username.eq(username)).executeOption()
     }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
   
   def current(implicit request: DbRequest[_]): Option[User] = {
@@ -129,14 +132,10 @@ object User {
   }
 
   def authenticate(username: String, password: String)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
-    def query(epm: ScalaPersistenceManager): Option[User] = {
-	  getByUsername(username) match {
-	  	case Some(user) => authenticate(user, password)
-      	case _ => None
-	  }
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+    getByUsername(username) match {
+	  case Some(user) => authenticate(user, password)
+      case _ => None
+	}
   }
 
   def authenticate(user: User, password: String): Option[User] = {

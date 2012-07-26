@@ -36,6 +36,8 @@ class Student extends Perspective {
   
   def teamName: String = _teamName
   def teamName_=(theTeamName: String) { _teamName = theTeamName }
+  
+  def role = "Student"
 }
 
 object Student {

@@ -28,10 +28,14 @@ class Teacher extends Perspective {
   def stateId: String = _stateId
   def stateId_=(theStateId: String) { _stateId = theStateId }
   
+<<<<<<< HEAD
   def allStudents(term: Term)(implicit pm: ScalaPersistenceManager): List[Student] = {
     //TODO
     Nil
   }
+=======
+  def role = "Teacher"
+>>>>>>> master
 }
 
 object Teacher {

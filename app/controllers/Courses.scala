@@ -7,7 +7,7 @@ import util.DbAction
 import util.Helpers.mkNodeSeq
 import views.html
 import scala.xml.NodeSeq
-import play.api.mvc.Result
+import play.api.mvc.PlainResult
 import util.DbRequest
 import util.ScalaPersistenceManager
 import scala.xml.Text
@@ -48,7 +48,7 @@ object Courses extends Controller {
   }
 
   // only this student, his/her parent, or a teacher should be able to see this schedule
-  def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term])(implicit req: DbRequest[_]): Result = {
+  def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term])(implicit req: DbRequest[_]): PlainResult = {
     implicit val pm = req.pm
     if (!maybeStudent.isDefined) {
       NotFound(views.html.notFound("No such student."))
@@ -59,7 +59,7 @@ object Courses extends Controller {
     }
   }
 
-  def studentSchedule(student: Student, term: Term)(implicit req: DbRequest[_]): Result = {
+  def studentSchedule(student: Student, term: Term)(implicit req: DbRequest[_]): PlainResult = {
     implicit val pm = req.pm
     val enrollments: List[StudentEnrollment] = {
       val cand = QStudentEnrollment.candidate()
@@ -80,7 +80,7 @@ object Courses extends Controller {
     Ok(html.courses.studentSchedule(student.user, term, table, hasEnrollments))
   }
 
-  def teacherSchedule(maybeTeacher: Option[Teacher], maybeTerm: Option[Term])(implicit req: DbRequest[_]): Result = {
+  def teacherSchedule(maybeTeacher: Option[Teacher], maybeTerm: Option[Term])(implicit req: DbRequest[_]): PlainResult = {
     if (!maybeTeacher.isDefined) {
       NotFound(views.html.notFound("No such teacher."))
     } else if (!maybeTerm.isDefined) {
