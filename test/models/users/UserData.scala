@@ -19,6 +19,8 @@ object UserData {
     val emma = new User("emma", "Emma", Some("Kathryn"), "King", None, Gender.FEMALE, "emma@emma.com", "kin123")
     val laura = new User("laura", "Laura", Some("Ann"), "King", None, Gender.FEMALE, "laura@laura.com", "kin123")
     val john = new User("john", "John", Some("Francis"), "King", None, Gender.MALE, "john@john.com", "kin123")
+    val eric = new User("eric", "Eric", None, "McKnight", None, Gender.MALE, "eric@eric.com", "mck123")
+    val ericStud = new Student(eric, "4208935702", "384979", 6, "MST")
     val jackStud = new Student(jack, "3757202948", "425636", 0, "MST")
     val fitzgeraldStud = new Student(fitzgerald, "8340522509", "382085", 4, "VA")
     val tylerStud = new Student(tyler, "2558203943", "246666", 8, "MST")
@@ -35,6 +37,6 @@ object UserData {
     val richardTeacher = new Teacher(richard, "423423", "4478340832")
     val toddTeacher = new Teacher(todd, "323423", "3042093480")
     val toddGuardian = new Guardian(Set(meriadocStud, peregrinStud))
-    pm.makePersistentAll(List(mary, christina, jack, richard, john, fitzgerald, emma, laura, tyler, jordan, todd, andrew, mack, meriadoc, peregrin, maryTeacher, christinaTeacher, toddTeacher, richardTeacher, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud))
+    pm.makePersistentAll(List(eric, ericStud, mary, christina, jack, richard, john, fitzgerald, emma, laura, tyler, jordan, todd, andrew, mack, meriadoc, peregrin, maryTeacher, christinaTeacher, toddTeacher, richardTeacher, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud))
   }
 }
