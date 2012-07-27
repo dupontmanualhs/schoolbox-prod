@@ -1,7 +1,9 @@
 package models.users
 import util.ScalaPersistenceManager
+import java.util.Date
 import org.joda.time.LocalDate
 import models.courses._
+import models.books._
 
 object ScheduleData {
 	
@@ -53,6 +55,30 @@ object ScheduleData {
     //makeSections(debug)
     val r1r2chemistry = new Section(chemistry, "133321", Set(fall2012, spring2013), Set(r1, r2), new Room("201"))
     val w1w2biology = new Section(biology, "653756", Set(fall2012, spring2013), Set(w1, w2), new Room("201"))
+    val r1algebra1 = new Section(algebra1, "322346", Set(fall2012, spring2013), Set(r1), new Room("202"))
+    val r2algebra2 = new Section(algebra2, "342342", Set(fall2012, spring2013), Set(r2), new Room("202"))
+    val w1planning = new Section(planning, "777777", Set(fall2012, spring2013), Set(w1), new Room("202"))
+    val w2geometry = new Section(geometry, "568567", Set(fall2012, spring2013), Set(w2), new Room("202"))
+    val r1english1 = new Section(english1, "367677", Set(fall2012, spring2013), Set(r1), new Room("203"))
+    val r2planning = new Section(planning, "666666", Set(fall2012, spring2013), Set(r2), new Room("203"))
+    val w1english2 = new Section(english2, "545577", Set(fall2012, spring2013), Set(w1), new Room("203"))
+    val w2english3 = new Section(english3, "999999", Set(fall2012, spring2013), Set(w2), new Room("203"))
+    val r1planning = new Section(planning, "555555", Set(fall2012, spring2013), Set(r1), new Room("204"))
+    val r2usHistory = new Section(usHistory, "564572", Set(fall2012, spring2013), Set(r2), new Room("204"))
+    val w1worldHistory = new Section(worldHistory, "888888", Set(fall2012, spring2013), Set(w1), new Room("204"))
+    val w2studySkill = new Section(studySkills, "444444", Set(fall2012, spring2013), Set(w2), new Room("204"))
+    
+    //makeEnrollments(debug)
+    
+    
+    //makeBookData(debug)
+    val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", "Pearson Prentice Hall", "978-0130523167", 842, "10.9 x 8.8 x 1.6 inches", 4.5, true, new Date())
+    val algebra2Book = new Title("Prentice Hall Mathematics: Algebra 2", "Pearson Prentice Hall", "978-0131339989", 842, "10.9 x 8.8 x 2 inches", 5.3, true, new Date())
+    val geometryBook = new Title("Geometry", "W.H. Freeman & Company", "978-0716717454", 668, "10.1 x 7.7 x 1.4 inches", 3.3, true, new Date())
+    val chemistryBook = new Title("Chemistry", "Houghton Mifflin", "978-0618528448", "1056", "10.6 x 8.5 x 1.6 inches", 5.5, true, new Date())
+    val biologyBook = new Title("Biology", " Pearson Benjamin Cummings", "978-0805368444", "1393", "8.5 x 2.1 x 11 inches", 7.6, true, new Date())
+    
+    
     
   }
 }
