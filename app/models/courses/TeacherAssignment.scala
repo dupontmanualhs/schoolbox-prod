@@ -15,18 +15,18 @@ class TeacherAssignment {
   private[this] var _id: Long = _
   private[this] var _teacher: Teacher = _
   private[this] var _section: Section = _
-  private[this] var _term: Term = _
+  //private[this] var _term: Term = _
   @Persistent
   private[this] var _start: Date = _
   @Persistent
   private[this] var _end: Date = _
   
-  def this(teacher: Teacher, section: Section,
-      term: Term, start: LocalDate, end: LocalDate) = {
+  def this(teacher: Teacher, section: Section, //term: Term, 
+      start: LocalDate, end: LocalDate) = {
     this()
     _teacher = teacher
     _section = section
-    _term = term
+    //_term = term
     start_=(start)
     end_=(end)
   }
@@ -39,13 +39,13 @@ class TeacherAssignment {
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
   
-  def term: Term = _term
-  def term_=(theTerm: Term) { _term = theTerm }
+  //def term: Term = _term
+  //def term_=(theTerm: Term) { _term = theTerm }
   
-  def start: LocalDate = new DateTime(_start).toLocalDate
+  def start: LocalDate = if (_start != null) new DateTime(_start).toLocalDate else section.startDate
   def start_=(theStart: LocalDate) { _start = if (theStart != null) new Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) else null }
   
-  def end: LocalDate = new DateTime(_end).toLocalDate
+  def end: LocalDate = if (_end != null) new DateTime(_end).toLocalDate else section.endDate
   def end_=(theEnd: LocalDate) { _end = if (theEnd != null) new Date(theEnd.toDateTimeAtStartOfDay.toDate.getTime) else null }
 }
 
@@ -56,8 +56,8 @@ trait QTeacherAssignment extends PersistableExpression[TeacherAssignment] {
   private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
   def section: ObjectExpression[Section] = _section
   
-  private[this] lazy val _term: ObjectExpression[Term] = new ObjectExpressionImpl[Term](this, "_term")
-  def term: ObjectExpression[Term] = _term
+  //private[this] lazy val _term: ObjectExpression[Term] = new ObjectExpressionImpl[Term](this, "_term")
+  //def term: ObjectExpression[Term] = _term
   
   private[this] lazy val _start: DateExpression[java.util.Date] = new DateExpressionImpl[Date](this, "_start")
   def start: DateExpression[java.util.Date] = _start

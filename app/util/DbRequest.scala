@@ -10,6 +10,9 @@ import play.api.mvc.AnyContent
 import models.users.Visit
 import play.api.mvc.PlainResult
 import javax.jdo.JDOHelper
+import play.api.mvc.Controller
+import play.api.mvc.Results
+import controllers.routes
 
 class DbRequest[A](val request: Request[A]) extends WrappedRequest[A](request) {
   implicit val pm = DataStore.getPersistenceManager()
@@ -47,6 +50,15 @@ object DbAction {
   def apply(f: DbRequest[AnyContent] => PlainResult) = {
     apply[AnyContent](parse.anyContent)(f)
   }
+}
+
+object Authenticated {
+  def apply(f: DbRequest[AnyContent] => PlainResult) = DbAction( req => {
+	req.visit.user match {
+	  case None => Results.Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
+	  case _ => f(req)
+	}
+  })
 }
 
 object Method {

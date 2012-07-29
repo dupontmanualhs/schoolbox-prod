@@ -62,8 +62,9 @@ object Courses extends Controller {
   def studentSchedule(student: Student, term: Term)(implicit req: DbRequest[_]): PlainResult = {
     implicit val pm = req.pm
     val enrollments: List[StudentEnrollment] = {
+      val sectVar = QSection.variable("sectVar")
       val cand = QStudentEnrollment.candidate()
-      pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.term.eq(term))).executeList()
+      pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
     }
     val hasEnrollments = enrollments.size != 0
     val sections: List[Section] = enrollments.map(_.section)
@@ -73,7 +74,7 @@ object Courses extends Controller {
       <tr>
         <td>{ p.name }</td>
         <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br/>) }</td>
-        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.formalName).mkString("; "))), <br/>) }</td>
+        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br/>) }</td>
         <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
       </tr>
     }
@@ -89,8 +90,9 @@ object Courses extends Controller {
       val teacher = maybeTeacher.get
       val term = maybeTerm.get
       val assignments: List[TeacherAssignment] = {
+        val sectVar = QSection.variable("sectVar")
         val cand = QTeacherAssignment.candidate
-        req.pm.query[TeacherAssignment].filter(cand.teacher.eq(teacher).and(cand.term.eq(term))).executeList()
+        req.pm.query[TeacherAssignment].filter(cand.teacher.eq(teacher).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
       }
       val hasAssignments = assignments.size != 0
       val sections: List[Section] = assignments.map(_.section)
@@ -123,7 +125,7 @@ object Courses extends Controller {
         val course = sect.course.name
         val terms = sect.terms.toList.map(_.name).mkString(", ")
         val periods = sect.periods.toList.map(_.name).mkString(", ")
-        val teachers = sect.teachers.sortWith(_ < _).map(_.displayName).mkString(", ")
+        val teachers = sect.teachers.toList.sortWith(_ < _).map(_.displayName).mkString(", ")
         val enrollments = sect.enrollments.sortWith(_.student < _.student)
         Ok(html.courses.roster(course, terms, periods, teachers, enrollments))
       }
