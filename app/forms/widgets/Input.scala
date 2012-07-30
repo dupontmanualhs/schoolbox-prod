@@ -15,7 +15,6 @@ abstract class Input(
       // fails silently if we get too many values for a single-valued field
       case _ => Null
     }
-    val reqAttr = if (required) new UnprefixedAttribute("required", Text("required"), Null) else Null
     <input type={ inputType } name={ name } /> % attrs % reqAttr % attrList % valueAttr       
   }
 }

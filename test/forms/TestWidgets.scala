@@ -1,5 +1,8 @@
 package forms
 
+import scala.xml.NodeSeq
+import scala.xml.Utility.trim
+
 import widgets._
 import Widget._
 
@@ -40,5 +43,38 @@ class TestWidgets extends FunSuite {
     val cb = new CheckboxInput()
     assert(cb.render("box", List("true")) ===
       <input type="checkbox" name="box" checked="checked" />)
+  }
+  
+  test("SelectInput widget") {
+    val s = new SelectInput(true, List("J" -> "John", "P" -> "Paul", "G" -> "George", "R" -> "Ringo"))
+    assert(trim(s.render("beatle", List("J"))) === trim(
+      <select name="beatle">
+        <option value="J" selected="selected">John</option>
+    	<option value="P">Paul</option>
+    	<option value="G">George</option>
+    	<option value="R">Ringo</option>
+      </select>))
+    assert(trim(s.render("beatle", Nil)) === trim(
+      <select name="beatle">
+        <option value="J">John</option>
+        <option value="P">Paul</option>
+    	<option value="G">George</option>
+    	<option value="R">Ringo</option>
+      </select>))
+    assert(trim(s.render("beatle", List("John"))) === trim(
+      <select name="beatle">
+        <option value="J">John</option>
+        <option value="P">Paul</option>
+    	<option value="G">George</option>
+    	<option value="R">Ringo</option>
+      </select>))  
+    // unless allowsMultiple is true, only the first element in the list is selected
+    assert(trim(s.render("beatle", List("P", "G"))) === trim(
+      <select name="beatle">
+        <option value="J">John</option>
+        <option value="P" selected="selected">Paul</option>
+    	<option value="G">George</option>
+    	<option value="R">Ringo</option>
+      </select>))  
   }
 }
