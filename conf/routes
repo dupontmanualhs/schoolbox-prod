@@ -59,6 +59,8 @@ POST    /blog/editor                            controllers.Blogs.testSubmit()
 GET     /blog/me                                controllers.Blogs.listCurrentUserBlogs
 GET     /blog/user/:id                          controllers.Blogs.listBlogsByPerspectiveId(id: Long)
 GET     /blog/:id                               controllers.Blogs.showBlog(id: Long)
+GET     /blog/:id/new                           controllers.Blogs.createPost(id: Long)
+POST    /blog/:id/new                           controllers.Blogs.createPost(id: Long)
 
 #Books
 GET     /books/addTitle                         controllers.Books.addTitle()

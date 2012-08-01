@@ -3,9 +3,9 @@ package models.blogs
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-
 import models.users.Perspective
 import util.ScalaPersistenceManager
+import util.DataStore
 
 @PersistenceCapable(detachable="true")
 @Unique(members=Array("_owner", "_title"))
@@ -18,6 +18,7 @@ class Blog {
   private[this] var _title: String = _
 
   @Column(allowsNull="false")
+  @Persistent(defaultFetchGroup="true")
   private[this] var _owner: Perspective = _
 
   def this(title: String, owner: Perspective) = {

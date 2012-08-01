@@ -5,6 +5,8 @@ import javax.jdo.listener.StoreCallback
 import org.joda.time.LocalDateTime
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import util.Helpers.string2nodeSeq
+import scala.xml.NodeSeq
 
 @PersistenceCapable(detachable="true")
 class Post extends StoreCallback {
@@ -27,7 +29,7 @@ class Post extends StoreCallback {
   
   def id: Long = _id
   
-  def content: String = _content
+  def content: NodeSeq = string2nodeSeq(_content)
   def content_=(theContent: String) { _content = theContent }
   
   def published: LocalDateTime = new LocalDateTime(_published.getTime)

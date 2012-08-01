@@ -11,6 +11,9 @@ import models.users._
 import models.blogs._
 import play.api.mvc.Result
 import models.users.QPerspective
+import forms.fields.TinyMCEField
+import forms.fields.TextField
+import forms.{Form, ValidBinding, InvalidBinding, Binding}
 
 //TODO: Actually check permissions where applicable
 
@@ -72,13 +75,15 @@ object Blogs extends Controller {
     }
   }
 
+  
   class CreatePostForm extends Form {
-    val title = new TextField("title")
-    val content = new TinyMCEField("content")
+	 val title = new TextField("title")
+	 val content = new TinyMCEField("content")
 
-    def fields = List(title, content)
+	 def fields = List(title, content)
   }
 
+  
   /** Create a new post.
   * If the blog id shown in the url corresponds to a blog, go for it. If not, error.
   */
@@ -86,27 +91,37 @@ object Blogs extends Controller {
   def createPost(blogId: Long) = DbAction { implicit req =>
     val blog = Blog.getById(blogId)
     blog match {
-      None => NotFound("This blog doesn't exist.")
-      Some(b) => {
-        if(b.owner != Visit.perspective) {
-          Redirect(routes.Users.login()).flashing("message" -> "You must log in to create a blog post.")
-        } else {
-          val form = new CreatePostForm
-          if(req.method == "GET") {
-            Ok(html.blogs.createPost(b.title, Binding(form))
-          } else {
-            Binding(form, req) match {
-              case ib: InvalidBinding => Ok(html.blogs.createPost(b.title, ib)
-              case vb: ValidBinding => {
-                  b.createPost(vb.valueOf(form.title), vb.valueOf(form.content))
-                  Redirect(routes.Blog.showBlog(b.id)).flashing("message" -> "New post created!")
-              }
+      case None => NotFound("This blog doesn't exist.")
+      case Some(b) => {
+        req.visit.perspective match {
+          case Some(p) => {
+            if(b.owner.id != p.id) {
+               Redirect(routes.Blogs.showBlog(blogId)).flashing("message" -> "You don't have the proper permissions to create a post. Change perspectives?")
+            } else {
+               val form = new CreatePostForm
+               if(req.method == "GET") {
+                  Ok(views.html.blogs.createPost(b.title, Binding(form)))
+               } else {
+                  checkBindingCreatePostForm(Binding(form, req), b, form)
+               }
             }
           }
+          case None => Redirect(routes.Users.login()).flashing("message" -> "You must log in to create a blog post.")
         }
       }
     }
   }
+
+  def checkBindingCreatePostForm(binding: Binding, b: Blog, form: CreatePostForm)(implicit req: util.DbRequest[_]) = {
+    binding match {
+      case ib: InvalidBinding => Ok(views.html.blogs.createPost(b.title, ib))
+      case vb: ValidBinding => {
+        b.createPost(vb.valueOf(form.title), vb.valueOf(form.content))
+        Redirect(routes.Blogs.showBlog(b.id)).flashing("message" -> "New post created!")
+      }
+    }
+  }
+
   /** Show the control panel for a given blog. Checks to see if the correct user is stored in the session var first.
   *
   *   @param blog the blog to show the control panel for
@@ -145,3 +160,4 @@ object Blogs extends Controller {
     )
   }
 }
+
