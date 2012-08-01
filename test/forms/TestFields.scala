@@ -347,6 +347,6 @@ class TestFields extends FunSuite {
     val f = new ChoiceField[Int]("grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
     assert(f.clean("0") === Right(9))
     assert(f.clean("foo") === Left(ValidationError(List("Illegal value submitted."))))
-    
+    assert(f.clean("-1") === Left(ValidationError(List("Illegal value submitted."))))
   }
 }
