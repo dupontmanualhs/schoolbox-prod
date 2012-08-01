@@ -5,6 +5,7 @@ project/target
 target
 tmp
 *.db
+*~
 
 .classpath
 .project

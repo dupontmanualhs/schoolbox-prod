@@ -3,9 +3,14 @@ package util
 import xml.{Atom, Comment, Elem, MetaData, Node, NodeSeq, Text, XML}
 import java.util.Locale
 import views.html.helper.FieldConstructor
+import org.joda.time.LocalDate
 
 object Helpers {
   implicit val tableFields = FieldConstructor(views.html.templates.fieldAsTableRow(_))
+  
+  implicit object LocalDateOrdering extends Ordering[LocalDate] {
+    def compare(ld1: LocalDate, ld2: LocalDate) = ld1.compareTo(ld2)
+  }
   
   def camel2TitleCase(camel: String): String = {
     camel match {

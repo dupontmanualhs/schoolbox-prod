@@ -83,13 +83,11 @@ class User extends Ordered[User] {
   def password_=(thePassword: Password) { _password = thePassword }
   def password_=(thePassword: String) { _password = new Password(thePassword) }
 
-  def displayName: String = {
-    preferred.getOrElse(first) + " " + last
-  }
+  def displayName: String = "%s %s".format(preferred.getOrElse(first), last)
   
-  def formalName: String = {
-    last + ", " + first + (if (middle.isDefined) " " + middle.get else "")
-  }
+  def formalName: String = "%s, %s%s".format(last, first, middle.map(" " + _).getOrElse(""))
+  
+  def shortName: String = "%s, %s.".format(last, first.substring(0, 1))
   
   def compare(that: User): Int = {
     Ordering.Tuple3(Ordering.String, Ordering.String, Ordering.String).compare(

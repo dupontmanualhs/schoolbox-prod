@@ -8,13 +8,14 @@ import models.users.User
 import util.DataStore
 import util.ScalaPersistenceManager
 import models.users.QUser
-import util.{DbAction, DbRequest}
+import util.{DbAction, DbRequest, Menu}
 import forms.Form
 import forms.fields._
 import forms.widgets._
 import forms.{Binding, InvalidBinding, ValidBinding}
 import forms.validators.ValidationError
 import forms.validators.Validator
+import util.Authenticated
 
 object Users extends Controller {  
   /**
@@ -52,6 +53,7 @@ object Users extends Controller {
             case persp :: Nil => {
               // set it in the session
               request.visit.perspective = Some(persp)
+              request.visit.updateMenu
               Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
             }
             // multiple perspectives
@@ -97,23 +99,19 @@ object Users extends Controller {
     }
     
   }
-  
-  def changePassword = DbAction { implicit req => 
-    if (!req.session.get("username").isDefined) {
-      Redirect(routes.Users.login()).flashing("message" -> "You must log in to view that page.")
+
+  def changePassword = Authenticated { implicit req =>
+    val user = req.visit.user.get // TODO: this scares me -- we shouldn't get here if the user is None, but...
+    val form = new ChangePasswordForm(user)
+    if (req.method == "GET") {
+      Ok(html.users.changePassword(Binding(form)))
     } else {
-      val user = User.getByUsername(req.session("username"))(req.pm).get
-      val form = new ChangePasswordForm(user)
-      if (req.method == "GET") {
-        Ok(html.users.changePassword(Binding(form)))
-      } else {
-        Binding(form, req) match {
-          case ib: InvalidBinding => Ok(html.users.changePassword(ib))
-          case vb: ValidBinding => {
-            user.password = vb.valueOf(form.newPassword)
-            req.pm.makePersistent(user)
-            Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
-          }
+      Binding(form, req) match {
+        case ib: InvalidBinding => Ok(html.users.changePassword(ib))
+        case vb: ValidBinding => {
+          user.password = vb.valueOf(form.newPassword)
+          req.pm.makePersistent(user)
+          Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
         }
       }
     }

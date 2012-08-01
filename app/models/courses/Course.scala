@@ -31,6 +31,8 @@ class Course {
   
   def department: Department = _department
   def department_=(theDepartment: Department) { _department = theDepartment }
+  
+  override def toString = "%s (%s)".format(name, masterNumber)
 }
 
 trait QCourse extends PersistableExpression[Course] {
