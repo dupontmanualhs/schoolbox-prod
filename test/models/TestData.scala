@@ -7,6 +7,7 @@ import models.users._
 import models.books._
 import models.courses._
 import org.joda.time.LocalDate
+import models.blogs.Blog
 
 object TestData {
   def load(debug: Boolean = false) {
@@ -51,7 +52,8 @@ object TestData {
     val emma = new User("emma", "Emma", Some("Kathryn"), "King", None, Gender.FEMALE, "emma@emma.com", "kin123")
     val laura = new User("laura", "Laura", Some("Ann"), "King", None, Gender.FEMALE, "laura@laura.com", "kin123")
     val john = new User("john", "John", Some("Francis"), "King", None, Gender.MALE, "john@john.com", "kin123")
-    val eric = new User("eric", "Eric", None, "McKnight", None, Gender.MALE, "eric@eric.com", "mck123")
+    val bobby = new User("bobby", "Bobby", None, "Hill", Some("Dangit Bobby"), Gender.MALE, "bobby@bobby.com", "hil123")
+    val eric = new User("eric", "Eric", None, "McKnight", Some("Dungeon Defenders"), Gender.MALE, "eric@eric.com", "mck123")
     val ericStud = new Student(eric, "4208935702", "384979", 6, "MST")
     val jackStud = new Student(jack, "3757202948", "425636", 0, "MST")
     val fitzgeraldStud = new Student(fitzgerald, "8340522509", "382085", 4, "VA")
@@ -64,19 +66,28 @@ object TestData {
     val emmaStud = new Student(emma, "4534414554", "245434", 6, "CMA")
     val lauraStud = new Student(laura, "3943334223", "403024", 3, "YPAS")
     val johnStud = new Student(john, "5022165324", "154524", 12, "HSU")
+    val bobbyStud = new Student(bobby, "4235612205", "425451", 12, "Propane Studies")
 
     // guardians
     val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.MALE, null, "pen123")
+    val hank = new User("hank", "Hank", None, "Hill", Some("Propane and Propane Accessories"), Gender.MALE, null, "hil123")
     val toddGuardian = new Guardian(todd, Set(meriadocStud, peregrinStud))
     val regGuardian = new Guardian(reg, Set(fitzgeraldStud))
+    val hankGuardian = new Guardian(hank, Set(bobbyStud))
     
+    if(debug) println("Creating the blagosphere")
+    // blogs
+    val toddTeacherBlog = new Blog("Todd's Blag", toddTeacher)
+    val toddGuardianBlog = new Blog("Father O'Bryan's Blog", toddGuardian)
+    val tylerBlog = new Blog("Tydar's s'radyT", tylerStud)
+    val jordanBlog = new Blog("Jordan doesn't 'Get It(R)'", jordanStud)
     
     pm.makePersistentAll(List(
         mary, christina, richard, todd, 
         maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
           jack, john, fitzgerald, emma, laura, tyler, jordan,  andrew, mack, meriadoc, peregrin, eric, 
           ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
-          reg, toddGuardian, regGuardian))
+          reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian, toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
  
     //createYearsAndTerms(debug)
     if (debug) println("Creating AcademicYear, Terms, and Periods...")
