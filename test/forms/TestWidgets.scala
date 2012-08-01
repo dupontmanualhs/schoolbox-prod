@@ -46,35 +46,37 @@ class TestWidgets extends FunSuite {
   }
   
   test("SelectInput widget") {
-    val s = new SelectInput(true, List("J" -> "John", "P" -> "Paul", "G" -> "George", "R" -> "Ringo"))
-    assert(trim(s.render("beatle", List("J"))) === trim(
+    val s = new SelectInput(true, List("John", "Paul", "George", "Ringo"))
+    assert(trim(s.render("beatle", List("0"))) === trim(
       <select name="beatle">
-        <option value="J" selected="selected">John</option>
-    	<option value="P">Paul</option>
-    	<option value="G">George</option>
-    	<option value="R">Ringo</option>
+        <option value="0" selected="selected">John</option>
+    	<option value="1">Paul</option>
+    	<option value="2">George</option>
+    	<option value="3">Ringo</option>
       </select>))
     assert(trim(s.render("beatle", Nil)) === trim(
       <select name="beatle">
-        <option value="J">John</option>
-        <option value="P">Paul</option>
-    	<option value="G">George</option>
-    	<option value="R">Ringo</option>
+        <option value="-1"> </option>
+        <option value="0">John</option>
+        <option value="1">Paul</option>
+    	<option value="2">George</option>
+    	<option value="3">Ringo</option>
       </select>))
     assert(trim(s.render("beatle", List("John"))) === trim(
       <select name="beatle">
-        <option value="J">John</option>
-        <option value="P">Paul</option>
-    	<option value="G">George</option>
-    	<option value="R">Ringo</option>
+        <option value="-1"> </option>
+        <option value="0">John</option>
+        <option value="1">Paul</option>
+    	<option value="2">George</option>
+    	<option value="3">Ringo</option>
       </select>))  
     // unless allowsMultiple is true, only the first element in the list is selected
-    assert(trim(s.render("beatle", List("P", "G"))) === trim(
+    assert(trim(s.render("beatle", List("1", "2"))) === trim(
       <select name="beatle">
-        <option value="J">John</option>
-        <option value="P" selected="selected">Paul</option>
-    	<option value="G">George</option>
-    	<option value="R">Ringo</option>
+        <option value="0">John</option>
+        <option value="1" selected="selected">Paul</option>
+    	<option value="2">George</option>
+    	<option value="3">Ringo</option>
       </select>))  
   }
 }
