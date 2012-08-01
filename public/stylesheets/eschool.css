@@ -27,15 +27,14 @@ a:hover, a:active { outline: 0; }
 
 .chromeframe { position:fixed; bottom:0px; margin: 0.2em 0; background: #ccc; color: black; padding: 0.2em 0; }
 
- /* ===================================Main styles========================== */
+ /* ===================================Mack's Main styles========================== */
 body {
 	font-family:Arial, sans;
-	background: -webkit-gradient(linear, left top, left bottom, from(#4f4f4f), to(#949494 50%));
-	background: -moz-linear-gradient(top,  #4f4f4f,  #949494 50%);
-	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4f4f4f', endColorstr='#949494 50%');
-	background: -webkit-linear-gradient(top, #4f4f4f, #949494 50%);   
+	background: -webkit-gradient(linear, left top, left bottom, from(#4f4f4f), to(#949494 75%));
+	background: -moz-linear-gradient(top,  #4f4f4f,  #949494 75%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4f4f4f', endColorstr='#949494 75%');
+	background: -webkit-linear-gradient(top, #4f4f4f, #949494 75%);   
 	background-color:#4f4f4f;
-	overflow: display;
 	height:100%;
 	}
 
@@ -216,12 +215,11 @@ li.sfHover > a > .sf-sub-indicator {
 	
 #header {
 	background-color:#646cdb;
-	height:100px;
+	height:70px;
 	-webkit-border-radius: 20px 20px 0px 0px;
 	-moz-border-radius: 20px 20px 0px 0px;
 	border-radius: 20px 20px 0px 0px;
 	}
-	
 	
 #header .eschool-logo{
 	margin-left:15px;
@@ -233,6 +231,20 @@ li.sfHover > a > .sf-sub-indicator {
 	float:right;
 	margin-right:10px;
 	margin-top:10px;
+	overflow: visible;
+	color: white;
+	}
+
+.login-line {
+	background-color: #646cdb;
+	height: 30px;	
+	color: white;
+	text-align: right;
+	padding-right: 10px;
+	}
+	
+.login-line a:hover{
+	color: white;	
 	}
 
 .contentArea{
@@ -263,6 +275,16 @@ li.sfHover > a > .sf-sub-indicator {
 	-moz-border-radius: 0px 0px 20px 20px;
 	border-radius: 0px 0px 20px 20px;
 	padding-top:20px;
+	}
+	
+.errorlist {
+	color: #cd3535;
+  	border:solid 1px #cd3535;
+	background:#efbebe;
+	list-style-type: none;
+	padding:5px;
+	margin-left: -20px;
+	float:left;
 	}
  /*======================================================================
  End Mack's style

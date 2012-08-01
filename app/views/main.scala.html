@@ -6,8 +6,7 @@
     <head>
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/eschool.css")" />
-        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/superfish.css")" media="screen" />
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")" />
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/JCPSfavicon.ico")" />
         <!--  <script type="text/javascript"
           src="https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full" /> -->
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript" />
@@ -29,7 +28,12 @@
       
       <div id="header">
       	<img src="@routes.Assets.at("images/eschool-logo.png")" alt="Logo" width="300px" class="eschool-logo" />
-      	<img src="@routes.Assets.at("images/jcps-logo.png")" alt="Logo" width="150px" class="jcps-logo" />
+      	<div class="jcps-logo">
+      		<img src="@routes.Assets.at("images/jcps.jpg")" alt="Logo" width="100px"  />
+      	</div>
+      </div>
+      
+      <div class="login-line">
       	@users.perspectiveInfo()
       </div>
            
