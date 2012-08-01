@@ -67,8 +67,8 @@ object TestData {
 
     // guardians
     val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.MALE, null, "pen123")
-    val toddGuardian = new Guardian(Set(meriadocStud, peregrinStud))
-    val regGuardian = new Guardian(Set(fitzgeraldStud))
+    val toddGuardian = new Guardian(todd, Set(meriadocStud, peregrinStud))
+    val regGuardian = new Guardian(reg, Set(fitzgeraldStud))
     
     
     pm.makePersistentAll(List(

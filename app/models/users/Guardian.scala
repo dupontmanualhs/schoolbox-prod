@@ -12,8 +12,9 @@ class Guardian extends Perspective {
   
   private[this] var _children: java.util.Set[Student] = _
   
-  def this(theChildren: Set[Student]){
+  def this(theUser: User, theChildren: Set[Student]){
     this()
+    user_=(theUser)
     children_=(theChildren)
   }
   
