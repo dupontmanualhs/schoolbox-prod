@@ -1,7 +1,5 @@
 package forms.widgets
-import scala.xml.MetaData
-import scala.xml.NodeSeq
-import scala.xml.Null
+import scala.xml._
 import scala.xml.UnprefixedAttribute
 import play.api.mvc.MultipartFormData.FilePart
 
@@ -18,7 +16,10 @@ abstract class Widget(
   //TODO: need something different for files
   def valueFromDatadict(data: Map[String, Seq[String]], name: String): Seq[String] = {
     data.getOrElse(name, Nil)
-  } 
+  }
+  
+  def reqAttr: MetaData = if (required) new UnprefixedAttribute("required", Text("required"), Null) else Null
+
 }
 
 object Widget {

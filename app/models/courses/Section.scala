@@ -8,6 +8,10 @@ import models.users.{Student, Teacher}
 import util.ScalaPersistenceManager
 import scala.xml.NodeSeq
 import util.DataStore
+import org.joda.time.LocalDate
+
+import util.Helpers.LocalDateOrdering
+
 
 @PersistenceCapable(detachable="true")
 class Section {
@@ -53,6 +57,14 @@ class Section {
   
   def periodNames: String = {
     periods.map(_.name).mkString(", ")
+  }
+  
+  def startDate: LocalDate = {
+    terms.map(_.start).min
+  }
+  
+  def endDate: LocalDate = {
+    terms.map(_.end).max
   }
   
   // TODO: figure out which teachers to get in what order

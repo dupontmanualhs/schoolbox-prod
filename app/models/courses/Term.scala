@@ -56,7 +56,7 @@ object Term {
     def query(epm: ScalaPersistenceManager): Term = {
       if (!_current.isDefined) {
         val cand = QTerm.candidate
-        val term = pm.query[Term].filter(cand.name.eq("Spring 2012")).executeOption().get
+        val term = pm.query[Term].executeList()(0)
         _current = Some(pm.detachCopy(term))
       }
       _current.get

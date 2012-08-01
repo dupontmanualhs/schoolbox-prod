@@ -8,7 +8,15 @@ import org.datanucleus.api.jdo.query._
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Guardian extends Perspective {
+  
+  
   private[this] var _children: java.util.Set[Student] = _
+  
+  def this(theUser: User, theChildren: Set[Student]){
+    this()
+    user_=(theUser)
+    children_=(theChildren)
+  }
   
   def children: Set[Student] = _children.asScala.toSet
   def children_=(theChildren: Set[Student]) { _children = theChildren.asJava }

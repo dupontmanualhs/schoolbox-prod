@@ -28,7 +28,6 @@ object ManualData {
     dbFile.delete()
     DataStore.withManager { implicit pm =>
       loadManualData(debug)
-      AssignmentData.load(debug)
       pm.close()
     }
   }
@@ -169,7 +168,7 @@ object ManualData {
       val dbSection = new Section(course, sectionId, terms.toSet[Term], periods.toSet[Period], room)
       pm.makePersistent(dbSection)
       terms foreach ((term: Term) => {
-        val teacherAssignment = new TeacherAssignment(teacher, dbSection, term, null, null)
+        val teacherAssignment = new TeacherAssignment(teacher, dbSection, null, null)
         pm.makePersistent(teacherAssignment)
       })
     })
@@ -193,7 +192,7 @@ object ManualData {
           val startDate = asLocalDate((enrollment \ "@roster.startDate").text)
           val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
           asScalaSet[Term](section.terms) foreach ((term: Term) => {
-            val dbEnrollment = new StudentEnrollment(student, section, term, startDate, endDate)
+            val dbEnrollment = new StudentEnrollment(student, section, startDate, endDate)
             pm.makePersistent(dbEnrollment)
           })
         }
