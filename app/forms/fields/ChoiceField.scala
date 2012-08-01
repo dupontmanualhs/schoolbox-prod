@@ -81,15 +81,15 @@ class ChoiceFieldMultiple[T](name: String, choices: List[(String, T)]) extends B
     }
   }
   override def asStringSeq(value: Option[List[T]]): Seq[String] = {
-      value match {
-        case None => List("-1") 
-        case Some(t) => {
-          var listReturned = List[String]()
-          for(value2 <- value){
-            listReturned = choices.map(_._2).indexOf(t).toString :: listReturned
-          }
-          listReturned
+    value match {
+      case None => List("-1")
+      case Some(t) => {
+        var listReturned = List[String]()
+        for (value2 <- value) {
+          listReturned = choices.map(_._2).indexOf(t).toString :: listReturned
         }
+        listReturned
       }
+    }
   }
 }

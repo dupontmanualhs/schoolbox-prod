@@ -349,4 +349,5 @@ class TestFields extends FunSuite {
     assert(f.clean("foo") === Left(ValidationError(List("Illegal value submitted."))))
     assert(f.clean("-1") === Left(ValidationError(List("Illegal value submitted."))))
   }
+  
 }
