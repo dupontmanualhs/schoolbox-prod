@@ -45,22 +45,17 @@ object Blogs extends Controller {
         implicit val pm: ScalaPersistenceManager = req.pm
         val cand = QBlog.candidate
         val blogs: List[Blog] = Blog.listUserBlogs(perspective)
-        Ok(views.html.blogs.blogs(blogs, perspective.user))
+        Ok(views.html.blogs.blogs(blogs, perspective))
       }
     }
   }
   
   def listCurrentUserBlogs() = DbAction { implicit req =>
-    val currentUser = User.current
-    currentUser match {
-      case Some(usr) => {
+    val currentPerspective = req.visit.perspective
+    currentPerspective match {
+      case Some(per) => {
          implicit val pm: ScalaPersistenceManager = req.pm
-         val cand = QPerspective.candidate
-         val perspective = pm.query[Perspective].filter(cand.user.eq(usr)).executeList
-         perspective match {
-           case Nil => NotFound("Somehow, you are logged in as a non-extant user. Welp.")
-           case (x :: xs) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(x), x.user))
-         }
+         Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
       }
       case None => NotFound("You must log in to view your own blogs.")
     }
@@ -70,7 +65,7 @@ object Blogs extends Controller {
    implicit val pm: ScalaPersistenceManager = req.pm
    val perOpt = Perspective.getById(id)
    perOpt match {
-      case Some(per) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per.user))
+      case Some(per) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
       case None => NotFound("That perspective doesn't exist!")
     }
   }

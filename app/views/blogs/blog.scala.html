@@ -1,9 +1,10 @@
 @(blog: models.blogs.Blog, posts: List[models.blogs.Post])(implicit req: util.DbRequest[_])
 
 @main(blog.title) {
+   <h3>@blog.title</h3>	
    @for(post <- posts) {
       <div class="post">
-         <p><h2>@post.title</h2></p>
+         <p><h4>@post.title</h4></p>
          <p>@post.content</p>
       </div>
    }

@@ -1,6 +1,6 @@
-@(blogs: List[models.blogs.Blog], user: models.users.User)(implicit req: util.DbRequest[_])
+@(blogs: List[models.blogs.Blog], perspective: models.users.Perspective)(implicit req: util.DbRequest[_])
 
-@main(user.displayName + "'s blogs") {
+@main(perspective.user.displayName + "'s blogs") {
    <ul>
       @for(blog <- blogs) {
          <li>@blog.title</li>

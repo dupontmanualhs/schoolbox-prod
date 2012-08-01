@@ -6,9 +6,9 @@ import forms.validators._
 import forms.widgets._
 
 class TinyMCEField(name: String) extends TextField(name) {
-  override def widget = new Textarea(required)
+  override def widget = new Textarea(required, Null, true)
 }
 
 class OptionalTinyMCEField(name: String) extends TextFieldOptional(name) {
-  override def widget = new Textarea(required)
+  override def widget = new Textarea(required, Null, true)
 }

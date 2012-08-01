@@ -16,14 +16,7 @@
         }
 	<script type="text/javascript">
 	$(document).ready(function() {
-			$("textarea").tinymce({
-				"script_url" : "@routes.Assets.at("javascripts/tinymce/jscripts/tiny_mce/tiny_mce.js")",
-            "theme" : "advanced",
-            "plugins" : "save,dragmath",
-				"theme_advanced_toolbar_location" : "top",
-            "theme_advanced_toolbar_align" : "left",
-            "theme_advanced_buttons1_add" : "save,dragmath"
-			});
+			
 	});
 	</script>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/eschool.css")" />
@@ -37,8 +30,16 @@
 
     // initialise plugins
     jQuery(document).ready(function($){
-      $('#sf-menu').superfish();  
-    })
+      $('#sf-menu').superfish();
+      $('.tinymce').tinymce({
+		   "script_url" : "@routes.Assets.at("javascripts/tinymce/jscripts/tiny_mce/tiny_mce.js")",
+           "theme" : "advanced",
+           "plugins" : "save,dragmath",
+		   "theme_advanced_toolbar_location" : "top",
+           "theme_advanced_toolbar_align" : "left",
+           "theme_advanced_buttons1_add" : "save,dragmath"
+	  }); 
+    });
     </script>
     </head>
     <body>
