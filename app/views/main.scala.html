@@ -47,12 +47,14 @@
       	@users.perspectiveInfo()
       </div>
            
-      @if(req.flash.get("message").isDefined) {
-        <div class="message">@req.flash("message")</div>
-      }
       
       <div class="contentArea">
-        <div id="content">@content</div>
+        <div id="content">
+        	@if(req.flash.get("message").isDefined) {
+        		<div class="message">@req.flash("message")</div>
+        	}
+        	@content
+        </div>
       </div>
       
       <div class="footer">
