@@ -6,7 +6,7 @@
     <head>
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/eschool.css")" />
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")" />
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/jcpsfavicon.ico")" />
         <script type="text/javascript"
           src="https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full" />
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript" />
@@ -20,14 +20,17 @@
 
     </head>
     <body>
-    <div id="container">
+    <div class="container">
       <div class="navbar-fixed-top">
         @req.visit.menu
       </div>
       
-      <div id="header">
+      <div class="header">
       	<img src="@routes.Assets.at("images/eschool-logo.png")" alt="Logo" width="300px" class="eschool-logo" />
-      	<img src="@routes.Assets.at("images/jcps-logo.png")" alt="Logo" width="150px" class="jcps-logo" />
+      	<img src="@routes.Assets.at("images/jcps.png")" alt="Logo" class="jcps-logo" />
+      </div>
+      
+      <div class="login-status">
       	@users.perspectiveInfo()
       </div>
            
@@ -36,7 +39,7 @@
       }
       
       <div class="contentArea">
-        <div id="content">@content</div>
+        <div class="content">@content</div>
       </div>
       
       <div class="footer">
