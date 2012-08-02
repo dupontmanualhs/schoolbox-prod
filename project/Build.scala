@@ -29,7 +29,7 @@ object ApplicationBuild extends Build {
       "com.lowagie" % "itext" % "2.1.7",
       "org.tukaani" % "xz" % "1.0",
       "javax.mail" % "mail" % "1.4.5",
-      "org.fluentlenium" % "fluentlenium-core" % "0.7.2" % "test"
+      "org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.24.1" % "test"
     )
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")
 
