@@ -13,7 +13,7 @@ abstract class Perspective extends Ordered[Perspective] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-
+  @Persistent(defaultFetchGroup="true")
   private[this] var _user: User = _
   
   protected def this(user: User) = {

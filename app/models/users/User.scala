@@ -102,7 +102,7 @@ class User extends Ordered[User] {
   def perspectives(implicit pm: ScalaPersistenceManager = null): List[Perspective] = {
     DataStore.execute { epm =>
       val cand = QPerspective.candidate
-      epm.query[Perspective].filter(cand.user.eq(this)).executeList()
+      epm.query[Perspective].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
     }
   }
 }

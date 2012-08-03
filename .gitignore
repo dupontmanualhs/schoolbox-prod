@@ -6,9 +6,12 @@ target
 tmp
 *.db
 *~
+chromedriver.log
 
 .classpath
 .project
 .settings
 .cache
 .directory
+.target
+

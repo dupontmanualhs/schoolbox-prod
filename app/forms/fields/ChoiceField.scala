@@ -13,11 +13,9 @@ class ChoiceField[T](name: String, choices: List[(String, T)]) extends BaseChoic
     s match {
       case Seq(s) => try {
         val index = s.toInt
-        if (index < 0 || index > choices.length - 1) {
-          Left(ValidationError("Illegal value submitted."))
-        } else {
-          Right(choices(index)._2)
-        }
+        if (index == -1) Left(ValidationError("This field is required. Please choose a value."))
+        else if (index >= choices.length) Left(ValidationError("Illegal value submitted."))
+        else Right(choices(index)._2)
       } catch {
         case e: NumberFormatException => Left(ValidationError("Illegal value submitted."))
       }
