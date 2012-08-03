@@ -54,6 +54,7 @@ object Users extends Controller {
               // set it in the session
               request.visit.perspective = Some(persp)
               request.visit.updateMenu
+              request.pm.makePersistent(request.visit)
               Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
             }
             // multiple perspectives
@@ -63,8 +64,27 @@ object Users extends Controller {
       }
     }
   }
-  
-  def choosePerspective = TODO
+    
+  def choosePerspective = Authenticated { implicit req =>
+    object ChoosePerspectiveForm extends Form {
+      val perspective = new ChoiceField("perspective", req.visit.user.get.perspectives.map(p => (p.displayNameWithRole, p)))
+      
+      def fields = List(perspective)
+    }
+    if (req.method == "GET") {
+      Ok(html.users.choosePerspective(Binding(ChoosePerspectiveForm)))
+    } else {
+      Binding(ChoosePerspectiveForm, req) match {
+        case ib: InvalidBinding => Ok(html.users.choosePerspective(ib))
+        case vb: ValidBinding => {
+          req.visit.perspective = Some(vb.valueOf(ChoosePerspectiveForm.perspective))
+          req.visit.updateMenu
+          req.pm.makePersistent(req.visit)
+          Redirect(routes.Application.index()).flashing("message" -> "You have successfuly logged in.")
+        }
+      }
+    }
+  }
 
   /**
    * Logout and clean the session.

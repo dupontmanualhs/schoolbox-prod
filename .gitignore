@@ -13,3 +13,5 @@ chromedriver.log
 .settings
 .cache
 .directory
+.target
+

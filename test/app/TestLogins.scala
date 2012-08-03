@@ -59,4 +59,20 @@ class TestLogins extends FunSuite {
       DataStore.close()
     }
   }
+  
+  test("make a user with multiple perspectives choose one") {
+    running(TestServer(3333), driver) { browser =>
+      browser.goTo("http://localhost:3333/login")
+      browser.$("#id_username").text("todd")
+      browser.$("#id_password").text("obr123")
+      browser.$("#id_password").submit
+      assert(browser.title === "Choose Perspective")
+      browser.$("#id_perspective").click
+      browser.$("#id_perspective").submit
+      // return to same page with error
+      assert(browser.title === "Choose Perspective")
+      assert(browser.$(".errorlist").first.getText.contains("This field is required. Please choose a value."))
+      DataStore.close()
+    }
+  }
 }
