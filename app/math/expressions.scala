@@ -1,50 +1,50 @@
 package math
 import scala.collection.immutable.HashMap
 
-//MathExpression subclasses: MathOperation & MathValue (see below),
-//                                         MathTerm
-trait MathExpression {
-	def simplify: MathExpression
+//Expression subclasses: Operation & Value (see below),
+//                                       Term
+trait Expression {
+	def simplify: Expression
 	def getPrecedence: Int
 	def toLaTeX: String
 	def description: String
-	def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression
+	def evaluate(variables: HashMap[Expression, Value]): Expression
 	override def toString = this.toLaTeX
-	def +(operand: MathExpression): MathExpression = {
+	def +(operand: Expression): Expression = {
 	  (this, operand) match {
-	    case (left: MathConstant, right: MathConstant) => left + right
-	    case _ => MathSum(this, operand)
+	    case (left: Constant, right: Constant) => left + right
+	    case _ => Sum(this, operand)
 	  }
 	}
 	
-	def -(operand: MathExpression): MathExpression = {
+	def -(operand: Expression): Expression = {
 	  (this, operand) match {
-	    case (left: MathConstant, right: MathConstant) => left - right
-	    case _ => MathDifference(this, operand)
+	    case (left: Constant, right: Constant) => left - right
+	    case _ => Difference(this, operand)
 	  }
 	}
 	
-	def *(operand: MathExpression): MathExpression = {
+	def *(operand: Expression): Expression = {
 	  (this, operand) match {
-	    case (left: MathConstant, right: MathConstant) => left * right
-	    case _ => MathProduct(this, operand)
+	    case (left: Constant, right: Constant) => left * right
+	    case _ => Product(this, operand)
 	  }
 	}
 	
-	def /(operand: MathExpression): MathExpression = {
+	def /(operand: Expression): Expression = {
 	  (this, operand) match {
-	    case (left: MathConstant, right: MathConstant) => left / right
-	    case _ => MathQuotient(this, operand)
+	    case (left: Constant, right: Constant) => left / right
+	    case _ => Quotient(this, operand)
 	  }
 	}
 	
 	def isNegative: Boolean = {
 		this match {
-			case complex: MathComplexNumber => complex.getReal.getValue < 0
-			case constant: MathConstant => constant.getValue < 0
-			case term: MathTerm => term.getCoefficient.getValue < 0
-			case neg: MathNegation => true
-			case basicOp: MathOperation if (basicOp != Nil && basicOp.hasTwoSides) => basicOp.getExpressions.head.isNegative
+			case complex: ComplexNumber => complex.getReal.getValue < 0
+			case constant: Constant => constant.getValue < 0
+			case term: Term => term.getCoefficient.getValue < 0
+			case neg: Negation => true
+			case basicOp: Operation if (basicOp != Nil && basicOp.hasTwoSides) => basicOp.getExpressions.head.isNegative
 			case _ => false
 		}
 	}
@@ -52,33 +52,33 @@ trait MathExpression {
 	//returns true if an operator takes two arguments
 	def hasTwoSides: Boolean = {
 		this match {
-			case sum: MathSum => true
-			case dif: MathDifference => true
-			case prod: MathProduct => true
-			case quot: MathQuotient => true
+			case sum: Sum => true
+			case dif: Difference => true
+			case prod: Product => true
+			case quot: Quotient => true
 			case _ => false
 		}
 	}
 	def simplePrecedence: Int = {
 		this match {
-			case expr: MathOperation if (expr.hasTwoSides) => expr.getPrecedence / 2
+			case expr: Operation if (expr.hasTwoSides) => expr.getPrecedence / 2
 			case _ => this.getPrecedence
 		}
 	}
 }
 
-object MathExpression {
-	def apply(s: String): Option[MathExpression] = {
+object Expression {
+	def apply(s: String): Option[Expression] = {
 		if (!parenthesesAlignIn(s)) {
 			None
 		} else {
 			stringToExpression(s)
 		}
 	}
-	private def stringToExpression(s: String): Option[MathExpression] = {
-		val result: Option[MathExpression] = MathNegation(s) orElse MathValue(s) orElse MathOperation(s) orElse MathTerm(s) //orElse MathPolynomial(s)
+	private def stringToExpression(s: String): Option[Expression] = {
+		val result: Option[Expression] = Negation(s) orElse Value(s) orElse Operation(s) orElse Term(s) //orElse Polynomial(s)
 		if (!result.isDefined && (hasOutsideParens(s) || s.contains(" "))) {
-			MathExpression(removeTrivialParts(s))
+			Expression(removeTrivialParts(s))
 		} else {
 			result
 		}
@@ -112,9 +112,9 @@ object MathExpression {
 		"""^\+""".r.replaceFirstIn(s, "")
 	}
 	//returns either the original variable/expression or the value it represents in the HashMap
-	def checkVar(expr: MathExpression, variables: HashMap[MathExpression, MathValue]): MathExpression = {
-	  if(expr.isInstanceOf[MathVariable]){
-	    variables.getOrElse(expr.asInstanceOf[MathVariable], expr)
+	def checkVar(expr: Expression, variables: HashMap[Expression, Value]): Expression = {
+	  if(expr.isInstanceOf[Variable]){
+	    variables.getOrElse(expr.asInstanceOf[Variable], expr)
 	  } else {
 	    expr
 	  }
@@ -123,18 +123,18 @@ object MathExpression {
 
 
 
-//MathValue subclasses: MathConstant (constants.scala)
-//                                 MathVariable (vars.scala)
-abstract class MathValue extends MathExpression {
+//Value subclasses: Constant (constants.scala)
+//                                 Variable (vars.scala)
+abstract class Value extends Expression {
 	override def getPrecedence: Int = 6
 }
 
-object MathValue {
-	def apply(s: String): Option[MathValue] = {
-		MathConstant(s) orElse MathVariable(s)
+object Value {
+	def apply(s: String): Option[Value] = {
+		Constant(s) orElse Variable(s)
 	}
 
-	def apply(c: Char): Option[MathVariable] = {
-		MathVariable(c)
+	def apply(c: Char): Option[Variable] = {
+		Variable(c)
 	}
 }
