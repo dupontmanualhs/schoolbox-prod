@@ -75,4 +75,13 @@ class TestLogins extends FunSuite {
       DataStore.close()
     }
   }
+  
+  test("user can change his/her password") {
+    
+  }
+  
+  test("user with permission can change others' passwords") {
+    
+  }
+  
 }
