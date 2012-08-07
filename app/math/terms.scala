@@ -3,6 +3,10 @@ package math
 import scala.collection.immutable.TreeMap
 import scala.collection.immutable.HashMap
 
+class Vars(val varsWithPowers: TreeMap[Variable, Integer]) {
+  
+}
+
 class Term(coefficient: Constant, variableSequence: TreeMap[String, Integer]) extends Expression {
   def getCoefficient: Constant = coefficient
   def getVariableSequence: TreeMap[String, Integer] = variableSequence
