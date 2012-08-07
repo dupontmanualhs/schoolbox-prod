@@ -70,8 +70,8 @@ object Polynomial {
 	}
 	def convertToTerms(strings: List[String]): List[Term] = {
 		(for (s <- strings) yield {
-			MathTerm(s) match {
-			  case None => MathTerm("").get
+			Term(s) match {
+			  case None => Term("").get
 			  case Some(mt) => mt
 			}
 		}).toList
