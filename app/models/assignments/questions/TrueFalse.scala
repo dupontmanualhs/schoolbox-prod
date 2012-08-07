@@ -3,9 +3,9 @@ package models.assignments.questions
 import models.assignments.DbQuestion
 import scala.xml._
 import javax.jdo.annotations._
-import math.MathValue
-import math.MathExactNumber
-import math.MathInteger
+import math.Value
+import math.ExactNumber
+import math.Integer
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -28,7 +28,7 @@ class TrueFalse extends DbQuestion {
     this.text = (q \ "text").flatMap(_.child)
     this.feedback = (q \ "feedback").flatMap(_.child)
     for (ans <- (q \ "answer")) {
-      val worth: MathExactNumber = MathExactNumber(ans \ "@worth" text).getOrElse(MathInteger(0))
+      val worth: ExactNumber = ExactNumber(ans \ "@worth" text).getOrElse(Integer(0))
       val ansFeedback = (ans \ "feedback").flatMap(_.child)
       if ((ans \ "text").text == "true") {
         this.trueAnswer = TrueAnswer(worth, feedback)

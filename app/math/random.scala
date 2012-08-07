@@ -1,10 +1,9 @@
 package math
 
 import scala.math.{round, pow}
-
 import scala.util.Random
 
-object MathRandom {
+object RandomGen {
   private var NumberGenerator = new Random()
   private val defaultRange = (1, 10)
   private val defaultDecimals = 1
@@ -15,7 +14,7 @@ object MathRandom {
 	  NumberGenerator = new Random(i)
   }
 
-  def getExpression(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathExpression = {
+  def getExpression(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): Expression = {
     val methodRandomizer = NumberGenerator.nextInt(20)
     methodRandomizer match{
       case num if (num <= 11 && num >= 0) => getOperation(range, decimals)
@@ -23,7 +22,7 @@ object MathRandom {
     }
   }
 
-  def getOperation(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathOperation = {
+  def getOperation(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): Operation = {
     val methodRandomizer = NumberGenerator.nextInt(12)
     methodRandomizer match{
       case 0 => getSum(range, decimals)
@@ -41,7 +40,7 @@ object MathRandom {
     }
   }
 
-  def getValue(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathValue = {
+  def getValue(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): Value = {
     val methodRandomizer = NumberGenerator.nextInt(8)
     methodRandomizer match{
       case 0 => getVariable()
@@ -49,16 +48,16 @@ object MathRandom {
     }
   }
 
-  def getConstant(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathConstant = {
+  def getConstant(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): Constant = {
     val methodRandomizer = NumberGenerator.nextInt(7)
     methodRandomizer match{
-      case 0 => MathConstantPi()
-      case 1 => MathConstantE()
+      case 0 => ConstantPi()
+      case 1 => ConstantE()
       case num if (num > 1) => getNumber(range, decimals)
     }
   }
 
-  def getNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathNumber = {
+  def getNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): Number = {
     val methodRandomizer = NumberGenerator.nextInt(5)
     methodRandomizer match{
       case 0 => getComplexNumber(range, decimals)
@@ -66,7 +65,7 @@ object MathRandom {
     }
   }
 
-  def getRealNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathRealNumber = {
+  def getRealNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): RealNumber = {
     val methodRandomizer = NumberGenerator.nextInt(4)
     methodRandomizer match{
       case 0 => getApproximateNumber(range, decimals)
@@ -74,7 +73,7 @@ object MathRandom {
     }
   }
 
-  def getExactNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathExactNumber = {
+  def getExactNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): ExactNumber = {
     val methodRandomizer = NumberGenerator.nextInt(3)
     methodRandomizer match{
       case 0 => getInteger(range)
@@ -83,42 +82,42 @@ object MathRandom {
     }
   }
 
-  def getInteger(range: (Int, Int) = defaultRange) = MathInteger(NumberGenerator.nextInt(range._2 - range._1 + 1) + range._1)
+  def getInteger(range: (Int, Int) = defaultRange) = Integer(NumberGenerator.nextInt(range._2 - range._1 + 1) + range._1)
 
-  def getFraction(range: (Int, Int) = defaultRange, range2: (Int, Int) = defaultRange) = MathFraction(getInteger(range), getInteger(range2))
+  def getFraction(range: (Int, Int) = defaultRange, range2: (Int, Int) = defaultRange) = Fraction(getInteger(range), getInteger(range2))
 
-  def getDecimal(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): MathDecimal = {
-    val decimal = MathDecimal(round((NumberGenerator.nextDouble()*(range._2 - range._1) + range._1)*pow(10.0, decimals))/pow(10.0, decimals))
+  def getDecimal(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): Decimal = {
+    val decimal = Decimal(round((NumberGenerator.nextDouble()*(range._2 - range._1) + range._1)*pow(10.0, decimals))/pow(10.0, decimals))
     if(decimal.getValue*pow(10.0, decimals) % 10 == 0) getDecimal(range, decimals) else decimal
   }
 
-  def getApproximateNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathApproximateNumber(NumberGenerator.nextDouble()*(range._2 - range._1) + range._1)
+  def getApproximateNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = ApproxNumber(NumberGenerator.nextDouble()*(range._2 - range._1) + range._1)
 
-  def getComplexNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathComplexNumber(getRealNumber(range), getRealNumber(range))
+  def getComplexNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = ComplexNumber(getRealNumber(range), getRealNumber(range))
 
-  def getVariable(variableArray: Array[String] = defaultVariableArray) = new MathVariable(variableArray(NumberGenerator.nextInt(variableArray.size)))
+  def getVariable(variableArray: Array[String] = defaultVariableArray) = new Variable(variableArray(NumberGenerator.nextInt(variableArray.size)))
 
-  def getSum(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathSum(getExpression(range, decimals), getExpression(range, decimals))
+  def getSum(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Sum(getExpression(range, decimals), getExpression(range, decimals))
 
-  def getDifference(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathDifference(getExpression(range, decimals), getExpression(range, decimals))
+  def getDifference(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Difference(getExpression(range, decimals), getExpression(range, decimals))
 
-  def getProduct(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathProduct(getExpression(range, decimals), getExpression(range, decimals))
+  def getProduct(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Product(getExpression(range, decimals), getExpression(range, decimals))
 
-  def getQuotient(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathQuotient(getExpression(range, decimals), getExpression(range, decimals))
+  def getQuotient(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Quotient(getExpression(range, decimals), getExpression(range, decimals))
 
-  def getExponentiation(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathExponentiation(getExpression(range, decimals), getExpression(range, decimals))
+  def getExponentiation(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Exponentiation(getExpression(range, decimals), getExpression(range, decimals))
 
-  def getLogarithm(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathLogarithm(getConstant(range, decimals), getExpression(range, decimals))
+  def getLogarithm(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Logarithm(getConstant(range, decimals), getExpression(range, decimals))
 
-  def getNaturalLogarithm(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathNaturalLogarithm(getExpression(range, decimals))
+  def getNaturalLogarithm(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = NaturalLogarithm(getExpression(range, decimals))
 
-  def getBase10Logarithm(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathBase10Logarithm(getExpression(range, decimals))
+  def getBase10Logarithm(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Base10Logarithm(getExpression(range, decimals))
 
-  def getRoot(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathRoot(getExpression(range, decimals), getExpression(range, decimals))
+  def getRoot(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Root(getExpression(range, decimals), getExpression(range, decimals))
 
-  def getSquareRoot(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathSquareRoot(getExpression(range, decimals))
+  def getSquareRoot(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = SquareRoot(getExpression(range, decimals))
 
-  def getCubeRoot(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathCubeRoot(getExpression(range, decimals))
+  def getCubeRoot(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = CubeRoot(getExpression(range, decimals))
 
-  def getNegation(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = MathNegation(getExpression(range, decimals))
+  def getNegation(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Negation(getExpression(range, decimals))
 }

@@ -7,7 +7,7 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import javax.jdo.listener.{LoadCallback, StoreCallback}
 import util.Format
-import math.MathExactNumber
+import math.ExactNumber
 import scala.xml.Node
 
 @PersistenceCapable(detachable="true")

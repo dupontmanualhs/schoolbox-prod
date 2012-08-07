@@ -3,6 +3,7 @@ datanucleus.ConnectionURL=jdbc:h2:data
 
 datanucleus.autoCreateSchema=true
 datanucleus.DetachAllOnCommit=true
+datanucleus.maxFetchDepth=1
 
 datanucleus.autoStartMechanism=Classes
 datanucleus.autoStartClassNames=models.assignments.questions.TrueFalse,models.assignments.questions.MultChoice,models.assignments.questions.FillBlanks,models.users.Perspective,models.users.Student,models.users.Teacher
