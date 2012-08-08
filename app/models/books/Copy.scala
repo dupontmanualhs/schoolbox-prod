@@ -28,7 +28,7 @@ class Copy /*extends StoreCallback*/ {
   def purchaseGroup: PurchaseGroup = _purchaseGroup
   def purchaseGroup_=(thePurchaseGroup: PurchaseGroup) { _purchaseGroup = thePurchaseGroup }
 
-  def number: Long = _number
+  def number: Int = _number
   def number_=(theNumber: Int) { _number = theNumber }
 
   def isLost: Boolean = _isLost
@@ -54,6 +54,7 @@ class Copy /*extends StoreCallback*/ {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
+  //TODO Fix this so that it works
   /* Causes a problem loading the data
   def jdoPreStore(): Unit = {
     // TODO - We need real exceptions
@@ -96,15 +97,38 @@ object Copy {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  def makeUniqueCopies(pGroup: PurchaseGroup, quantity: Int)(implicit pm: ScalaPersistenceManager = null): Unit = {
+  def makeUniqueCopies(pGroup: PurchaseGroup, quantity: Int)(implicit pm: ScalaPersistenceManager = null): (Int, Int) = {
     def query(epm: ScalaPersistenceManager): List[Copy] = {
       val cand = QCopy.candidate
       val nTitle = pGroup.title
       val pgVar = QPurchaseGroup.variable("pgVar")
       epm.query[Copy].filter(pgVar.title.eq(nTitle)).orderBy(cand.number.desc).executeList()
     }
+
+    val allCopies: List[Copy] = query(pm)
+    val firstNum = if (!allCopies.isEmpty) {
+      allCopies.apply(0).number + 1
+    } else {
+      1
+    }
+
+    var lastNum = 0
+
+    def makeMoreCopies(quantity: Int, pGroup: PurchaseGroup, copyNum: Int) {
+      if (quantity == 1) {
+        val c = new Copy(pGroup, copyNum)
+        pm.makePersistent(c)
+        lastNum = copyNum
+      } else {
+        val c = new Copy(pGroup, copyNum)
+        pm.makePersistent(c)
+        makeMoreCopies(quantity - 1, pGroup, copyNum + 1)
+      }
+    }
+
+    makeMoreCopies(quantity, pGroup, firstNum)
+    return (firstNum, lastNum)
   }
-  //TODO - Write the implementation
 }
 
 trait QCopy extends PersistableExpression[Copy] {
