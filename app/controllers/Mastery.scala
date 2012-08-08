@@ -14,9 +14,20 @@ import models._
 import play.api.data.validation.Constraints._
 import models.mastery.{QuizTemplate, QQuizTemplate}
 import models.mastery.QuestionSet
+import forms.Form
+import forms.fields._
+import models.assignments.questions.FillBlanks
 
 object Mastery extends Controller {
   
+  class QuizForm(name: String, questions: List[FillBlanks]) extends Form {
+    var questionFields: List[TextField] = Nil
+    for(question <- questions) {
+      new TextField(question.text.toString) :: questionFields
+    }
+    
+    val fields = questionFields
+  }
   
   val ansForm = Form {
     	"answer" -> list(text)
