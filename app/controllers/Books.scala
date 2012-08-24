@@ -5,6 +5,7 @@ import play.api.mvc._
 import util.{DataStore, ScalaPersistenceManager}
 import util.DbAction
 import models.books._
+import models.users._
 import forms._
 import forms.fields._
 import forms.validators.Validator
@@ -202,9 +203,27 @@ object Books extends Controller {
   def confirmDelete() = TODO
   
   def confirmDeleteSubmit() = TODO
-  
+
   def checkoutHistory() = TODO
   
+  def currentCheckouts(perspectiveId: Long) = DbAction { implicit req =>
+  implicit val pm = req.pm
+  val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+
+  val perspectiveCand = QPerspective.candidate
+  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
+    case None => NotFound("No student with the given id")
+    case Some(currentPerspective) => {
+      val checkoutCand = QCheckout.candidate
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.perspective.eq(currentPerspective))).executeList()
+      val studentName = currentBooks(0).perspective.displayName
+      val header = "Student: %s".format(studentName)
+      val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate))})
+      Ok(views.html.books.currentCheckouts(header,rows))
+    }
+  }
+}
+
   def checkoutHistorySubmit() = TODO
   
   def checkoutsByTeacherStudents() = TODO

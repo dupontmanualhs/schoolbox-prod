@@ -99,3 +99,4 @@ POST    /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTea
 GET     /books/copyStatusByTitle                controllers.Books.copyStatusByTitle
 POST    /books/copyStatusOutByTitle             controllers.Books.copyStatusByTitleSubmit
 GET     /books/statistics                       controllers.Books.statistics
+GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckouts(perspectiveId: Long)
