@@ -204,8 +204,25 @@ object Books extends Controller {
   
   def confirmDeleteSubmit() = TODO
 
-  def checkoutHistory() = TODO
-  
+  def checkoutHistory(perspectiveId: Long) = DbAction { implicit req =>
+  implicit val pm = req.pm
+  val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+
+  val perspectiveCand = QPerspective.candidate
+  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
+    case None => NotFound("No student with the given id")
+    case Some(currentPerspective) => {
+      val checkoutCand = QCheckout.candidate
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.perspective.eq(currentPerspective)).executeList()
+      val studentName = currentBooks(0).perspective.displayName
+      val header = "Student: %s".format(studentName)
+      val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate),
+        if (co.endDate == null) "" else df.format(co.endDate))})
+      Ok(views.html.books.checkoutHistory(header,rows))
+    }
+  }
+}
+
   def currentCheckouts(perspectiveId: Long) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")

@@ -92,7 +92,6 @@ GET     /books/delete/:id                       controllers.Books.delete(id: Lon
 POST    /books/delete/:id                       controllers.Books.deleteSubmit(id: Long)
 GET     /books/confirmDelete                    controllers.Books.confirmDelete
 POST    /books/confirmDelete                    controllers.Books.confirmDeleteSubmit
-GET     /books/checkoutHistory                  controllers.Books.checkoutHistory
 POST    /books/checkoutHistory                  controllers.Books.checkoutHistorySubmit
 GET     /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudents
 POST    /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudentsSubmit
@@ -100,3 +99,4 @@ GET     /books/copyStatusByTitle                controllers.Books.copyStatusByTi
 POST    /books/copyStatusOutByTitle             controllers.Books.copyStatusByTitleSubmit
 GET     /books/statistics                       controllers.Books.statistics
 GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckouts(perspectiveId: Long)
+GET     /books/checkoutHistory/:perspectiveId   controllers.Books.checkoutHistory(perspectiveId: Long)
