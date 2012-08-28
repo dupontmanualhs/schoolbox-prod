@@ -1,4 +1,4 @@
-package models.mastery
+/*package models.mastery
 
 import util.ScalaPersistenceManager
 
@@ -28,4 +28,4 @@ object QuizData {
                                          new QuestionSet(1, multUnlike)))
     pm.makePersistent(template)
   }
-}
+}*/

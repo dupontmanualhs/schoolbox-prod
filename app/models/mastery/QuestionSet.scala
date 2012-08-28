@@ -1,74 +1,52 @@
 package models.mastery
+
 import javax.jdo.annotations._
+import models.mastery._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import util.ScalaPersistenceManager
-import scala.util.Random
 
-@PersistenceCapable(detachable="true")
-class QuestionSet {
+@PersistenceCapable(detachable = "true")
+class QuestionSet { //a QuestionSet is a list of all the questions that can be used for a certain number on a quiz (so #1 on a quiz could be addition problems, and #2 could be subtraction problems, so QuestionSets would keep them seperate)
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  private[this] var _listOfQuestions: List[Question] = _
 
-  @Column(allowsNull="false")
-  private[this] var _howMany: Int = _
-  
-  @Column(allowsNull="false")
-  private[this] var _kind: Kind = _
-  
-  def this(howMany: Int, kind: Kind) = {
+  def this(listQuestions: List[Question]) = {
     this()
-    //TODO: make sure howMany is positive and smaller than the total number of kind
-    howMany_=(howMany)
-    kind_=(kind)
+    _listOfQuestions=listQuestions
   }
   
-  def id: Long = _id
-  
-  def howMany: Int = _howMany
-  def howMany_=(theHowMany: Int) { _howMany = theHowMany }
-  
-  def kind: Kind = _kind
-  def kind_=(theKind: Kind) { _kind = theKind }
-  
-  def getRandom(implicit pm: ScalaPersistenceManager): List[Question] = {
-    val candKind: QKind = QKind.candidate
-    val candQuest: QQuestion = QQuestion.candidate
-    //TODO: this grabs all questions from the database and is probably inefficient
-    val qsOfKind: List[Question] = Random.shuffle(pm.query[Question].filter(candQuest.kind.eq(kind)).executeList())
-    qsOfKind.slice(0, howMany)
+  override def toString = {
+    ""+_listOfQuestions
   }
+
 }
 
-trait QQuestionSet extends PersistableExpression[QuestionSet] {
+trait QQuestionSet extends PersistableExpression[QuestionSet]{
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
-
-  private[this] lazy val _howMany: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_howMany")
-  def howMany: NumericExpression[Int] = _howMany
   
-  private[this] lazy val _kind: ObjectExpression[Kind] = new ObjectExpressionImpl[Kind](this, "_kind")
-  def kind: ObjectExpression[Kind] = _kind
+  private[this] lazy val _listOfQuestions: ObjectExpression[List[Question]] = new ObjectExpressionImpl[List[Question]](this, "_listOfQuestions")
+  def listOfQuestions: ObjectExpression[List[Question]] = _listOfQuestions
 }
 
 object QQuestionSet {
-  def apply(parent: PersistableExpression[_], name: String, depth: Int): QQuestionSet = {
-    new PersistableExpressionImpl[QuestionSet](parent, name) with QQuestionSet
+  def apply(parent: PersistableExpression[QuestionSet], listOfQuestions: List[Question]): QQuestionSet = {
+    new PersistableExpressionImpl[QQuestionSet](parent, name) with QQuestionSet
   }
-  
-  def apply(cls: Class[QuestionSet], name: String, exprType: ExpressionType): QQuestionSet = {
+
+  def apply(cls: Class[Quiz], name: String, exprType: ExpressionType): QQuestionSet = {
     new PersistableExpressionImpl[QuestionSet](cls, name, exprType) with QQuestionSet
   }
-  
+
   private[this] lazy val jdoCandidate: QQuestionSet = candidate("this")
-  
+
   def candidate(name: String): QQuestionSet = QQuestionSet(null, name, 5)
-  
+
   def candidate(): QQuestionSet = jdoCandidate
-  
+
   def parameter(name: String): QQuestionSet = QQuestionSet(classOf[QuestionSet], name, ExpressionType.PARAMETER)
-  
+
   def variable(name: String): QQuestionSet = QQuestionSet(classOf[QuestionSet], name, ExpressionType.VARIABLE)
 }
-
