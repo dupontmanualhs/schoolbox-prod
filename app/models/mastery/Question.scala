@@ -4,6 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.mastery._
+import models.courses.Section
 
 @PersistenceCapable(detachable = "true")
 class Question {
@@ -50,8 +51,8 @@ trait QQuestion extends PersistableExpression[Question] {
 }
 
 object QQuestion {
-  def apply(parent: PersistableExpression[Question], typ: String, questionText: String, correctAnswer: String, value: Int, section: Section): QQuestion = {
-    new PersistableExpressionImpl[QQuestion](parent, name) with QQuestion
+  def apply(parent: PersistableExpression[_], name: String, depth: Int): QQuestion = {
+    new PersistableExpressionImpl[Question](parent, name) with QQuestion
   }
 
   def apply(cls: Class[Question], name: String, exprType: ExpressionType): QQuestion = {

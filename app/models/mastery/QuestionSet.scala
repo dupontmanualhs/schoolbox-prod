@@ -32,11 +32,11 @@ trait QQuestionSet extends PersistableExpression[QuestionSet]{
 }
 
 object QQuestionSet {
-  def apply(parent: PersistableExpression[QuestionSet], listOfQuestions: List[Question]): QQuestionSet = {
-    new PersistableExpressionImpl[QQuestionSet](parent, name) with QQuestionSet
+  def apply(parent: PersistableExpression[_], name: String, depth: Int): QQuestionSet = {
+    new PersistableExpressionImpl[QuestionSet](parent, name) with QQuestionSet
   }
 
-  def apply(cls: Class[Quiz], name: String, exprType: ExpressionType): QQuestionSet = {
+  def apply(cls: Class[QuestionSet], name: String, exprType: ExpressionType): QQuestionSet = {
     new PersistableExpressionImpl[QuestionSet](cls, name, exprType) with QQuestionSet
   }
 

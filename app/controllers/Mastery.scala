@@ -26,13 +26,13 @@ import models.mastery._
 
 object Mastery extends Controller {
   
-  def menuOfTests() = DbAction { implicit req =>
+  /*def menuOfTests() = DbAction { implicit req =>
   	//TODO get list of masteries
     implicit val pm = req.pm
     val cand=QQuiz
     val ListOfMasteries = List[Quiz]_
-    OK(html.tatro.mastery.MasteryQuizMenu(ListOfMasteries))
-  }
+    Ok(html.tatro.mastery.MasteryQuizMenu(ListOfMasteries))
+  }*/
   
   //def displayQuiz(quizId: Long) = DbAction { implicit req =>
   //}
