@@ -47,8 +47,8 @@ GET     /assignments/doTask/:taskId             controllers.Assignments.doTask(t
 POST    /assignments/check/:taskId              controllers.Assignments.check(taskId: Long)
 
 #Math
-#GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
-#GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
+GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
+GET 	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)  
 #POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
 #GET     /math/random                            controllers.Math.randomProblem()
 #POST    /math/random                            controllers.Math.checkAnswer(temp)

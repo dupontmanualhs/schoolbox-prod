@@ -9,17 +9,19 @@ import org.datanucleus.api.jdo.query._
 class QuestionSet { //a QuestionSet is a list of all the questions that can be used for a certain number on a quiz (so #1 on a quiz could be addition problems, and #2 could be subtraction problems, so QuestionSets would keep them seperate)
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
-  private[this] var _id: Long = _
-  private[this] var _listOfQuestions: List[Question] = _
+  private[this] var _id: Long = _ //DB's id
+  private[this] var _listOfQuestions: List[Question] = _ //list of questions that make up a QuestionSet
 
   def this(listQuestions: List[Question]) = {
     this()
     _listOfQuestions=listQuestions
   }
   
-  override def toString = {
-    ""+_listOfQuestions
-  }
+  override def toString = { ""+_listOfQuestions }
+  
+  def get(num: Int) = {_listOfQuestions.apply(num)}
+  
+  def size = {_listOfQuestions.size}
 
 }
 

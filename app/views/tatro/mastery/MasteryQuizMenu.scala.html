@@ -1,0 +1,11 @@
+@(table: List[xml.NodeSeq])(implicit req: util.DbRequest[_])
+@import helper._
+@main("Mastery Quizzes"){
+<h1>Mastery Quiz Menu</h1><br/>
+<table>
+   <thead><th> Quizzes </th></thead>
+	@for(row <- table){
+		@row
+	}
+</table>
+}

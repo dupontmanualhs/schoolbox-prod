@@ -4,27 +4,21 @@ import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.mastery._
-import models.courses.Section
 
 @PersistenceCapable(detachable = "true")
 class Question {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
-  private[this] var _id: Long = _
-  private[this] var _typ: String = _
-  private[this] var _questionText: String = _
-  private[this] var _correctAnswer: String = _
-  private[this] var _value: Int = _
-  private[this] var _section: Section = _
+  private[this] var _id: Long = _ //DB's id
+  private[this] var _questionText: String = _ //text displayed for question (i.e. 2x^(2) = 3)
+  private[this] var _correctAnswer: String = _ //the correct answer for a question
+  private[this] var _value: Int = _ //amount of points the question is worth
   
-  def this(id: Long, tpe: String, questionText: String, answer: String, value: Int, section: Section) = {
+  def this(questionText: String, answer: String, value: Int) = {
     this()
-    _id=id
-    _typ=tpe
     _questionText=questionText
     _correctAnswer=answer
     _value=value
-    _section=section
   }
   
   override def toString = {_questionText}
@@ -33,9 +27,6 @@ class Question {
 trait QQuestion extends PersistableExpression[Question] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
-  
-  private[this] lazy val _typ: ObjectExpression[String] = new ObjectExpressionImpl[String](this, "_typ")
-  def typ: ObjectExpression[String] = _typ
   
   private[this] lazy val _questionText: ObjectExpression[String] = new ObjectExpressionImpl[String](this, "_questionText")
   def questionText: ObjectExpression[String] = _questionText
@@ -46,8 +37,6 @@ trait QQuestion extends PersistableExpression[Question] {
   private[this] lazy val _value: ObjectExpression[Int] = new ObjectExpressionImpl[Int](this, "_value")
   def value: ObjectExpression[Int] = _value
   
-  private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
-  def section: ObjectExpression[Section] = _section
 }
 
 object QQuestion {
