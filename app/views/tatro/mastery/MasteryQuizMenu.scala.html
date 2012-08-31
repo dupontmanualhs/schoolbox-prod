@@ -1,11 +1,16 @@
-@(table: List[xml.NodeSeq])(implicit req: util.DbRequest[_])
+@(table: List[xml.NodeSeq], hasQuizzes: Boolean)(implicit req: util.DbRequest[_])
 @import helper._
 @main("Mastery Quizzes"){
 <h1>Mastery Quiz Menu</h1><br/>
+@if(hasQuizzes){
 <table>
    <thead><th> Quizzes </th></thead>
 	@for(row <- table){
 		@row
 	}
 </table>
+}
+@if(!hasQuizzes){
+<p>THERE ARE NO QUIZZES!!! WHY GOD WHY!?</p>
+}
 }

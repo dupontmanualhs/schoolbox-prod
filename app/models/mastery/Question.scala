@@ -21,7 +21,7 @@ class Question {
     _value=value
   }
   
-  override def toString = {_questionText}
+  override def toString = {"question text\n" + _questionText + "\ncorrect answer:\n" + _correctAnswer + "\nvalue:\n" + _value}
 }
 
 trait QQuestion extends PersistableExpression[Question] {

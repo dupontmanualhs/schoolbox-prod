@@ -14,10 +14,10 @@ class Quiz {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
-  private[this] var _sections: List[Section] = _ //list of sections that make up a quiz
+  private[this] var _sections: List[QuizSection] = _ //list of sections that make up a quiz
   private[this] var _name: String = _ //name of quiz (i.e. Foiling and Factoring Mastery)
   
-  def this(name: String, sections: List[Section]) = {
+  def this(name: String, sections: List[QuizSection]) = {
     this()
     _name=name
     _sections=sections
@@ -29,7 +29,7 @@ class Quiz {
   
   def sections = {_sections}
   
-  override def toString = { _name }
+  override def toString = { "name:\n" + _name + "\nsections:\n" + _sections }
 }
 object Quiz {
   def getById(id: Long)(implicit ipm: ScalaPersistenceManager = null): Option[models.mastery.Quiz] = {
@@ -47,8 +47,8 @@ trait QQuiz extends PersistableExpression[Quiz]{
   private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
   def name: StringExpression = _name
   
-  private[this] lazy val _sections: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_sections")
-  def sections: ObjectExpression[Section] = _sections
+  private[this] lazy val _sections: ObjectExpression[QuizSection] = new ObjectExpressionImpl[QuizSection](this, "_sections")
+  def sections: ObjectExpression[QuizSection] = _sections
 }
 
 object QQuiz {

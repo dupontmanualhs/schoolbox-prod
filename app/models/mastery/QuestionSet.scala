@@ -17,7 +17,7 @@ class QuestionSet { //a QuestionSet is a list of all the questions that can be u
     _listOfQuestions=listQuestions
   }
   
-  override def toString = { ""+_listOfQuestions }
+  override def toString = { "questions:\n"+_listOfQuestions }
   
   def get(num: Int) = {_listOfQuestions.apply(num)}
   

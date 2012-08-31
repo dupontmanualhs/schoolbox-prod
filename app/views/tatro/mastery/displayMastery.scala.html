@@ -1,4 +1,4 @@
-@(quiz: models.mastery.Quiz, SAndQ: Map[models.mastery.Section, List[models.mastery.Question]])(implicit req:util.DbRequest[_]) 
+@(quiz: models.mastery.Quiz, SAndQ: Map[models.mastery.QuizSection, List[models.mastery.Question]])(implicit req:util.DbRequest[_]) 
 @import helper._ 
 @main(quiz.toString){
 	<h1>@quiz</h1>

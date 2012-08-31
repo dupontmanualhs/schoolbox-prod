@@ -7,7 +7,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 
 @PersistenceCapable(detachable = "true")
-class Section { //a section is a part of the quiz where students would be doing one sort of problem, so you could have a "simplifing exponents" section, and a "fill in the blank" section for a quiz
+class QuizSection { //a section is a part of the quiz where students would be doing one sort of problem, so you could have a "simplifing exponents" section, and a "fill in the blank" section for a quiz
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
@@ -34,10 +34,10 @@ class Section { //a section is a part of the quiz where students would be doing 
     finL
   }
   
-  override def toString = { _name + "\n" + _instructions }
+  override def toString = { "name:\n" + _name + "\ninstructions\n" + _instructions + "\nquestions\n" + _questions }
 }
 
-trait QSection extends PersistableExpression[Section] {
+trait QQuizSection extends PersistableExpression[QuizSection] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
@@ -51,22 +51,22 @@ trait QSection extends PersistableExpression[Section] {
   def questions: ObjectExpression[List[QuestionSet]] = _questions
 }
 
-object QSection {
-  def apply(parent: PersistableExpression[_], name: String, depth: Int): QSection = {
-    new PersistableExpressionImpl[Section](parent, name) with QSection
+object QQuizSection {
+  def apply(parent: PersistableExpression[_], name: String, depth: Int): QQuizSection = {
+    new PersistableExpressionImpl[QuizSection](parent, name) with QQuizSection
   }
 
-  def apply(cls: Class[Section], name: String, exprType: ExpressionType): QSection = {
-    new PersistableExpressionImpl[Section](cls, name, exprType) with QSection
+  def apply(cls: Class[QuizSection], name: String, exprType: ExpressionType): QQuizSection = {
+    new PersistableExpressionImpl[QuizSection](cls, name, exprType) with QQuizSection
   }
 
-  private[this] lazy val jdoCandidate: QSection = candidate("this")
+  private[this] lazy val jdoCandidate: QQuizSection = candidate("this")
 
-  def candidate(name: String): QSection = QSection(null, name, 5)
+  def candidate(name: String): QQuizSection = QQuizSection(null, name, 5)
 
-  def candidate(): QSection = jdoCandidate
+  def candidate(): QQuizSection = jdoCandidate
 
-  def parameter(name: String): QSection = QSection(classOf[Section], name, ExpressionType.PARAMETER)
+  def parameter(name: String): QQuizSection = QQuizSection(classOf[QuizSection], name, ExpressionType.PARAMETER)
 
-  def variable(name: String): QSection = QSection(classOf[Section], name, ExpressionType.VARIABLE)
+  def variable(name: String): QQuizSection = QQuizSection(classOf[QuizSection], name, ExpressionType.VARIABLE)
 }

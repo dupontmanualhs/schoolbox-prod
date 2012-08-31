@@ -1,6 +1,7 @@
 package controllers
 
 import play.api._
+import util.Helpers.mkNodeSeq
 import scala.util.Random
 import play.api.mvc._
 import util.{DataStore, ScalaPersistenceManager}
@@ -44,16 +45,22 @@ object Mastery extends Controller {
   
   def menuOfTests() = DbAction { implicit req =>
   	//TODO get list of masteries
+    val pm=req.pm
     val cand = QQuiz.candidate()
-    val listOfMasteries=req.pm.query[Quiz].orderBy(cand.name.asc).executeList()
+    val listOfMasteries=pm.query[Quiz].orderBy(cand.name.asc).executeList()
+    val hasQuizzes = listOfMasteries.size != 0
     val table: List[NodeSeq] = listOfMasteries.map { q =>
       <tr>
-      	<td>
-      		{<a href={controllers.routes.Mastery.getDisplayQuiz(q.id).url}>q.toString</a>}
-      	</td>
+      	<td>{ linkToQuiz(q) }</td>
       </tr>
     }
-    Ok(html.tatro.mastery.MasteryQuizMenu(table)) // this is a fake error -.-
+    
+    Ok(html.tatro.mastery.MasteryQuizMenu(table, hasQuizzes)) // this is a fake error -.-
+  }
+  
+  def linkToQuiz(quiz: Quiz): NodeSeq = {
+    val link = controllers.routes.Mastery.getDisplayQuiz(quiz.id)
+    <a href={link.url}>{quiz.toString}</a>
   }
   
   def getDisplayQuiz(quizId: Long) = DbAction { implicit req =>
@@ -66,14 +73,28 @@ object Mastery extends Controller {
       NotFound(views.html.notFound("The quiz of which you are seeking no longer exists."))
     } else {
       val quiz=maybeQuiz.get
-      val sections = quiz.sections
-      var SAndQ: Map[Section, List[Question]] = Map()
+      val sections: List[QuizSection] = quiz.sections
+      if(sections==null || sections.isEmpty){
+        NotFound(views.html.notFound("There are no sections :("))
+      } else {
+      var SAndQ: Map[QuizSection, List[Question]] = Map()
       for(s <- sections){
         SAndQ += (s -> s.randomQuestions)
       }
       Ok(html.tatro.mastery.displayMastery(quiz, SAndQ))
     }
+    }
   }
+  def testDataBase() = DbAction { implicit req =>
+    val pm=req.pm
+    val quizCand = QQuiz.candidate()
+    val listOfMasteries=pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
+    val listOfSections=pm.query[models.mastery.QuizSection].executeList()
+    val listOfQSets=pm.query[QuestionSet].executeList()
+    val listOfQuestions=pm.query[Question].executeList()
+    Ok(html.tatro.mastery.testData(listOfMasteries, listOfSections, listOfQSets, listOfQuestions))  
+  }
+  
   
   //def checkAnswers(quizName: String) = DbAction { implicit req =>
   //}
