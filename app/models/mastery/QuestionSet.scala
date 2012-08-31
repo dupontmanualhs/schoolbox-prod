@@ -10,12 +10,18 @@ class QuestionSet { //a QuestionSet is a list of all the questions that can be u
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
+  @Element(types=Array(classOf[Question]))
+  @Join
   private[this] var _listOfQuestions: List[Question] = _ //list of questions that make up a QuestionSet
 
   def this(listQuestions: List[Question]) = {
     this()
-    _listOfQuestions=listQuestions
+    listOfQuestions_=(listQuestions)
   }
+  
+  def id = _id
+  def listQuestions = _listOfQuestions
+  def listOfQuestions_=(theListQuestions: List[Question]) { _listOfQuestions = theListQuestions }
   
   override def toString = { "questions:\n"+_listOfQuestions }
   
