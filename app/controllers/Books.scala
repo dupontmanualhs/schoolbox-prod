@@ -8,6 +8,7 @@ import models.books._
 import models.users._
 import forms._
 import forms.fields._
+import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
 
@@ -167,9 +168,25 @@ object Books extends Controller {
   
   def booksOut(perspectiveId: Long) = TODO
   
-  def findCopyHistory() = TODO
-  
-  def findCopyHistorySubmit() = TODO
+  def findCopyHistory() = DbAction { implicit req =>
+    object ChooseCopyForm extends Form {
+      val copyId = new NumericField[Double]("Copy ID")
+      // TODO - Write a NumericField[Long] and use that here
+
+      def fields = List(copyId)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findCopyHistory(Binding(ChooseCopyForm)))
+    } else {
+      Binding(ChooseCopyForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findCopyHistory(ib))
+        case vb: ValidBinding => {
+          val lookupCopyId: Long = vb.valueOf(ChooseCopyForm.copyId).toLong
+          Redirect(routes.Books.copyHistory(lookupCopyId))
+        }
+      }
+    }
+  }
   
   def copyHistory(copyId: Long) = DbAction { implicit req =>
     implicit val pm = req.pm

@@ -80,7 +80,7 @@ GET     /books/findBooksOut                     controllers.Books.findBooksOut
 POST    /books/findBooksOut                     controllers.Books.findBooksOutSubmit
 GET     /books/booksOut/:perspectiveId/books    controllers.Books.booksOut(perspectiveId: Long)
 GET     /books/findCopyHistory                  controllers.Books.findCopyHistory
-POST    /books/findCopyHistory                  controllers.Books.findCopyHistorySubmit
+POST    /books/findCopyHistory                  controllers.Books.findCopyHistory
 GET     /books/copyHistory/:copyId              controllers.Books.copyHistory(copyId: Long)
 #*      /books/confirmCopyLost/:copyId          controllers.Books.confirmCopyLost(copyId: Long)
 GET     /books/checkIn                          controllers.Books.checkIn
