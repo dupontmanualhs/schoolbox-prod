@@ -86,12 +86,12 @@ object Mastery extends Controller {
     }
   }
   def testDataBase() = DbAction { implicit req =>
-    val pm=req.pm
+    //val pm=req.pm
     val quizCand = QQuiz.candidate()
-    val listOfMasteries=pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
-    val listOfSections=pm.query[models.mastery.QuizSection].executeList()
-    val listOfQSets=pm.query[QuestionSet].executeList()
-    val listOfQuestions=pm.query[Question].executeList()
+    val listOfMasteries=req.pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
+    val listOfSections=req.pm.query[models.mastery.QuizSection].executeList()
+    val listOfQSets=req.pm.query[QuestionSet].executeList()
+    val listOfQuestions=req.pm.query[Question].executeList()
     Ok(html.tatro.mastery.testData(listOfMasteries, listOfSections, listOfQSets, listOfQuestions))  
   }
   
