@@ -170,8 +170,7 @@ object Books extends Controller {
   
   def findCopyHistory() = DbAction { implicit req =>
     object ChooseCopyForm extends Form {
-      val copyId = new NumericField[Double]("Copy ID")
-      // TODO - Write a NumericField[Long] and use that here
+      val copyId = new NumericField[Int]("Copy ID")
 
       def fields = List(copyId)
     }
@@ -181,7 +180,7 @@ object Books extends Controller {
       Binding(ChooseCopyForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCopyHistory(ib))
         case vb: ValidBinding => {
-          val lookupCopyId: Long = vb.valueOf(ChooseCopyForm.copyId).toLong
+          val lookupCopyId: Long = vb.valueOf(ChooseCopyForm.copyId)
           Redirect(routes.Books.copyHistory(lookupCopyId))
         }
       }
