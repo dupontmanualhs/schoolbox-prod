@@ -5,6 +5,8 @@ import models.mastery._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 
+import scala.collection.JavaConverters._
+
 @PersistenceCapable(detachable = "true")
 class QuestionSet { //a QuestionSet is a list of all the questions that can be used for a certain number on a quiz (so #1 on a quiz could be addition problems, and #2 could be subtraction problems, so QuestionSets would keep them seperate)
   @PrimaryKey
@@ -12,7 +14,7 @@ class QuestionSet { //a QuestionSet is a list of all the questions that can be u
   private[this] var _id: Long = _ //DB's id
   @Element(types=Array(classOf[Question]))
   @Join
-  private[this] var _listOfQuestions: List[Question] = _ //list of questions that make up a QuestionSet
+  private[this] var _listOfQuestions: java.util.List[Question] = _ //list of questions that make up a QuestionSet
 
   def this(listQuestions: List[Question]) = {
     this()
@@ -20,14 +22,14 @@ class QuestionSet { //a QuestionSet is a list of all the questions that can be u
   }
   
   def id = _id
-  def listQuestions = _listOfQuestions
-  def listOfQuestions_=(theListQuestions: List[Question]) { _listOfQuestions = theListQuestions }
+  def listQuestions: List[Question] = _listOfQuestions.asScala.toList
+  def listOfQuestions_=(theListQuestions: List[Question]) { _listOfQuestions = theListQuestions.asJava }
   
   override def toString = { "questions:\n"+_listOfQuestions }
   
-  def get(num: Int) = {_listOfQuestions.apply(num)}
+  def get(num: Int) = listQuestions(num)
   
-  def size = {_listOfQuestions.size}
+  def size = listQuestions.length
 
 }
 
