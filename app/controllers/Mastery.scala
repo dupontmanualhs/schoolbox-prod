@@ -94,7 +94,7 @@ object Mastery extends Controller {
             }
             tempList
           }
-          
+          def getsectionInstructions = {sectionInstructionList}
           val fields2: List[List[forms.fields.Field[_]]] = {
             var tempList = List[List[forms.fields.Field[_]]]()
             for (sq <- SAndQ) {
@@ -117,7 +117,9 @@ object Mastery extends Controller {
                 {
                   fields2.flatMap(q => {
                     //TODO: Make it so the strings in the list "sectionInstructionList" appear
-                    <tr><td> <p>sectionIntructionList.apply(0).toString</p> </td></tr>
+                	  <tr>
+                	  <td>{ sectionInstructionList.apply(0).toString }</td>
+                	  </tr>
                     sectionInstructionList = sectionInstructionList.drop(1)
                     q.flatMap(f => {
                       val name = f.name
