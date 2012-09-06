@@ -21,21 +21,21 @@ class Question {
     _value=value
   }
   
-  override def toString = {"question text\n" + _questionText + "\ncorrect answer:\n" + _correctAnswer + "\nvalue:\n" + _value}
+  override def toString = { _questionText }
 }
 
 trait QQuestion extends PersistableExpression[Question] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
-  private[this] lazy val _questionText: ObjectExpression[String] = new ObjectExpressionImpl[String](this, "_questionText")
-  def questionText: ObjectExpression[String] = _questionText
+  private[this] lazy val _questionText: StringExpression = new StringExpressionImpl(this, "_questionText")
+  def questionText: StringExpression = _questionText
   
-  private[this] lazy val _correctAnswer: ObjectExpression[String] = new ObjectExpressionImpl[String](this, "_correctAnswer")
-  def correctAnswer: ObjectExpression[String] = _correctAnswer
+  private[this] lazy val _correctAnswer: StringExpression = new StringExpressionImpl(this, "_correctAnswer")
+  def correctAnswer: StringExpression = _correctAnswer
   
-  private[this] lazy val _value: ObjectExpression[Int] = new ObjectExpressionImpl[Int](this, "_value")
-  def value: ObjectExpression[Int] = _value
+  private[this] lazy val _value: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_value")
+  def value: NumericExpression[Int] = _value
   
 }
 

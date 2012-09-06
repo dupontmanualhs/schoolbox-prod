@@ -50,6 +50,7 @@ POST    /assignments/check/:taskId              controllers.Assignments.check(ta
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
 GET 	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
 GET		/tatro/mastery/test						controllers.Mastery.testDataBase()  
+POST	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
 #POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
 #GET     /math/random                            controllers.Math.randomProblem()
 #POST    /math/random                            controllers.Math.checkAnswer(temp)

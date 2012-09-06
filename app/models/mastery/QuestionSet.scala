@@ -4,7 +4,6 @@ import javax.jdo.annotations._
 import models.mastery._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-
 import scala.collection.JavaConverters._
 
 @PersistenceCapable(detachable = "true")
@@ -25,7 +24,7 @@ class QuestionSet { //a QuestionSet is a list of all the questions that can be u
   def listQuestions: List[Question] = _listOfQuestions.asScala.toList
   def listOfQuestions_=(theListQuestions: List[Question]) { _listOfQuestions = theListQuestions.asJava }
   
-  override def toString = { "questions:\n"+_listOfQuestions }
+  override def toString = { ""+_listOfQuestions }
   
   def get(num: Int) = listQuestions(num)
   

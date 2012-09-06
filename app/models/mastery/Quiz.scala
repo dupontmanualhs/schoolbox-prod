@@ -8,28 +8,30 @@ import util.DataStore
 import util.ScalaPersistenceManager
 import play.api.mvc.{RequestHeader, Session}
 import util.DbRequest
+import scala.collection.JavaConverters._
 
 @PersistenceCapable(detachable = "true")
 class Quiz {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
-  private[this] var _sections: List[QuizSection] = _ //list of sections that make up a quiz
+  @Element(types=Array(classOf[QuizSection]))
+  @Join
+  private[this] var _sections: java.util.List[QuizSection] = _ //list of sections that make up a quiz
   private[this] var _name: String = _ //name of quiz (i.e. Foiling and Factoring Mastery)
   
   def this(name: String, sections: List[QuizSection]) = {
     this()
     _name=name
-    _sections=sections
+    sections_=(sections)
   }
   
   def id ={_id}
-  
   def name = {_name}
-  
-  def sections = {_sections}
-  
-  override def toString = { "name:\n" + _name + "\nsections:\n" + _sections }
+  def sections: List[QuizSection] = _sections.asScala.toList
+  def sections_=(theSections: List[QuizSection]) { _sections = theSections.asJava}
+    
+  override def toString = { _name }
 }
 object Quiz {
   def getById(id: Long)(implicit ipm: ScalaPersistenceManager = null): Option[models.mastery.Quiz] = {
@@ -47,8 +49,8 @@ trait QQuiz extends PersistableExpression[Quiz]{
   private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
   def name: StringExpression = _name
   
-  private[this] lazy val _sections: ObjectExpression[QuizSection] = new ObjectExpressionImpl[QuizSection](this, "_sections")
-  def sections: ObjectExpression[QuizSection] = _sections
+  private[this] lazy val _sections: ObjectExpression[List[QuizSection]] = new ObjectExpressionImpl[List[QuizSection]](this, "_sections")
+  def sections: ObjectExpression[List[QuizSection]] = _sections
 }
 
 object QQuiz {

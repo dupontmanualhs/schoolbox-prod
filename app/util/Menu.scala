@@ -18,12 +18,13 @@ object Menu {
   val login = new MenuItem("Log in", "menu_login", Some(controllers.routes.Users.login().toString), Nil)
   val logout = new MenuItem("Log out", "menu_logout", Some(controllers.routes.Users.logout().toString), Nil)
   val changePassword = new MenuItem("Change Password", "menu_changePassword", Some(controllers.routes.Users.changePassword().toString), Nil)
-  
+    
   def buildMenu(persp: Option[Perspective]): Elem = {
     val acctItems = if (persp.isDefined) List(logout, changePassword) else List(login)
     val acct: MenuItem = new MenuItem("Account", "menu_account", None, acctItems)
     val courses = new MenuItem("Courses", "menu_courses", None, Nil)
-    val bar = new MenuBar(List(acct, courses))
+    val masteries: MenuItem = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
+    val bar = new MenuBar(List(acct, courses, masteries))
     bar.asHtml
   }
 }

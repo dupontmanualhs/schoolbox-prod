@@ -237,6 +237,7 @@ object TestData {
     //makeMasteryData
     if (debug) println("Creating Mastery Data...")
     //Questions
+    if(debug) println("Creating Questions")
     val primeFactor1 = new Question("50","2 * 5 * 5",1)
     val primeFactor2 = new Question("180", "2 * 2 * 3 * 3 * 5", 1)
     val simpRad1 = new Question("rad(50)", "5rad(2)", 1)
@@ -254,10 +255,12 @@ object TestData {
     val simpExprss3 = new Question("a * a","2a",1)
     val simpExprss4 = new Question("7a * 3a", "21a", 1)
     val simpExprss5 = new Question("(a + b)^2", "a^2 + 2ab + b^2", 1)
+    if(debug) println("Adding Questions")
     pm.makePersistentAll(List(primeFactor1, primeFactor2, simpRad1, simpRad2, simpRad3,
         simpRad4, simpRad5, simpRad6, sentence1, sentence2, sentence3, sentence4,
         simpExprss1, simpExprss2, simpExprss3, simpExprss4, simpExprss5))
     //Question Sets
+    if(debug) println("Creating Question Sets")
     val primeFactorQSet1 = new QuestionSet(List(primeFactor1))
     val primeFactorQSet2 = new QuestionSet(List(primeFactor2))
     val simpRadQSet1 = new QuestionSet(List(simpRad1, simpRad2, simpRad3))
@@ -267,21 +270,26 @@ object TestData {
     val simpExprssQSet1 = new QuestionSet(List(simpExprss1, simpExprss5))
     val simpExprssQSet2 = new QuestionSet(List(simpExprss2, simpExprss4))
     val simpExprssQSet3 = new QuestionSet(List(simpExprss3))
+    if(debug) println("Adding Question Sets")
     pm.makePersistentAll(List(primeFactorQSet1, primeFactorQSet2, simpRadQSet1,
         simpRadQSet2, SentenceQSet1, SentenceQSet2, simpExprssQSet1, simpExprssQSet2,
         simpExprssQSet3))
     //Sections
+    if(debug) println("Creating Sections")
     val sqrtSection1 = new QuizSection("Prime Factorization", "Write the prime factorization of each of the folowing:", List(primeFactorQSet1, primeFactorQSet2))
     val sqrtSection2 = new QuizSection("Simplifing Radicals","Simplify the following:",List(simpRadQSet1, simpRadQSet2))
     val ExponentSection1 = new QuizSection("Sentences","Complete the sentences below:",List(SentenceQSet1, SentenceQSet2))
     val ExponentSection2 = new QuizSection("Simplifing","Simplify the following:",List(simpExprssQSet1, simpExprssQSet2, simpExprssQSet3))
+    if(debug) println("Adding Sections")
     pm.makePersistentAll(List(sqrtSection1, sqrtSection2, ExponentSection1, ExponentSection2))
     //Quizzes
+    if(debug) println("Creating Quizzes")
     val ExponentsMastery = new Quiz("Exponents Mastery", List(ExponentSection1, ExponentSection2))
     val SquareRootMastery = new Quiz("Square Root Mastery", List(sqrtSection1, sqrtSection2))
+    if(debug) println("Adding Quizzes")
     pm.makePersistentAll(List(ExponentsMastery, SquareRootMastery))
     
-    
+    if(debug) println("Loading Complete!")
   }
 
 }
