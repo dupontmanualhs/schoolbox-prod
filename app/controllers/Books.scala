@@ -230,7 +230,7 @@ object Books extends Controller {
     case Some(currentPerspective) => {
       val checkoutCand = QCheckout.candidate
       val currentBooks = pm.query[Checkout].filter(checkoutCand.perspective.eq(currentPerspective)).executeList()
-      val studentName = currentBooks(0).perspective.displayName
+      val studentName = currentPerspective.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate),
         if (co.endDate == null) "" else df.format(co.endDate))})
@@ -268,7 +268,7 @@ object Books extends Controller {
     case Some(currentPerspective) => {
       val checkoutCand = QCheckout.candidate
       val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.perspective.eq(currentPerspective))).executeList()
-      val studentName = currentBooks(0).perspective.displayName
+      val studentName = currentPerspective.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate))})
       Ok(views.html.books.currentCheckouts(header,rows))
