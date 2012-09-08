@@ -239,6 +239,25 @@ object Books extends Controller {
   }
 }
 
+def findCheckoutHistory() = DbAction { implicit req =>
+    object ChoosePerspectiveForm extends Form {
+      val perspectiveId = new NumericField[Int]("Perspective ID")
+
+      def fields = List(perspectiveId)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findCheckoutHistory(Binding(ChoosePerspectiveForm)))
+    } else {
+      Binding(ChoosePerspectiveForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
+        case vb: ValidBinding => {
+          val lookupPerspectiveId: Long = vb.valueOf(ChoosePerspectiveForm.perspectiveId)
+          Redirect(routes.Books.checkoutHistory(lookupPerspectiveId))
+        }
+      }
+    }
+  }
+
   def findCurrentCheckouts() = DbAction { implicit req =>
     object ChoosePerspectiveForm extends Form {
       val perspectiveId = new NumericField[Int]("Perspective ID")
