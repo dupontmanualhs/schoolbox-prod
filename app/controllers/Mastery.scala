@@ -1,6 +1,7 @@
 package controllers
 
 import play.api._
+import models.users.Visit
 import util.Helpers.mkNodeSeq
 import scala.util.Random
 import play.api.mvc._
@@ -79,8 +80,13 @@ object Mastery extends Controller {
         NotFound(views.html.notFound("There are no sections :("))
       } else {
         var SAndQ: Map[QuizSection, List[Question]] = Map()
+        if(request.method == "GET"){
         for (s <- sections) {
           SAndQ += (s -> s.randomQuestions) //SAndQ id a map of Section -> List[Question] 
+        }
+        request.visit.updateSAndQ(SAndQ)
+        } else {
+          SAndQ = request.visit.SAndQ
         }
       	
         //MasteryForm uses SAndQ
