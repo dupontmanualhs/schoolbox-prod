@@ -29,7 +29,7 @@ class Visit {
   @Element(types=Array(classOf[Question]))
   @Join
   private[this] var _LQ: java.util.List[Question] = _
-  @Element(types=Array(classOf[Question]))
+  @Element(types=Array(classOf[String]))
   @Join
   private[this] var _LA: java.util.List[String] = _
   
