@@ -1,6 +1,7 @@
 package models.mastery
 
 import javax.jdo.annotations._
+import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.mastery._
@@ -13,14 +14,18 @@ class Question {
   private[this] var _questionText: String = _ //text displayed for question (i.e. 2x^(2) = 3)
   private[this] var _correctAnswer: String = _ //the correct answer for a question
   private[this] var _value: Int = _ //amount of points the question is worth
+  private[this] var _typ: String = _ //type of answer needed
   
-  def this(questionText: String, answer: String, value: Int) = {
+  def this(questionText: String, answer: String, value: Int, typ: String) = {
     this()
     _questionText=questionText
     _correctAnswer=answer
     _value=value
+    _typ=typ
   }
   
+  def getAnswer = _correctAnswer
+  def Type = {_typ}
   override def toString = { _questionText }
 }
 
@@ -37,6 +42,8 @@ trait QQuestion extends PersistableExpression[Question] {
   private[this] lazy val _value: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_value")
   def value: NumericExpression[Int] = _value
   
+  private[this] lazy val _typ: StringExpression = new StringExpressionImpl(this, "_typ")
+  def Type: StringExpression = _typ
 }
 
 object QQuestion {

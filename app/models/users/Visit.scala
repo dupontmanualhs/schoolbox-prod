@@ -1,5 +1,6 @@
 package models.users
 
+
 import java.util.UUID
 import models.mastery._
 import javax.jdo.annotations._
@@ -24,6 +25,13 @@ class Visit {
   @Element(types=Array(classOf[Question]))
   @Join
   private[this] var _SAndQ: java.util.List[Question] = _
+  private[this] var _quiz: Quiz = _
+  @Element(types=Array(classOf[Question]))
+  @Join
+  private[this] var _LQ: java.util.List[Question] = _
+  @Element(types=Array(classOf[Question]))
+  @Join
+  private[this] var _LA: java.util.List[String] = _
   
   def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
     this()
@@ -33,6 +41,10 @@ class Visit {
     permissions_=(Set[Permission]())
     menu_=(Menu.buildMenu(perspective))
     SAndQ = List[Question]()
+    _quiz = new Quiz(null, null)
+    LQ = List[Question]()
+    LA = List[String]()
+    
   }
   
   def uuid: String = _uuid
@@ -55,11 +67,23 @@ class Visit {
   def SAndQ: List[Question] ={ _SAndQ.asScala.toList }
   def SAndQ_=(theSAndQ: List[Question]) { _SAndQ = theSAndQ.asJava }
   
+  def LQ: List[Question] = { _LQ.asScala.toList }
+  def LQ_=(theLQ: List[Question]) { _LQ = theLQ.asJava }
+  
+  def LA: List[String] = { _LA.asScala.toList }
+  def LA_=(theLA: List[String]) { _LA = theLA.asJava }
+  
   def isExpired: Boolean = System.currentTimeMillis > expiration
   
   def updateMenu { menu = Menu.buildMenu(perspective) }
   
   def updateListOfQuestions(nSAQ: List[Question]){ _SAndQ = nSAQ.asJava }
+  def updateLQ(nLQ: List[Question]){ _LQ = nLQ.asJava }
+  def updateLA(nLA: List[String]){ _LA = nLA.asJava }
+  def updateQuiz(nQuiz: Quiz) { _quiz = nQuiz }
+  def getQuiz = _quiz
+  def getLQ = _LQ.asScala.toList
+  def getLA = _LA.asScala.toList
 }
 
 object Visit {
