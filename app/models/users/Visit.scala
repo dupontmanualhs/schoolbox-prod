@@ -21,8 +21,9 @@ class Visit {
   private[this] var _permissions: java.util.Set[Permission] = _
   @Column(jdbcType="CLOB")
   private[this] var _menu: String = _
-  @Persistent
-  private[this] var _SAndQ: java.util.Map[QuizSection, List[Question]] = _
+  @Element(types=Array(classOf[Question]))
+  @Join
+  private[this] var _SAndQ: java.util.List[Question] = _
   
   def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
     this()
@@ -31,7 +32,7 @@ class Visit {
     _perspective = maybePerspective.getOrElse(null)
     permissions_=(Set[Permission]())
     menu_=(Menu.buildMenu(perspective))
-    SAndQ = Map()
+    SAndQ = List[Question]()
   }
   
   def uuid: String = _uuid
@@ -51,14 +52,14 @@ class Visit {
   def menu: Elem = string2elem(_menu)
   def menu_=(theMenu: Elem) { _menu = theMenu.toString }
   
-  def SAndQ: Map[QuizSection, List[Question]] ={ _SAndQ.asScala.toMap }
-  def SAndQ_=(theSAndQ: Map[QuizSection, List[Question]]) { _SAndQ = theSAndQ.asJava }
+  def SAndQ: List[Question] ={ _SAndQ.asScala.toList }
+  def SAndQ_=(theSAndQ: List[Question]) { _SAndQ = theSAndQ.asJava }
   
   def isExpired: Boolean = System.currentTimeMillis > expiration
   
   def updateMenu { menu = Menu.buildMenu(perspective) }
   
-  def updateSAndQ(nSAQ: Map[QuizSection, List[Question]]){ _SAndQ = nSAQ.asJava }
+  def updateListOfQuestions(nSAQ: List[Question]){ _SAndQ = nSAQ.asJava }
 }
 
 object Visit {

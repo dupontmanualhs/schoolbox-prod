@@ -80,19 +80,25 @@ object Mastery extends Controller {
         NotFound(views.html.notFound("There are no sections :("))
       } else {
         var SAndQ: Map[QuizSection, List[Question]] = Map()
+        var LQ = List[Question]()
         if(request.method == "GET"){
         for (s <- sections) {
           SAndQ += (s -> s.randomQuestions) //SAndQ id a map of Section -> List[Question] 
         }
-        request.visit.updateSAndQ(SAndQ)
+        SAndQ.keys.foreach { k =>
+          for(q <- SAndQ(k)){
+            LQ = q :: LQ
+          }
+        }
+        request.visit.updateListOfQuestions(LQ)
         } else {
-          SAndQ = request.visit.SAndQ
+          LQ = request.visit.SAndQ
         }
       	
         //MasteryForm uses SAndQ
-        
+        if(request.method == "GET"){
         object MasteryForm extends Form {
-        
+          
           var sectionInstructionList: List[String] = {
             var tempList = List[String]()
             for (sq <- SAndQ) {
@@ -155,28 +161,31 @@ object Mastery extends Controller {
           }
           val fields = List[forms.fields.Field[_]]()
         }
-          
-        if (request.method == "GET") Ok(html.tatro.mastery.displayMastery(quiz, Binding(MasteryForm)))
-        
-        //TODO: Figure out a way so that even though I get the sections and the 
-        //questions randomly, they don't change b/t the time they are displayed
-        //and the time I go to retrieve them
-        else Binding(MasteryForm, request) match {
+        Ok(html.tatro.mastery.displayMastery(quiz, Binding(MasteryForm)))
+        } else {
+        object MasteryForm extends Form {
+          val fields: List[forms.fields.Field[_]] = {
+            var tempList = List[forms.fields.Field[_]]()
+            for(q <- LQ){
+              tempList = new TextField(q.toString()) :: tempList
+            }
+            tempList
+          }
+        }
+        Binding(MasteryForm, request) match {
             case ib: InvalidBinding => Ok(html.tatro.mastery.displayMastery(quiz, ib)) // there were errors
             case vb: ValidBinding => {
-              var listOfValuesOfForms = List[List[String]]()
-              for (q <- MasteryForm.getfields) {
-                var tempList = List[String]()
-                for (f <- q) {
-                  val oneSecsForms = (MasteryForm.getfields.apply(MasteryForm.getfields.indexOf(q)))
-                  tempList = vb.valueOf(oneSecsForms.apply(oneSecsForms.indexOf(f))).toString :: tempList
-                }
-                listOfValuesOfForms = tempList :: listOfValuesOfForms
+              var listAnswers = List[String]()
+              for(f <- MasteryForm.fields){
+                listAnswers = vb.valueOf(f).toString() :: listAnswers
               }
+              System.out.println(listAnswers)
+              //val theName: String = vb.valueOf(PersonForm.name)
               // do whatever you want with the values now (notice they're typesafe!)
               Redirect(routes.Mastery.testDataBase())
             }
         }
+        }        
       }
     }
   }
@@ -191,8 +200,8 @@ object Mastery extends Controller {
     Ok(html.tatro.mastery.testData(listOfMasteries, listOfSections, listOfQSets, listOfQuestions))
   }
 
-  //def checkAnswers(quizName: String) = DbAction { implicit req =>
-  //}
+  def checkAnswers(quizName: String, questionList: List[Question], answerList: List[String]) = TODO //DbAction { implicit req =>
+  
 
 }
 
