@@ -222,14 +222,19 @@ object Mastery extends Controller {
       }
     }
     var numberWrong = 0
-    for (s <- ScoreInTF) {
-      if (!s) numberWrong = numberWrong + 1
+    for (correct <- ScoreInTF) {
+      if (!correct) numberWrong = numberWrong + 1
     }
     Ok(html.tatro.mastery.displayScore(quiz, questionList, answerList, ScoreInTF, numberWrong))
   }
 
   def getRidOfSpaces(a: String) = {
-    a
+    val tempList = a.split(" ")
+    var tempString: String = ""
+    for(part <- tempList){
+      tempString = tempString + part
+    }
+    tempString
   }
   def getRidOfExtraMultiplication(a: String) = {
     a

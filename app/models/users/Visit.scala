@@ -64,6 +64,8 @@ class Visit {
   def menu: Elem = string2elem(_menu)
   def menu_=(theMenu: Elem) { _menu = theMenu.toString }
   
+  def quiz = _quiz
+  
   def SAndQ: List[Question] ={ _SAndQ.asScala.toList }
   def SAndQ_=(theSAndQ: List[Question]) { _SAndQ = theSAndQ.asJava }
   
@@ -81,6 +83,7 @@ class Visit {
   def updateLQ(nLQ: List[Question]){ _LQ = nLQ.asJava }
   def updateLA(nLA: List[String]){ _LA = nLA.asJava }
   def updateQuiz(nQuiz: Quiz) { _quiz = nQuiz }
+  
   def getQuiz = _quiz
   def getLQ = _LQ.asScala.toList
   def getLA = _LA.asScala.toList
