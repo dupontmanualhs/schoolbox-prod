@@ -207,8 +207,7 @@ object Mastery extends Controller {
     var ScoreInTF = List[Boolean]()
     var questionList2 = questionList
     for (a <- answerList) {
-      val b = getRidOfSpaces(a)
-      val c = getRidOfExtraMultiplication(b)
+      val c = getRidOfExtraMultiplication(getRidOfSpaces(a))
       val AllComboAnswers: List[String] = getAllCombinationsOfEquivalentAnswers(c)
       var alreadyCorrect = false
       for (ls <- AllComboAnswers) {
@@ -228,19 +227,53 @@ object Mastery extends Controller {
     Ok(html.tatro.mastery.displayScore(quiz, questionList, answerList, ScoreInTF, numberWrong))
   }
 
-  def getRidOfSpaces(a: String) = {
-    val tempList = a.split(" ")
-    var tempString: String = ""
-    for(part <- tempList){
-      tempString = tempString + part
+  def getRidOfSpaces(s: String) = {
+    """ """.r.replaceAllIn(s, "")
+  }
+  def getRidOfExtraMultiplication(s: String) = {
+    var rString1 = ""
+    for (n <- 1 to s.length - 1) {
+      val c = s.charAt(n)
+      val pc = s.charAt(n - 1)
+      if (pc == '*') {
+        if (c != '(') {
+          if (!(n != 1 && ((s.charAt(n - 2).isDigit && c.isLetter) || (s.charAt(n - 2).isLetter && c.isDigit)))) {
+            rString1 = rString1 + pc
+          }
+        }
+      } else {
+        rString1 = rString1 + pc
+      }
+      if(n == s.length()-1 && (c.isDigit || c.isLetter || c == ')')){
+        rString1 = rString1 + c
+      }
     }
-    tempString
+    System.out.println(rString1)
+    rString1
   }
-  def getRidOfExtraMultiplication(a: String) = {
-    a
+  
+  def changeRadToR(s: String) = """rad(""".r.replaceAllIn(s, "r(")
+  
+  def encloseExponents(s: String) = {
+    var rs = ""
+    for(n <- 1 to s.length - 1){
+      val c = s.charAt(n)
+      var inExponent = false
+      if(n != s.length - 1 && c == '^' && s.charAt(n+1) != '('){
+        rs = rs + "^("
+        inExponent = true
+      } else if(true){}
+    }
   }
-  def getAllCombinationsOfEquivalentAnswers(a: String) = {
-    List(a)
+  
+  def changeToInterpreterSyntax(s: String) = {
+    var rs = getRidOfSpaces(s)
+    rs = getRidOfExtraMultiplication(rs)
+    rs = changeRadToR(rs)
+    rs = encloseExponents(rs)
+  }
+  def getAllCombinationsOfEquivalentAnswers(s: String) = {
+    List(s)
   }
 }
 
