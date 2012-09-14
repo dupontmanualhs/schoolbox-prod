@@ -264,6 +264,7 @@ object Mastery extends Controller {
         inExponent = true
       } else if(true){}
     }
+    rs
   }
   
   def changeToInterpreterSyntax(s: String) = {
