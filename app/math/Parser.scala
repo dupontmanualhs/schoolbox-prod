@@ -1,39 +1,38 @@
 package math
 
-import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator._
 
-object Parser extends RegexParsers {
+object Parser extends RegexParsers with PackratParsers {
   def apply(input: String): Expression = parseAll(expr, input) match {
     case Success(result, _) => result
     case failure : NoSuccess => scala.sys.error(failure.msg)
   }
   
-  def expr: Parser[Expression] = (operation | simpExpr) //make this 
+  lazy val expr: PackratParser[Expression] = (operation | simpExpr | grouping) //make this 
   
-  def variable: Parser[Variable] = ("""[a-df-hj-z]{1}""".r) ^^  { case name => new Variable(name) }
+  lazy val variable: PackratParser[Variable] = ("""[a-df-hj-z]{1}""".r) ^^  { case name => new Variable(name) }
   
-  def approx: Parser[Constant] = approxSign ~> number ^^ { value => ApproxNumber(value.getValue) }
-  def approxSign: Parser[_] = ("\u2248" | """\approx""")
+  lazy val approx: PackratParser[Constant] = approxSign ~> number ^^ { value => ApproxNumber(value.getValue) }
+  lazy val approxSign: PackratParser[_] = ("\u2248" | """\approx""")
   
-  //def grouping: Parser[Expression] = "(" ~> expr <~ ")"
+  def grouping: Parser[Expression] = "(" ~> expr <~ ")"
   
-  def simpExpr: Parser[Expression] = (variable | approx | number | squareRoot | logarithm | naturalLogarithm | negation)
+  lazy val simpExpr: PackratParser[Expression] = (variable | approx | number | squareRoot | logarithm | naturalLogarithm | negation)
   
-  def number: Parser[Constant] = (real | fraction | integer | constant) 
-  def real: Parser[RealNumber] = ( """[-]?\d+\.\d*""".r | """[-]?\d*\.\d+""".r) ^^ { str => Decimal(BigDecimal(str))}
-  def fraction: Parser[Fraction] = (integer ~ "/" ~ integer) ^^ { case (num ~ "/" ~ denom) => Fraction(num, denom) }
-  def integer: Parser[Integer] = """[-]?\d+""".r ^^ { digits => Integer(BigInt(digits)) }
-  def constant: Parser[Constant] = "e" ^^^ ConstantE() | "\\pi" ^^^ ConstantPi() | "[pi]" ^^^ ConstantPi()
+  lazy val number: PackratParser[Constant] = (real | fraction | integer | constant) 
+  lazy val real: PackratParser[RealNumber] = ( """[-]?\d+\.\d*""".r | """[-]?\d*\.\d+""".r) ^^ { str => Decimal(BigDecimal(str))}
+  lazy val fraction: PackratParser[Fraction] = (integer ~ "/" ~ integer) ^^ { case (num ~ "/" ~ denom) => Fraction(num, denom) }
+  lazy val integer: PackratParser[Integer] = """[-]?\d+""".r ^^ { digits => Integer(BigInt(digits)) }
+  lazy val constant: PackratParser[Constant] = "e" ^^^ ConstantE() | "\\pi" ^^^ ConstantPi() | "[pi]" ^^^ ConstantPi()
 
-  def operation: Parser[Operation] = (product | sum | difference | quotient | exponentiation | squareRoot)
-  def product: Parser[Product] = (simpExpr ~ "*" ~ expr) ^^ { case (left ~ "*" ~ right) => Product(left, right) } //|
-                                 //(grouping ~ grouping) ^^ { case (lGroup ~ rGroup) => Product(lGroup, rGroup) }
-  def sum: Parser[Sum] = (simpExpr ~ "+" ~ expr) ^^ { case (left ~ "+" ~ right) => Sum(left, right) } 
-  def difference: Parser[Difference] = (simpExpr ~ "-" ~ expr) ^^ { case (left ~ "-" ~ right) => Difference(left, right) }
-  def quotient: Parser[Quotient] = (simpExpr ~ "/" ~ expr) ^^ { case (left ~ "/" ~ right) => Quotient(left, right) } 
-  def exponentiation: Parser[Exponentiation] = (simpExpr ~ "^" ~ expr) ^^ { case (base ~ "/" ~ exp) => Exponentiation(base, exp)}
-  def squareRoot: Parser[SquareRoot] = "sqrt(" ~> number <~ ")" ^^ { case num => SquareRoot(num) }
-  def logarithm: Parser[Base10Logarithm] = "log(" ~> number <~ ")" ^^ { case num => Base10Logarithm(num) }
-  def naturalLogarithm: Parser[NaturalLogarithm] = "ln(" ~> number <~ ")" ^^ { case num => NaturalLogarithm(num) }
-  def negation: Parser[Negation] = "-" ~> simpExpr ^^ { case expression => Negation(expression)} 
+  lazy val operation: PackratParser[Operation] = (product | sum | difference | quotient | exponentiation | squareRoot)
+  lazy val product: PackratParser[Product] = (expr ~ "*" ~ expr) ^^ { case (left ~ "*" ~ right) => Product(left, right) } 
+  lazy val sum: PackratParser[Sum] = (expr ~ "+" ~ expr) ^^ { case (left ~ "+" ~ right) => Sum(left, right) } 
+  lazy val difference: PackratParser[Difference] = (expr ~ "-" ~ expr) ^^ { case (left ~ "-" ~ right) => Difference(left, right) }
+  lazy val quotient: PackratParser[Quotient] = (expr ~ "/" ~ expr) ^^ { case (left ~ "/" ~ right) => Quotient(left, right) } 
+  lazy val exponentiation: PackratParser[Exponentiation] = (expr ~ "^" ~ expr) ^^ { case (base ~ "^" ~ exp) => Exponentiation(base, exp)}
+  lazy val squareRoot: PackratParser[SquareRoot] = "sqrt(" ~> number <~ ")" ^^ { case num => SquareRoot(num) }
+  lazy val logarithm: PackratParser[Base10Logarithm] = "log(" ~> number <~ ")" ^^ { case num => Base10Logarithm(num) }
+  lazy val naturalLogarithm: PackratParser[NaturalLogarithm] = "ln(" ~> number <~ ")" ^^ { case num => NaturalLogarithm(num) }
+  lazy val negation: PackratParser[Negation] = "-" ~> simpExpr ^^ { case expression => Negation(expression)} 
 }

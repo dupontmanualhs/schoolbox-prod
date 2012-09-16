@@ -29,7 +29,10 @@ class TestParser extends FunSuite {
   
   test("operations") {
     assert(Parser("x+2") === Sum(Variable("x").get, Integer(BigInt("2"))))
-    assert(Parser("x/4") === Quotient(Variable("x").get, Integer(BigInt("4"))))
-    assert(Parser("(x+2)/2") === Quotient(Sum(Variable("x").get, Integer(BigInt("2"))), Integer(BigInt("2"))))
+    assert(Parser("x-2") === Difference(Variable("x").get, Integer(BigInt("2"))))
+    assert(Parser("x*2") === Product(Variable("x").get, Integer(BigInt("2"))))
+    assert(Parser("x/2") === Quotient(Variable("x").get, Integer(BigInt("2"))))
+    assert(Parser("x^2") === Exponentiation(Variable("x").get, Integer(BigInt("2"))))
+    assert(Parser("(x+2)/y") === Quotient(Sum(Variable("x").get, Integer(BigInt("2"))), Variable("y").get))
   }
 }
