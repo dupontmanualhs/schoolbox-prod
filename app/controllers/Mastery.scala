@@ -47,7 +47,6 @@ import util.Helpers.camel2TitleCase
 object Mastery extends Controller {
 
   def menuOfTests() = DbAction { implicit req =>
-    //TODO get list of masteries
     val pm = req.pm
     val cand = QQuiz.candidate()
     val listOfMasteries = pm.query[Quiz].orderBy(cand.name.asc).executeList()
@@ -207,9 +206,16 @@ object Mastery extends Controller {
     val answerList: List[String] = request.visit.getLA
     var ScoreInTF = List[Boolean]()
     var questionList2 = questionList
-    for (a <- answerList) {
+    for (num <- 0 to answerList.size-1) {
+      val a = answerList.apply(num)
       val c = changeToInterpreterSyntax(a)
-      val AllComboAnswers = reorderAnswer(c)
+      val reorderedAns = reorderAnswer(c)
+      if(reorderedAns.equals(answerList.apply(num))){
+        ScoreInTF = true :: ScoreInTF
+      } else {
+        ScoreInTF = false :: ScoreInTF
+      }
+      ScoreInTF = ScoreInTF.reverse
     }
     var numberWrong = 0
     for (correct <- ScoreInTF) {
@@ -224,42 +230,44 @@ object Mastery extends Controller {
     for (n <- 1 to s.length - 1) {
       val c = s.charAt(n)
       val pc = s.charAt(n - 1)
-      if (pc == '*' && n-2 >= 0) {
-        if((c.isLetter && s.charAt(n-2).isLetter) || (c.isDigit && s.charAt(n-2).isDigit)){
+      if (pc == '*' && n - 2 >= 0) {
+        if ((c.isLetter && s.charAt(n - 2).isLetter) || (c.isDigit && s.charAt(n - 2).isDigit)) {
           rString1 = rString1 + pc
         }
       } else {
         rString1 = rString1 + pc
       }
-      if(n == s.length()-1 && (c.isDigit || c.isLetter || c == ')')){
+      if (n == s.length() - 1 && (c.isDigit || c.isLetter || c == ')')) {
         rString1 = rString1 + c
       }
     }
     System.out.println(rString1)
     rString1
   }
-  
+
   def changeRadToR(s: String) = """rad""".r.replaceAllIn(s, "r")
-  
+
   def encloseExponents(s: String) = {
     var rs = ""
     rs = rs + s.charAt(0)
     var inExponent = false
-    for(n <- 1 to s.length - 1){
+    for (n <- 1 to s.length - 1) {
       val c = s.charAt(n)
-      if(n != s.length - 1 && c == '^' && s.charAt(n+1) != '('){
+      if (n != s.length - 1 && c == '^' && s.charAt(n + 1) != '(') {
         rs = rs + "^("
         inExponent = true
-      } else if(inExponent && (!c.isLetter && !c.isDigit)){
+      } else if (inExponent && (!c.isLetter && !c.isDigit)) {
         rs = rs + ")" + c
         inExponent = false
+      } else if(inExponent && n==s.length-1){
+        rs = rs + c + ")"
       } else {
         rs = rs + c
       }
     }
     rs
   }
-  
+
   def changeToInterpreterSyntax(s: String) = {
     var rs = getRidOfSpaces(s)
     rs = encloseExponents(rs)
@@ -267,139 +275,312 @@ object Mastery extends Controller {
     rs = getRidOfExtraMultiplication(rs)
     rs
   }
-  
-  def reorderAnswer(s: String) = { //gets the correctly ordered answer
+  private[this] var mapIndex: Int = _
+  def reorderAnswer(s: String) = { //TODO: this needs some work dealing with parens... I think
+    mapIndex = 0
+    mapOfreplacements = Map(1.toChar + "" -> 1.toChar)
     var ParentParen = List[String]()
-    if(hasPerfectParens(s)){
+    if (hasPerfectParens(s)) {
       ParentParen = getOnlyThingsInParens(s)
+      if (!(ParentParen == Null))
+        for (p <- ParentParen) {
+          mapParenGroupsToChars(p)
+        }
     }
-    //TODO: replace parentheses with chars (this would probably be a good time to reorder the things inside the parentheses as well
-    //TODO: reorder things correctly => rad(3)x2 = 2xrad(3)
+    val ns = replaceParensWithChars(s) // i.e. (x+2) -> a and r(x+3) -> rb
+    System.out.println("replace Parens With Chars: \n" + ns)
+    val ns2 = replaceRwithChar(ns) 
+    //TODO: this needs work i.e. rb -> c 
+    System.out.println("replace r with Chars: \n"+ns2) 
+    val ns3 = replaceExponentsWithChar(ns2) 
+    //TODO: this needs work i.e. d^f -> e 
+    System.out.println("replace Exponents With Chars: \n"+ns3)
+    val ns4 = reorderExpression(ns3)
+    System.out.println("reorder Expression: \n"+ns4)
+    System.out.println("map of substitutions before reorder: \n" + mapOfreplacements)
+    mapOfreplacements.keys.foreach{ k=> 
+    //TODO: Fix This
+    	val split = k.split("((?<=[()+\\-*/])|(?=[()+\\-*/]))").toList
+    	var remadeKey = ""
+    	for(q <- split){
+    	  remadeKey = remadeKey + reorderMultiplication(q)
+    	}
+    	remadeKey = reorderAddMinus(remadeKey)
+    	mapOfreplacements += (remadeKey -> mapOfreplacements(k))
+    	mapOfreplacements -= (k)
+    }
+    System.out.println("map of substitutions after reorder: \n"+mapOfreplacements)
+    val ns5 = replaceCharsWithStr(ns4)
+    System.out.println("substitute parens back in: \n"+ns5)
+    System.out.println()
+    System.out.println()
+    System.out.println()
+    ns5 
   }
   
+  def replaceCharsWithStr(s: String): String = {
+    var ns = s
+    var tf = true
+    while(tf) {
+      tf = false
+      mapOfreplacements.keys.foreach { str =>
+        if (ns.indexOf(mapOfreplacements(str)) != -1) {
+          ns = ns.replace(mapOfreplacements(str).toString, str)
+          tf = true
+        }
+      }
+    }
+    ns
+  }
+
+  def replaceExponentsWithChar(s: String) = {
+    var ns = s
+    for (n <- 1 to s.length - 2) {
+      val c = s.charAt(n)
+      val nc = s.charAt(n + 1)
+      val pc = s.charAt(n - 1)
+      if (c == '^') {
+        mapOfreplacements += (pc.toString + c.toString + nc.toString -> (mapIndex + 1).toChar)
+        mapIndex = mapIndex + 1
+        ns.replace(pc.toString + c.toString + nc.toString, mapIndex.toChar.toString)
+      }
+    }
+    ns
+  }
+
+  
+  def reorderExpression(s: String) = {
+    val splitOnOperands = s.split("((?<=[+\\-*/])|(?=[+\\-*/]))").toList
+    var correctMultOrder = ""
+    for (s1 <- splitOnOperands) {
+      correctMultOrder = correctMultOrder + reorderMultiplication(s1)
+    }
+    val correctOrder = reorderAddMinus(correctMultOrder)
+    correctOrder
+    }
+  
+  def reorderAddMinus(s: String) = {
+    val tempList = s.split("(?=[+\\-])").toList
+    var tempList2 = s.split("[+\\-]").toList
+    tempList2=tempList2.sorted
+    var tempList3 = List[String]()
+    for(num <- 0 to tempList2.size-1){
+      val str = tempList2.apply(num)
+      var opperator = ""
+      for(str2 <- tempList){
+        if(str2.contains(str) && (str2.contains("+") || str2.contains("-"))){
+          opperator = str2.charAt(0).toString
+        } else {
+          opperator = "+"
+        }
+      }
+      tempList3 = opperator+str :: tempList3
+    }
+    val str = tempList3.mkString
+    val rstr = str.substring(1)
+    rstr
+  }
+
+  def replaceRwithChar(s: String) = {
+    var ns = s
+    for (n <- 0 to s.length - 2) {
+      val c = s.charAt(n)
+      val nc = s.charAt(n + 1)
+      if (c == 'r') {
+        mapOfreplacements += (c.toString + nc.toString -> (mapIndex + 1).toChar)
+        mapIndex = mapIndex + 1
+        ns.replace(c.toString + nc.toString, mapIndex.toChar.toString)
+      }
+    }
+    ns
+  }
+
+  def reorderMultiplication(s: String) = {
+    if (!(s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/") || s.equals("(") || s.equals(")"))) {
+      var ns = s
+      var eachElement = List[String]()
+      for (n <- 0 to s.length - 1) {
+        if (ns.length != 0) {
+          val c = ns.charAt(0)
+          if (!c.isDigit) {
+            eachElement = c.toString :: eachElement
+            ns = ns.substring(1)
+          } else {
+            var endNumberIndex = 0
+            var notFoundEnd = true
+            for (i <- 0 to ns.length - 1) {
+              val cc = ns.charAt(i)
+              if ((!cc.isDigit) && notFoundEnd) {
+                endNumberIndex = i - 1
+              } else if (i == ns.length - 1) {
+                endNumberIndex = i
+              }
+            }
+            val str = ns.substring(0, endNumberIndex + 1)
+            eachElement = str :: eachElement
+            ns = ns.substring(endNumberIndex + 1)
+          }
+        }
+      }
+      eachElement = eachElement.sorted
+      val str = eachElement.mkString
+      str
+    } else s
+  }
+  
+  object Integer {
+    def unapply(s: String) : Option[Int] = try {
+      Some(s.toInt)
+    } catch {
+      case _ : java.lang.NumberFormatException => None
+    }
+  }
+  
+  def isNum(str: String): Boolean = str match {
+    case Integer(x) => true
+    case _ => false
+  }
+  
+  def remove[T](elem: T, list: List[T]) = list diff List(elem)
+
+  def replaceParensWithChars(s: String) = {
+    var ns = s
+    var x = 2
+    var tf = true
+    for (i <- 1 to mapOfreplacements.size + 10) {
+      tf = false
+      mapOfreplacements.keys.foreach { str =>
+        if (ns.indexOf(str) != -1) {
+          ns = ns.replace(ns.substring(ns.indexOf(str), ns.indexOf(str) + (str.length)), mapOfreplacements(str).toString)
+          tf = true
+        }
+      }
+    }
+    ns
+  }
+
   def splitKeepingFirst(s: String, c: Char) = { //splits into a List that keeps c on the front of each element
     val newList1 = s.split(c).toList
     var newList2 = List[String]()
     newList2 = newList1.apply(0) :: newList2
-    for(n <- 1 to newList1.size-1){
+    for (n <- 1 to newList1.size - 1) {
       val p = newList1.apply(n)
-      newList2 = c+p :: newList2
+      newList2 = c + p :: newList2
     }
     newList2 = newList2.reverse
     newList2
   }
-  
+
   def splitKeepingLast(s: String, c: Char) = { //splits into a List that keeps c on the end of each previous element
     val newList1 = s.split(c).toList
     var newList2 = List[String]()
-    for(n <- 0 to newList1.size-2){
+    for (n <- 0 to newList1.size - 2) {
       val p = newList1.apply(n)
-      newList2 = p+c :: newList2
+      newList2 = p + c :: newList2
     }
-    newList2 = newList1.apply(newList1.size-1) :: newList2
+    newList2 = newList1.apply(newList1.size - 1) :: newList2
     newList2 = newList2.reverse
     newList2
   }
 
   private[this] var mapOfreplacements: Map[String, Char] = _
-  
+
   def hasPerfectParens(s: String) = { //tells if the String expression has perfect parentheses
     var tf = true
     var inParens = 0
-    if(s.length <= 1){
-      tf=false
+    if (s.length <= 1) {
+      tf = false
     }
-    for(c <- s){
-      if(c == '('){
+    for (c <- s) {
+      if (c == '(') {
         inParens = inParens + 1
       }
-      if(c == ')'){
+      if (c == ')') {
         inParens = inParens - 1
       }
-      if(inParens < 0){
+      if (inParens < 0) {
         tf = false
       }
     }
-    if(inParens != 0){
+    if (inParens != 0) {
       tf = false
     }
     tf
   }
-  
-  
+
   def getOnlyThingsInParens(s: String) = { //returns a list of the Parent Parentheses Groups
     var rString1 = ""
     var inParens = 0
-    for(c <- s){
-      if(c == '('){
+    for (c <- s) {
+      if (c == '(') {
         inParens = inParens + 1
       }
-      if(inParens != 0){
+      if (inParens != 0) {
         rString1 = rString1 + c
       }
-      if(c == ')'){
+      if (c == ')') {
         inParens = inParens - 1
       }
     }
     val ListOfParentParenGroups = splitParentParens(rString1)
     ListOfParentParenGroups.reverse
   }
-  
+
   def splitParentParens(s: String) = {
     var inParens = 0
     var listOfString = List[String]()
     var start = 0
-    for(n <-0 to s.length()-1){
+    for (n <- 0 to s.length() - 1) {
       val c = s.charAt(n)
-      if(c == '('){
+      if (c == '(') {
         inParens = inParens + 1
-        if(inParens == 1){
-          start=n
+        if (inParens == 1) {
+          start = n
         }
       }
-      if(c ==')'){
+      if (c == ')') {
         inParens = inParens - 1
-        if(inParens == 0){
-          listOfString = s.substring(start, n+1) :: listOfString
+        if (inParens == 0) {
+          listOfString = s.substring(start, n + 1) :: listOfString
         }
       }
     }
     listOfString
   }
-  
+
   def mapParenGroupsToChars(s: String) = {
-    mapOfreplacements = mapParentheses(s)
+    mapOfreplacements = mapOfreplacements ++ mapParentheses(s)
+    mapIndex = mapIndex + mapOfreplacements.size
   }
-  
+
   def str2parens(s: String): (Parens, String) = {
     def fail = throw new Exception("Wait, this system was made to be unflawed!!! How did you... Just HOW!?")
-    if(s(0) != '(' ) fail
+    if (s(0) != '(') fail
     def parts(s: String, found: Seq[Part] = Vector.empty): (Seq[Part], String) = {
-      if(s(0) == ')' ) (found, s)
-      else if(s(0)=='('){
+      if (s(0) == ')') (found, s)
+      else if (s(0) == '(') {
         val (p, s2) = str2parens(s)
         parts(s2, found :+ p)
-      }
-      else {
-        val (tx, s2) = s.span(c => c != '(' && c!= ')')
+      } else {
+        val (tx, s2) = s.span(c => c != '(' && c != ')')
         parts(s2, found :+ new Text(tx))
       }
     }
     val (inside, more) = parts(s.tail)
-    if(more(0)!= ')') fail
+    if (more(0) != ')') fail
     (new Parens(inside), more.tail)
   }
-  
+
   def findParens(p: Parens): Set[Parens] = {
-    val inside = p.contents.collect{ case q: Parens => findParens(q)}
-    inside.foldLeft(Set(p)){_ | _}
+    val inside = p.contents.collect { case q: Parens => findParens(q) }
+    inside.foldLeft(Set(p)) { _ | _ }
   }
-  
+
   def mapParentheses(s: String) = {
-    val (p,_) = str2parens(s)
+    val (p, _) = str2parens(s)
     val pmap = findParens(p).toSeq.sortBy(_.text.length).zipWithIndex.toMap
-    val p2c = pmap.mapValues(i => ('a'+i).toChar)
-    p2c.map{ case(p,c) => (p.mapText(p2c), c) }.toMap
+    val p2c = pmap.mapValues(i => (i + 500 + mapIndex).toChar)
+    p2c.map { case (p, c) => (p.mapText(p2c), c) }.toMap
   }
 }
 
@@ -411,7 +592,7 @@ class Text(val text: String) extends Part {}
 class Parens(val contents: Seq[Part]) extends Part {
   val text = "(" + contents.mkString + ")"
   def mapText(m: Map[Parens, Char]) = {
-    val inside = contents.collect{
+    val inside = contents.collect {
       case p: Parens => m(p).toString
       case x => x.toString
     }

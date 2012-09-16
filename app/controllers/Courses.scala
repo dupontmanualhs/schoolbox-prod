@@ -103,7 +103,7 @@ object Courses extends Controller {
         <tr>
           <td>{ p.name }</td>
           <td>{ mkNodeSeq(sectionsThisPeriod.map(s => linkToRoster(s)), <br/>) }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.room.name)), <br/>) }</td>
         </tr>
       }
       Ok(html.courses.teacherSchedule(teacher.user, term, table, hasAssignments))
