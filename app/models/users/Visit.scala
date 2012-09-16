@@ -19,9 +19,17 @@ class Visit {
   private[this] var _expiration: Long = _
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
+  @Element(types=Array(classOf[Permission]))
+  @Join
   private[this] var _permissions: java.util.Set[Permission] = _
   @Column(jdbcType="CLOB")
   private[this] var _menu: String = _
+  @Key(types=Array(classOf[String]))
+  @Value(types=Array(classOf[Object]))
+  @Serialized
+  private[this] var _sessionItems: java.util.Map[String, Object] = _
+  
+  /*
   @Element(types=Array(classOf[Question]))
   @Join
   private[this] var _SAndQ: java.util.List[Question] = _
@@ -32,6 +40,7 @@ class Visit {
   @Element(types=Array(classOf[String]))
   @Join
   private[this] var _LA: java.util.List[String] = _
+  */
   
   def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
     this()
@@ -40,11 +49,7 @@ class Visit {
     _perspective = maybePerspective.getOrElse(null)
     permissions_=(Set[Permission]())
     menu_=(Menu.buildMenu(perspective))
-    SAndQ = List[Question]()
-    _quiz = new Quiz(null, null)
-    LQ = List[Question]()
-    LA = List[String]()
-    
+    _sessionItems = new java.util.HashMap[String, Object]()  
   }
   
   def uuid: String = _uuid
@@ -63,22 +68,21 @@ class Visit {
   
   def menu: Elem = string2elem(_menu)
   def menu_=(theMenu: Elem) { _menu = theMenu.toString }
-  
-  def quiz = _quiz
-  
-  def SAndQ: List[Question] ={ _SAndQ.asScala.toList }
-  def SAndQ_=(theSAndQ: List[Question]) { _SAndQ = theSAndQ.asJava }
-  
-  def LQ: List[Question] = { _LQ.asScala.toList }
-  def LQ_=(theLQ: List[Question]) { _LQ = theLQ.asJava }
-  
-  def LA: List[String] = { _LA.asScala.toList }
-  def LA_=(theLA: List[String]) { _LA = theLA.asJava }
-  
+    
   def isExpired: Boolean = System.currentTimeMillis > expiration
   
   def updateMenu { menu = Menu.buildMenu(perspective) }
   
+  def set(key: String, value: AnyRef) {
+    _sessionItems.put(key, value)
+  }
+  
+  def getAs[T](key: String): Option[T] = {
+    if (_sessionItems.containsKey(key)) Some(_sessionItems.get(key).asInstanceOf[T])
+    else None
+  }
+  
+  /*
   def updateListOfQuestions(nSAQ: List[Question]){ _SAndQ = nSAQ.asJava }
   def updateLQ(nLQ: List[Question]){ _LQ = nLQ.asJava }
   def updateLA(nLA: List[String]){ _LA = nLA.asJava }
@@ -87,6 +91,7 @@ class Visit {
   def getQuiz = _quiz
   def getLQ = _LQ.asScala.toList
   def getLA = _LA.asScala.toList
+  */
 }
 
 object Visit {

@@ -25,10 +25,11 @@ class QuizSection { //a section is a part of the quiz where students would be do
     questions_=( questions )
   }
   def id = _id
-  def questions: List[QuestionSet] = _questions.asScala.toList
-  def questions_=(theQuestions: List[QuestionSet]) {_questions = theQuestions.asJava }
   
-  def questionSet = {questions}
+  def questions: List[QuestionSet] = _questions.asScala.toList
+  def questions_=(theQuestions: List[QuestionSet]) { _questions = theQuestions.asJava }
+  
+  def questionSet = { questions }
   val rand = new Random()
   def randomQuestions = {
     var ListOfQuestions = List[Question]()

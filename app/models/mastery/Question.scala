@@ -7,7 +7,7 @@ import org.datanucleus.api.jdo.query._
 import models.mastery._
 
 @PersistenceCapable(detachable = "true")
-class Question {
+class Question extends Serializable {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
