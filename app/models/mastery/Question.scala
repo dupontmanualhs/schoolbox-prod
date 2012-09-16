@@ -5,28 +5,51 @@ import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.mastery._
+import util.ScalaPersistenceManager
+import util.DataStore
 
 @PersistenceCapable(detachable = "true")
 class Question extends Serializable {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
-  private[this] var _questionText: String = _ //text displayed for question (i.e. 2x^(2) = 3)
-  private[this] var _correctAnswer: String = _ //the correct answer for a question
-  private[this] var _value: Int = _ //amount of points the question is worth
-  private[this] var _typ: String = _ //type of answer needed
+  private[this] var _text: String = _ // text displayed for question (i.e. 2x^(2) = 3)
+  private[this] var _answer: String = _ // the correct answer for a question
+  private[this] var _value: Int = _ // number of points the question is worth
+  private[this] var _kind: String = _ // type of answer needed
   
-  def this(questionText: String, answer: String, value: Int, typ: String) = {
+  def this(text: String, answer: String, value: Int, kind: String) = {
     this()
-    _questionText=questionText
-    _correctAnswer=answer
-    _value=value
-    _typ=typ
+    _text = text
+    _answer = answer
+    _value = value
+    _kind = kind
   }
   
-  def getAnswer = _correctAnswer
-  def Type = {_typ}
-  override def toString = { _questionText }
+  def id = _id
+  
+  def text = _text
+  def text_=(theText: String) { _text = theText }
+  
+  def answer = _answer
+  def answer_=(theAnswer: String) { _answer = theAnswer }
+  
+  def value = _value
+  def value_=(theValue: Int) { _value = theValue }
+  
+  def kind = _kind
+  def kind_=(theKind: String) { _kind = theKind }
+  
+  override def toString = { text }
+}
+
+object Question {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Question] = {
+    DataStore.execute { epm =>
+      epm.query[Question].filter(QQuestion.candidate.id.eq(id)).executeOption()
+    }
+  }
+  
 }
 
 trait QQuestion extends PersistableExpression[Question] {

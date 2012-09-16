@@ -15,10 +15,10 @@ class Quiz {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
+  private[this] var _name: String = _ //name of quiz (i.e. Foiling and Factoring Mastery)
   @Element(types=Array(classOf[QuizSection]))
   @Join
   private[this] var _sections: java.util.List[QuizSection] = _ //list of sections that make up a quiz
-  private[this] var _name: String = _ //name of quiz (i.e. Foiling and Factoring Mastery)
   
   def this(name: String, sections: List[QuizSection]) = {
     this()
@@ -26,12 +26,12 @@ class Quiz {
     sections_=(sections)
   }
   
-  def id ={_id}
-  def name = {_name}
+  def id = _id
+  def name = _name
   def sections: List[QuizSection] = _sections.asScala.toList
   def sections_=(theSections: List[QuizSection]) { _sections = theSections.asJava}
     
-  override def toString = { _name }
+  override def toString = { name }
 }
 object Quiz {
   def getById(id: Long)(implicit ipm: ScalaPersistenceManager = null): Option[models.mastery.Quiz] = {

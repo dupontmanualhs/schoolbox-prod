@@ -44,6 +44,60 @@ import scala.xml._
 import scala.xml
 import util.Helpers.camel2TitleCase
 
+class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) extends Form {
+  val sectionInstructionList: List[String] = 
+      sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => sq._1.instructions)
+  
+  val instructionsAndFields: List[(String, List[forms.fields.Field[_]])] = {
+    sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
+      (sq._1.instructions, sq._2.map((q: Question) => new TextField(q.text)))
+    })
+  }
+  
+  val fields: List[forms.fields.Field[_]] = {
+    instructionsAndFields.flatMap(_._2)
+  }
+
+  override def asHtml(bound: Binding): Elem = {
+    <form method={ method }>
+                  <table>
+                    { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }
+                    {
+          instructionsAndFields.flatMap(instrPlusFields => {
+            val instructions: String = instrPlusFields._1
+            val fields: List[forms.fields.Field[_]] = instrPlusFields._2 
+            //TODO: Make it so the strings in the list "sectionInstructionList" appear
+            <tr>
+                          <td>{ instructions }</td>
+                        </tr>
+            fields.flatMap(f => {
+              val name = f.name
+              val label = f.label.getOrElse(camel2TitleCase(f.name))
+              val labelName = if (label == "") "" else {
+                if (":?.!".contains(label.substring(label.length - 1, label.length))) label
+                else label + labelSuffix
+              }
+              val labelPart =
+              if (labelName != "") f.labelTag(this, Some(labelName)) ++ scala.xml.Text(" ")
+                else NodeSeq.Empty
+              val errorList = bound.fieldErrors.get(name).map(_.asHtml)
+              <tr>
+                            <td>{ labelPart }</td>
+                            <td>{ f.asWidget(bound) }</td>
+                            {
+                  if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
+                  else NodeSeq.Empty
+                }
+                          </tr>
+            })
+          }).toList
+        }
+        </table>
+        <input type="submit"/>
+      </form>
+  }
+}
+
 object Mastery extends Controller {
 
   def menuOfTests() = DbAction { implicit req =>
@@ -78,109 +132,28 @@ object Mastery extends Controller {
         if (sections == null || sections.isEmpty) {
           NotFound(views.html.notFound("There are no sections :("))
         } else {
-          var SAndQ: Map[QuizSection, List[Question]] = Map()
-          var LQ = List[Question]()
           if (request.method == "GET") {
-            for (s <- sections) {
-              SAndQ += (s -> s.randomQuestions) //SAndQ id a map of Section -> List[Question] 
-            }
-            SAndQ.keys.foreach { k =>
-              for (q <- SAndQ(k)) {
-                LQ = q :: LQ
-              }
-            }
-            request.visit.set("sectionsAndQuestions", LQ)
+            val sectionsWithQuestions: List[(QuizSection, List[Question])] = 
+                quiz.sections.map(s => (s, s.randomQuestions))             
+            //MasteryForm uses sectionsWithQuestions
+            val form = new MasteryForm(sectionsWithQuestions)
+            val idsOfSectionsWithQuestions: List[(Long, List[Long])] =
+                sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
+                  (sq._1.id, sq._2.map(_.id))
+                })
+            request.visit.set("quizId", quiz.id)
+            request.visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
+            Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
           } else {
-            LQ = request.visit.getAs[List[Question]]("sectionsAndQuestions").get
-          }
-
-          //MasteryForm uses SAndQ
-          if (request.method == "GET") {
-            object MasteryForm extends Form {
-              var sectionInstructionList: List[String] = {
-                var tempList = List[String]()
-                for (sq <- SAndQ) {
-                  tempList = sq._1.toString :: tempList
-                }
-                tempList
-              }
-              def getsectionInstructions = { sectionInstructionList }
-              
-              val fields2: List[List[forms.fields.Field[_]]] = {
-                var tempList = List[List[forms.fields.Field[_]]]()
-                for (sq <- SAndQ) {
-                  var tempList2 = List[forms.fields.Field[_]]()
-                  for (q <- sq._2) {
-                    tempList2 = (new TextField(q.toString())) :: tempList2
-                  }
-                  tempList = tempList2 :: tempList
-                }
-                tempList
-              }
-
-              def getfields: List[List[forms.fields.Field[_]]] = { fields2 }
-
-              override def asHtml(bound: Binding): Elem = {
-                <form method={ method }>
-                  <table>
-                    { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }
-                    {
-                      fields2.flatMap(q => {
-                        //TODO: Make it so the strings in the list "sectionInstructionList" appear
-                        <tr>
-                          <td>{ sectionInstructionList.apply(0).toString }</td>
-                        </tr>
-                        sectionInstructionList = sectionInstructionList.drop(1)
-                        q.flatMap(f => {
-                          val name = f.name
-                          val label = f.label.getOrElse(camel2TitleCase(f.name))
-                          val labelName = if (label == "") "" else {
-                            if (":?.!".contains(label.substring(label.length - 1, label.length))) label
-                            else label + labelSuffix
-                          }
-                          val labelPart =
-                          if (labelName != "") f.labelTag(this, Some(labelName)) ++ scala.xml.Text(" ")
-                            else NodeSeq.Empty
-                          val errorList = bound.fieldErrors.get(name).map(_.asHtml)
-                          <tr>
-                            <td>{ labelPart }</td>
-                            <td>{ f.asWidget(bound) }</td>
-                            {
-                              if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
-                              else NodeSeq.Empty
-                            }
-                          </tr>
-                        })
-                      }).toList
-                    }
-                  </table>
-                  <input type="submit"/>
-                </form>
-              }
-              val fields = List[forms.fields.Field[_]]()
-            }
-            Ok(html.tatro.mastery.displayMastery(quiz, Binding(MasteryForm)))
-          } else {
-            object MasteryForm extends Form {
-              val fields: List[forms.fields.Field[_]] = {
-                var tempList = List[forms.fields.Field[_]]()
-                for (q <- LQ) {
-                  tempList = new TextField(q.toString()) :: tempList
-                }
-                tempList
-              }
-            }
-            Binding(MasteryForm, request) match {
+            val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
+            val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
+              (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
+            })
+            val form = new MasteryForm(sectionsWithQuestions)
+            Binding(form, request) match {
               case ib: InvalidBinding => Ok(html.tatro.mastery.displayMastery(quiz, ib)) // there were errors
               case vb: ValidBinding => {
-                var listAnswers = List[String]()
-                for (f <- MasteryForm.fields) {
-                  listAnswers = vb.valueOf(f).toString() :: listAnswers
-                }
-                //save these in Visit
-                request.visit.set("quiz", quiz)
-                request.visit.set("LQ", LQ)
-                request.visit.set("LA", listAnswers)
+                request.visit.set("answers", form.fields.map(vb.valueOf(_)))
                 Redirect(routes.Mastery.checkAnswers())
               }
             }
@@ -201,11 +174,14 @@ object Mastery extends Controller {
   }
 
   def checkAnswers() = DbAction { implicit request =>
-    val quiz: Quiz = request.visit.getAs[Quiz]("quiz").get
-    val questionList: List[Question] = request.visit.getAs[List[Question]]("LQ").get
-    val answerList: List[String] = request.visit.getAs[List[String]]("LA").get
-    var ScoreInTF = List[Boolean]()
-    var questionList2 = questionList
+    val quiz = Quiz.getById(request.visit.getAs[Long]("quizId").get).get
+	val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
+	val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
+	  (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
+	})
+	val answerList = request.visit.getAs[List[String]]("answers").get
+    val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
+    /*    
     for (num <- 0 to answerList.size-1) {
       val a = answerList.apply(num)
       val c = changeToInterpreterSyntax(a)
@@ -221,7 +197,8 @@ object Mastery extends Controller {
     for (correct <- ScoreInTF) {
       if (!correct) numberWrong = numberWrong + 1
     }
-    Ok(html.tatro.mastery.displayScore(quiz, questionList, answerList, ScoreInTF, numberWrong))
+    */
+    Ok(html.tatro.mastery.displayScore(quiz, qsAndAs))
   }
 
   def getRidOfSpaces(s: String) = """ """.r.replaceAllIn(s, "")
@@ -563,7 +540,7 @@ object Mastery extends Controller {
         parts(s2, found :+ p)
       } else {
         val (tx, s2) = s.span(c => c != '(' && c != ')')
-        parts(s2, found :+ new Text(tx))
+        parts(s2, found :+ new TextPart(tx))
       }
     }
     val (inside, more) = parts(s.tail)
@@ -588,7 +565,9 @@ trait Part {
   def text: String
   override def toString = text
 }
-class Text(val text: String) extends Part {}
+
+class TextPart(val text: String) extends Part {}
+
 class Parens(val contents: Seq[Part]) extends Part {
   val text = "(" + contents.mkString + ")"
   def mapText(m: Map[Parens, Char]) = {

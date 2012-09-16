@@ -6,6 +6,8 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import scala.collection.JavaConverters._
+import util.ScalaPersistenceManager
+import util.DataStore
 
 @PersistenceCapable(detachable = "true")
 class QuizSection { //a section is a part of the quiz where students would be doing one sort of problem, so you could have a "simplifing exponents" section, and a "fill in the blank" section for a quiz
@@ -16,43 +18,39 @@ class QuizSection { //a section is a part of the quiz where students would be do
   private[this] var _instructions: String = _ //instructions for the section (i.e. simplify the following)
   @Element(types=Array(classOf[QuestionSet]))
   @Join
-  private[this] var _questions: java.util.List[QuestionSet] = _ //a list of the Questions/QuestionSets that make up a section. this.size = numOfQuestionsInSection
+  private[this] var _questionSets: java.util.List[QuestionSet] = _ //a list of the Questions/QuestionSets that make up a section. this.size = numOfQuestionsInSection
 
-  def this(name: String, instructions: String, questions: List[QuestionSet]) = {
+  def this(name: String, instructions: String, questionSets: List[QuestionSet]) = {
     this()
     _name=name
     _instructions=instructions
-    questions_=( questions )
+    questionSets_=( questionSets )
   }
   def id = _id
   
-  def questions: List[QuestionSet] = _questions.asScala.toList
-  def questions_=(theQuestions: List[QuestionSet]) { _questions = theQuestions.asJava }
+  def name = _name
+  def name_=(theName: String) { _name = theName }
   
-  def questionSet = { questions }
-  val rand = new Random()
-  def randomQuestions = {
-    var ListOfQuestions = List[Question]()
-    
-    for(qs <- questions){
-      ListOfQuestions = qs.get(rand.nextInt(qs.size)) :: ListOfQuestions
-    }
-    var finSet = Set[Question]()
-    for(q <- ListOfQuestions){
-      finSet
-    }
-    val finL = shuffle(ListOfQuestions)
-    finL
-  }
-  def shuffle(xs: List[Question]): List[Question] = xs match {
-    case List() => List()
-    case xs => {
-      val i = rand.nextInt(xs.size);
-      xs(i) :: shuffle(xs.take(i)++xs.drop(i+1))
-    }
-  }
+  def instructions = _instructions
+  def instructions_=(theInstructions: String) { _instructions = theInstructions }
   
+  def questionSets: List[QuestionSet] = _questionSets.asScala.toList
+  def questionSets_=(theQuestionSets: List[QuestionSet]) { _questionSets = theQuestionSets.asJava }
+  
+
+  def randomQuestions: List[Question] = {
+    Random.shuffle(questionSets.map((qs: QuestionSet) => qs.get(Random.nextInt(qs.size))))
+  }
+
   override def toString = { _instructions }
+}
+
+object QuizSection {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[QuizSection] = {
+    DataStore.execute { epm =>
+      epm.query[QuizSection].filter(QQuizSection.candidate.id.eq(id)).executeOption()
+    }
+  }
 }
 
 trait QQuizSection extends PersistableExpression[QuizSection] {
@@ -65,8 +63,8 @@ trait QQuizSection extends PersistableExpression[QuizSection] {
   private[this] lazy val _instructions: StringExpression = new StringExpressionImpl(this, "_instructions")
   def instructions: StringExpression = _instructions
   
-  private[this] lazy val _questions: ObjectExpression[List[QuestionSet]] = new ObjectExpressionImpl[List[QuestionSet]](this, "_questions")
-  def questions: ObjectExpression[List[QuestionSet]] = _questions
+  private[this] lazy val _questionSets: ObjectExpression[List[QuestionSet]] = new ObjectExpressionImpl[List[QuestionSet]](this, "_questionSets")
+  def questions: ObjectExpression[List[QuestionSet]] = _questionSets
 }
 
 object QQuizSection {

@@ -13,22 +13,22 @@ class QuestionSet { //a QuestionSet is a list of all the questions that can be u
   private[this] var _id: Long = _ //DB's id
   @Element(types=Array(classOf[Question]))
   @Join
-  private[this] var _listOfQuestions: java.util.List[Question] = _ //list of questions that make up a QuestionSet
+  private[this] var _questions: java.util.List[Question] = _ //list of questions that make up a QuestionSet
 
-  def this(listQuestions: List[Question]) = {
+  def this(questions: List[Question]) = {
     this()
-    listOfQuestions_=(listQuestions)
+    questions_=(questions)
   }
   
   def id = _id
-  def listQuestions: List[Question] = _listOfQuestions.asScala.toList
-  def listOfQuestions_=(theListQuestions: List[Question]) { _listOfQuestions = theListQuestions.asJava }
+  def questions: List[Question] = _questions.asScala.toList
+  def questions_=(theQuestions: List[Question]) { _questions = theQuestions.asJava }
   
-  override def toString = { ""+_listOfQuestions }
+  override def toString = { "" + questions }
   
-  def get(num: Int) = listQuestions(num)
+  def get(num: Int) = questions(num)
   
-  def size = listQuestions.length
+  def size = questions.length
 
 }
 
@@ -36,8 +36,8 @@ trait QQuestionSet extends PersistableExpression[QuestionSet]{
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
-  private[this] lazy val _listOfQuestions: ObjectExpression[List[Question]] = new ObjectExpressionImpl[List[Question]](this, "_listOfQuestions")
-  def listOfQuestions: ObjectExpression[List[Question]] = _listOfQuestions
+  private[this] lazy val _questions: ObjectExpression[List[Question]] = new ObjectExpressionImpl[List[Question]](this, "_questions")
+  def listOfQuestions: ObjectExpression[List[Question]] = _questions
 }
 
 object QQuestionSet {

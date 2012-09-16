@@ -73,8 +73,18 @@ class Visit {
   
   def updateMenu { menu = Menu.buildMenu(perspective) }
   
-  def set(key: String, value: AnyRef) {
-    _sessionItems.put(key, value)
+  def set(key: String, value: Any) {
+    value match {
+      case obj: AnyRef => _sessionItems.put(key, obj)
+      case byte: Byte => _sessionItems.put(key, byte: java.lang.Byte)
+      case short: Short => _sessionItems.put(key, short: java.lang.Short)
+      case int: Int => _sessionItems.put(key, int: java.lang.Integer)
+      case long: Long => _sessionItems.put(key, long: java.lang.Long)
+      case float: Float => _sessionItems.put(key, float: java.lang.Float)
+      case double: Double => _sessionItems.put(key, double: java.lang.Double)
+      case boolean: Boolean => _sessionItems.put(key, boolean: java.lang.Boolean)
+      case char: Char => _sessionItems.put(key, char: java.lang.Character)
+    }
   }
   
   def getAs[T](key: String): Option[T] = {

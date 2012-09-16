@@ -1,20 +1,10 @@
-@(quiz: models.mastery.Quiz, LQ: List[models.mastery.Question], LA: List[String], ScoreTF: List[Boolean], numWrong: Int )(implicit req: util.DbRequest[_])
+@(quiz: models.mastery.Quiz, qsAndAs: List[(models.mastery.Question, String)])(implicit req: util.DbRequest[_])
 @main(quiz.toString + " Score"){
-	<h1>@quiz.toString+" Score Card"</h1>
-	@if(numWrong==0){
-		<h2> You got 100%!!! </h2>
-	}
-		<h2> You missed @numWrong </h2>
-		<table><thead>Question</thead><thead>Your Answer</thead>
-		@for(i <- 0 to ScoreTF.size-1){
-			@if(!ScoreTF.apply(i)){
-				<tr>
-					<td>LQ.apply(i).toString</td>
-					<td>LA.apply(i)</td>
-				</tr>
-			}
+	<h1>@quiz.toString Score Card</h1>
+  
+  <table><thead><th>Question</th><th>Correct Answer</th><th>Your Answer</th></thead>
+		@for(qAndA <- qsAndAs) {
+		  <tr><td>@qAndA._1.text</td><td>@qAndA._1.answer</td><td>@qAndA._2</td></tr>
 		}
-		</table>
-	
-	
+  </table>
 }
