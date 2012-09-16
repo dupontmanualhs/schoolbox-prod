@@ -50,16 +50,16 @@ class TestParser extends FunSuite {
     assert(Parser("log(x)") === Base10Logarithm(Variable("x").get))
     assert(Parser("ln(x)") === NaturalLogarithm(Variable("x").get))
     assert(Parser("(x+y)/(15-z)") === {
-        x = Variable("x").get
-        y = Variable("y").get
-        z = Variable("z").get
-        fifteen = Integer(BigInt("15"))
+        val x = Variable("x").get
+        val y = Variable("y").get
+        val z = Variable("z").get
+        val fifteen = Integer(BigInt("15"))
         Quotient(Sum(x, y), Difference(fifteen, z))
       }
     )
-    assert(Parser("x/15-1") === Difference(Quotient(Variable("x".get), Integer(BigInt("15"))), Integer(BigInt("1"))))
+    assert(Parser("x/15-1") === Difference(Quotient(Variable("x").get, Integer(BigInt("15"))), Integer(BigInt("1"))))
     assert(Parser("(x+5)x+1") === {
-        x = Variable("x").get
+        val x = Variable("x").get
         Sum(Product(Sum(x, Integer(BigInt("5"))), x), Integer(BigInt("1")))
         }
       )
