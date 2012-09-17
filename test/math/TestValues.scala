@@ -22,7 +22,7 @@ class TestValues extends FunSuite {
     assert(Value("\\pi").get === ConstantPi())
     assert(Value("e").get === ConstantE())
     assert(Value("7+4i").get === ComplexNumber(Integer(7), Integer(4)))
-    assert(Value("x").get === Variable("x").get)
+    assert(Value("x").get === Var("x"))
     assert(Value("4.56").get === Decimal(4.56))
     assert(Value("\\approx5").get === ApproxNumber(5))
     assert(Value("\\approx9").get === ApproxNumber(9))
@@ -128,21 +128,23 @@ class TestValues extends FunSuite {
   }
 
   test("variables") {
-    val xVar = Variable("x").get
-    assert(xVar.description === "Variable(x)")
+    val xVar = Var("x")
+    assert(xVar.description === "Var(x)")
     assert(xVar.toLaTeX === "x")
-    val xChar = Variable('x').get
-    assert(xChar.description === "Variable(x)")
+    val xChar = Var('x')
+    assert(xChar.description === "Var(x)")
     assert(xChar.toLaTeX === "x")
     val xVar2 = Value("x").get
-    assert(xVar2.description === "Variable(x)")
+    assert(xVar2.description === "Var(x)")
     assert(xVar2.toLaTeX === "x")
     val xChar2 = Value('x').get
-    assert(xChar2.description === "Variable(x)")
+    assert(xChar2.description === "Var(x)")
     assert(xChar2.toLaTeX === "x")
-    val pi = Variable("pi")
-    assert(pi == None)
-    val e = Variable("e")
-    assert(e == None)
+    intercept[IllegalArgumentException] {
+      Var("pi")
+    }
+    intercept[IllegalArgumentException] {
+      Var("e")
+    }
   }
 }
