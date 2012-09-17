@@ -64,4 +64,22 @@ class TestParser extends FunSuite {
         }
       )
   }
+
+  test("precedence") {
+    assert(Parser("3+2*x") === Sum(Integer(BigInt("3")), Product(Integer(BigInt("2")), Var("x"))))
+    assert(Parser("y-z*x") === Difference(Var("y"), Product(Var("z"), Var("x"))))
+    assert(Parser("a+b/c") === Sum(Var("a"), Quotient(Var("b"), Var("c"))))
+    assert(Parser("-a^b") === Negation(Exponentiation(Var("a"), Var("b"))))
+    assert(Parser("a*b/c") === Quotient(Product(Var("a"), Var("b")), Var("c")))
+    assert(Parser("(-a)^b") === Exponentiation(Negation(Var("a")), Var("b")))
+    assert(Parser("a-b/c") === Difference(Var("a"), Quotient(Var("b"), Var("c"))))
+    assert(Parser("a-d^e*b+c/f") === Sum(Difference(Var("a"), Product(Exponentiation(Var("d"), Var("e")), Var("b"))), Quotient(Var("c"), Var("f"))))
+    assert(Parser("-a*b") === Product(Negation(Var("a")), Var("b")))
+    assert(Parser("-a-b") === Difference(Negation(Var("a")), Var("b")))
+    assert(Parser("-a/b") === Quotient(Negation(Var("a")), Var("b")))
+    assert(Parser("a/-b") === Quotient(Var("a"), Negation(Var("b"))))
+    assert(Parser("a--b") === Difference(Var("a"), Negation(Var("b"))))
+    assert(Parser("a+-b") === Sum(Var("a"), Negation(Var("b"))))
+    assert(Parser("a^-b") === Sum(Var("a"), Negation(Var("b"))))
+  }
 }
