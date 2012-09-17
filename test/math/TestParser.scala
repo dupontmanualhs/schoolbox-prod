@@ -73,7 +73,7 @@ class TestParser extends FunSuite {
     assert(Parser("a*b/c") === Quotient(Product(Var("a"), Var("b")), Var("c")))
     assert(Parser("(-a)^b") === Exponentiation(Negation(Var("a")), Var("b")))
     assert(Parser("a-b/c") === Difference(Var("a"), Quotient(Var("b"), Var("c"))))
-    assert(Parser("a-d^e*b+c/f") === Sum(Difference(Var("a"), Product(Exponentiation(Var("d"), Var("e")), Var("b"))), Quotient(Var("c"), Var("f"))))
+    assert(Parser("a-d^g*b+c/f") === Sum(Difference(Var("a"), Product(Exponentiation(Var("d"), Var("g")), Var("b"))), Quotient(Var("c"), Var("f"))))
     assert(Parser("-a*b") === Product(Negation(Var("a")), Var("b")))
     assert(Parser("-a-b") === Difference(Negation(Var("a")), Var("b")))
     assert(Parser("-a/b") === Quotient(Negation(Var("a")), Var("b")))
