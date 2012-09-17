@@ -8,10 +8,10 @@ class TestPolynomials extends FunSuite {
     val sixX2 = Term(Integer(6), TreeMap[String, Integer]("x" -> Integer(2)))
     assert(sixX2.toLaTeX === "6x^{2}")
     assert(sixX2.description === "Term(Integer(6), \"x\" -> Integer(2))")
-    assert(sixX2.toOperation === Integer(6) * Exponentiation(Variable("x").get, Integer(2)))
+    assert(sixX2.toOperation === Integer(6) * Exponentiation(Var("x"), Integer(2)))
     val fourx3y5z = Term(Integer(4), TreeMap[String, Integer]("x" -> Integer(3), "y" -> Integer(5), "z" -> Integer(1)))
     assert(fourx3y5z.toLaTeX === "4x^{3}y^{5}z")
-    assert(fourx3y5z.toOperation === Integer(4) * Exponentiation(Variable("x").get, Integer(3)) * Exponentiation(Variable("y").get, Integer(5)) * Exponentiation(Variable("z").get, Integer(1)))
+    assert(fourx3y5z.toOperation === Integer(4) * Exponentiation(Var("x"), Integer(3)) * Exponentiation(Var("y"), Integer(5)) * Exponentiation(Var("z"), Integer(1)))
     val ninex0y7 = Term(Integer(9), TreeMap[String, Integer]("x" -> Integer(0), "y" -> Integer(7)))
     assert(ninex0y7.toLaTeX === "9y^{7}")
     val eight = Term("8").get

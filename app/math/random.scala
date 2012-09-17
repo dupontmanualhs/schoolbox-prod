@@ -95,7 +95,7 @@ object RandomGen {
 
   def getComplexNumber(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = ComplexNumber(getRealNumber(range), getRealNumber(range))
 
-  def getVariable(variableArray: Array[String] = defaultVariableArray) = new Variable(variableArray(NumberGenerator.nextInt(variableArray.size)))
+  def getVariable(variableArray: Array[String] = defaultVariableArray) = new Var(variableArray(NumberGenerator.nextInt(variableArray.size)))
 
   def getSum(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals) = Sum(getExpression(range, decimals), getExpression(range, decimals))
 

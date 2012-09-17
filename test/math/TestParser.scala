@@ -22,44 +22,44 @@ class TestParser extends FunSuite {
   }
   
   test("vars") {
-    assert(Parser("x") === Variable("x").get)
-    assert(Parser("y") === Variable("y").get)
-    assert(Parser("a") === Variable("a").get)
+    assert(Parser("x") === Var("x"))
+    assert(Parser("y") === Var("y"))
+    assert(Parser("a") === Var("a"))
   }
   
   test("operations") {
-    assert(Parser("x+2") === Sum(Variable("x").get, Integer(BigInt("2"))))
-    assert(Parser("x-2") === Difference(Variable("x").get, Integer(BigInt("2"))))
-    assert(Parser("x*2") === Product(Variable("x").get, Integer(BigInt("2"))))
-    assert(Parser("x/2") === Quotient(Variable("x").get, Integer(BigInt("2"))))
-    assert(Parser("x-1") === Difference(Variable("x").get, Integer(BigInt("1"))))
-    assert(Parser("x^2") === Exponentiation(Variable("x").get, Integer(BigInt("2"))))
-    assert(Parser("(x+2)/y") === Quotient(Sum(Variable("x").get, Integer(BigInt("2"))), Variable("y").get))
-    assert(Parser("-1") === Negation(Integer(BigInt("1"))))
+    assert(Parser("x+2") === Sum(Var("x"), Integer(BigInt("2"))))
+    assert(Parser("x-2") === Difference(Var("x"), Integer(BigInt("2"))))
+    assert(Parser("x*2") === Product(Var("x"), Integer(BigInt("2"))))
+    assert(Parser("x/2") === Quotient(Var("x"), Integer(BigInt("2"))))
+    assert(Parser("x-1") === Difference(Var("x"), Integer(BigInt("1"))))
+    assert(Parser("x^2") === Exponentiation(Var("x"), Integer(BigInt("2"))))
+    assert(Parser("(x+2)/y") === Quotient(Sum(Var("x"), Integer(BigInt("2"))), Var("y")))
+    assert(Parser("-1") === Integer(BigInt("-1")))
     assert(Parser("(x+2)^(x-1)") === {
-        val x = Variable("x").get
+        val x = Var("x")
         Exponentiation(Sum(x, Integer(BigInt("2"))), Difference(x, Integer(BigInt("1"))))
       }
     )
     assert(Parser("(x+2)(x-1)") === {
-        val x = Variable("x").get
+        val x = Var("x")
         Product(Sum(x, Integer(BigInt("2"))), Difference(x, Integer(BigInt("1"))))
       }
     )
     assert(Parser("(x+2)(x-1)") === Parser("(x+2)*(x-1)"))
-    assert(Parser("log(x)") === Base10Logarithm(Variable("x").get))
-    assert(Parser("ln(x)") === NaturalLogarithm(Variable("x").get))
+    //assert(Parser("log(x)") === Base10Logarithm(Var("x")))
+    //assert(Parser("ln(x)") === NaturalLogarithm(Var("x")))
     assert(Parser("(x+y)/(15-z)") === {
-        val x = Variable("x").get
-        val y = Variable("y").get
-        val z = Variable("z").get
+        val x = Var("x")
+        val y = Var("y")
+        val z = Var("z")
         val fifteen = Integer(BigInt("15"))
         Quotient(Sum(x, y), Difference(fifteen, z))
       }
     )
-    assert(Parser("x/15-1") === Difference(Quotient(Variable("x").get, Integer(BigInt("15"))), Integer(BigInt("1"))))
+    assert(Parser("x/15-1") === Difference(Quotient(Var("x"), Integer(BigInt("15"))), Integer(BigInt("1"))))
     assert(Parser("(x+5)x+1") === {
-        val x = Variable("x").get
+        val x = Var("x")
         Sum(Product(Sum(x, Integer(BigInt("5"))), x), Integer(BigInt("1")))
         }
       )
