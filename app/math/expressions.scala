@@ -9,7 +9,7 @@ trait Expression {
 	def toLaTeX: String
 	def description: String
 	def evaluate(variables: HashMap[Expression, Value]): Expression
-	override def toString = this.toLaTeX
+	override def toString = this.description
 	def +(operand: Expression): Expression = {
 	  (this, operand) match {
 	    case (left: Constant, right: Constant) => left + right

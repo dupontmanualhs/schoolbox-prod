@@ -22,13 +22,16 @@ object Parser extends RegexParsers with PackratParsers {
       case "/" => Quotient(left, right)
     }  
   }
-  lazy val term: PackratParser[Expression] =
-    "-" ~> term ^^ { case expr => Negation(expr) } |
+  lazy val term: PackratParser[Expression] = 
+    (grouping ~ grouping) ^^ { case (left ~ right) => Product(left, right) } |
+    (expt ~ grouping) ^^ { case (left ~ right) => Product(left, right) } |
+    (grouping ~ expt) ^^ { case (left ~ right) => Product(left, right) } |
     chainl1(expt, multOrDiv)
     
   lazy val toThe: PackratParser[(Expression, Expression) => Expression] = 
     "^" ^^^ { (left: Expression, right: Expression) => Exponentiation(left, right) }
   lazy val expt: PackratParser[Expression] = 
+    "-" ~> expt ^^ { case expt => Negation(expt) } |
     (prim <~ "^") ~ expt ^^ { case (base ~ expt) => Exponentiation(base, expt) } |
     prim
     

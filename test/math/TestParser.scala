@@ -47,8 +47,8 @@ class TestParser extends FunSuite {
       }
     )
     assert(Parser("(x+2)(x-1)") === Parser("(x+2)*(x-1)"))
-    //assert(Parser("log(x)") === Base10Logarithm(Var("x")))
-    //assert(Parser("ln(x)") === NaturalLogarithm(Var("x")))
+    assert(Parser("log(x)") === Base10Logarithm(Var("x")))
+    assert(Parser("ln(x)") === NaturalLogarithm(Var("x")))
     assert(Parser("(x+y)/(15-z)") === {
         val x = Var("x")
         val y = Var("y")
@@ -80,6 +80,8 @@ class TestParser extends FunSuite {
     assert(Parser("a/-b") === Quotient(Var("a"), Negation(Var("b"))))
     assert(Parser("a--b") === Difference(Var("a"), Negation(Var("b"))))
     assert(Parser("a+-b") === Sum(Var("a"), Negation(Var("b"))))
-    assert(Parser("a^-b") === Sum(Var("a"), Negation(Var("b"))))
+    assert(Parser("a^-b") === Exponentiation(Var("a"), Negation(Var("b"))))
+    assert(Parser("-5^2") === Negation(Exponentiation(Integer(5), Integer(2))))
+    assert(Parser("(-5)^2") === Exponentiation(Integer(-5), Integer(2)))
   }
 }
