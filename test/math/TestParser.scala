@@ -16,8 +16,8 @@ class TestParser extends FunSuite {
     assert(Parser("\u22483.75") === ApproxNumber(3.75))
     assert(Parser("e") === ConstantE())
     assert(Parser("""\pi""") === ConstantPi())
-    //assert(Parser("3-2i") === ComplexNumber(Integer(3), Integer(-2)))
-    //assert(Parser("2+3i") === ComplexNumber(Integer(2), Integer(3)))
+    assert(Parser("3-2i") === ComplexNumber(Integer(3), Integer(-2)))
+    assert(Parser("2+3i") === ComplexNumber(Integer(2), Integer(3)))
     //assert(Parser("7/2+1/3i))
   }
   
@@ -81,6 +81,7 @@ class TestParser extends FunSuite {
     assert(Parser("a--b") === Difference(Var("a"), Negation(Var("b"))))
     assert(Parser("a+-b") === Sum(Var("a"), Negation(Var("b"))))
     assert(Parser("a^-b") === Exponentiation(Var("a"), Negation(Var("b"))))
+    assert(Parser("5^2") === Exponentiation(Integer(5), Integer(2)))
     assert(Parser("-5^2") === Negation(Exponentiation(Integer(5), Integer(2))))
     assert(Parser("(-5)^2") === Exponentiation(Integer(-5), Integer(2)))
   }
