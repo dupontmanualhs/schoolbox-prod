@@ -3,9 +3,9 @@ package math
 import scala.util.parsing.combinator._
 
 object Parser extends RegexParsers with PackratParsers {
-  def apply(input: String): Expression = parseAll(expr, input) match {
+  def apply(input: String) = parseAll(expr, input) match {
     case Success(result, _) => result
-    case failure : NoSuccess => scala.sys.error(failure.msg)
+    case failure : NoSuccess => "fail"
   }
 
   lazy val addOrSub: PackratParser[(Expression, Expression) => Expression] = ("+" | "-") ^^ { op =>

@@ -1,10 +1,11 @@
-@(quiz: models.mastery.Quiz, qsAndAs: List[(models.mastery.Question, String)])(implicit req: util.DbRequest[_])
+@(quiz: models.mastery.Quiz, qsAndAs: List[(models.mastery.Question, String)], nCorrect: Int, table: List[xml.NodeSeq])(implicit req: util.DbRequest[_])
 @main(quiz.toString + " Score"){
 	<h1>@quiz.toString Score Card</h1>
-  
-  <table><thead><th>Question</th><th>Correct Answer</th><th>Your Answer</th></thead>
-		@for(qAndA <- qsAndAs) {
-		  <tr><td>@qAndA._1.text</td><td>@qAndA._1.answer</td><td>@qAndA._2</td></tr>
-		}
-  </table>
+	<h2>Score: @nCorrect.toString / @qsAndAs.size.toString</h2>
+	<table class="table">
+	<thead><th>Question</th><th>Your Answer</th></thead>
+	@for(row <- table){
+		@row
+	}
+	</table>
 }

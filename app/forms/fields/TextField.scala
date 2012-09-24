@@ -9,6 +9,7 @@ import forms.widgets._
 abstract class BaseTextField[T](name: String) extends Field[T](name) {
   val minLength: Option[Int] = None
   val maxLength: Option[Int] = None
+  val autocomplete: Option[Boolean] = None
   
   override def widgetAttrs(widget: Widget): MetaData = {
     val maxLengthAttr: MetaData = if (this.maxLength.isDefined && (widget.isInstanceOf[TextInput] || widget.isInstanceOf[PasswordInput])) {

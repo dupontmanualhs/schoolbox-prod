@@ -45,31 +45,31 @@ import scala.xml
 import util.Helpers.camel2TitleCase
 
 class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) extends Form {
-  val sectionInstructionList: List[String] = 
-      sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => sq._1.instructions)
-  
+  val sectionInstructionList: List[String] =
+    sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => sq._1.instructions)
+
   val instructionsAndFields: List[(String, List[forms.fields.Field[_]])] = {
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
       (sq._1.instructions, sq._2.map((q: Question) => new TextField(q.text)))
     })
   }
-  
+
   val fields: List[forms.fields.Field[_]] = {
     instructionsAndFields.flatMap(_._2)
   }
 
   override def asHtml(bound: Binding): Elem = {
-    <form method={ method }>
-                  <table>
-                    { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }
-                    {
+    <form method={ method } autocomplete="off">
+      <table>
+        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }
+        {
           instructionsAndFields.flatMap(instrPlusFields => {
             val instructions: String = instrPlusFields._1
-            val fields: List[forms.fields.Field[_]] = instrPlusFields._2 
+            val fields: List[forms.fields.Field[_]] = instrPlusFields._2
             //TODO: Make it so the strings in the list "sectionInstructionList" appear
             <tr>
-                          <td>{ instructions }</td>
-                        </tr>
+              <td>{ instructions }</td>
+            </tr>
             fields.flatMap(f => {
               val name = f.name
               val label = f.label.getOrElse(camel2TitleCase(f.name))
@@ -78,23 +78,23 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
                 else label + labelSuffix
               }
               val labelPart =
-              if (labelName != "") f.labelTag(this, Some(labelName)) ++ scala.xml.Text(" ")
+                if (labelName != "") f.labelTag(this, Some(labelName)) ++ scala.xml.Text(" ")
                 else NodeSeq.Empty
               val errorList = bound.fieldErrors.get(name).map(_.asHtml)
               <tr>
-                            <td>{ labelPart }</td>
-                            <td>{ f.asWidget(bound) }</td>
-                            {
+                <td>{ labelPart }</td>
+                <td>{ f.asWidget(bound) }</td>
+                {
                   if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
                   else NodeSeq.Empty
                 }
-                          </tr>
+              </tr>
             })
           }).toList
         }
-        </table>
-        <input type="submit"/>
-      </form>
+      </table>
+      <input type="submit"/>
+    </form>
   }
 }
 
@@ -133,14 +133,14 @@ object Mastery extends Controller {
           NotFound(views.html.notFound("There are no sections :("))
         } else {
           if (request.method == "GET") {
-            val sectionsWithQuestions: List[(QuizSection, List[Question])] = 
-                quiz.sections.map(s => (s, s.randomQuestions))             
+            val sectionsWithQuestions: List[(QuizSection, List[Question])] =
+              quiz.sections.map(s => (s, s.randomQuestions))
             //MasteryForm uses sectionsWithQuestions
             val form = new MasteryForm(sectionsWithQuestions)
             val idsOfSectionsWithQuestions: List[(Long, List[Long])] =
-                sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
-                  (sq._1.id, sq._2.map(_.id))
-                })
+              sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
+                (sq._1.id, sq._2.map(_.id))
+              })
             request.visit.set("quizId", quiz.id)
             request.visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
             Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
@@ -175,56 +175,66 @@ object Mastery extends Controller {
 
   def checkAnswers() = DbAction { implicit request =>
     val quiz = Quiz.getById(request.visit.getAs[Long]("quizId").get).get
-	val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
-	val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
-	  (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
-	})
-	val answerList = request.visit.getAs[List[String]]("answers").get
+    val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
+    val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
+      (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
+    })
+    val a = request.visit.getAs[List[String]]("answers").get
+    val answerList = a.map(s => radToSqrt(s))
     val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
-    /*    
-    for (num <- 0 to answerList.size-1) {
-      val a = answerList.apply(num)
-      val c = changeToInterpreterSyntax(a)
-      val reorderedAns = reorderAnswer(c)
-      if(reorderedAns.equals(answerList.apply(num))){
-        ScoreInTF = true :: ScoreInTF
-      } else {
-        ScoreInTF = false :: ScoreInTF
-      }
-      ScoreInTF = ScoreInTF.reverse
-    }
-    var numberWrong = 0
-    for (correct <- ScoreInTF) {
-      if (!correct) numberWrong = numberWrong + 1
-    }
-    */
-    Ok(html.tatro.mastery.displayScore(quiz, qsAndAs))
-  }
-
-  def getRidOfSpaces(s: String) = """ """.r.replaceAllIn(s, "")
-  def getRidOfExtraMultiplication(s: String) = {
-    var rString1 = ""
-    for (n <- 1 to s.length - 1) {
-      val c = s.charAt(n)
-      val pc = s.charAt(n - 1)
-      if (pc == '*' && n - 2 >= 0) {
-        if ((c.isLetter && s.charAt(n - 2).isLetter) || (c.isDigit && s.charAt(n - 2).isDigit)) {
-          rString1 = rString1 + pc
+    val parsedQs = qsAndAs.map(x => if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) Parser.apply(addMultiplication(x._1.answer)) else x._1.answer)
+    val parsedAs = qsAndAs.map(x => if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) Parser.apply(addMultiplication(x._2)) else x._2)
+    val parsedQsAndAs = parsedQs.zip(parsedAs)
+    val numCorrect = parsedQsAndAs.count(x => x._1.equals(x._2))
+    val table: List[NodeSeq] = qsAndAs.map(x =>
+      if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) {
+        if (Parser.apply(addMultiplication(x._1.answer)).equals(Parser.apply(addMultiplication(x._2)))) {
+          <tr bgcolor="green">
+            <td>{ x._1.text }</td>
+            <td>{ x._2 }</td>
+          </tr>
+        } else {
+          <tr bgcolor="red">
+            <td>{ x._1.text }</td>
+            <td>{ x._2 }</td>
+          </tr>
         }
       } else {
-        rString1 = rString1 + pc
-      }
-      if (n == s.length() - 1 && (c.isDigit || c.isLetter || c == ')')) {
-        rString1 = rString1 + c
-      }
-    }
-    System.out.println(rString1)
-    rString1
+        if (x._1.answer.equals(x._2)) {
+          <tr bgcolor="green">
+            <td>{ x._1.text }</td>
+            <td>{ x._2 }</td>
+          </tr>
+        } else {
+          <tr bgcolor="red">
+            <td>{ x._1.text }</td>
+            <td>{ x._2 }</td>
+          </tr>
+        }
+      })
+    Ok(html.tatro.mastery.displayScore(quiz, qsAndAs, numCorrect, table))
   }
 
-  def changeRadToR(s: String) = """rad""".r.replaceAllIn(s, "r")
+  def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
 
-  def encloseExponents(s: String) = {
+  def addMultiplication(s: String) = {
+        var ns = ""
+        for (i <- 1 to s.length - 1) {
+          val c = s.charAt(i)
+          val pc = s.charAt(i - 1)
+          if ((c.isLetter && (pc.isLetter || pc.isDigit || pc == ')')) || (c.isDigit && (pc.isLetter || pc == ')')) || (c == '(' && (pc.isLetter || pc.isDigit))) {
+            ns = ns + pc + "*"
+          } else {
+            ns = ns + pc
+          }
+          if (i == s.length - 1) {
+            ns = ns + c
+          }
+        }
+        ns
+  }
+
+  /*def encloseExponents(s: String) = {
     var rs = ""
     rs = rs + s.charAt(0)
     var inExponent = false
@@ -276,8 +286,8 @@ object Mastery extends Controller {
     System.out.println("reorder Expression: \n"+ns4)
     System.out.println("map of substitutions before reorder: \n" + mapOfreplacements)
     mapOfreplacements.keys.foreach{ k=> 
-    //TODO: Fix This
-    	val split = k.split("((?<=[()+\\-*/])|(?=[()+\\-*/]))").toList
+    TODO: Fix This
+    	val split = k.split(])|(?=[()toList
     	var remadeKey = ""
     	for(q <- split){
     	  remadeKey = remadeKey + reorderMultiplication(q)
@@ -327,7 +337,7 @@ object Mastery extends Controller {
 
   
   def reorderExpression(s: String) = {
-    val splitOnOperands = s.split("((?<=[+\\-*/])|(?=[+\\-*/]))").toList
+    val splitOnOperands = s.split("((").toList
     var correctMultOrder = ""
     for (s1 <- splitOnOperands) {
       correctMultOrder = correctMultOrder + reorderMultiplication(s1)
@@ -558,10 +568,10 @@ object Mastery extends Controller {
     val pmap = findParens(p).toSeq.sortBy(_.text.length).zipWithIndex.toMap
     val p2c = pmap.mapValues(i => (i + 500 + mapIndex).toChar)
     p2c.map { case (p, c) => (p.mapText(p2c), c) }.toMap
-  }
+  }*/
 }
 
-trait Part {
+/*trait Part {
   def text: String
   override def toString = text
 }
@@ -586,3 +596,4 @@ class Parens(val contents: Seq[Part]) extends Part {
 
 
 
+*/
