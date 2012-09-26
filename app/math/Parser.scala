@@ -5,7 +5,7 @@ import scala.util.parsing.combinator._
 object Parser extends RegexParsers with PackratParsers {
   def apply(input: String) = parseAll(expr, input) match {
     case Success(result, _) => result
-    case failure : NoSuccess => "fail"
+    case failure : NoSuccess => scala.sys.error(failure.msg)
   }
 
   lazy val addOrSub: PackratParser[(Expression, Expression) => Expression] = ("+" | "-") ^^ { op =>
