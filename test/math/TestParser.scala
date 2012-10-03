@@ -110,5 +110,8 @@ class TestParser extends FunSuite {
     assert(Parser("1/4(x+3)").equals(Parser("(1/4)(x+3)")) === true)
     assert(Parser("(a)(b)").equals(Parser("(a)*(b)")) === true)
     assert(Parser("(a)(b)").equals(Parser("ab")) === false)
+    assert(Parser("a^2 * a^2").equals(Parser("a^4")) === false)
+    assert(Parser("(a^3)/(a^2)").equals(Parser("a")) === false)
+    assert(Parser("a^(-1)").equals(Parser("1/a")) === true)
   }
 }
