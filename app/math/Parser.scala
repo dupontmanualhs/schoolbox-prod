@@ -46,11 +46,15 @@ object Parser extends RegexParsers with PackratParsers {
   
   lazy val approx: PackratParser[Constant] = approxSign ~> number ^^ { value => ApproxNumber(value.getValue) }
   lazy val approxSign: PackratParser[_] = ("\u2248" | """\approx""")
-  
+    
   lazy val posNumber: PackratParser[Constant] = (posReal | posInteger | constant)
-  lazy val number: PackratParser[Constant] = (real | fraction | integer | constant) 
+  lazy val number: PackratParser[Constant] = (complex | real | fraction | integer | constant) 
   lazy val fraction: PackratParser[Fraction] = (integer ~ "/" ~ integer) ^^ { case (num ~ "/" ~ denom) => Fraction(num, denom) }
-  lazy val constant: PackratParser[Constant] = "e" ^^^ ConstantE() | "\\pi" ^^^ ConstantPi() | "[pi]" ^^^ ConstantPi()
+  lazy val constant: PackratParser[Constant] = "e" ^^^ ConstantE | "\\pi" ^^^ ConstantPi | "[pi]" ^^^ ConstantPi
+
+  lazy val complex: PackratParser[ComplexNumber] = 
+    (real ~ ("+" ~> (posReal | posInteger) <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
+     | real ~ (negReal | negInteger) <~ "i" ^^ { case re ~ im => ComplexNumber(re, im) })
 
   lazy val real: PackratParser[RealNumber] = (posReal | negReal)
   lazy val posReal: PackratParser[RealNumber] = ( """\d+\.\d*""".r | """\d*\.\d+""".r) ^^ { str => Decimal(BigDecimal(str))}

@@ -4,7 +4,7 @@ import org.scalatest.FunSuite
 
 class TestValues extends FunSuite {
   test("values") {
-    assert(Value("\\pi").get.toString === ConstantPi.symbol)
+    assert(Value("\\pi").get.toString === "\\pi")
     assert(Value("x/2") === None)
     assert(Value("5x") === None)
     assert(Value("x8") === None)
@@ -19,8 +19,8 @@ class TestValues extends FunSuite {
 
     assert(Value("6").get === Integer(6))
     assert(Value("\\frac{5}{7}").get === Fraction(Integer(5), Integer(7)))
-    assert(Value("\\pi").get === ConstantPi())
-    assert(Value("e").get === ConstantE())
+    assert(Value("\\pi").get === ConstantPi)
+    assert(Value("e").get === ConstantE)
     assert(Value("7+4i").get === ComplexNumber(Integer(7), Integer(4)))
     assert(Value("x").get === Var("x"))
     assert(Value("4.56").get === Decimal(4.56))
@@ -104,7 +104,7 @@ class TestValues extends FunSuite {
   }
 
   test("the constant E") {
-    val etest1 = ConstantE()
+    val etest1 = ConstantE
     assert(etest1.description === "ConstantE")
     assert(etest1.toLaTeX === "e")
     val etest2 = Constant("e").get
@@ -116,7 +116,7 @@ class TestValues extends FunSuite {
   }
 
   test("the constant PI") {
-    val piTest1 = ConstantPi()
+    val piTest1 = ConstantPi
     assert(piTest1.description === "ConstantPi")
     assert(piTest1.toLaTeX === "\\pi")
     val piTest2 = Constant("\\pi").get

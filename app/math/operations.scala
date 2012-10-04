@@ -263,7 +263,7 @@ object Logarithm {
     }
 }
 
-class NaturalLogarithm(expression: Expression) extends Logarithm(new ConstantE, expression) {
+class NaturalLogarithm(expression: Expression) extends Logarithm(ConstantE, expression) {
     override def getOperator: String = "\\ln"
     override def description: String = "NaturalLogarithm(%s)".format(this.getExpression.description)
 }

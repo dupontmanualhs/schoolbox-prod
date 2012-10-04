@@ -51,8 +51,8 @@ object RandomGen {
   def getConstant(range: (Int, Int) = defaultRange, decimals: Double = defaultDecimals): Constant = {
     val methodRandomizer = NumberGenerator.nextInt(7)
     methodRandomizer match{
-      case 0 => ConstantPi()
-      case 1 => ConstantE()
+      case 0 => ConstantPi
+      case 1 => ConstantE
       case num if (num > 1) => getNumber(range, decimals)
     }
   }
