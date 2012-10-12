@@ -179,39 +179,23 @@ object Mastery extends Controller {
     val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
       (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
     })
-    val a = request.visit.getAs[List[String]]("answers").get
-    val answerList = a.map(s => radToSqrt(s))
+    val answerList = request.visit.getAs[List[String]]("answers").get
     val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
-    val parsedQs = qsAndAs.map(x => if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) Parser.apply(addMultiplication(x._1.answer)) else x._1.answer)
-    val parsedAs = qsAndAs.map(x => if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) Parser.apply(addMultiplication(x._2)) else x._2)
-    val parsedQsAndAs = parsedQs.zip(parsedAs)
-    val numCorrect = parsedQsAndAs.count(x => x._1.equals(x._2))
-    val table: List[NodeSeq] = qsAndAs.map(x =>
-      if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) {
-        if (Parser.apply(addMultiplication(x._1.answer)).equals(Parser.apply(addMultiplication(x._2)))) {
+    val booleanCorrect: List[Boolean] = qsAndAs.map(qa => qa._1.answer.contains(qa._2))
+    val numCorrect: Int = booleanCorrect.count(e => e)
+    val table: List[NodeSeq] = qsAndAs.map(qa =>
+        if (qa._1.answer.contains(qa._2)) {
           <tr bgcolor="green">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
+            <td>{ qa._1.text }</td>
+            <td>{ qa._2 }</td>
           </tr>
         } else {
           <tr bgcolor="red">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
+            <td>{ qa._1.text }</td>
+            <td>{ qa._2 }</td>
           </tr>
         }
-      } else {
-        if (x._1.answer.equals(x._2)) {
-          <tr bgcolor="green">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
-          </tr>
-        } else {
-          <tr bgcolor="red">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
-          </tr>
-        }
-      })
+      )
     Ok(html.tatro.mastery.displayScore(quiz, qsAndAs, numCorrect, table))
   }
 
