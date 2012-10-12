@@ -41,24 +41,29 @@ object Parser extends RegexParsers with PackratParsers {
     } |
     prim
   
-  lazy val base: PackratParser[Expression] = (grouping | variable | posNumber | func)
-  lazy val prim: PackratParser[Expression] = (approx | number | func | variable | grouping )
+  lazy val base: PackratParser[Expression] = (grouping | variable | posRealNumber | func)
+  lazy val prim: PackratParser[Expression] = (approx | number | func | variable | grouping)
   
   lazy val approx: PackratParser[Constant] = approxSign ~> number ^^ { value => ApproxNumber(value.getValue) }
   lazy val approxSign: PackratParser[_] = ("\u2248" | """\approx""")
     
-  lazy val posNumber: PackratParser[Constant] = (posReal | posInteger | constant)
-  lazy val number: PackratParser[Constant] = (complex | real | fraction | integer | constant) 
+  lazy val number: PackratParser[Constant] = (complexNumber | realNumber)  
+  lazy val complexNumber: PackratParser[ComplexNumber] = 
+    (realNumber ~ ("+" ~> posRealNumber <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
+     | realNumber ~ negRealNumber <~ "i" ^^ { case re ~ im => ComplexNumber(re, im) }
+     | (realNumber <~ "+" <~ "(") ~ (fraction <~ ")" <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
+     | (realNumber <~ "-" <~ "(") ~ (fraction <~ ")" <~ "i") ^^ { case re ~ im => ComplexNumber(re, im.negate) }
+     )
+  lazy val realNumber: PackratParser[RealNumber] = (decimal | fraction | integer | constant)
+  
   lazy val fraction: PackratParser[Fraction] = (integer ~ "/" ~ integer) ^^ { case (num ~ "/" ~ denom) => Fraction(num, denom) }
-  lazy val constant: PackratParser[Constant] = "e" ^^^ ConstantE | "\\pi" ^^^ ConstantPi | "[pi]" ^^^ ConstantPi
+  lazy val constant: PackratParser[RealNumber] = "e" ^^^ ConstantE | "\\pi" ^^^ ConstantPi | "[pi]" ^^^ ConstantPi
 
-  lazy val complex: PackratParser[ComplexNumber] = 
-    (real ~ ("+" ~> (posReal | posInteger) <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
-     | real ~ (negReal | negInteger) <~ "i" ^^ { case re ~ im => ComplexNumber(re, im) })
-
-  lazy val real: PackratParser[RealNumber] = (posReal | negReal)
-  lazy val posReal: PackratParser[RealNumber] = ( """\d+\.\d*""".r | """\d*\.\d+""".r) ^^ { str => Decimal(BigDecimal(str))}
-  lazy val negReal: PackratParser[RealNumber] = "-" ~> posReal ^^ { real => Decimal(real.getValue * -1) }
+  lazy val posRealNumber: PackratParser[RealNumber] = (posDecimal | posInteger)
+  lazy val negRealNumber: PackratParser[RealNumber] = (negDecimal | negInteger)
+  lazy val decimal: PackratParser[RealNumber] = (posDecimal | negDecimal)
+  lazy val posDecimal: PackratParser[RealNumber] = ( """\d+\.\d*""".r | """\d*\.\d+""".r) ^^ { str => Decimal(BigDecimal(str))}
+  lazy val negDecimal: PackratParser[RealNumber] = "-" ~> posDecimal ^^ { real => Decimal(real.getValue * -1) }
   
   lazy val integer: PackratParser[Integer] = (posInteger | negInteger)
   lazy val posInteger: PackratParser[Integer] = """\d+""".r ^^ { digits => Integer(BigInt(digits)) }
@@ -72,5 +77,4 @@ object Parser extends RegexParsers with PackratParsers {
   lazy val variable: PackratParser[Var] = ("""[a-df-hj-z]{1}""".r) ^^  { case name => new Var(name) }
   
   lazy val grouping: PackratParser[Expression] = "(" ~> expr <~ ")" | "[" ~> expr <~ "]"
-  
 }

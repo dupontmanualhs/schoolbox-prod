@@ -16,9 +16,9 @@ class TestParser extends FunSuite {
     assert(Parser("\u22483.75") === ApproxNumber(3.75))
     assert(Parser("e") === ConstantE)
     assert(Parser("""\pi""") === ConstantPi)
-    assert(Parser("3-2i") === ComplexNumber(Integer(3), Integer(-2)))
     assert(Parser("2+3i") === ComplexNumber(Integer(2), Integer(3)))
-    //assert(Parser("7/2+1/3i))
+    assert(Parser("3-2i") === ComplexNumber(Integer(3), Integer(-2)))
+    assert(Parser("7/2+(1/3)i") === ComplexNumber(Fraction(7, 2), Fraction(1, 3)))
   }
   
   test("vars") {
