@@ -181,9 +181,9 @@ object Mastery extends Controller {
     })
     val answerList = request.visit.getAs[List[String]]("answers").get
     val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
-    val booleanCorrect: List[Boolean] = qsAndAs.map(qa => qa._1.answer.contains(qa._2))
-    val numCorrect: Int = booleanCorrect.count(e => e)
-    val table: List[NodeSeq] = qsAndAs.map(qa =>
+    val numCorrect: Int = qsAndAs.map(qa => if(qa._1.answer.contains(qa._2)) qa._1.value else 0).reduce((x, y) => x+y)
+    val totalPointsPossible: Int = qsAndAs.map(qa => qa._1.value).reduce((x, y) => x+y)
+    val table: List[NodeSeq] = qsAndAs.map(qa => 
         if (qa._1.answer.contains(qa._2)) {
           <tr bgcolor="green">
             <td>{ qa._1.text }</td>
@@ -196,7 +196,7 @@ object Mastery extends Controller {
           </tr>
         }
       )
-    Ok(html.tatro.mastery.displayScore(quiz, qsAndAs, numCorrect, table))
+    Ok(html.tatro.mastery.displayScore(quiz, totalPointsPossible, numCorrect, table))
   }
 
   def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")

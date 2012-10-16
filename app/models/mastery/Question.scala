@@ -20,7 +20,7 @@ class Question extends Serializable {
   private[this] var _answer: java.util.List[String] = _ // the correct answers for a question
   private[this] var _value: Int = _ // number of points the question is worth
   
-  def this(text: String, answer: List[String], value: Int) = {
+  def this(text: String, answer: List[String], value: Int = 1) = {
     this()
     _text = text
     answer_=(answer)
