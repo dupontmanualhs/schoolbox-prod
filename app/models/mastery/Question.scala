@@ -16,7 +16,7 @@ class Question extends Serializable {
   private[this] var _text: String = _ // text displayed for question (i.e. 2x^(2) = 3)
   @Element(types=Array(classOf[String]))
   @Join
-  @PersistenceCapable(detachable = "true")
+  @Persistent(defaultFetchGroup="true")
   private[this] var _answer: java.util.List[String] = _ // the correct answers for a question
   private[this] var _value: Int = _ // number of points the question is worth
   
