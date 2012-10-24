@@ -60,7 +60,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 
   override def asHtml(bound: Binding): Elem = {
     <form method={ method } autocomplete="off">
-      <table>
+      <table class="table">
         { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
@@ -69,14 +69,11 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
             //TODO: Make it so the strings in the list "sectionInstructionList" appear
             <tr>
               <td>{ instructions }</td>
-            </tr>
+            </tr> ++
             fields.flatMap(f => {
               val name = f.name
               val label = f.label.getOrElse(camel2TitleCase(f.name))
-              val labelName = if (label == "") "" else {
-                if (":?.!".contains(label.substring(label.length - 1, label.length))) label
-                else label + labelSuffix
-              }
+              val labelName = label
               val labelPart =
                 if (labelName != "") f.labelTag(this, Some(labelName)) ++ scala.xml.Text(" ")
                 else NodeSeq.Empty
@@ -181,42 +178,56 @@ object Mastery extends Controller {
     })
     val answerList = request.visit.getAs[List[String]]("answers").get
     val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
-    val numCorrect: Int = qsAndAs.map(qa => if(qa._1.answer.contains(qa._2)) qa._1.value else 0).reduce((x, y) => x+y)
-    val totalPointsPossible: Int = qsAndAs.map(qa => qa._1.value).reduce((x, y) => x+y)
-    val table: List[NodeSeq] = qsAndAs.map(qa => 
-        if (qa._1.answer.contains(qa._2)) {
-          <tr bgcolor="green">
-            <td>{ qa._1.text }</td>
-            <td>{ qa._2 }</td>
-          </tr>
-        } else {
-          <tr bgcolor="red">
-            <td>{ qa._1.text }</td>
-            <td>{ qa._2 }</td>
-          </tr>
-        }
-      )
+    val totalPointsPossible: Int = qsAndAs.map(qa => qa._1.value).reduce((x, y) => x + y)
+    val numCorrect = totalPointsPossible - (0 + qsAndAs.map(qa => if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) qa._1.value else 0).reduce((x, y) => x + y))
+    //green:  #347235
+    //green2: rgb(109,245,140)
+    //red:    #A52A2A
+    //red2:   #E50A1D
+    val table: List[NodeSeq] = qsAndAs.map(qa =>
+      if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) {
+        <tr bgcolor="#5EFB6E">
+          <td>{ qa._1.text }</td>
+          <td>{ qa._2 }</td>
+          <td>{ "correct" }</td>
+          <td>{ qa._1.value+"/"+qa._1.value }</td>
+        </tr>
+      } else {
+        <tr bgcolor="#F9966B">
+          <td>{ qa._1.text }</td>
+          <td>{ qa._2 }</td>
+          <td>{ "wrong" }</td>
+          <td>{ "0/"+qa._1.value }</td>
+        </tr>
+      })
     Ok(html.tatro.mastery.displayScore(quiz, totalPointsPossible, numCorrect, table))
   }
-
-  def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
-
-  def addMultiplication(s: String) = {
-        var ns = ""
-        for (i <- 1 to s.length - 1) {
-          val c = s.charAt(i)
-          val pc = s.charAt(i - 1)
-          if ((c.isLetter && (pc.isLetter || pc.isDigit || pc == ')')) || (c.isDigit && (pc.isLetter || pc == ')')) || (c == '(' && (pc.isLetter || pc.isDigit))) {
-            ns = ns + pc + "*"
-          } else {
-            ns = ns + pc
-          }
-          if (i == s.length - 1) {
-            ns = ns + c
-          }
-        }
-        ns
+  def removeSpaces(s: String) = {
+    """ """.r.replaceAllIn(s, "")
   }
+  
+  def removeMult(s: String) = {
+    """\*""".r.replaceAllIn(s, "")
+  }
+
+  //def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
+
+  //def addMultiplication(s: String) = {
+  //  var ns = ""
+  //  for (i <- 1 to s.length - 1) {
+  //    val c = s.charAt(i)
+  //    val pc = s.charAt(i - 1)
+  //    if ((c.isLetter && (pc.isLetter || pc.isDigit || pc == ')')) || (c.isDigit && (pc.isLetter || pc == ')')) || (c == '(' && (pc.isLetter || pc.isDigit || pc == ')'))) {
+  //      ns = ns + pc + "*"
+  //    } else {
+  //      ns = ns + pc
+  //    }
+  //    if (i == s.length - 1) {
+  //      ns = ns + c
+  //    }
+  //  }
+  //  ns
+  //}
 
   /*def encloseExponents(s: String) = {
     var rs = ""
