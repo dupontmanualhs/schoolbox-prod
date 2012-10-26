@@ -70,23 +70,20 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
             <tr>
               <td>{ instructions }</td>
             </tr> ++
-            fields.flatMap(f => {
+            fields.zip(1 to fields.length).flatMap { case (f, num) => {
               val name = f.name
-              val label = f.label.getOrElse(camel2TitleCase(f.name))
-              val labelName = label
-              val labelPart =
-                if (labelName != "") f.labelTag(this, Some(labelName)) ++ scala.xml.Text(" ")
-                else NodeSeq.Empty
+              val labelPart = f.labelTag(this, Some(num.toString + ".")) ++ scala.xml.Text(" ")
               val errorList = bound.fieldErrors.get(name).map(_.asHtml)
               <tr>
                 <td>{ labelPart }</td>
+                <td>{ f.name }</td>
                 <td>{ f.asWidget(bound) }</td>
                 {
                   if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
                   else NodeSeq.Empty
                 }
               </tr>
-            })
+            }}
           }).toList
         }
       </table>

@@ -8,6 +8,10 @@ import models.mastery._
 import util.ScalaPersistenceManager
 import util.DataStore
 
+object M {
+  def apply(s: String): String = "\\(" + s + "\\)"
+}
+
 @PersistenceCapable(detachable = "true")
 class Question extends Serializable {
   @PrimaryKey
@@ -20,12 +24,14 @@ class Question extends Serializable {
   private[this] var _answer: java.util.List[String] = _ // the correct answers for a question
   private[this] var _value: Int = _ // number of points the question is worth
   
-  def this(text: String, answer: List[String], value: Int = 1) = {
+  def this(text: String, answer: List[String], value: Int) = {
     this()
     _text = text
     answer_=(answer)
     _value = value
   }
+  
+  def this(text: String, answer: List[String]) = this(text, answer, 1)
   
   def id = _id
   
