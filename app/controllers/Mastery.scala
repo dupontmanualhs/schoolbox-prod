@@ -68,7 +68,9 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
             val fields: List[forms.fields.Field[_]] = instrPlusFields._2
             //TODO: Make it so the strings in the list "sectionInstructionList" appear
             <tr>
-              <td>{ instructions }</td>
+              <td></td>
+              <td><b>{ instructions }</b></td>
+           	  <td></td>
             </tr> ++
             fields.zip(1 to fields.length).flatMap { case (f, num) => {
               val name = f.name
@@ -206,7 +208,12 @@ object Mastery extends Controller {
   def removeMult(s: String) = {
     """\*""".r.replaceAllIn(s, "")
   }
-
+  
+  def replaceMultiplicationSignsWithDots(s: String) ={
+    """\*""".r.replaceAllIn(s, "\\cdot ")
+  }
+  
+  /*
   //def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
 
   //def addMultiplication(s: String) = {
@@ -226,26 +233,7 @@ object Mastery extends Controller {
   //  ns
   //}
 
-  /*def encloseExponents(s: String) = {
-    var rs = ""
-    rs = rs + s.charAt(0)
-    var inExponent = false
-    for (n <- 1 to s.length - 1) {
-      val c = s.charAt(n)
-      if (n != s.length - 1 && c == '^' && s.charAt(n + 1) != '(') {
-        rs = rs + "^("
-        inExponent = true
-      } else if (inExponent && (!c.isLetter && !c.isDigit)) {
-        rs = rs + ")" + c
-        inExponent = false
-      } else if(inExponent && n==s.length-1){
-        rs = rs + c + ")"
-      } else {
-        rs = rs + c
-      }
-    }
-    rs
-  }
+  
 
   def changeToInterpreterSyntax(s: String) = {
     var rs = getRidOfSpaces(s)
