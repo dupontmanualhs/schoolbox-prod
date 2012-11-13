@@ -5,15 +5,17 @@ import scala.math.max
 
 class Dec(val decVal: BigDecimal) extends Frac(Dec.numerator(decVal), Dec.denominator(decVal)) {
   def +(that: Dec): Dec = Dec(this.decVal + that.decVal)
-  def -(that: Dec): Dec = Dec(this.decVal - that.decVal)
+  override def unary_- : Dec = Dec(-this.decVal)
+  def -(that: Dec): Dec = this + -that
   def *(that: Dec) = Dec(this.decVal * that.decVal)
-  def /(that: Dec) = {
+  override def recip = {
     try {
-      new Dec(this.decVal.bigDecimal.divide(that.decVal.bigDecimal))
+      new Dec(java.math.BigDecimal.ONE.divide(this.decVal.bigDecimal))
     } catch {
-      case e: ArithmeticException => super./(that)
+      case e: ArithmeticException => super.recip.simplified
     }
   }
+  def /(that: Dec) = this * that.recip
   override def simplified = this.decVal.toBigIntExact match {
     case Some(int) => Integer(int)
     case None => this

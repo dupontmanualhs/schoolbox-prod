@@ -10,6 +10,7 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
+      "org.scala-lang" % "scala-compiler" % "2.9.1",            
       "org.joda" % "joda-convert" % "1.2",
       "org.apache.poi" % "poi" % "3.8-beta5",
       "org.apache.poi" % "poi-ooxml" % "3.8-beta5",
