@@ -1,7 +1,11 @@
 package math.numbers
 
-class Real extends Number {
-
+abstract class Real extends Number {
+  def +(that: Real): Real
+  def -(that: Real): Real
+  def *(that: Real): Real
+  def /(that: Real): Real
+  def repr: String
 }
 
 object Real {

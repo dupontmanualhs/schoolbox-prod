@@ -1,10 +1,25 @@
 package math.numbers
 
 class Frac(val num: BigInt, val denom: BigInt) extends Real {
-  def +(that: Frac) = new Frac(this.num * that.denom + this.denom * that.num, this.denom * that.denom).simplified
-  def -(that: Frac) = new Frac(this.num * that.denom - this.denom * that.num, this.denom * that.denom).simplified
-  def *(that: Frac) = new Frac(this.num * that.num, this.denom * that.denom).simplified
-  def /(that: Frac) = new Frac(this.num * that.denom, this.denom * that.num).simplified
+  def +(that: Real): Real = that match {
+    case x: Frac => this + x
+  }
+  def -(that: Real): Real = that match {
+    case x: Frac => this - x
+  }
+  def *(that: Real): Real = that match {
+    case x: Frac => this * x
+  }
+  def /(that: Real): Real = that match {
+    case x: Frac => this / x
+  }
+  
+  def +(that: Frac): Frac = Frac(this.num * that.denom + this.denom * that.num, this.denom * that.denom).simplified
+  def unary_- = Frac(-this.num, this.denom).simplified
+  def -(that: Frac): Frac = this + -that
+  def *(that: Frac): Frac = new Frac(this.num * that.num, this.denom * that.denom).simplified
+  def recip = Frac(this.denom, this.num).simplified
+  def /(that: Frac): Frac = this * that.recip
   
   def simplified: Frac = {
     val signum = num.signum * denom.signum

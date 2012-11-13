@@ -2,10 +2,12 @@ package math.numbers
 
 class Integer(val intVal: BigInt) extends Dec(BigDecimal(intVal, 0)) {
   def +(that: Integer): Integer = Integer(this.intVal + that.intVal)
-  def -(that: Integer): Integer = Integer(this.intVal - that.intVal)
+  override def unary_- : Integer = Integer(-this.intVal)
+  def -(that: Integer): Integer = this + -that
   def *(that: Integer): Integer = Integer(this.intVal * that.intVal)
-  def /(that: Integer): Frac = Frac(this.intVal, that.intVal).simplified 
-  def ^^(that: Integer) = {
+  override def recip: Frac = Frac(1, intVal).simplified
+  def /(that: Integer): Frac = this * that.recip 
+  def ~^(that: Integer) = {
     if (that.intVal.isValidInt) this.intVal.pow(that.intVal.toInt)
     else throw new ArithmeticException("Exponent too large: %s".format(that.intVal))
   }
