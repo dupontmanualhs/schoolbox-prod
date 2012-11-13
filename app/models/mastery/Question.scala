@@ -8,37 +8,41 @@ import models.mastery._
 import util.ScalaPersistenceManager
 import util.DataStore
 
+object M {
+  def apply(s: String): String = "\\(" + s + "\\)"
+}
+
 @PersistenceCapable(detachable = "true")
 class Question extends Serializable {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
   private[this] var _text: String = _ // text displayed for question (i.e. 2x^(2) = 3)
-  private[this] var _answer: String = _ // the correct answer for a question
+  @Element(types=Array(classOf[String]))
+  @Join
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _answer: java.util.List[String] = _ // the correct answers for a question
   private[this] var _value: Int = _ // number of points the question is worth
-  private[this] var _kind: String = _ // type of answer needed
   
-  def this(text: String, answer: String, value: Int, kind: String) = {
+  def this(text: String, answer: List[String], value: Int) = {
     this()
     _text = text
-    _answer = answer
+    answer_=(answer)
     _value = value
-    _kind = kind
   }
+  
+  def this(text: String, answer: List[String]) = this(text, answer, 1)
   
   def id = _id
   
   def text = _text
   def text_=(theText: String) { _text = theText }
   
-  def answer = _answer
-  def answer_=(theAnswer: String) { _answer = theAnswer }
+  def answer: List[String] = _answer.asScala.toList
+  def answer_=(theAnswer: List[String]) { _answer = theAnswer.asJava }
   
   def value = _value
   def value_=(theValue: Int) { _value = theValue }
-  
-  def kind = _kind
-  def kind_=(theKind: String) { _kind = theKind }
   
   override def toString = { text }
 }
@@ -59,14 +63,12 @@ trait QQuestion extends PersistableExpression[Question] {
   private[this] lazy val _questionText: StringExpression = new StringExpressionImpl(this, "_questionText")
   def questionText: StringExpression = _questionText
   
-  private[this] lazy val _correctAnswer: StringExpression = new StringExpressionImpl(this, "_correctAnswer")
-  def correctAnswer: StringExpression = _correctAnswer
+  private[this] lazy val _answer: ObjectExpression[List[String]] = new ObjectExpressionImpl[List[String]](this, "_answer")
+  def answer: ObjectExpression[List[String]] = _answer
   
   private[this] lazy val _value: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_value")
   def value: NumericExpression[Int] = _value
   
-  private[this] lazy val _typ: StringExpression = new StringExpressionImpl(this, "_typ")
-  def Type: StringExpression = _typ
 }
 
 object QQuestion {

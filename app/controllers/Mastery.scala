@@ -60,7 +60,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 
   override def asHtml(bound: Binding): Elem = {
     <form method={ method } autocomplete="off">
-      <table>
+      <table class="table">
         { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
@@ -69,27 +69,21 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
             //TODO: Make it so the strings in the list "sectionInstructionList" appear
             <tr>
               <td>{ instructions }</td>
-            </tr>
-            fields.flatMap(f => {
+            </tr> ++
+            fields.zip(1 to fields.length).flatMap { case (f, num) => {
               val name = f.name
-              val label = f.label.getOrElse(camel2TitleCase(f.name))
-              val labelName = if (label == "") "" else {
-                if (":?.!".contains(label.substring(label.length - 1, label.length))) label
-                else label + labelSuffix
-              }
-              val labelPart =
-                if (labelName != "") f.labelTag(this, Some(labelName)) ++ scala.xml.Text(" ")
-                else NodeSeq.Empty
+              val labelPart = f.labelTag(this, Some(num.toString + ".")) ++ scala.xml.Text(" ")
               val errorList = bound.fieldErrors.get(name).map(_.asHtml)
               <tr>
                 <td>{ labelPart }</td>
+                <td>{ f.name }</td>
                 <td>{ f.asWidget(bound) }</td>
                 {
                   if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
                   else NodeSeq.Empty
                 }
               </tr>
-            })
+            }}
           }).toList
         }
       </table>
@@ -179,60 +173,58 @@ object Mastery extends Controller {
     val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
       (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
     })
-    val a = request.visit.getAs[List[String]]("answers").get
-    val answerList = a.map(s => radToSqrt(s))
+    val answerList = request.visit.getAs[List[String]]("answers").get
     val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
-    val parsedQs = qsAndAs.map(x => if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) Parser.apply(addMultiplication(x._1.answer)) else x._1.answer)
-    val parsedAs = qsAndAs.map(x => if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) Parser.apply(addMultiplication(x._2)) else x._2)
-    val parsedQsAndAs = parsedQs.zip(parsedAs)
-    val numCorrect = parsedQsAndAs.count(x => x._1.equals(x._2))
-    val table: List[NodeSeq] = qsAndAs.map(x =>
-      if (x._1.kind.equals("Expression") && !Parser.apply(addMultiplication(x._1.answer)).equals("fail")) {
-        if (Parser.apply(addMultiplication(x._1.answer)).equals(Parser.apply(addMultiplication(x._2)))) {
-          <tr bgcolor="green">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
-          </tr>
-        } else {
-          <tr bgcolor="red">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
-          </tr>
-        }
+    val totalPointsPossible: Int = qsAndAs.map(qa => qa._1.value).reduce((x, y) => x + y)
+    val numCorrect = totalPointsPossible - (0 + qsAndAs.map(qa => if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) qa._1.value else 0).reduce((x, y) => x + y))
+    //green:  #347235
+    //green2: rgb(109,245,140)
+    //red:    #A52A2A
+    //red2:   #E50A1D
+    val table: List[NodeSeq] = qsAndAs.map(qa =>
+      if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) {
+        <tr bgcolor="#5EFB6E">
+          <td>{ qa._1.text }</td>
+          <td>{ qa._2 }</td>
+          <td>{ "correct" }</td>
+          <td>{ qa._1.value+"/"+qa._1.value }</td>
+        </tr>
       } else {
-        if (x._1.answer.equals(x._2)) {
-          <tr bgcolor="green">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
-          </tr>
-        } else {
-          <tr bgcolor="red">
-            <td>{ x._1.text }</td>
-            <td>{ x._2 }</td>
-          </tr>
-        }
+        <tr bgcolor="#F9966B">
+          <td>{ qa._1.text }</td>
+          <td>{ qa._2 }</td>
+          <td>{ "wrong" }</td>
+          <td>{ "0/"+qa._1.value }</td>
+        </tr>
       })
-    Ok(html.tatro.mastery.displayScore(quiz, qsAndAs, numCorrect, table))
+    Ok(html.tatro.mastery.displayScore(quiz, totalPointsPossible, numCorrect, table))
+  }
+  def removeSpaces(s: String) = {
+    """ """.r.replaceAllIn(s, "")
+  }
+  
+  def removeMult(s: String) = {
+    """\*""".r.replaceAllIn(s, "")
   }
 
-  def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
+  //def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
 
-  def addMultiplication(s: String) = {
-        var ns = ""
-        for (i <- 1 to s.length - 1) {
-          val c = s.charAt(i)
-          val pc = s.charAt(i - 1)
-          if ((c.isLetter && (pc.isLetter || pc.isDigit || pc == ')')) || (c.isDigit && (pc.isLetter || pc == ')')) || (c == '(' && (pc.isLetter || pc.isDigit))) {
-            ns = ns + pc + "*"
-          } else {
-            ns = ns + pc
-          }
-          if (i == s.length - 1) {
-            ns = ns + c
-          }
-        }
-        ns
-  }
+  //def addMultiplication(s: String) = {
+  //  var ns = ""
+  //  for (i <- 1 to s.length - 1) {
+  //    val c = s.charAt(i)
+  //    val pc = s.charAt(i - 1)
+  //    if ((c.isLetter && (pc.isLetter || pc.isDigit || pc == ')')) || (c.isDigit && (pc.isLetter || pc == ')')) || (c == '(' && (pc.isLetter || pc.isDigit || pc == ')'))) {
+  //      ns = ns + pc + "*"
+  //    } else {
+  //      ns = ns + pc
+  //    }
+  //    if (i == s.length - 1) {
+  //      ns = ns + c
+  //    }
+  //  }
+  //  ns
+  //}
 
   /*def encloseExponents(s: String) = {
     var rs = ""

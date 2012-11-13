@@ -1,9 +1,9 @@
-@(quiz: models.mastery.Quiz, qsAndAs: List[(models.mastery.Question, String)], nCorrect: Int, table: List[xml.NodeSeq])(implicit req: util.DbRequest[_])
+@(quiz: models.mastery.Quiz, PtsPoss: Int, nCorrect: Int, table: List[xml.NodeSeq])(implicit req: util.DbRequest[_])
 @main(quiz.toString + " Score"){
 	<h1>@quiz.toString Score Card</h1>
-	<h2>Score: @nCorrect.toString / @qsAndAs.size.toString</h2>
-	<table class="table">
-	<thead><th>Question</th><th>Your Answer</th></thead>
+	<h2>Missed: @nCorrect.toString</h2>
+	<table class="table" border="1">
+	<thead><th>Question</th><th>Your Answer</th><th>Right/Wrong</th><th>Points</th></thead>
 	@for(row <- table){
 		@row
 	}
