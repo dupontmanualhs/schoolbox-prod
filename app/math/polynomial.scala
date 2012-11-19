@@ -2,16 +2,16 @@ package math
 
 import scala.collection.immutable.HashMap
 
-class MathPolynomial(terms: List[MathTerm]) extends MathExpression {
-	def getTerms: List[MathTerm] = terms
-	def simplify: MathExpression = new MathPolynomial(this.getTerms)
+class Polynomial(terms: List[Term]) extends Expression {
+	def getTerms: List[Term] = terms
+	def simplify: Expression = new Polynomial(this.getTerms)
 	def getPrecedence: Int = 1
-	def toMathOperation: MathExpression = {
-		val termOperations: List[MathExpression] = this.getTerms.map(_.toMathOperation).toList
+	def toOperation: Expression = {
+		val termOperations: List[Expression] = this.getTerms.map(_.toOperation).toList
 		if (termOperations.size >= 1) {
-			termOperations.tail.foldLeft(termOperations.head)((x: MathExpression, y: MathExpression) => x.+(y))
+			termOperations.tail.foldLeft(termOperations.head)((x: Expression, y: Expression) => x.+(y))
 		} else {
-			MathTerm("0").get.toMathOperation
+			Term("0").get.toOperation
 		}
 	}
 	def toLaTeX: String = {
@@ -22,7 +22,7 @@ class MathPolynomial(terms: List[MathTerm]) extends MathExpression {
 		}
 	}
 	def unrefinedLaTeX: String = this.getTerms.map(monomialLaTeX(_)).mkString(" ")
-	def monomialLaTeX(monomial: MathTerm): String = {
+	def monomialLaTeX(monomial: Term): String = {
 		val coefficient = monomial.getCoefficient
 		 if (coefficient != null && !coefficient.isNegative) {
 			 "+ %s".format(monomial.toLaTeX)
@@ -33,25 +33,25 @@ class MathPolynomial(terms: List[MathTerm]) extends MathExpression {
 	private def withoutNegativeSign(str: String): String = {
 		"""-""".r.replaceFirstIn(str, "")
 	}
-	def description: String = this.getTerms.map(_.description).mkString("MathPolynomial(", ", ", ")")
+	def description: String = this.getTerms.map(_.description).mkString("Polynomial(", ", ", ")")
 	override def equals(that: Any): Boolean = {
 		that match {
-			case that: MathPolynomial => this.toMathOperation == that.toMathOperation
+			case that: Polynomial => this.toOperation == that.toOperation
 			case _ => false
 		}
 	}
 	
-	override def evaluate(variables : HashMap[MathExpression, MathValue]) = MathInteger(0)
+	override def evaluate(variables : HashMap[Expression, Value]) = throw new UnsupportedOperationException()
 }
 
-object MathPolynomial {
-	def apply(terms: List[MathTerm]) = new MathPolynomial(terms)
-	def apply(str: String): Option[MathPolynomial] = {
+object Polynomial {
+	def apply(terms: List[Term]) = new Polynomial(terms)
+	def apply(str: String): Option[Polynomial] = {
 		val s = removeAllSpacesIn(str)
 		val terms: List[String] = getAllTerms(s)
 		if (allTermsAreValid(terms)) {
-			val mathTerms: List[MathTerm] = convertToMathTerms(terms)
-			Some(MathPolynomial(mathTerms))
+			val mathTerms: List[Term] = convertToTerms(terms)
+			Some(Polynomial(mathTerms))
 		} else {
 			None
 		}
@@ -64,11 +64,11 @@ object MathPolynomial {
 		regexSplit.split(s).toList
 	}
 	def allTermsAreValid(terms: List[String]): Boolean = {
-		terms.forall(MathTerm(_) isDefined)
+		terms.forall(Term(_) isDefined)
 	}
-	def convertToMathTerms(strings: List[String]): List[MathTerm] = {
+	def convertToTerms(strings: List[String]): List[Term] = {
 		(for (s <- strings) yield {
-			MathTerm(s).get
+			Term(s).get
 		}).toList
 	}
 }

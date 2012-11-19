@@ -31,11 +31,13 @@ class LabelQueueSet {
 
   def copyRange: String = _copyRange
   def copyRange_=(theCopyRange: String) { _copyRange = copyRange }
+
+  override def toString: String = {
+    "Copies " + copyRange + " of " + title.name
+  }
 }
 
 object LabelQueueSet {
-  //def unicode
-  //TODO - Write the implementation
 }
 
 trait QLabelQueueSet extends PersistableExpression[LabelQueueSet] {

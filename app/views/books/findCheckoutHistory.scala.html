@@ -1,0 +1,5 @@
+@(perspectiveHistoryLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Find Checkout History") {
+  @perspectiveHistoryLookupForm.asHtml
+}

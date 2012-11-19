@@ -45,8 +45,7 @@ class Checkout {
 }
 
 object Checkout {
-  //def save
-  //TODO - Write the implementation
+  //TODO - Write the jdoPreStore method
 }
 
 trait QCheckout extends PersistableExpression[Checkout] {

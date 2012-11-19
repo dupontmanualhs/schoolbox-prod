@@ -2,102 +2,102 @@ package math
 
 import scala.collection.immutable.HashMap
 
-//MathConstant subclasses: MathConstantPi & MathConstantE (see below)
-//                                      MathNumber (Math numbers.scala)
-abstract class MathConstant extends MathValue {
+//Constant subclasses: ConstantPi & ConstantE (see below)
+//                                      Number (numbers.scala)
+abstract class Constant extends Value {
 	def getValue: BigDecimal
 	override def equals(that: Any): Boolean = {
 		that match {
-			case that: MathConstant => (that.getValue == this.getValue)
+			case that: Constant => (that.getValue == this.getValue)
 			case _ => false
 		}
 	}
 
-    def +(right: MathConstant): MathExpression = {
+    def +(right: Constant): Expression = {
         (this, right) match {
-            case (left: MathRealNumber, right: MathRealNumber) => left + right
-            case (left: MathRealNumber, right: MathComplexNumber) => MathComplexNumber(left + right.getReal, right.getImaginary)
-            case (left: MathComplexNumber, right: MathRealNumber) => MathComplexNumber(left.getReal + right, left.getImaginary)
-            case (left: MathComplexNumber, right: MathComplexNumber) => MathComplexNumber(left.getReal + right.getReal, left.getImaginary + right.getImaginary)
-            case (left: MathConstant, right: MathComplexNumber) => if(right.isApproximation) MathComplexNumber(MathApproximateNumber(left.getValue + right.getReal.getValue), right.getImaginary) else MathSum(left, right)
-            case (left: MathComplexNumber, right: MathConstant) => if(left.isApproximation) MathComplexNumber(MathApproximateNumber(left.getReal.getValue + right.getValue), left.getImaginary) else MathSum(left, right)
-            case (left: MathApproximateNumber, _) => MathApproximateNumber(left.getValue + right.getValue)
-            case (_, right: MathApproximateNumber) => right + this
-            case _ => if(this == right) this * MathInteger(2) else MathSum(this, right)
+            case (left: RealNumber, right: RealNumber) => left + right
+            case (left: RealNumber, right: ComplexNumber) => ComplexNumber(left + right.getReal, right.getImaginary)
+            case (left: ComplexNumber, right: RealNumber) => ComplexNumber(left.getReal + right, left.getImaginary)
+            case (left: ComplexNumber, right: ComplexNumber) => ComplexNumber(left.getReal + right.getReal, left.getImaginary + right.getImaginary)
+            case (left: Constant, right: ComplexNumber) => if(right.isApproximation) ComplexNumber(ApproxNumber(left.getValue + right.getReal.getValue), right.getImaginary) else Sum(left, right)
+            case (left: ComplexNumber, right: Constant) => if(left.isApproximation) ComplexNumber(ApproxNumber(left.getReal.getValue + right.getValue), left.getImaginary) else Sum(left, right)
+            case (left: ApproxNumber, _) => ApproxNumber(left.getValue + right.getValue)
+            case (_, right: ApproxNumber) => right + this
+            case _ => if(this == right) this * Integer(2) else Sum(this, right)
         }
     }
-    def -(right: MathConstant): MathExpression = {
+    def -(right: Constant): Expression = {
         (this, right) match {
-            case (left: MathRealNumber, right: MathRealNumber) => left - right
-            case (left: MathRealNumber, right: MathComplexNumber) => MathComplexNumber(left - right.getReal, right.getImaginary)
-            case (left: MathComplexNumber, right: MathRealNumber) => MathComplexNumber(left.getReal - right, left.getImaginary)
-            case (left: MathComplexNumber, right: MathComplexNumber) => MathComplexNumber(left.getReal - right.getReal, left.getImaginary - right.getImaginary)
-            case (left: MathConstant, right: MathComplexNumber) => if(right.isApproximation) MathComplexNumber(MathApproximateNumber(left.getValue - right.getReal.getValue), right.getImaginary) else MathDifference(left, right)
-            case (left: MathComplexNumber, right: MathConstant) => if(left.isApproximation) MathComplexNumber(MathApproximateNumber(left.getReal.getValue - right.getValue), left.getImaginary) else MathDifference(left, right)
-            case (left: MathApproximateNumber, _) => MathApproximateNumber(left.getValue - right.getValue)
-            case (_, right: MathApproximateNumber) => MathApproximateNumber(this.getValue - right.getValue)
-            case _ => if(this == right) MathInteger(0) else MathDifference(this, right)
+            case (left: RealNumber, right: RealNumber) => left - right
+            case (left: RealNumber, right: ComplexNumber) => ComplexNumber(left - right.getReal, right.getImaginary)
+            case (left: ComplexNumber, right: RealNumber) => ComplexNumber(left.getReal - right, left.getImaginary)
+            case (left: ComplexNumber, right: ComplexNumber) => ComplexNumber(left.getReal - right.getReal, left.getImaginary - right.getImaginary)
+            case (left: Constant, right: ComplexNumber) => if(right.isApproximation) ComplexNumber(ApproxNumber(left.getValue - right.getReal.getValue), right.getImaginary) else Difference(left, right)
+            case (left: ComplexNumber, right: Constant) => if(left.isApproximation) ComplexNumber(ApproxNumber(left.getReal.getValue - right.getValue), left.getImaginary) else Difference(left, right)
+            case (left: ApproxNumber, _) => ApproxNumber(left.getValue - right.getValue)
+            case (_, right: ApproxNumber) => ApproxNumber(this.getValue - right.getValue)
+            case _ => if(this == right) Integer(0) else Difference(this, right)
         }
     }
-    def *(right: MathConstant): MathExpression = {
+    def *(right: Constant): Expression = {
         (this, right) match {
-            case (left: MathRealNumber, right: MathRealNumber) => left * right
-            case (left: MathRealNumber, right: MathComplexNumber) => MathComplexNumber(left * right.getReal, left * right.getImaginary)
-            case (left: MathComplexNumber, right: MathRealNumber) => MathComplexNumber(left.getReal * right, left.getImaginary * right)
-            case (left: MathComplexNumber, right: MathComplexNumber) => MathComplexNumber(left.getReal * right.getReal - left.getImaginary * right.getImaginary, left.getReal * right.getImaginary + right.getReal * left.getImaginary)
-            case (left: MathConstant, right: MathComplexNumber) => if(right.isApproximation) MathComplexNumber(MathApproximateNumber(left.getValue * right.getReal.getValue), MathApproximateNumber(left.getValue * right.getImaginary.getValue)) else MathProduct(left, right)
-            case (left: MathComplexNumber, right: MathConstant) => if(left.isApproximation) MathComplexNumber(MathApproximateNumber(left.getReal.getValue * right.getValue), MathApproximateNumber(left.getImaginary.getValue * right.getValue)) else MathProduct(left, right)
-            case (left: MathApproximateNumber, _) => MathApproximateNumber(left.getValue * right.getValue)
-            case (_, right: MathApproximateNumber) => right * this
-            case _ => if(this == right) MathExponentiation(this, MathInteger(2)) else MathProduct(this, right)
+            case (left: RealNumber, right: RealNumber) => left * right
+            case (left: RealNumber, right: ComplexNumber) => ComplexNumber(left * right.getReal, left * right.getImaginary)
+            case (left: ComplexNumber, right: RealNumber) => ComplexNumber(left.getReal * right, left.getImaginary * right)
+            case (left: ComplexNumber, right: ComplexNumber) => ComplexNumber(left.getReal * right.getReal - left.getImaginary * right.getImaginary, left.getReal * right.getImaginary + right.getReal * left.getImaginary)
+            case (left: Constant, right: ComplexNumber) => if(right.isApproximation) ComplexNumber(ApproxNumber(left.getValue * right.getReal.getValue), ApproxNumber(left.getValue * right.getImaginary.getValue)) else Product(left, right)
+            case (left: ComplexNumber, right: Constant) => if(left.isApproximation) ComplexNumber(ApproxNumber(left.getReal.getValue * right.getValue), ApproxNumber(left.getImaginary.getValue * right.getValue)) else Product(left, right)
+            case (left: ApproxNumber, _) => ApproxNumber(left.getValue * right.getValue)
+            case (_, right: ApproxNumber) => right * this
+            case _ => if(this == right) Exponentiation(this, Integer(2)) else Product(this, right)
         }
     }
-    def /(right: MathConstant): MathExpression = {
+    def /(right: Constant): Expression = {
         (this, right) match {
-            case (left: MathRealNumber, right: MathRealNumber) => left / right
-            case (left: MathRealNumber, right: MathComplexNumber) => MathQuotient(left * MathComplexNumber(right.getReal, right.getImaginary * MathInteger(-1)), right * MathComplexNumber(right.getReal, right.getImaginary * MathInteger(-1))).simplify
-            case (left: MathComplexNumber, right: MathRealNumber) => MathQuotient(left.getReal / right, left.getImaginary / right)
-            case (left: MathComplexNumber, right: MathComplexNumber) => MathQuotient(left * MathComplexNumber(right.getReal, right.getImaginary * MathInteger(-1)), right * MathComplexNumber(right.getReal, right.getImaginary * MathInteger(-1))).simplify
-            case (left: MathConstant, right: MathComplexNumber) => MathQuotient(left * MathComplexNumber(right.getReal, right.getImaginary * MathInteger(-1)), right * MathComplexNumber(right.getReal, right.getImaginary * MathInteger(-1))).simplify
-            case (left: MathComplexNumber, right: MathConstant) => if(left.isApproximation) MathComplexNumber(MathApproximateNumber(left.getReal.getValue / right.getValue), MathApproximateNumber(left.getImaginary.getValue / right.getValue)) else MathQuotient(left, right)
-            case (left: MathApproximateNumber, _) => MathApproximateNumber(left.getValue / right.getValue)
-            case (_, right: MathApproximateNumber) => MathApproximateNumber(this.getValue / right.getValue)
-            case _ => if(this == right) MathInteger(1) else MathQuotient(this, right)
+            case (left: RealNumber, right: RealNumber) => left / right
+            case (left: RealNumber, right: ComplexNumber) => Quotient(left * ComplexNumber(right.getReal, right.getImaginary * Integer(-1)), right * ComplexNumber(right.getReal, right.getImaginary * Integer(-1))).simplify
+            case (left: ComplexNumber, right: RealNumber) => Quotient(left.getReal / right, left.getImaginary / right)
+            case (left: ComplexNumber, right: ComplexNumber) => Quotient(left * ComplexNumber(right.getReal, right.getImaginary * Integer(-1)), right * ComplexNumber(right.getReal, right.getImaginary * Integer(-1))).simplify
+            case (left: Constant, right: ComplexNumber) => Quotient(left * ComplexNumber(right.getReal, right.getImaginary * Integer(-1)), right * ComplexNumber(right.getReal, right.getImaginary * Integer(-1))).simplify
+            case (left: ComplexNumber, right: Constant) => if(left.isApproximation) ComplexNumber(ApproxNumber(left.getReal.getValue / right.getValue), ApproxNumber(left.getImaginary.getValue / right.getValue)) else Quotient(left, right)
+            case (left: ApproxNumber, _) => ApproxNumber(left.getValue / right.getValue)
+            case (_, right: ApproxNumber) => ApproxNumber(this.getValue / right.getValue)
+            case _ => if(this == right) Integer(1) else Quotient(this, right)
         }
     }
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = this
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = this
 }
 
-object MathConstant {
-	def apply(s: String): Option[MathConstant] = {
+object Constant {
+	def apply(s: String): Option[Constant] = {
 		s match {
-			case "\\pi" => Some(MathConstantPi())
-			case "e"  => Some(MathConstantE())
-			case _    => MathNumber(s)
+			case "\\pi" => Some(ConstantPi())
+			case "e"  => Some(ConstantE())
+			case _    => Number(s)
 		}
 	}
 }
 
-class MathConstantE extends MathConstant {
+class ConstantE extends Constant {
 	override def getValue: BigDecimal = scala.math.E
 	override def toLaTeX: String = "e"
-	override def simplify = new MathConstantE
-	override def description: String = "MathConstantE"
+	override def simplify = new ConstantE
+	override def description: String = "ConstantE"
 }
 
-object MathConstantE {
-	def apply() = new MathConstantE
+object ConstantE {
+	def apply() = new ConstantE
 }
 
-class MathConstantPi extends MathConstant {
+class ConstantPi extends Constant {
 	override def getValue: BigDecimal = scala.math.Pi
-	override def toLaTeX: String = MathConstantPi.symbol
-	override def simplify = new MathConstantPi
-	override def description: String = "MathConstantPi"
+	override def toLaTeX: String = ConstantPi.symbol
+	override def simplify = new ConstantPi
+	override def description: String = "ConstantPi"
 }
 
-object MathConstantPi {
-	def apply() = new MathConstantPi
+object ConstantPi {
+	def apply() = new ConstantPi
 	def symbol = "\\pi"
 }
 

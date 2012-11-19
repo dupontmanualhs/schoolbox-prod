@@ -18,6 +18,7 @@ class Visit {
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
   private[this] var _permissions: java.util.Set[Permission] = _
+  @Column(jdbcType="CLOB")
   private[this] var _menu: String = _
   
   def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {

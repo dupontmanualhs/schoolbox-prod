@@ -3,18 +3,18 @@ package math
 import scala.util.matching.Regex
 import scala.collection.immutable.HashMap
 
-abstract class MathOperation(expressions: List[MathExpression]) extends MathExpression {
+abstract class Operation(expressions: List[Expression]) extends Expression {
     def getExpressions = expressions
     def getOperator: String
     def getClassName: String
-    def binarySimplify(left: MathExpression, right: MathExpression): Option[MathExpression] = None
+    def binarySimplify(left: Expression, right: Expression): Option[Expression] = None
     override def description: String = {
         this.getExpressions.map(_.description).mkString(this.getClassName + "(", ", ", ")")
     }
     override def toLaTeX: String = {
         firstExpressionLaTeX(this.getExpressions.head) + this.getOperator + this.getExpressions.tail.map(expressionLaTeX(_)).mkString(this.getOperator)
     }
-    def expressionLaTeX(expression: MathExpression): String = {
+    def expressionLaTeX(expression: Expression): String = {
         if (expressionNeedsParentheses(this, expression)) {
             "(" + expression.toLaTeX + ")"
         } else {
@@ -22,7 +22,7 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
         }
     }
 
-    def firstExpressionLaTeX(expression: MathExpression): String = {
+    def firstExpressionLaTeX(expression: Expression): String = {
         if (expression.simplePrecedence < this.simplePrecedence) {
             "(" + expression.toLaTeX + ")"
         } else {
@@ -30,30 +30,30 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
         }
     }
 
-    def expressionNeedsParentheses(outsideExpression: MathExpression, expressionToTest: MathExpression): Boolean = {
-        ((outsideExpression.isInstanceOf[MathDifference] || outsideExpression.isInstanceOf[MathQuotient]) && (expressionToTest.getPrecedence <= outsideExpression.getPrecedence || expressionToTest.isNegative)) ||
+    def expressionNeedsParentheses(outsideExpression: Expression, expressionToTest: Expression): Boolean = {
+        ((outsideExpression.isInstanceOf[Difference] || outsideExpression.isInstanceOf[Quotient]) && (expressionToTest.getPrecedence <= outsideExpression.getPrecedence || expressionToTest.isNegative)) ||
             (expressionToTest.getPrecedence < outsideExpression.getPrecedence) ||
-            (expressionToTest.isInstanceOf[MathNegation]) ||
-            (expressionToTest.isNegative && (outsideExpression.hasTwoSides || outsideExpression.isInstanceOf[MathNegation]))
+            (expressionToTest.isInstanceOf[Negation]) ||
+            (expressionToTest.isNegative && (outsideExpression.hasTwoSides || outsideExpression.isInstanceOf[Negation]))
     }
 
     override def equals(that: Any): Boolean = {
         that match {
-            case that: MathOperation => this.equals(that)
+            case that: Operation => this.equals(that)
             case _ => false
         }
     }
 
-    private def equals(that: MathOperation): Boolean = {
+    private def equals(that: Operation): Boolean = {
         this.getClass == that.getClass &&
             this.getExpressions == that.getExpressions
     }
 
-    def getSimplifiedExpressions(expressions: List[MathExpression]): List[MathExpression] = {
+    def getSimplifiedExpressions(expressions: List[Expression]): List[Expression] = {
         expressions.map(expression => expression.simplify)
     }
 
-    def operationSimplifyExpressions(expressions: List[MathExpression]): List[MathExpression] = {
+    def operationSimplifyExpressions(expressions: List[Expression]): List[Expression] = {
         expressions.size match{
             case 0 => Nil
             case 1 => getSimplifiedExpressions(expressions)
@@ -61,7 +61,7 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
         }
     }
 
-    private def binarySimplifyExpressions(expressions: List[MathExpression]): List[MathExpression] = {
+    private def binarySimplifyExpressions(expressions: List[Expression]): List[Expression] = {
         val expression = expressionToSimplify(expressions.head, operationSimplifyExpressions(expressions.tail))
         if(!expression._1.isDefined) expressions.head :: operationSimplifyExpressions(expressions.tail)
         else expression._1.get :: operationSimplifyExpressions(expressions.tail.slice(0, expressions.tail.indexOf(expression._2)) :::
@@ -69,56 +69,56 @@ abstract class MathOperation(expressions: List[MathExpression]) extends MathExpr
                                                             expressions.size))
     }
 
-    private def expressionToSimplify(firstExpression: MathExpression, expressions: List[MathExpression]): (Option[MathExpression], MathExpression) = {
+    private def expressionToSimplify(firstExpression: Expression, expressions: List[Expression]): (Option[Expression], Expression) = {
         for(expression <- expressions){
-            val potentialSimplify: Option[MathExpression] = binarySimplify(firstExpression, expression)
+            val potentialSimplify: Option[Expression] = binarySimplify(firstExpression, expression)
             if(potentialSimplify.isDefined) return (potentialSimplify, expression)
         }
-        (None, MathInteger(0))
+        (None, Integer(0))
     }
 }
-object MathOperation {
-    def apply(s: String): Option[MathOperation] = {
-        MathNegation(s) orElse MathOperation.binaryOperation(s) orElse MathOperation.unaryOperation(s) orElse
-            MathNaturalLogarithm(s) orElse MathBase10Logarithm(s) orElse MathSquareRoot(s) orElse MathCubeRoot(s)
+object Operation {
+    def apply(s: String): Option[Operation] = {
+        Negation(s) orElse Operation.binaryOperation(s) orElse Operation.unaryOperation(s) orElse
+            NaturalLogarithm(s) orElse Base10Logarithm(s) orElse SquareRoot(s) orElse CubeRoot(s)
     }
-    def binaryOperation(s: String): Option[MathOperation] = {
+    def binaryOperation(s: String): Option[Operation] = {
         findBinaryOperation(s, """[+-]""".r) orElse findBinaryOperation(s, """[*/]|\\div|\\times|\\cdot""".r) orElse findBinaryOperation(s, """[\^]""".r)
     }
 
-    def findBinaryOperation(s: String, regex: Regex): Option[MathOperation] = {
+    def findBinaryOperation(s: String, regex: Regex): Option[Operation] = {
         findBinaryOperation(s, regex, 0, allIndicesIn(s, regex))
     }
 
-    def findBinaryOperation(s: String, regex: Regex, i: Int, indices: List[Int]): Option[MathOperation] = {
+    def findBinaryOperation(s: String, regex: Regex, i: Int, indices: List[Int]): Option[Operation] = {
         if (i >= indices.length) {
             None
         } else {
             val splitOperation: (String, String) = s.splitAt(indices(i))
-            (MathExpression(splitOperation._1), MathExpression(regex.replaceFirstIn(splitOperation._2, ""))) match {
-                case (Some(leftExpr), Some(rightExpr)) => MathOperation(regex.findFirstIn(splitOperation._2).get, leftExpr, rightExpr)
+            (Expression(splitOperation._1), Expression(regex.replaceFirstIn(splitOperation._2, ""))) match {
+                case (Some(leftExpr), Some(rightExpr)) => Operation(regex.findFirstIn(splitOperation._2).get, leftExpr, rightExpr)
                 case _ => findBinaryOperation(s, regex, i+1, indices)
             }
         }
     }
 
-    def unaryOperation(s: String): Option[MathOperation] = {
+    def unaryOperation(s: String): Option[Operation] = {
         findUnaryOperation(s, """\}\{""".r) orElse findUnaryOperation(s, """\]\{""".r)
     }
 
-    def findUnaryOperation(s: String, regex: Regex): Option[MathOperation] = {
+    def findUnaryOperation(s: String, regex: Regex): Option[Operation] = {
         findUnaryOperation(s, 0, allIndicesIn(s, regex).map(_ + 1))
     }
 
-    def findUnaryOperation(s: String, index: Int, indices: List[Int]): Option[MathOperation] = {
+    def findUnaryOperation(s: String, index: Int, indices: List[Int]): Option[Operation] = {
         if (index >= indices.length) {
             None
         } else {
             val splitOperation: (String, String) = s.splitAt(indices(index))
-            val leftExpr: Option[MathExpression] = MathExpression("""\\log_|\\sqrt""".r.replaceFirstIn(splitOperation._1, ""))
-            val rightExpr: Option[MathExpression] = MathExpression(splitOperation._2)
+            val leftExpr: Option[Expression] = Expression("""\\log_|\\sqrt""".r.replaceFirstIn(splitOperation._1, ""))
+            val rightExpr: Option[Expression] = Expression(splitOperation._2)
             (leftExpr, rightExpr) match {
-                case (Some(left), Some(right)) => MathOperation(splitOperation._1, left, right)
+                case (Some(left), Some(right)) => Operation(splitOperation._1, left, right)
                 case _ => findUnaryOperation(s, index + 1, indices)
             }
         }
@@ -129,133 +129,133 @@ object MathOperation {
         (s.length until 0 by -1).filter((i: Int) => regex.findPrefixMatchOf(s.substring(i)).isDefined).toList
     }
 
-    def apply(operator: String, left: MathExpression, right: MathExpression): Option[MathOperation] = {
+    def apply(operator: String, left: Expression, right: Expression): Option[Operation] = {
         operator match {
-            case "+" => Some(MathSum(left, right))
-            case "-" => Some(MathDifference(left, right))
-            case str if (str == "\\div" || str == "/") => Some(MathQuotient(left, right))
-            case str if (str == "*" || str == "\\times" || str == "\\cdot") => Some(MathProduct(left, right))
-            case "^" => Some(MathExponentiation(left, right))
-            case str if (str.startsWith("\\log_")) => Some(MathLogarithm(left, right))
-            case str if (str.startsWith("\\sqrt")) => Some(MathRoot(left, right))
+            case "+" => Some(Sum(left, right))
+            case "-" => Some(Difference(left, right))
+            case str if (str == "\\div" || str == "/") => Some(Quotient(left, right))
+            case str if (str == "*" || str == "\\times" || str == "\\cdot") => Some(Product(left, right))
+            case "^" => Some(Exponentiation(left, right))
+            case str if (str.startsWith("\\log_")) => Some(Logarithm(left, right))
+            case str if (str.startsWith("\\sqrt")) => Some(Root(left, right))
             case _ => None
         }
     }
 }
 
-class MathSum(expressions: List[MathExpression]) extends MathOperation(expressions) {
+class Sum(expressions: List[Expression]) extends Operation(expressions) {
     override def getOperator: String = "+"
-    override def getClassName: String = "MathSum"
+    override def getClassName: String = "Sum"
     override def getPrecedence: Int = 0
-    override def simplify: MathExpression = {
+    override def simplify: Expression = {
       val simplifiedExpressions = this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions))
       simplifiedExpressions.size match{
-        case 0 => MathInteger(0)
+        case 0 => Integer(0)
         case 1 => simplifiedExpressions.head
-        case _ => MathSum(simplifiedExpressions)
+        case _ => Sum(simplifiedExpressions)
       }
     }
-    override def binarySimplify(left: MathExpression, right: MathExpression): Option[MathExpression] = {                          //TODO: decide how to simplify decimals with fractions
+    override def binarySimplify(left: Expression, right: Expression): Option[Expression] = {                          //TODO: decide how to simplify decimals with fractions
         (left, right) match{
-            case (left: MathConstant, right: MathConstant) => Some(left + right)
+            case (left: Constant, right: Constant) => Some(left + right)
             case _ => None
         }
     }
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
-      MathSum(this.expressions.map(n => MathExpression.checkVar(n, variables))).simplify
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = {
+      Sum(this.expressions.map(n => Expression.checkVar(n, variables))).simplify
     }
 }
 
-object MathSum {
-    def apply(expressions: List[MathExpression]) = new MathSum(expressions)
-    def apply(expressions: MathExpression*): MathSum = MathSum(List[MathExpression](expressions: _*))
+object Sum {
+    def apply(expressions: List[Expression]) = new Sum(expressions)
+    def apply(expressions: Expression*): Sum = Sum(List[Expression](expressions: _*))
 }
 
-class MathDifference(expressions: List[MathExpression]) extends MathOperation(expressions) {
+class Difference(expressions: List[Expression]) extends Operation(expressions) {
     override def getOperator: String = "-"
-    override def getClassName: String = "MathDifference"
+    override def getClassName: String = "Difference"
     override def getPrecedence: Int = 1
-    override def simplify = MathDifference(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+    override def simplify = Difference(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = {
       this
     }
 }
-object MathDifference {
-    def apply(expressions: List[MathExpression]) = new MathDifference(expressions)
-    def apply(expressions: MathExpression*): MathDifference = MathDifference(List[MathExpression](expressions: _*))
+object Difference {
+    def apply(expressions: List[Expression]) = new Difference(expressions)
+    def apply(expressions: Expression*): Difference = Difference(List[Expression](expressions: _*))
 }
 
-class MathProduct(expressions: List[MathExpression]) extends MathOperation(expressions) {
+class Product(expressions: List[Expression]) extends Operation(expressions) {
     override def getOperator: String = "\\cdot"
-    override def getClassName: String = "MathProduct"
+    override def getClassName: String = "Product"
     override def getPrecedence: Int = 2
-    override def simplify = MathProduct(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+    override def simplify = Product(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = {
       this
     }
 }
-object MathProduct {
-    def apply(expressions: List[MathExpression]) = new MathProduct(expressions)
-    def apply(expressions: MathExpression*): MathProduct = MathProduct(List[MathExpression](expressions: _*))
+object Product {
+    def apply(expressions: List[Expression]) = new Product(expressions)
+    def apply(expressions: Expression*): Product = Product(List[Expression](expressions: _*))
 }
 
-class MathQuotient(expressions: List[MathExpression]) extends MathOperation(expressions) {
+class Quotient(expressions: List[Expression]) extends Operation(expressions) {
     override def getOperator: String = "\\div"
-    override def getClassName: String = "MathQuotient"
+    override def getClassName: String = "Quotient"
     override def getPrecedence: Int = 2
-    override def simplify = MathQuotient(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+    override def simplify = Quotient(this.operationSimplifyExpressions(getSimplifiedExpressions(getExpressions)))
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = {
       this
     }
 }
-object MathQuotient {
-    def apply(expressions: List[MathExpression]) = new MathQuotient(expressions)
-    def apply(expressions: MathExpression*): MathQuotient = MathQuotient(List[MathExpression](expressions: _*))
+object Quotient {
+    def apply(expressions: List[Expression]) = new Quotient(expressions)
+    def apply(expressions: Expression*): Quotient = Quotient(List[Expression](expressions: _*))
 }
 
-class MathExponentiation(expression: MathExpression, exponent: MathExpression) extends MathOperation(List[MathExpression](expression, exponent)) {
+class Exponentiation(expression: Expression, exponent: Expression) extends Operation(List[Expression](expression, exponent)) {
     def getExpression = super.getExpressions.head
     def getExponent = super.getExpressions.last
 
-    override def simplify: MathExpression = new MathExponentiation(this.getExpression, this.getExponent)
+    override def simplify: Expression = new Exponentiation(this.getExpression, this.getExponent)
     override def getPrecedence: Int = 5
     override def getOperator: String = "^"
-    override def getClassName: String = "MathExponentiation"
+    override def getClassName: String = "Exponentiation"
     override def toLaTeX: String = this.expressionLaTeX(this.getExpression) + this.getOperator + "{" + this.getExponent.toLaTeX + "}"
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = {
       this
     }
 }
 
-object MathExponentiation {
-    def apply(expression: MathExpression, exponent: MathExpression): MathExponentiation = new MathExponentiation(expression, exponent)
+object Exponentiation {
+    def apply(expression: Expression, exponent: Expression): Exponentiation = new Exponentiation(expression, exponent)
 }
 
-class MathLogarithm(val base: MathExpression, expression: MathExpression) extends MathOperation(List[MathExpression](base, expression)) {
-    def getBase: MathExpression = super.getExpressions.head
-    def getExpression: MathExpression = super.getExpressions.last
+class Logarithm(val base: Expression, expression: Expression) extends Operation(List[Expression](base, expression)) {
+    def getBase: Expression = super.getExpressions.head
+    def getExpression: Expression = super.getExpressions.last
     override def getPrecedence: Int = 4
     override def toLaTeX: String = this.getOperator + "{" + this.expressionLaTeX(this.getExpression) + "}"
     override def getOperator: String = "\\log_{%s}".format(this.getBase.toLaTeX)
-    override def getClassName: String = "MathLogarithm"
-    override def simplify: MathExpression = new MathLogarithm(this.getBase, this.getExpression)
-    override def description: String = "MathLogarithm(Base: %s, Expression: %s)".format(this.getBase.description, this.getExpression.description)
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+    override def getClassName: String = "Logarithm"
+    override def simplify: Expression = new Logarithm(this.getBase, this.getExpression)
+    override def description: String = "Logarithm(Base: %s, Expression: %s)".format(this.getBase.description, this.getExpression.description)
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = {
       this
     }
 }
 
-object MathLogarithm {
-    def apply(base: MathExpression, expression: MathExpression): MathLogarithm = new MathLogarithm(base, expression)
-    def apply(s: String): Option[MathLogarithm] = {
-        MathNaturalLogarithm(s) orElse MathBase10Logarithm(s) orElse {
+object Logarithm {
+    def apply(base: Expression, expression: Expression): Logarithm = new Logarithm(base, expression)
+    def apply(s: String): Option[Logarithm] = {
+        NaturalLogarithm(s) orElse Base10Logarithm(s) orElse {
             val logRegex = new Regex("""^\\log_\{(.*)\}\{(.*)\}$""", "base", "expression")
             val splitLog = logRegex.findFirstMatchIn(s)
             if (splitLog.isEmpty) {
                 None
             } else {
-                (MathExpression(splitLog.get.group("base")), MathExpression(splitLog.get.group("expression"))) match {
-                    case (Some(aBase), Some(anExpr)) => Some(MathLogarithm(aBase, anExpr))
+                (Expression(splitLog.get.group("base")), Expression(splitLog.get.group("expression"))) match {
+                    case (Some(aBase), Some(anExpr)) => Some(Logarithm(aBase, anExpr))
                     case _ => None
                 }
             }
@@ -263,76 +263,76 @@ object MathLogarithm {
     }
 }
 
-class MathNaturalLogarithm(expression: MathExpression) extends MathLogarithm(new MathConstantE, expression) {
+class NaturalLogarithm(expression: Expression) extends Logarithm(new ConstantE, expression) {
     override def getOperator: String = "\\ln"
-    override def description: String = "MathNaturalLogarithm(%s)".format(this.getExpression.description)
+    override def description: String = "NaturalLogarithm(%s)".format(this.getExpression.description)
 }
 
-object MathNaturalLogarithm {
-    def apply(expression: MathExpression): MathNaturalLogarithm = new MathNaturalLogarithm(expression)
-    def apply(s: String): Option[MathNaturalLogarithm] = {
+object NaturalLogarithm {
+    def apply(expression: Expression): NaturalLogarithm = new NaturalLogarithm(expression)
+    def apply(s: String): Option[NaturalLogarithm] = {
         val lnRegex = new Regex("""^\\ln\{(.*)\}$""", "expression")
         val splitLn = lnRegex.findFirstMatchIn(s)
         if (splitLn.isEmpty) {
             None
         } else {
-            MathExpression(splitLn.get.group("expression")) match {
-                case Some(expr) => Some(MathNaturalLogarithm(expr))
+            Expression(splitLn.get.group("expression")) match {
+                case Some(expr) => Some(NaturalLogarithm(expr))
                 case _ => None
             }
         }
     }
 }
 
-class MathBase10Logarithm(expression: MathExpression) extends MathLogarithm(MathInteger(10), expression) {
+class Base10Logarithm(expression: Expression) extends Logarithm(Integer(10), expression) {
     override def getOperator: String = "\\log"
-    override def description: String = "MathBase10Logarithm(%s)".format(this.getExpression.description)
+    override def description: String = "Base10Logarithm(%s)".format(this.getExpression.description)
 }
 
-object MathBase10Logarithm {
-    def apply(expression: MathExpression) = new MathBase10Logarithm(expression)
-    def apply(s: String): Option[MathBase10Logarithm] = {
+object Base10Logarithm {
+    def apply(expression: Expression) = new Base10Logarithm(expression)
+    def apply(s: String): Option[Base10Logarithm] = {
         val logRegex = new Regex("""^\\log\{(.*)\}$""", "expression")
         val splitLog = logRegex.findFirstMatchIn(s)
         if (splitLog.isEmpty) {
             None
         } else {
-            MathExpression(splitLog.get.group("expression")) match {
-                case Some(expr) => Some(MathBase10Logarithm(expr))
+            Expression(splitLog.get.group("expression")) match {
+                case Some(expr) => Some(Base10Logarithm(expr))
                 case _ => None
             }
         }
     }
 }
 
-class MathRoot(val index: MathExpression, val radicand: MathExpression) extends MathExponentiation(radicand, MathQuotient(MathInteger(1), index)) {
-    def getIndex: MathExpression = index
-    def getRadicand: MathExpression = radicand
+class Root(val index: Expression, val radicand: Expression) extends Exponentiation(radicand, Quotient(Integer(1), index)) {
+    def getIndex: Expression = index
+    def getRadicand: Expression = radicand
     override def getPrecedence: Int = 4
     override def toLaTeX = "\\sqrt[%s]{%s}".format(this.getIndex.toLaTeX, this.getRadicand.toLaTeX)
-    override def getClassName: String = "MathRoot"
+    override def getClassName: String = "Root"
     override def description: String = this.getClassName + "(Index: %s, Radicand: %s)".format(this.getIndex.description, this.getRadicand.description)
 }
 
-object MathRoot {
-    def apply(index: MathExpression, radicand: MathExpression) = {
-        if (index == MathInteger(3)) {
-            MathCubeRoot(radicand)
-        } else if (index == MathInteger(2)) {
-            MathSquareRoot(radicand)
+object Root {
+    def apply(index: Expression, radicand: Expression) = {
+        if (index == Integer(3)) {
+            CubeRoot(radicand)
+        } else if (index == Integer(2)) {
+            SquareRoot(radicand)
         } else {
-            new MathRoot(index, radicand)
+            new Root(index, radicand)
         }
     }
-    def apply(s: String): Option[MathRoot] = {
-        MathSquareRoot(s) orElse MathCubeRoot(s) orElse {
+    def apply(s: String): Option[Root] = {
+        SquareRoot(s) orElse CubeRoot(s) orElse {
             val rootRegex = new Regex("""^\\sqrt\[(.*)\]\{(.*)\}$""", "index", "radicand")
             val splitRoot = rootRegex.findFirstMatchIn(s)
             if (splitRoot.isEmpty) {
                 None
             } else {
-                (MathExpression(splitRoot.get.group("index")), MathExpression(splitRoot.get.group("radicand"))) match {
-                    case (Some(index), Some(radicand)) => Some(MathRoot(index, radicand))
+                (Expression(splitRoot.get.group("index")), Expression(splitRoot.get.group("radicand"))) match {
+                    case (Some(index), Some(radicand)) => Some(Root(index, radicand))
                     case _ => None
                 }
             }
@@ -340,77 +340,77 @@ object MathRoot {
     }
 }
 
-class MathSquareRoot(radicand: MathExpression) extends MathRoot(MathInteger(2), radicand) {
+class SquareRoot(radicand: Expression) extends Root(Integer(2), radicand) {
     override def toLaTeX: String = "\\sqrt{%s}".format(super.getRadicand.toLaTeX)
-    override def getClassName: String = "MathSquareRoot"
+    override def getClassName: String = "SquareRoot"
     override def description: String = this.getClassName + "(" + this.getRadicand.description + ")"
 }
 
-object MathSquareRoot {
-    def apply(radicand: MathExpression) = new MathSquareRoot(radicand)
-    def apply(s: String): Option[MathSquareRoot] = {
+object SquareRoot {
+    def apply(radicand: Expression) = new SquareRoot(radicand)
+    def apply(s: String): Option[SquareRoot] = {
         val sqrtRegex = new Regex("""^\\sqrt\{(.*)\}$""", "radicand")
         val splitSqrt = sqrtRegex.findFirstMatchIn(s)
         if (splitSqrt.isEmpty) {
             None
         } else {
-            MathExpression(splitSqrt.get.group("radicand")) match {
-                case Some(anExpr) => Some(MathSquareRoot(anExpr))
+            Expression(splitSqrt.get.group("radicand")) match {
+                case Some(anExpr) => Some(SquareRoot(anExpr))
                 case _ => None
             }
         }
     }
 }
 
-class MathCubeRoot(radicand: MathExpression) extends MathRoot(MathInteger(3), radicand) {
+class CubeRoot(radicand: Expression) extends Root(Integer(3), radicand) {
     override def toLaTeX: String = "\\sqrt[3]{%s}".format(super.getRadicand.toLaTeX)
-    override def getClassName: String = "MathCubeRoot"
+    override def getClassName: String = "CubeRoot"
     override def description: String = this.getClassName + "(" + this.getRadicand.description + ")"
 }
 
-object MathCubeRoot {
-    def apply(radicand: MathExpression) = new MathCubeRoot(radicand)
-    def apply(s: String): Option[MathCubeRoot] = {
+object CubeRoot {
+    def apply(radicand: Expression) = new CubeRoot(radicand)
+    def apply(s: String): Option[CubeRoot] = {
         val cubeRootRegex = new Regex("""^\\sqrt\[3\]\{(.*)\}$""", "radicand")
         val splitCubeRoot = cubeRootRegex.findFirstMatchIn(s)
         if (splitCubeRoot.isEmpty) {
             None
         } else {
-            MathExpression(splitCubeRoot.get.group("radicand")) match {
-                case Some(anExpr) => Some(MathCubeRoot(anExpr))
+            Expression(splitCubeRoot.get.group("radicand")) match {
+                case Some(anExpr) => Some(CubeRoot(anExpr))
                 case _ => None
             }
         }
     }
 }
 
-class MathNegation(expression: MathExpression) extends MathOperation(List[MathExpression](expression)) {
+class Negation(expression: Expression) extends Operation(List[Expression](expression)) {
     def getExpression = expression
     override def getOperator: String = "-"
-    override def getClassName: String = "MathNegation"
-    override def getPrecedence: Int = MathNegation.getPrecedence
-    override def simplify: MathExpression = new MathNegation(this.getExpression)
+    override def getClassName: String = "Negation"
+    override def getPrecedence: Int = Negation.getPrecedence
+    override def simplify: Expression = new Negation(this.getExpression)
     override def toLaTeX: String = this.getOperator + this.expressionLaTeX(this.getExpression)
-    override def evaluate(variables: HashMap[MathExpression, MathValue]): MathExpression = {
+    override def evaluate(variables: HashMap[Expression, Value]): Expression = {
       this
     }
 }
 
-object MathNegation {
-    def apply(expression: MathExpression) = new MathNegation(expression)
-    def apply(s: String): Option[MathNegation] = {
+object Negation {
+    def apply(expression: Expression) = new Negation(expression)
+    def apply(s: String): Option[Negation] = {
         val negBasicRegex = new Regex("""^-(.*)$""", "expression")
         val negRegex = new Regex("""^-\((.*)\)$""", "expression")
         val splitBasicNeg = negBasicRegex.findFirstMatchIn(s)
         val splitNeg = negRegex.findFirstMatchIn(s)
         if (splitNeg.isDefined) {
-            MathExpression(splitNeg.get.group("expression")) match {
-                case Some(anExpr) => Some(MathNegation(anExpr))
+            Expression(splitNeg.get.group("expression")) match {
+                case Some(anExpr) => Some(Negation(anExpr))
                 case _ => None
             }
         } else if (splitBasicNeg.isDefined) {
-            MathExpression(splitBasicNeg.get.group("expression")) match {
-                case Some(anExpr) if (anExpr.getPrecedence >= MathNegation.getPrecedence) => Some(MathNegation(anExpr))
+            Expression(splitBasicNeg.get.group("expression")) match {
+                case Some(anExpr) if (anExpr.getPrecedence >= Negation.getPrecedence) => Some(Negation(anExpr))
                 case _ => None
             }
         } else {
