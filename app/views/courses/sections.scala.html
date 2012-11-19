@@ -5,7 +5,7 @@
 
 
 	@if(sections.size > 0) {
-		<table>
+		<table class="table table-striped">
 			<thead><th>Teacher</th><th>Block</th><th>Term</th>
 			@for(s <- sections) {
 				@for(i <- 0 to (s.teachers(req.pm).length - 1)) {
