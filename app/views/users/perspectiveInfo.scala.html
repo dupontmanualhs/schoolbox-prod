@@ -2,15 +2,6 @@
 
 @(req.visit.perspective match {
   case Some(persp) => <ul class="nav">
-  						<div class="dropdown">
-  							<a class="dropdown-toggle" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="#">
-    							Dropdown
-    							<b class="caret"></b>
-  							</a>
- 							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
- 								<a tabindex="-1" href={ controllers.routes.Users.logout().toString }>Log out</a>
-    						</ul>
-						</div>
   						<li class="dropdown" >
   							<a class="dropdown-toggle" data-toggle="dropdown" href="#" >
   								Logged in as { persp.displayNameWithRole }
