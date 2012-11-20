@@ -5,8 +5,10 @@ import play.api.mvc._
 import util.{DataStore, ScalaPersistenceManager}
 import util.DbAction
 import models.books._
+import models.users._
 import forms._
 import forms.fields._
+import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
 
@@ -166,9 +168,24 @@ object Books extends Controller {
   
   def booksOut(perspectiveId: Long) = TODO
   
-  def findCopyHistory() = TODO
-  
-  def findCopyHistorySubmit() = TODO
+  def findCopyHistory() = DbAction { implicit req =>
+    object ChooseCopyForm extends Form {
+      val copyId = new NumericField[Int]("Copy ID")
+
+      def fields = List(copyId)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findCopyHistory(Binding(ChooseCopyForm)))
+    } else {
+      Binding(ChooseCopyForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findCopyHistory(ib))
+        case vb: ValidBinding => {
+          val lookupCopyId: Long = vb.valueOf(ChooseCopyForm.copyId)
+          Redirect(routes.Books.copyHistory(lookupCopyId))
+        }
+      }
+    }
+  }
   
   def copyHistory(copyId: Long) = DbAction { implicit req =>
     implicit val pm = req.pm
@@ -202,9 +219,82 @@ object Books extends Controller {
   def confirmDelete() = TODO
   
   def confirmDeleteSubmit() = TODO
-  
-  def checkoutHistory() = TODO
-  
+
+  def checkoutHistory(perspectiveId: Long) = DbAction { implicit req =>
+  implicit val pm = req.pm
+  val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+
+  val perspectiveCand = QPerspective.candidate
+  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
+    case None => NotFound("No student with the given id")
+    case Some(currentPerspective) => {
+      val checkoutCand = QCheckout.candidate
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.perspective.eq(currentPerspective)).executeList()
+      val studentName = currentPerspective.displayName
+      val header = "Student: %s".format(studentName)
+      val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate),
+        if (co.endDate == null) "" else df.format(co.endDate))})
+      Ok(views.html.books.checkoutHistory(header,rows))
+    }
+  }
+}
+
+def findCheckoutHistory() = DbAction { implicit req =>
+    object ChoosePerspectiveForm extends Form {
+      val perspectiveId = new NumericField[Int]("Perspective ID")
+
+      def fields = List(perspectiveId)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findCheckoutHistory(Binding(ChoosePerspectiveForm)))
+    } else {
+      Binding(ChoosePerspectiveForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
+        case vb: ValidBinding => {
+          val lookupPerspectiveId: Long = vb.valueOf(ChoosePerspectiveForm.perspectiveId)
+          Redirect(routes.Books.checkoutHistory(lookupPerspectiveId))
+        }
+      }
+    }
+  }
+
+  def findCurrentCheckouts() = DbAction { implicit req =>
+    object ChoosePerspectiveForm extends Form {
+      val perspectiveId = new NumericField[Int]("Perspective ID")
+
+      def fields = List(perspectiveId)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findPerspectiveHistory(Binding(ChoosePerspectiveForm)))
+    } else {
+      Binding(ChoosePerspectiveForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findPerspectiveHistory(ib))
+        case vb: ValidBinding => {
+          val lookupPerspectiveId: Long = vb.valueOf(ChoosePerspectiveForm.perspectiveId)
+          Redirect(routes.Books.currentCheckouts(lookupPerspectiveId))
+        }
+      }
+    }
+  }
+
+  def currentCheckouts(perspectiveId: Long) = DbAction { implicit req =>
+  implicit val pm = req.pm
+  val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+
+  val perspectiveCand = QPerspective.candidate
+  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
+    case None => NotFound("No student with the given id")
+    case Some(currentPerspective) => {
+      val checkoutCand = QCheckout.candidate
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.perspective.eq(currentPerspective))).executeList()
+      val studentName = currentPerspective.displayName
+      val header = "Student: %s".format(studentName)
+      val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate))})
+      Ok(views.html.books.currentCheckouts(header,rows))
+    }
+  }
+}
+
   def checkoutHistorySubmit() = TODO
   
   def checkoutsByTeacherStudents() = TODO

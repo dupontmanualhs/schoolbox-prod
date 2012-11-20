@@ -1,0 +1,14 @@
+@(header: String, rows: List[(String, String)])(implicit req: util.DbRequest[_])
+
+@main("Current Checkouts") {
+
+<h2>@header</h2>
+
+<table class="table">
+   <tr><th>Title</th><th>Date Checked Out</th></tr>
+   @for(row <- rows) {
+   <tr><td>@row._1</td><td>@row._2</td></tr>
+   }
+</table>
+
+}
