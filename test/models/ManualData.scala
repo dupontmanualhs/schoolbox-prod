@@ -8,6 +8,7 @@ import org.joda.time.format.DateTimeFormat
 import org.apache.poi.ss.usermodel.{ Sheet, Row, WorkbookFactory }
 import models.users._
 import models.courses._
+import models.lockers._
 import util.{ DataStore, ScalaPersistenceManager }
 import java.io.File
 import models.assignments.AssignmentData
@@ -40,6 +41,7 @@ object ManualData {
     loadSections(debug)
     loadEnrollments(debug)
     loadBookData(debug)
+    loadLockers(debug)
   }
 
   def createYearsAndTerms(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
@@ -200,6 +202,22 @@ object ManualData {
           println("Student %s (id #%s) is in section #%s, which doesn't exist.".format(student.user.formalName, studentNumber, sectionId))
         }
       }
+    })
+    pm.commitTransaction()
+  }
+  
+  def loadLockers(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
+    pm.beginTransaction()
+    val doc = XML.load(getClass.getResourceAsStream("/manual-data/Lockers.xml"))
+    val lockers = doc \\ "student"
+    lockers foreach ((locker: Node) => {
+      val number = (locker \ "@lockerDetail.lockerNumber").text.toInt
+      val location = LockerData.locationCreator((locker \ "@lockerDetail.location").text)
+      val combination = LockerData.randomCombination
+      if(debug) println("Adding Locker: #%d %s %s".format(number, combination, location))
+      val dbLocker = new Locker(number, combination, location, None, false)
+      pm.makePersistent(dbLocker)
+  
     })
     pm.commitTransaction()
   }

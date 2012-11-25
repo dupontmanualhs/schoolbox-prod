@@ -104,3 +104,14 @@ GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckou
 GET     /books/checkoutHistory/:perspectiveId   controllers.Books.checkoutHistory(perspectiveId: Long)
 GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
+
+#Lockers
+GET     /lockers                                controllers.Lockers.index()
+GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
+GET     /lockers/locker/:lockerId               controllers.Lockers.getLocker(lockerId: Long)
+GET     /lockers/findLocker                     controllers.Lockers.findLocker()
+POST    /lockers/findLocker                     controllers.Lockers.findLocker()
+GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
+POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
+#GET    /lockers/lockerPicker                   controllers.Lockers.lockerPicker()
+#POST   /lockers/lockerPicker                   controllers.Lockers.lockerPickerSubmit()

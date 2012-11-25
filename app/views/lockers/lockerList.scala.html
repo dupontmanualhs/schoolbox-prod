@@ -1,0 +1,15 @@
+@(lockerList: List[models.lockers.Locker])(implicit req: util.DbRequest[_])
+
+@main("Search Results") {
+  <h1>Locker Search Results</h1>
+  @if(lockerList.isEmpty) {
+    <h3>No Lockers Found</h3>
+  } else {
+    <table>
+      <thead><th>#</th><th>Location</th><th>Available?</th></thead>
+      @for(locker <- lockerList) {
+        @locker.asHtml
+      }
+    </table>
+  }
+}

@@ -1,0 +1,6 @@
+@(numberForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Locker Picker") {
+  <h1>Find locker information based on number</h1>
+  @numberForm.asHtml
+}

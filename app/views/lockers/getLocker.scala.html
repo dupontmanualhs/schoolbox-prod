@@ -1,0 +1,20 @@
+@(locker: models.lockers.Locker)(implicit req: util.DbRequest[_])
+
+@import models.lockers._
+
+@main("Locker Info") {
+
+      <h1>Locker #@locker.number</h1>
+      
+      <p>Locker Location: @locker.location <br>
+         Taken:           @if(locker.taken) {
+         					<span>Yes</span>
+         				  } else {
+         				    <span>No</span>
+         				  } <br>
+         Student Owner:   @(locker.student match {
+                            case None => {<span>Available</span>}
+                            case Some(s) => {<span>@s.fullName</span>}
+                          })
+      </p>
+}

@@ -1,0 +1,6 @@
+@(lockerForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Locker Search") {
+  <h1>Search for lockers by location and availability!</h1>
+  @lockerForm.asHtml
+}

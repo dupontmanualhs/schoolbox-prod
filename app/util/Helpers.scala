@@ -208,4 +208,30 @@ object Helpers {
   def intersperse[T](list: List[T], co: T): List[T] = {
     list.foldRight[List[T]](Nil)((elem: T, ls: List[T]) => co :: elem :: ls).tail
   }
+  
+
+  val charMap = Map(
+    '0' -> 0,
+    '1' -> 1,
+    '2' -> 2,
+    '3' -> 3,
+    '4' -> 4,
+    '5' -> 5,
+    '6' -> 6,
+    '7' -> 7,
+    '8' -> 8,
+    '9' -> 9)
+   
+  
+  def isDigit(c: Char): Boolean = {
+    '0' <= c && c <= '9'
+  }
+  
+  def isNumber(s: String): Boolean = {
+    s.foldLeft(true)(_ || isDigit(_))
+  }
+  
+  def toInt(s: String): Int = {
+    s.foldLeft(0)(_ * 10 + charMap(_))
+  }
 }
