@@ -14,13 +14,14 @@ class Locker {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   
-  // @Unique
+  @Unique
   @Column(allowsNull="false")
   private[this] var _number: Int = _
   
   private[this] var _combination: String = _
+  @Persistent(defaultFetchGroup = "true")
   private[this] var _location: LockerLocation = _
-  private[this] var _student: Option[Student] = _
+  private[this] var _student: Student = _
   private[this] var _taken: Boolean = _
   
   def this(number: Int, combination: String, location: LockerLocation, student: Option[Student], taken: Boolean) {
@@ -28,7 +29,7 @@ class Locker {
      _number = number
      _combination = combination
      _location = location
-     _student = student
+     student_=(student)
      _taken = taken
   }
   
@@ -43,8 +44,11 @@ class Locker {
   def location: LockerLocation = _location
   def location_=(theLocation: LockerLocation) = (_location = theLocation)
   
-  def student: Option[Student] = _student
-  def student_=(theStudent: Option[Student]) = (_student = theStudent)
+  def student: Option[Student] = if (_student == null) None else Some(_student)
+  def student_=(theStudent: Option[Student]) = theStudent match {
+    case None => _student = null
+    case Some(s) => _student = s
+  }
   
   def taken: Boolean = _taken
   def taken_=(theStatus: Boolean) = (_taken = theStatus)
@@ -76,7 +80,7 @@ object Locker {
   def getByStudent(stu: Student)(implicit pm: ScalaPersistenceManager = null): Option[Locker] = {
     DataStore.execute { epm =>
       val cand = QLocker.candidate
-      epm.query[Locker].filter(cand.student.eq(Some(stu))).executeOption()
+      epm.query[Locker].filter(cand.student.eq(stu)).executeOption()
     }
   }
   
@@ -120,8 +124,8 @@ trait QLocker extends PersistableExpression[Locker] {
   private[this] lazy val _location: ObjectExpression[LockerLocation] = new ObjectExpressionImpl[LockerLocation](this, "_location")
   def location: ObjectExpression[LockerLocation] = _location
   
-  private[this] lazy val _student: ObjectExpression[Option[Student]] = new ObjectExpressionImpl[Option[Student]](this, "_student")
-  def student: ObjectExpression[Option[Student]] = _student
+  private[this] lazy val _student: ObjectExpression[Student] = new ObjectExpressionImpl[Student](this, "_student")
+  def student: ObjectExpression[Student] = _student
   
   private[this] lazy val _taken: BooleanExpression = new BooleanExpressionImpl(this, "_taken")
   def taken: BooleanExpression = _taken
