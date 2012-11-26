@@ -17,8 +17,6 @@ import util.DbRequest
 import math._
 import play.api.templates.Html
 import scala.collection.immutable.HashMap
-import play.api.data._
-import play.api.data.Forms._
 import views._
 import models._
 import play.api.data.validation.Constraints._
@@ -27,7 +25,6 @@ import forms.Form
 import forms.fields._
 import models.assignments.questions.FillBlanks
 import play.api.mvc.{ Action, Controller, Session }
-import play.api.data.Forms._
 import play.api.templates.Html
 import views.html
 import util.DataStore
@@ -43,6 +40,25 @@ import util.Authenticated
 import scala.xml._
 import scala.xml
 import util.Helpers.camel2TitleCase
+
+abstract class QuestionField[T](val question: Question, name: String) extends Field[T](name) {
+  
+}
+
+class BlanksField(question: Question, name: String) extends QuestionField[Seq[String]](question, name) {
+  override def required = false
+  
+  val blank = "_{3,}".r
+  
+  override def widget = new Widget(required) {
+    def replaceBlanks(text: String): String = blank.findFirstMatchIn(text) match {
+      case Some(m) => 
+    }
+    }
+  }
+  
+  
+}
 
 class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) extends Form {
   val sectionInstructionList: List[String] =

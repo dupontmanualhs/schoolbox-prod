@@ -8,10 +8,10 @@ import util.Helpers.camel2TitleCase
 import forms.Binding
 
 
-abstract class Field[T](val name: String) {
+abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
   def validators: List[Validator[T]]
 
-  def required: Boolean = true
+  def required: Boolean = man <:< Manifest.classType(classOf[Option[_]])
   def widget: Widget = new TextInput(required)
   def label: Option[String] = None
   def initialVal: Option[T] = None
