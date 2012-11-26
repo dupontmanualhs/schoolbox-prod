@@ -4,18 +4,18 @@
 
 @main("Assessments") {
 	<h1>Andrew's General Assessments</h1>
-	@question <br>
+	@question <br />
 	@first
 	+
 	@second
 	=
-	<br>
+	<br />
 	@form(action = routes.Assessments.checkAnswer(temp)){
 		@input(ansForm("answer")){ (id, name, value, args) =>
-		<input type="radio" name="@name" value=@ans> @ans<br>
-		<input type="radio" name="@name" value=@otherChoice> @otherChoice<br>
-		<input type="radio" name="@name" value=@otherChoice+2> @(otherChoice+2)<br>
-		<input type="radio" name="@name" value=@otherChoice+100> @(otherChoice+100)<br>
+		<input type="radio" name="@name" value=@ans> @ans<br />
+		<input type="radio" name="@name" value=@otherChoice> @otherChoice<br />
+		<input type="radio" name="@name" value=@otherChoice+2> @(otherChoice+2)<br />
+		<input type="radio" name="@name" value=@otherChoice+100> @(otherChoice+100)<br />
 		<input type="submit" value="Submit" />}
 	}
 	@if(answer == Some(0)) {

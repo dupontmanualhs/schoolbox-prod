@@ -6,12 +6,12 @@ import models.users.Perspective
 class MenuItem(val name: String, val id: String, val link: Option[String], val subItems: List[MenuItem]) {
   def asHtml: Elem = <li><a href={ link.getOrElse("#") } id={ id }>{ name }</a>{
                        if (subItems.isEmpty) NodeSeq.Empty
-                       else <ul>{ subItems.flatMap(_.asHtml) }</ul>
+                       else <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">{ subItems.flatMap(_.asHtml) }</ul>
                      }</li>
 }
 
 class MenuBar(val menus: List[MenuItem]) {
-  def asHtml: Elem = <ul class="sf-menu">{ menus.flatMap(_.asHtml) }</ul>
+  def asHtml: Elem = <ul class="nav">{ menus.flatMap(_.asHtml) }</ul>
 }
 
 object Menu {

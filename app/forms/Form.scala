@@ -20,7 +20,7 @@ abstract class Form {
   
   def asHtml(bound: Binding): Elem = {
     <form method={ method }><table>
-    { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }  
+    { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td colspan="3">{ bound.formErrors.asHtml }</td></tr> }  
     {fields.flatMap(f => {
       val name = f.name
       val label = f.label.getOrElse(camel2TitleCase(f.name))
