@@ -9,7 +9,7 @@ import org.apache.poi.ss.usermodel.{ Sheet, Row, WorkbookFactory }
 import models.users._
 import models.courses._
 import models.lockers._
-import util.{ DataStore, ScalaPersistenceManager }
+import util.{ DataStore, ScalaPersistenceManager, Helpers }
 import java.io.File
 import models.assignments.AssignmentData
 import org.tukaani.xz.XZInputStream
@@ -29,6 +29,15 @@ object ManualData {
     dbFile.delete()
     DataStore.withManager { implicit pm =>
       loadManualData(debug)
+      pm.close()
+    }
+  }
+  
+  def loadL(debug: Boolean = false) {
+    val dbFile = new File("data.h2.db")
+    dbFile.delete()
+    DataStore.withManager {implicit pm =>
+      loadLockers(debug)
       pm.close()
     }
   }
@@ -211,7 +220,7 @@ object ManualData {
     val doc = XML.load(getClass.getResourceAsStream("/manual-data/Lockers.xml"))
     val lockers = doc \\ "student"
     lockers foreach ((locker: Node) => {
-      val number = (locker \ "@lockerDetail.lockerNumber").text.toInt
+      val number = util.Helpers.toInt((locker \ "@lockerDetail.lockerNumber").text)
       val location = LockerData.locationCreator((locker \ "@lockerDetail.location").text)
       val combination = LockerData.randomCombination
       if(debug) println("Adding Locker: #%d %s %s".format(number, combination, location))

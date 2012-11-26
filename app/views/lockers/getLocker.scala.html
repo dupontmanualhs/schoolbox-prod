@@ -6,7 +6,7 @@
 
       <h1>Locker #@locker.number</h1>
       
-      <p>Locker Location: @locker.location <br>
+      <p>Locker Location: <span>@locker.location</span> <br>
          Taken:           @if(locker.taken) {
          					<span>Yes</span>
          				  } else {
@@ -15,6 +15,7 @@
          Student Owner:   @(locker.student match {
                             case None => {<span>Available</span>}
                             case Some(s) => {<span>@s.fullName</span>}
+                            case _ => {<span>@locker.student</span>}
                           })
       </p>
 }

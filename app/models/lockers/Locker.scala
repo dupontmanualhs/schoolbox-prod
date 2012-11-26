@@ -14,7 +14,7 @@ class Locker {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   
-  @Unique
+  // @Unique
   @Column(allowsNull="false")
   private[this] var _number: Int = _
   
@@ -56,7 +56,7 @@ class Locker {
   }
   
   def matchingLocation(loc: LockerLocation): Boolean = {
-    location.floor == loc.floor && location.hall == loc.hall
+    this.location.floor == loc.floor && this.location.hall == loc.hall
   }
   
   override def toString = student match {
@@ -117,10 +117,10 @@ trait QLocker extends PersistableExpression[Locker] {
   private[this] lazy val _combination: StringExpression = new StringExpressionImpl(this, "_combination")
   def combination: StringExpression = _combination
   
-  private[this] lazy val _location: ObjectExpression[LockerLocation] = new ObjectExpressionImpl(this, "_location")
+  private[this] lazy val _location: ObjectExpression[LockerLocation] = new ObjectExpressionImpl[LockerLocation](this, "_location")
   def location: ObjectExpression[LockerLocation] = _location
   
-  private[this] lazy val _student: ObjectExpression[Option[Student]] = new ObjectExpressionImpl(this, "_student")
+  private[this] lazy val _student: ObjectExpression[Option[Student]] = new ObjectExpressionImpl[Option[Student]](this, "_student")
   def student: ObjectExpression[Option[Student]] = _student
   
   private[this] lazy val _taken: BooleanExpression = new BooleanExpressionImpl(this, "_taken")

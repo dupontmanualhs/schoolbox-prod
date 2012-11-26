@@ -108,8 +108,12 @@ object Lockers extends Controller {
       Binding(LockerForm, req) match {
         case ib: InvalidBinding => Ok(views.html.lockers.lockerSearch(ib))
         case vb: ValidBinding => {
+          val requestedLocation = LockerLocation(vb.valueOf(LockerForm.floor), 
+                                                 vb.valueOf(LockerForm.hall))
+          val matcher = (l: Locker) => l.matchingLocation(requestedLocation)
+          
           val availabilityList = if(vb.valueOf(LockerForm.available)) Locker.availableLockers()(pm) else Locker.allLockers()(pm)
-          val finalList = availabilityList.filter(_.matchingLocation(LockerLocation(vb.valueOf(LockerForm.floor),vb.valueOf(LockerForm.hall))))
+          val finalList = availabilityList.filter(matcher)
           Ok(views.html.lockers.lockerList(finalList))
         }
       }

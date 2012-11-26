@@ -6,18 +6,18 @@ import util.Helpers._
 object LockerData {
   def hallSorter(locInfo: String): String = {
     if(locInfo.contains("NE")) "NE"
-    if(locInfo.contains("NW")) "NW"
-    if(locInfo.contains("SE")) "SE"
-    if(locInfo.contains("SW")) "SW"
-    if(locInfo.contains("center West")) "CW"
-    if(locInfo.contains("center East")) "CE"
+    else if(locInfo.contains("NW")) "NW"
+    else if(locInfo.contains("SE")) "SE"
+    else if(locInfo.contains("SW")) "SW"
+    else if(locInfo.contains("center West")) "CW"
+    else if(locInfo.contains("center East")) "CE"
     else throw new Exception("Not valid location")
   }
   
   def floorSorter(locInfo: String): Int = {
-    if(locInfo.contains("1")) 1
-    if(locInfo.contains("2")) 2
-    if(locInfo.contains("3")) 3
+    if(locInfo.contains("1st")) 1
+    else if(locInfo.contains("2nd")) 2
+    else if(locInfo.contains("3rd")) 3
     else throw new Exception("Not valid location")
   }
   
