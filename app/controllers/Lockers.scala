@@ -50,7 +50,36 @@ object Lockers extends Controller {
     val maybeLocker = Locker.getById(id)(pm)
     maybeLocker match {
       case None => NotFound(views.html.notFound("No locker exists with this ID."))
-      case Some(l) => Ok(views.html.lockers.getLocker(l))
+      case Some(locker) => if(req.method == "GET") {
+                        Ok(views.html.lockers.getLocker(locker))
+                        } else {
+      				    val currentUser: Option[User] = User.current
+      				    if(currentUser.isDefined) {
+      				      if (Teacher.getByUsername(currentUser.get.username)(pm).isDefined) {
+      				    	NotFound(views.html.notFound("Teachers do not have lockers."))
+      				      } else {
+      				        val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
+      				        val oldLocker = Locker.getByStudent(student)
+      				        if(locker.taken) Ok(views.html.notFound("This locker was taken."))
+      				        else {
+      				          locker.student_=(Some(student))
+      				          locker.taken_=(true)
+      				          pm.makePersistent(locker)
+      				          oldLocker match {
+      				            case None => {}
+      				            case Some(ol) => {
+      				              ol.student_=(None)
+      				              ol.taken_=(false)
+      				              pm.makePersistent(ol)
+      				            }
+      				          }
+      				          Ok(views.html.lockers.lockerSuccess())
+      				          }
+      				        }
+      				      } else {
+      				        Ok(views.html.notFound("You are not logged in."))
+      				      }
+      				  }
     }
   }
   

@@ -19,4 +19,9 @@
                             case _ => {<span>@locker.student</span>}
                           })
       </p>
+      @if(!locker.taken){
+        <form method="post">
+          <button type="submit" class="btn">Get this locker!</button>
+        </form>
+      }
 }
