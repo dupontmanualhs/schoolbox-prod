@@ -64,6 +64,11 @@ class Locker {
     this.location.floor == loc.floor && this.location.hall == loc.hall
   }
   
+  def studentName = student match {
+    case None => "Available"
+    case Some(s) => s.displayName
+  }
+  
   override def toString = student match {
     case None => "Locker #%d -- Available".format(number)
     case Some(s) => "Locker #%d -- Taken by %s".format(number, s.formalName)

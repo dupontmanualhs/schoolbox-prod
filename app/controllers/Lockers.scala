@@ -153,4 +153,3 @@ object Lockers extends Controller {
   
   def lockerPickerSubmit = TODO
 }
-

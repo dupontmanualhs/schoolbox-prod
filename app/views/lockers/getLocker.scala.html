@@ -13,11 +13,7 @@
          		       } else {
          				 <span>No</span>
          			   } <br>
-      Student Owner:   @(locker.student match {
-                            case None => {<span>Available</span>}
-                            case Some(s) => {<span>@s.fullName</span>}
-                            case _ => {<span>@locker.student</span>}
-                          })
+      Student Owner:   <span>@locker.studentName</span>
       </p>
       @if(!locker.taken){
         <form method="post">
