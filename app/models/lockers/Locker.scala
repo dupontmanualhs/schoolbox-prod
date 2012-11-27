@@ -21,6 +21,7 @@ class Locker {
   private[this] var _combination: String = _
   @Persistent(defaultFetchGroup = "true")
   private[this] var _location: LockerLocation = _
+  @Persistent(defaultFetchGroup = "true")
   private[this] var _student: Student = _
   private[this] var _taken: Boolean = _
   
@@ -56,7 +57,7 @@ class Locker {
   def available = if(taken) "No" else "Yes"
   
   def asHtml: Elem = {
-    <tr><td>number</td><td>location</td><td>available</td></tr>
+    <tr><td>@locker.number</td><td>@locker.location</td><td>@locker.available</td></tr>
   }
   
   def matchingLocation(loc: LockerLocation): Boolean = {
