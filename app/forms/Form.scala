@@ -19,8 +19,8 @@ abstract class Form {
   def labelSuffix: String = ":"
   
   def asHtml(bound: Binding): Elem = {
-    <form method={ method }><table>
-    { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td colspan="3">{ bound.formErrors.asHtml }</td></tr> }  
+    <form method={ method } class="form-horizontal"><fieldset>
+    { if (bound.formErrors.isEmpty) NodeSeq.Empty else { bound.formErrors.asHtml } }  
     {fields.flatMap(f => {
       val name = f.name
       val label = f.label.getOrElse(camel2TitleCase(f.name))
@@ -32,15 +32,17 @@ abstract class Form {
         if (labelName != "") f.labelTag(this, Some(labelName)) ++ Text(" ")
         else NodeSeq.Empty
       val errorList = bound.fieldErrors.get(name).map(_.asHtml)
-      <tr>
-        <td>{ labelPart }</td>
-        <td>{ f.asWidget(bound) }</td>
-        { if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td> 
+      <div class="control-group">
+        { labelPart }
+        <div class="controls">{ f.asWidget(bound) }</div>
+        { if (bound.hasErrors) { errorList.getOrElse(NodeSeq.Empty) } 
           else NodeSeq.Empty }
-      </tr>
+      </div>
     }).toList
-    }</table>
-    <input type="submit" />
+    }</fieldset>
+    <div class="controls">
+    	<input type="submit" />
+    </div>
     </form> 
   }
     

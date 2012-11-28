@@ -6,6 +6,7 @@ import util.{DataStore, ScalaPersistenceManager}
 import models.users._
 import models.books._
 import models.courses._
+import models.lockers._
 import org.joda.time.LocalDate
 
 object TestData {
@@ -221,6 +222,26 @@ object TestData {
     val english3Book = new Title("Language of Literature, Grade 11 ", "Pat Day", "McDougal Littel", "978-0395931813", 1408, "1 x 0.8 x 0.2 inches", 6.0, true, new Date(System.currentTimeMillis()))
     val worldHistoryBook = new Title("World History: Patterns of Interaction: Atlas by Rand McNally", "Roger B. Beck, Linda Black and Larry S. Krieger", "Mcdougal Littell/Houghton Mifflin", "978-0618690084", 1376, "11.2 x 8.7 x 1.8 inches", 6.8, true, new Date(System.currentTimeMillis()))
     val usHistoryBook = new Title("The American Pageant", "David M. Kennedy and Lizabeth Cohen", "Wadsworth Publishing", "978-1111349530", 1152, "11 x 8.8 x 1.6 inches", 5.2, true, new Date(System.currentTimeMillis()))
+    
+    
+    //makeLockerData(debug)
+    if (debug) println("Creating Lockers...")
+    val locker1 = new Locker(15, "23-96-23", LockerLocation(1,"CW"), None, false)
+    val locker2 = new Locker(16, "31-09-42", LockerLocation(1,"CW"), None, false)
+    val locker3 = new Locker(17, "91-23-68", LockerLocation(1,"CW"), None, false)
+    val locker4 = new Locker(18, "79-45-82", LockerLocation(1,"CW"), None, false)
+    val locker5 = new Locker(19, "21-16-55", LockerLocation(1,"CW"), None, false)
+    val locker6 = new Locker(20, "50-61-36", LockerLocation(1,"CW"), None, false)
+    val locker7 = new Locker(21, "74-13-89", LockerLocation(1,"CW"), None, false)
+    val locker8 = new Locker(22, "66-66-66", LockerLocation(1,"CW"), None, false)
+    val locker9 = new Locker(23, "32-82-42", LockerLocation(1,"CW"), None, false)
+    val locker10 = new Locker(24, "03-08-16", LockerLocation(1,"CW"), None, false)
+    val lockerList = List(locker1, locker2, locker3, locker4, locker5, locker6, locker7, locker8, locker9, locker10)
+    
+    for(locker <- lockerList) {
+      pm.makePersistent(locker)
+    }
   }
+  
 
 }

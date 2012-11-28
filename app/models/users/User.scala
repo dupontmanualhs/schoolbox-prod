@@ -123,12 +123,15 @@ object User {
   }
   
   def current(implicit request: DbRequest[_]): Option[User] = {
-    request.session.get("username") match {
+    request.visit.user
+    /* request.session.get("username") match {
       case None => None
       case Some(username) => getByUsername(username)(request.pm)
-    }
+    } 
+    */
   }
 
+  
   def authenticate(username: String, password: String)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
     getByUsername(username) match {
 	  case Some(user) => authenticate(user, password)
