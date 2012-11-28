@@ -1,11 +1,13 @@
 @(lockerList: List[models.lockers.Locker])(implicit req: util.DbRequest[_])
 
 @main("Search Results") {
-  <h1>Locker Search Results</h1>
+  <div class="page-header">
+    <h2>Locker Search Results</h2>
+  </div>
   @if(lockerList.isEmpty) {
     <h3>No Lockers Found</h3>
   } else {
-    <table class="table table-striped span12">
+    <table class="table table-striped table-condensed">
       <thead><th>#</th><th>Location</th><th>Available?</th><th></th></thead>
       @for(locker <- lockerList sortBy (_.number)) {
         <tr><td>@locker.number</td><td>@locker.location</td><td>@locker.available</td>

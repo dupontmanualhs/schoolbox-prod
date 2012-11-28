@@ -2,9 +2,12 @@
 
 @main("Checkout History") {
 
-<h2>@header</h2>
+<div class="page-header">
+	<h2>@header</h2>
+</div>
 
-<table class="table">
+
+<table class="table table-striped table-condensed">
    <tr><th>Title</th><th>Date Checked Out</th><th>Date Returned</th></tr>
    @for(row <- rows) {
    <tr><td>@row._1</td><td>@row._2</td><td>@row._3</td></tr>

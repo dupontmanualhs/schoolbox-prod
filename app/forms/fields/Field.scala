@@ -79,7 +79,7 @@ abstract class Field[T](val name: String) {
 	  case None => autoId(form).map(Text(_))
 	}
 	if (id.isDefined) {
-	  <label>{ text }</label> % new UnprefixedAttribute("for", id, attrs)
+	  <label class="control-label">{ text }</label> % new UnprefixedAttribute("for", id, attrs)
 	} else {
 	  Text(text)
 	}    
