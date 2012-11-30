@@ -6,8 +6,10 @@ import util.{DataStore, ScalaPersistenceManager}
 import util.DbAction
 import models.lockers._
 import models.users._
+import models.courses._
 import forms._
 import forms.fields._
+import xml._
 import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
@@ -149,7 +151,39 @@ object Lockers extends Controller {
     }
   }
   
-  def lockerPicker = TODO
+  def lockerPicker = DbAction {implicit req => 
+    implicit val pm = req.pm
+    val currentUser = User.current
+    val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username)(pm).isDefined
+    if(req.method == "GET") {
+      if(!isStudent) {
+        NotFound(views.html.notFound("Must be logged-in student to select lockers."))
+      } else {
+        val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
+        val term = Term.current
+        val enrollments: List[StudentEnrollment] = {
+          val sectVar = QSection.variable("sectVar")
+          val cand = QStudentEnrollment.candidate()
+          pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+        }
+        val hasEnrollments = enrollments.size != 0
+        val sections: List[Section] = enrollments.map(_.section)
+        val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
+        val table: List[NodeSeq] = periods.map { p =>
+          val sectionsThisPeriod = sections.filter(_.periods.contains(p))
+          <tr id = {sectionsThisPeriod.map(s => Text(RoomLocation.lockerPickerMake(s.room)))} >
+            <td>{ p.name }</td>
+            <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br/>) }</td>
+            <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br/>) }</td>
+            <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
+         </tr>
+         }
+        Ok(views.html.lockers.lockerPicker(student, table, hasEnrollments))
+      }
+    } else {
+      NotFound(views.html.notFound("go away"))
+    }
+  }
   
   def lockerPickerSubmit = TODO
 }

@@ -1,0 +1,61 @@
+@(student: models.users.Student, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit request: util.DbRequest[_])
+
+@main("Pick a Locker") {
+    <script>
+      $('tr#1').click(function() {
+        $('h3.strong').removeClass('strong');
+        $('h3.1').addClass('strong');
+      });
+      $('tr#2').click(function() {
+        $('h3.strong').removeClass('strong');
+        $('h3.2').addClass('strong');
+      });
+      $('tr#3').click(function() {
+        $('h3.strong').removeClass('strong');
+        $('h3.3').addClass('strong');
+      });
+    </script>
+	<div class="page-header">
+	  <h2>Pick a Locker Based on Your Class Locations</h2>
+	</div>
+	
+	<div class="span3">
+      @if(hasEnrollments) {
+		<table class="table table-striped table-condensed">		
+			<thead><th>Period</th><th>Course(s)</th><th>Teacher(s)</th><th>Room(s)</th></thead>
+  			@for(row <- table) {
+   				@row
+  			}
+		</table>
+	  }
+	  @if(!hasEnrollments) {
+		  <p>This student is not enrolled in any courses for this term.</p>
+	  }
+	</div>
+  	<div class="span9">
+  	  <table>
+  	    <tr><td class="strong" id="1">Floor 1</td><td id="2">Floor 2</td><td id="3">Floor 3</td></tr>
+  	  </table>
+  		<div class="north-west current">
+  			<h3>North West</h3>
+  	    </div>
+  		<div class="north-east">
+  			<h3>North East</h3>
+  		</div>
+  		<div class="center-west">
+  			<h3>Center West</h3>
+  		</div>
+  		<div class="center-east">
+  			<h3>Center East</h3>
+  		</div>
+  		<div class="south-west">
+  			<h3>South West</h3>
+  		</div>
+ 		<div class="south-east">
+ 			<h3>South East</h3>
+  		</div>
+  		<div class="annex">
+  			<h3>Annex</h3>
+  		</div>
+  	</div>
+}
