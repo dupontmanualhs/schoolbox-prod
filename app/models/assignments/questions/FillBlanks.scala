@@ -44,6 +44,10 @@ class FillBlanks extends DbQuestion {
     </question>
   }
   
+  def asField: Field[Seq[String]] = {
+    
+  }
+  
   def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem = {
     val id: String = maybeId.getOrElse(name)
     <div class="fill-blanks">

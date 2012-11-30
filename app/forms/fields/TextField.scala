@@ -6,7 +6,7 @@ import scala.xml.{Attribute, MetaData, Null, Text}
 import forms.validators._
 import forms.widgets._
 
-abstract class BaseTextField[T](name: String) extends Field[T](name) {
+abstract class BaseTextField[T](name: String)(implicit man: Manifest[T]) extends Field[T](name) {
   val minLength: Option[Int] = None
   val maxLength: Option[Int] = None
   val autocomplete: Option[Boolean] = None

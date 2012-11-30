@@ -41,7 +41,12 @@ import scala.xml._
 import scala.xml
 import util.Helpers.camel2TitleCase
 
-abstract class QuestionField[T](val question: Question, name: String) extends Field[T](name) {
+abstract class QuestionField[T](val question: Question, name: String)(implicit man: Manifest[T]) extends Field[T](name) {
+  
+}
+
+class MultiBlankWidget(text: String, attrs: MetaData = Null) extends Widget(false, attrs) {
+  
   
 }
 
@@ -51,10 +56,7 @@ class BlanksField(question: Question, name: String) extends QuestionField[Seq[St
   val blank = "_{3,}".r
   
   override def widget = new Widget(required) {
-    def replaceBlanks(text: String): String = blank.findFirstMatchIn(text) match {
-      case Some(m) => 
-    }
-    }
+    
   }
   
   
