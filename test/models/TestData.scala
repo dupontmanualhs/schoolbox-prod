@@ -235,7 +235,7 @@ object TestData {
     val locker7 = new Locker(21, "74-13-89", LockerLocation(1,"CW"), None, false)
     val locker8 = new Locker(22, "66-66-66", LockerLocation(1,"CW"), None, false)
     val locker9 = new Locker(23, "32-82-42", LockerLocation(1,"CW"), None, false)
-    val locker10 = new Locker(24, "03-08-16", LockerLocation(1,"CW"), None, false)
+    val locker10 = new Locker(24, "03-08-16", LockerLocation(2,"SE"), None, false)
     val lockerList = List(locker1, locker2, locker3, locker4, locker5, locker6, locker7, locker8, locker9, locker10)
     
     for(locker <- lockerList) {

@@ -2,6 +2,7 @@ package models.lockers
 
 import play.api._
 import play.api.mvc._
+import play.libs.Scala._
 import util.{DataStore, ScalaPersistenceManager}
 import util.DbAction
 import models.lockers._
@@ -29,18 +30,19 @@ class LockerSearch {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   
-  @Persistent(defaultFetchGroup = "true")
-  private[this] var _lockers: List[Locker] = _
+  @Element(types=Array(classOf[Locker]))
+  @Join
+  private[this] var _lockers: java.util.List[Locker] = _
   
   def this(lockers: List[Locker]) {
     this()
-    _lockers = lockers
+    lockers_=(lockers)
   }
   
   def id: Long = _id
   
-  def lockers: List[Locker] = _lockers
-  def lockers_=(theLockers: List[Locker]) = (_lockers = theLockers)
+  def lockers: List[Locker] = toSeq(_lockers).toList
+  def lockers_=(theLockers: List[Locker]) = (_lockers = asJava(theLockers))
 }
 
 object LockerSearch {
@@ -56,8 +58,9 @@ trait QLockerSearch extends PersistableExpression[LockerSearch] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
-  private[this] lazy val _lockers: ObjectExpression[List[Locker]] = new ObjectExpressionImpl[List[Locker]](this, "_location")
-  def lockers: ObjectExpression[List[Locker]] = _lockers
+  private[this] lazy val _lockers: CollectionExpression[java.util.List[Locker], Locker] = 
+      new CollectionExpressionImpl[java.util.List[Locker], Locker](this, "_lockers")
+  def lockers: CollectionExpression[java.util.List[Locker], Locker] = _lockers
 }
 
 object QLockerSearch {
