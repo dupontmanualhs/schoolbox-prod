@@ -12,6 +12,8 @@ import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.interactions.Actions
 import util.DataStore
 
+// This is a conflict
+
 class TestLogins extends FunSuite {
   def driver = classOf[ChromeDriver]
 
