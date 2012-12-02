@@ -180,9 +180,9 @@ object Lockers extends Controller {
         val linkNode: NodeSeq = {<a class ="btn" href={controllers.routes.Lockers.searchResults(lockerSearch.id).url}>Lockers Near Here</a>}
         <tr>
           <td>{ p.name }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br/>) }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br/>) }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br />) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br />) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br />) }</td>
           <td>{ linkNode }</td>
        </tr>
       }
