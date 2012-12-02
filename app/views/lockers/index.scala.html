@@ -1,8 +1,25 @@
 @()(implicit req: util.DbRequest[_])
 
-@main("locker index") {
-	<div class="hero-unit">
-   		<h1>duPont Manual Lockers</h1>
-   		<p>Welcome to the new Manual locker solution!</p>
-   </diV>
+@main("Lockers") {
+	<div class="page-header">
+ 	  <h2>duPont Lockers</h2>
+    </div>
+    <div class="row">
+      <div class="hero-unit span2">
+        <h3>Get the location of your current locker!</h3>
+        <a class="btn" href=@controllers.routes.Lockers.getMyLocker()>Go</a>
+      </div>
+      <div class="hero-unit span2">
+        <h3>Already know which locker you want? Find it by number!</h3>
+        <a class="btn" href=@controllers.routes.Lockers.findLocker()>Go</a>
+      </div>
+      <div class="hero-unit span2">
+        <h3>Search for a locker by availability and location!</h3>
+        <a class="btn" href=@controllers.routes.Lockers.lockerSearch()>Go</a>
+      </div>
+      <div class="hero-unit span2">
+        <h3>Find a locker based on the location of one of your classes!</h3>
+        <a class="btn" href=@controllers.routes.Lockers.lockerPicker()>Go</a>
+      </div>
+    </div>
 }

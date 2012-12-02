@@ -19,14 +19,6 @@ object Lockers extends Controller {
   def index() = DbAction { implicit req =>
     Ok(views.html.lockers.index())
   }
-  
-  def searchLockerId(stu: Student): Long = {
-      val maybeLocker = Locker.getByStudent(stu)
-      maybeLocker match {
-        case Some(s) => s.id
-        case None => throw new Exception("Student does not own a locker")
-      }
-  }
    
   def getMyLocker() = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
@@ -47,9 +39,9 @@ object Lockers extends Controller {
     }
   }
   
-  def getLocker(id: Long) = DbAction { implicit req =>
+  def getLocker(num: Int) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
-    val maybeLocker = Locker.getById(id)(pm)
+    val maybeLocker = Locker.getByNumber(num)(pm)
     maybeLocker match {
       case None => NotFound(views.html.notFound("No locker exists with this ID."))
       case Some(locker) => if(req.method == "GET") {
@@ -114,7 +106,7 @@ object Lockers extends Controller {
           val maybeLocker = Locker.getByNumber(toInt(vb.valueOf(NumberForm.number)))(pm)
           maybeLocker match {
             case None => NotFound(views.html.notFound("No locker exists with this number."))
-            case Some(l) => Redirect(routes.Lockers.getLocker(l.id))
+            case Some(l) => Redirect(routes.Lockers.getLocker(l.number))
           }
         }
       }
@@ -151,39 +143,50 @@ object Lockers extends Controller {
     }
   }
   
+  def searchResults(id: Long) = DbAction {implicit req =>
+    implicit val pm = req.pm
+    val maybeSearchResults = LockerSearch.getById(id)
+    maybeSearchResults match {
+      case None => NotFound(views.html.notFound("No Such Search"))
+      case Some(results) => Ok(views.html.lockers.lockerList(results.lockers))
+    }
+  }
+  
   def lockerPicker = DbAction {implicit req => 
     implicit val pm = req.pm
     val currentUser = User.current
     val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username)(pm).isDefined
-    if(req.method == "GET") {
-      if(!isStudent) {
-        NotFound(views.html.notFound("Must be logged-in student to select lockers."))
-      } else {
-        val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
-        val term = Term.current
-        val enrollments: List[StudentEnrollment] = {
-          val sectVar = QSection.variable("sectVar")
-          val cand = QStudentEnrollment.candidate()
-          pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
-        }
-        val hasEnrollments = enrollments.size != 0
-        val sections: List[Section] = enrollments.map(_.section)
-        val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
-        val table: List[NodeSeq] = periods.map { p =>
-          val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-          <tr id = {sectionsThisPeriod.map(s => Text(RoomLocation.lockerPickerMake(s.room)))} >
-            <td>{ p.name }</td>
-            <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br/>) }</td>
-            <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br/>) }</td>
-            <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
-         </tr>
-         }
-        Ok(views.html.lockers.lockerPicker(student, table, hasEnrollments))
-      }
+    if(!isStudent) {
+      NotFound(views.html.notFound("Must be logged-in student to select lockers."))
     } else {
-      NotFound(views.html.notFound("go away"))
+      val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
+      val term = Term.current
+      val enrollments: List[StudentEnrollment] = {
+        val sectVar = QSection.variable("sectVar")
+        val cand = QStudentEnrollment.candidate()
+        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+      }
+      val hasEnrollments = enrollments.size != 0
+      val sections: List[Section] = enrollments.map(_.section)
+      val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
+      val table: List[NodeSeq] = periods.map { p =>
+        val sectionsThisPeriod = sections.filter(_.periods.contains(p))
+        val roomLocations = sectionsThisPeriod.map(s => RoomLocation.makeRoomLoc(s.room))
+        val matchingLockerLocations = roomLocations.map(rl => rl.toLockerLocation)
+        val matcher: Locker => Boolean = (l: Locker) => matchingLockerLocations.foldLeft(false)(_ || l.matchingLocation(_))
+        val resultLocker = Locker.availableLockers().filter(matcher)
+        val lockerSearch = new LockerSearch(resultLocker)
+        pm.makePersistent[LockerSearch](lockerSearch)
+        val linkNode: NodeSeq = {<a class ="btn" href={controllers.routes.Lockers.searchResults(lockerSearch.id).url}>Lockers Near Here</a>}
+        <tr>
+          <td>{ p.name }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
+          <td>{ linkNode }</td>
+       </tr>
+      }
+        Ok(views.html.lockers.lockerPicker(student, table, hasEnrollments))
     }
   }
-  
-  def lockerPickerSubmit = TODO
 }

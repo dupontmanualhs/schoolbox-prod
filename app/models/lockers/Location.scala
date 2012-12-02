@@ -34,6 +34,7 @@ case class RoomLocation(val floor: Int, val hall: String, val room: Room) extend
   require(1 <= floor && floor <= 4, throw new Exception("Not a valid floor."))
   require(room.name.toInt / 100 == floor, throw new Exception("Number and floor do not match."))
   override def toString = "Room " + room.name + "- " + Location.abbMap(hall)
+  def toLockerLocation = LockerLocation(floor, hall)
 }
 
 object RoomLocation {
@@ -71,10 +72,6 @@ object RoomLocation {
     }
   }
   
-  def range(start: Int, end: Int): Int => Boolean =  x => x >= start && x <= end
-  
-  def lockerPickerMake(room: Room): String = {
-     val roomLoc =  makeRoomLoc(room)
-     roomLoc.floor + " " + Location.abbMap(roomLoc.hall)
-  } 
+  def range(start: Int, end: Int): Int => Boolean = 
+    (i) => i >= start && i <= end
 }
