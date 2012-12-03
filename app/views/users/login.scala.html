@@ -1,5 +1,5 @@
 @(loginForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Login") {
-  @loginForm.asHtml
+  @loginForm.render
 }

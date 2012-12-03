@@ -5,6 +5,7 @@ import play.api.data._
 import javax.jdo.annotations._
 import models.assignments.DbQuestion
 import scala.xml.transform.BasicTransformer
+import forms.fields.TextField
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -44,9 +45,7 @@ class FillBlanks extends DbQuestion {
     </question>
   }
   
-  def asField: Field[Seq[String]] = {
-    
-  }
+  def toFormField(name: String) = new TextField(name)
   
   def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem = {
     val id: String = maybeId.getOrElse(name)

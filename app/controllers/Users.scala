@@ -16,6 +16,7 @@ import forms.{Binding, InvalidBinding, ValidBinding}
 import forms.validators.ValidationError
 import forms.validators.Validator
 import util.Authenticated
+import scala.xml.Text
 
 object Users extends Controller {  
   /**
@@ -102,7 +103,7 @@ object Users extends Controller {
         List(Validator((str: String) => {
           ValidationError(
             if (User.authenticate(user, str).isDefined) Nil
-            else List("Current password is incorrect.")
+            else List(Text("Current password is incorrect."))
           )
         }))
       }

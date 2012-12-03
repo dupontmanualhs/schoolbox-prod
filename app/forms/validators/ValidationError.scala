@@ -11,7 +11,10 @@ class ValidationError(val messages: List[NodeSeq]) extends Seq[NodeSeq] {
   def iterator = messages.iterator
   def length = messages.length
   
-  def asHtml: NodeSeq = <ul class="errorlist">{ messages.flatMap(msg => <li>{ msg }</li>) }</ul> 
+  def render: NodeSeq = messages match {
+    case Nil => NodeSeq.Empty
+    case _ => messages.flatMap(msg => <div class="alert alert-error">{ msg }</div>)
+  }
 }
 
 object ValidationError {

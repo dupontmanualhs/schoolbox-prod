@@ -9,41 +9,33 @@ import forms.validators.ValidationError
 import play.api.mvc.Request
 
 abstract class Form {
-  // TODO: check that fields have unique names?
+  // TODO: check that all names are unique
   def fields: List[Field[_]]
   def validate(data: ValidBinding): ValidationError = new ValidationError(Nil)
   
   def method = "post"
-  def autoId: Option[String] = Some("id_%s")
   def prefix: Option[String] = None
-  def labelSuffix: String = ":"
+  def autoId: Option[String] = Some("id_%s")
+  def submitText = "Submit"
+  def includeCancel = false
+  def cancelText = "Cancel"
   
-  def asHtml(bound: Binding): Elem = {
-    <form method={ method }><table>
-    { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }  
-    {fields.flatMap(f => {
-      val name = f.name
-      val label = f.label.getOrElse(camel2TitleCase(f.name))
-      val labelName = if (label == "") "" else {
-        if (":?.!".contains(label.substring(label.length - 1, label.length))) label
-        else label + labelSuffix
-      }
-      val labelPart = 
-        if (labelName != "") f.labelTag(this, Some(labelName)) ++ Text(" ")
-        else NodeSeq.Empty
-      val errorList = bound.fieldErrors.get(name).map(_.asHtml)
-      <tr>
-        <td>{ labelPart }</td>
-        <td>{ f.asWidget(bound) }</td>
-        { if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td> 
-          else NodeSeq.Empty }
-      </tr>
-    }).toList
-    }</table>
-    <input type="submit" />
-    </form> 
+  def render(bound: Binding): NodeSeq = {
+    <form method={ method } class="form-horizontal">
+      { bound.formErrors.render }
+      { fields.flatMap(_.render(bound)) }
+      { actions }
+    </form>
   }
-    
+  
+  def actions: NodeSeq = {
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{ submitText }</button>
+      { if (includeCancel) <button type="button" class="btn">{ cancelText }</button>
+        else NodeSeq.Empty }
+    </div>
+  }
+        
   def addPrefix(fieldName: String): String = {
     prefix.map(p => "%s-%s".format(p, fieldName)).getOrElse(fieldName)
   }

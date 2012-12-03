@@ -27,7 +27,7 @@ class TextField(name: String) extends BaseTextField[String](name) {
     }
   }
 
-  def validators = TextField.minAndMaxValidators(minLength, maxLength)
+  override def validators = TextField.minAndMaxValidators(minLength, maxLength)
 }
 
 class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name) {
@@ -41,7 +41,7 @@ class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name
     }
   }
   
-  def validators = OptionValidator(TextField.minAndMaxValidators(minLength, maxLength))
+  override def validators = OptionValidator(TextField.minAndMaxValidators(minLength, maxLength))
 }
 
 object TextField {

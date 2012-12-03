@@ -1,66 +1,84 @@
 package controllers
 
-import play.api._
-import scala.collection.JavaConverters._
-import models.users.Visit
-import util.Helpers.mkNodeSeq
-import scala.util.Random
-import play.api.mvc._
-import util.{ DataStore, ScalaPersistenceManager }
-import util.DbAction
-import forms._
-import forms.fields._
-import forms.validators.Validator
-import forms.validators.ValidationError
+import scala.xml.Elem
+import scala.xml.MetaData
+import scala.xml.Node
+import scala.xml.NodeSeq
+import scala.xml.NodeSeq.seqToNodeSeq
+import scala.xml.Null
+import scala.xml.transform.BasicTransformer
+import forms.Binding
+import forms.Form
+import forms.InvalidBinding
+import forms.ValidBinding
+import forms.fields.Field
+import forms.fields.TextField
+import forms.widgets.{TextInput, Widget}
+import javax.jdo.annotations.PersistenceCapable
+import models.mastery.QQuiz
+import models.mastery.Question
+import models.mastery.QuestionSet
+import models.mastery.Quiz
+import models.mastery.QuizSection
+import play.api.mvc.Controller
 import play.api.mvc.PlainResult
+import util.DbAction
 import util.DbRequest
-import math._
-import play.api.templates.Html
-import scala.collection.immutable.HashMap
-import views._
-import models._
-import play.api.data.validation.Constraints._
-import models.mastery._
-import forms.Form
-import forms.fields._
-import models.assignments.questions.FillBlanks
-import play.api.mvc.{ Action, Controller, Session }
-import play.api.templates.Html
-import views.html
-import util.DataStore
+import util.Helpers.string2elem
 import util.ScalaPersistenceManager
-import util.{ DbAction, DbRequest, Menu }
-import forms.Form
-import forms.fields._
-import forms.widgets._
-import forms.{ Binding, InvalidBinding, ValidBinding }
+import views.html
 import forms.validators.ValidationError
-import forms.validators.Validator
-import util.Authenticated
-import scala.xml._
-import scala.xml
-import util.Helpers.camel2TitleCase
+import scala.xml.UnprefixedAttribute
+import scala.xml.Text
 
-abstract class QuestionField[T](val question: Question, name: String)(implicit man: Manifest[T]) extends Field[T](name) {
+class BlanksField(question: Question) extends Field[Seq[String]](question.id.toString) {
+  override def widget = new MultiBlankWidget(question.text)
   
+  def asValue(strs: Seq[String]): Either[ValidationError, Seq[String]] = Right(strs)
+}
+
+class AnswerField(question: Question) extends TextField(question.id.toString) {
+  override def widget = new MathWidget(question.text)
+  
+  override def asValue(s: Seq[String]): Either[ValidationError, String] = s match {
+    case Seq(ans) => Right(ans)
+    case _ => Right("")
+  }
+}
+
+class MathWidget(text: String, attrs: MetaData = Null) extends TextInput(false, attrs) {
+  override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
+    <span>{ text } = { super.render(name, value, attrList) }</span>
+  }
 }
 
 class MultiBlankWidget(text: String, attrs: MetaData = Null) extends Widget(false, attrs) {
+  val blank = "_{3,}".r
   
+  lazy val numBlanks = blank.findAllIn(text).length
+  lazy val qText: Node = {
+    val withBlanks = blank.replaceAllIn(text, "<blank/>")
+    string2elem("<span>" + withBlanks + "</span>")
+  }
+  
+  def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
+    def transform(n: Node, inputs: Iterator[Node]): Node = n match {
+      case <blank/> => inputs.next
+      case e: Elem => e.copy(child=e.child.map(transform(_, inputs)))
+      case _ => n
+    }
+    val inputs = (0 until numBlanks).map((i: Int) => {
+      val valueAttr = if (i < value.length) new UnprefixedAttribute("value", Text(value(i)), Null) else Null
+      <input type="text" name={ "%s[%d]".format(name, i) }/> % attrList % valueAttr
+    })
+    transform(qText, inputs.iterator)
+  }
+  
+  override def valueFromDatadict(data: Map[String, Seq[String]], name: String): Seq[String] = 
+    for (i <- 0 to numBlanks) yield data.get("%s[%d]".format(name, i)).map(_.mkString).getOrElse("")
   
 }
 
-class BlanksField(question: Question, name: String) extends QuestionField[Seq[String]](question, name) {
-  override def required = false
-  
-  val blank = "_{3,}".r
-  
-  override def widget = new Widget(required) {
-    
-  }
-  
-  
-}
 
 class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) extends Form {
   val sectionInstructionList: List[String] =
@@ -68,18 +86,24 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 
   val instructionsAndFields: List[(String, List[forms.fields.Field[_]])] = {
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
-      (sq._1.instructions, sq._2.map((q: Question) => new TextField(q.text)))
-    })
+      (sq._1.instructions, sq._2.map( (q: Question) => {
+        if (q.text.contains("___")) {
+          new BlanksField(q)
+        } else {
+          new AnswerField(q)
+        }
+      })
+    )})
   }
 
   val fields: List[forms.fields.Field[_]] = {
     instructionsAndFields.flatMap(_._2)
   }
 
-  override def asHtml(bound: Binding): Elem = {
+  override def render(bound: Binding): Elem = {
     <form method={ method } autocomplete="off">
       <table class="table">
-        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.asHtml }</td><td></td></tr> }
+        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
             val instructions: String = instrPlusFields._1
@@ -88,15 +112,13 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
             <tr>
               <td></td>
               <td><b>{ instructions }</b></td>
-           	  <td></td>
+              <td></td>
             </tr> ++
             fields.zip(1 to fields.length).flatMap { case (f, num) => {
               val name = f.name
-              val labelPart = f.labelTag(this, Some(num.toString + ".")) ++ scala.xml.Text(" ")
-              val errorList = bound.fieldErrors.get(name).map(_.asHtml)
+              val errorList = bound.fieldErrors.get(name).map(_.render)
               <tr>
-                <td>{ labelPart }</td>
-                <td>{ f.name }</td>
+                <td><label>{ "%d. ".format(num) }</label></td>
                 <td>{ f.asWidget(bound) }</td>
                 {
                   if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
@@ -230,8 +252,7 @@ object Mastery extends Controller {
   def replaceMultiplicationSignsWithDots(s: String) ={
     """\*""".r.replaceAllIn(s, "\\cdot ")
   }
-  
-  /*
+/*
   //def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
 
   //def addMultiplication(s: String) = {
@@ -251,7 +272,7 @@ object Mastery extends Controller {
   //  ns
   //}
 
-  
+
 
   def changeToInterpreterSyntax(s: String) = {
     var rs = getRidOfSpaces(s)
@@ -274,25 +295,25 @@ object Mastery extends Controller {
     }
     val ns = replaceParensWithChars(s) // i.e. (x+2) -> a and r(x+3) -> rb
     System.out.println("replace Parens With Chars: \n" + ns)
-    val ns2 = replaceRwithChar(ns) 
-    //TODO: this needs work i.e. rb -> c 
-    System.out.println("replace r with Chars: \n"+ns2) 
-    val ns3 = replaceExponentsWithChar(ns2) 
-    //TODO: this needs work i.e. d^f -> e 
+    val ns2 = replaceRwithChar(ns)
+    //TODO: this needs work i.e. rb -> c
+    System.out.println("replace r with Chars: \n"+ns2)
+    val ns3 = replaceExponentsWithChar(ns2)
+    //TODO: this needs work i.e. d^f -> e
     System.out.println("replace Exponents With Chars: \n"+ns3)
     val ns4 = reorderExpression(ns3)
     System.out.println("reorder Expression: \n"+ns4)
     System.out.println("map of substitutions before reorder: \n" + mapOfreplacements)
-    mapOfreplacements.keys.foreach{ k=> 
+    mapOfreplacements.keys.foreach{ k=>
     TODO: Fix This
-    	val split = k.split(])|(?=[()toList
-    	var remadeKey = ""
-    	for(q <- split){
-    	  remadeKey = remadeKey + reorderMultiplication(q)
-    	}
-    	remadeKey = reorderAddMinus(remadeKey)
-    	mapOfreplacements += (remadeKey -> mapOfreplacements(k))
-    	mapOfreplacements -= (k)
+        val split = k.split(])|(?=[()toList
+        var remadeKey = ""
+        for(q <- split){
+          remadeKey = remadeKey + reorderMultiplication(q)
+        }
+        remadeKey = reorderAddMinus(remadeKey)
+        mapOfreplacements += (remadeKey -> mapOfreplacements(k))
+        mapOfreplacements -= (k)
     }
     System.out.println("map of substitutions after reorder: \n"+mapOfreplacements)
     val ns5 = replaceCharsWithStr(ns4)
@@ -300,9 +321,9 @@ object Mastery extends Controller {
     System.out.println()
     System.out.println()
     System.out.println()
-    ns5 
+    ns5
   }
-  
+
   def replaceCharsWithStr(s: String): String = {
     var ns = s
     var tf = true
@@ -333,7 +354,7 @@ object Mastery extends Controller {
     ns
   }
 
-  
+
   def reorderExpression(s: String) = {
     val splitOnOperands = s.split("((").toList
     var correctMultOrder = ""
@@ -343,7 +364,7 @@ object Mastery extends Controller {
     val correctOrder = reorderAddMinus(correctMultOrder)
     correctOrder
     }
-  
+
   def reorderAddMinus(s: String) = {
     val tempList = s.split("(?=[+\\-])").toList
     var tempList2 = s.split("[+\\-]").toList
@@ -412,7 +433,7 @@ object Mastery extends Controller {
       str
     } else s
   }
-  
+
   object Integer {
     def unapply(s: String) : Option[Int] = try {
       Some(s.toInt)
@@ -420,12 +441,12 @@ object Mastery extends Controller {
       case _ : java.lang.NumberFormatException => None
     }
   }
-  
+
   def isNum(str: String): Boolean = str match {
     case Integer(x) => true
     case _ => false
   }
-  
+
   def remove[T](elem: T, list: List[T]) = list diff List(elem)
 
   def replaceParensWithChars(s: String) = {
@@ -569,12 +590,7 @@ object Mastery extends Controller {
   }*/
 }
 
-/*trait Part {
-  def text: String
-  override def toString = text
-}
-
-class TextPart(val text: String) extends Part {}
+/*class TextPart(val text: String) extends Part {}
 
 class Parens(val contents: Seq[Part]) extends Part {
   val text = "(" + contents.mkString + ")"

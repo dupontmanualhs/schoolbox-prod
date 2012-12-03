@@ -9,7 +9,7 @@ import util.ScalaPersistenceManager
 import util.DataStore
 
 object M {
-  def apply(s: String): String = "\\(" + s + "\\)"
+  def apply(s: String): String = "\\(\\displaystyle{" + s + "}\\)"
 }
 
 @PersistenceCapable(detachable = "true")

@@ -3,6 +3,7 @@ package forms
 import fields.Field
 import validators.ValidationError
 import scala.xml.Elem
+import scala.xml.NodeSeq
 
 object Binding {
   def apply(form: Form): InitialBinding = {
@@ -44,7 +45,7 @@ abstract class Binding(val form: Form, val rawData: Map[String, Seq[String]]) {
   def fieldErrors: Map[String, ValidationError] = Map()
   def fieldErrors(field: Field[_]): Option[ValidationError] = fieldErrors.get(field.name)
   def hasErrors: Boolean = !(formErrors.isEmpty && fieldErrors.isEmpty)
-  def asHtml: Elem = form.asHtml(this)
+  def render: NodeSeq = form.render(this)
   
   def asStringSeq(field: Field[_]): Seq[String] = {
     rawData.getOrElse(field.name, Nil)
