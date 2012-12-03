@@ -20,7 +20,7 @@ abstract class Form {
   def includeCancel = false
   def cancelText = "Cancel"
   
-  def render(bound: Binding): NodeSeq = {
+  def render(bound: Binding): Node = {
     <form method={ method } class="form-horizontal">
       { bound.formErrors.render }
       { fields.flatMap(_.render(bound)) }
