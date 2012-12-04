@@ -4,20 +4,22 @@
 
 @main("Locker Info") {
 
-      <h1>Locker #@locker.number</h1>
+	  <div class="page-header">
+      	<h2>Locker #@locker.number</h2>
+      </div>
       
-      <p class="lead"><br>
+      <p class="lead"><br />
       Locker Location: <span>@locker.location</span><br>
       Taken:           @if(locker.taken) {
          		   	     <span>Yes</span>
          		       } else {
          				 <span>No</span>
-         			   } <br>
+         			   } <br />
       Student Owner:   <span>@locker.studentName</span>
       </p>
       @if(!locker.taken){
         <form method="post">
-          <button type="submit" class="btn">Get this locker!</button>
+          <button type="submit" class="btn btn-primary">Get this locker!</button>
         </form>
       }
 }
