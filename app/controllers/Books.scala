@@ -126,45 +126,27 @@ object Books extends Controller {
   
   def confirmation() = TODO
   
-  def confirmationSubmit() = TODO
-  
   def verifyTitle(isbnNum: Long) = TODO
-  
-  def verifyTitleSubmit(isbnNum: Long) = TODO
   
   def addCopiesToPg(pgId: Long) = TODO
   
-  def addCopiesToPgSubmit(pgId: Long) = TODO
-  
   def addPurchaseGroup(titleId: Long) = TODO
-  
-  def addPurchaseGroupSubmit(titleId: Long) = TODO
   
   def addLabelsToQueue() = TODO
   
-  def addLabelsToQueueSubmit() = TODO
-  
   def printCenter() = TODO
-  
-  def printCenterSubmit() = TODO
   
   def bulkCheckoutHelper() = TODO
   
   def bulkCheckout() = TODO
   
-  def bulkCheckoutSubmit() = TODO
-  
   def checkout() = TODO
-  
-  def checkoutSubmit() = TODO
   
   def lookup() = TODO
   
   def inspect() = TODO
   
   def findBooksOut() = TODO
-  
-  def findBooksOutSubmit() = TODO
   
   def booksOut(perspectiveId: Long) = TODO
   
@@ -208,18 +190,12 @@ object Books extends Controller {
   
   def checkIn() = TODO
   
-  def checkInSubmit() = TODO
-  
   def checkInLostCopy() = TODO
   
   def delete(id: Long) = TODO
   
-  def deleteSubmit(id: Long) = TODO
-  
   def confirmDelete() = TODO
   
-  def confirmDeleteSubmit() = TODO
-
   def checkoutHistory(perspectiveId: Long) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
@@ -295,15 +271,10 @@ def findCheckoutHistory() = DbAction { implicit req =>
   }
 }
 
-  def checkoutHistorySubmit() = TODO
-  
   def checkoutsByTeacherStudents() = TODO
   
-  def checkoutsByTeacherStudentsSubmit() = TODO
- 
   def statistics() = TODO
   
- 
   def copyStatusByTitle() = TODO /* DbAction { implicit req =>
     implicit val pm = req.pm
     val form = Form(
@@ -312,8 +283,6 @@ def findCheckoutHistory() = DbAction { implicit req =>
     Ok(views.html.books.copyStatusByTitleForm())
     
   }*/
-  
-  def copyStatusByTitleSubmit() = TODO
   
   def allBooksOut(grade: Int = 13) = TODO
 }
