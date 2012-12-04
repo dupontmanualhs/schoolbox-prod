@@ -11,7 +11,7 @@
       <thead><th>#</th><th>Location</th><th>Available?</th><th></th></thead>
       @for(locker <- lockerList sortBy (_.number)) {
         <tr><td>@locker.number</td><td>@locker.location</td><td>@locker.available</td>
-            <td><a href=@controllers.routes.Lockers.getLocker(locker.id)>Go To</a></td></tr>
+            <td><a href=@controllers.routes.Lockers.getLocker(locker.number)>Go To</a></td></tr>
       }
     </table>
   }
