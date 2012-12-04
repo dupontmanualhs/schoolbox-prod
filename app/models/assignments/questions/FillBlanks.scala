@@ -33,7 +33,7 @@ class FillBlanks extends DbQuestion {
   def toXml: Elem = {
     <question kind="fill-blanks" format="html">
       <text>{ text }</text>
-      <feedback>{ feedback }</feedback>
+      { if (!feedback.isEmpty) <feedback>{ feedback }</feedback> else NodeSeq.Empty }
       { answerList.zipWithIndex.flatMap(answersWithBlankNum => {
         val answers = answersWithBlankNum._1
         val blankNum = answersWithBlankNum._2
