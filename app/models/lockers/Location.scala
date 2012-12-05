@@ -25,14 +25,9 @@ object Location {
 
 
 case class LockerLocation(val floor: Int, val hall: String) extends Location {
-  require(Location.validHalls.contains(hall), throw new Exception("Not a valid hall."))
-  require(1 <= floor && floor <= 3, throw new Exception("Not a valid floor."))
   override def toString = "Floor " + floor + "- " + Location.abbMap(hall)
 }
 case class RoomLocation(val floor: Int, val hall: String, val room: Room) extends Location {
-  require(Location.validHalls.contains(hall), throw new Exception("Not a valid hall."))
-  require(1 <= floor && floor <= 4, throw new Exception("Not a valid floor."))
-  require(room.name.toInt / 100 == floor, throw new Exception("Number and floor do not match."))
   override def toString = "Room " + room.name + "- " + Location.abbMap(hall)
   def toLockerLocation = LockerLocation(floor, hall)
 }
@@ -42,12 +37,12 @@ object RoomLocation {
     val floor = room.name.toInt / 100
     val roomNumber = room.name.toInt
     if(floor == 1) {
-      if(range(100, 105)(roomNumber)) RoomLocation(1, "SE", room)
+      if(range(100, 108)(roomNumber)) RoomLocation(1, "SE", room)
       else if(range(106, 119)(roomNumber)) RoomLocation(1, "NE", room)
-      else if(range(120, 124)(roomNumber)) RoomLocation(1, "CE", room)
-      else if(range(125, 129)(roomNumber)) RoomLocation(1, "CW", room)
+      else if(range(120, 125)(roomNumber)) RoomLocation(1, "CE", room)
+      else if(range(126, 129)(roomNumber)) RoomLocation(1, "CW", room)
       else if(range(130, 134)(roomNumber)) RoomLocation(1, "NW", room)
-      else if(range(134, 139)(roomNumber))RoomLocation(1, "SW", room)
+      else if(range(135, 140)(roomNumber))RoomLocation(1, "SW", room)
       else RoomLocation(1, "ANNEX", room)
     } else if(floor == 2) {
       if(range(200, 208)(roomNumber)) RoomLocation(2, "SE", room)
@@ -55,20 +50,20 @@ object RoomLocation {
       else if(range(220, 225)(roomNumber)) RoomLocation(2, "CE", room)
       else if(range(226, 229)(roomNumber)) RoomLocation(2, "CW", room)
       else if(range(230, 234)(roomNumber)) RoomLocation(2, "NW", room)
-      else if(range(234, 240)(roomNumber)) RoomLocation(2, "SW", room)
+      else if(range(235, 240)(roomNumber)) RoomLocation(2, "SW", room)
       else RoomLocation(2, "ANNEX", room)
     } else if(floor == 3) {
       if(range(300, 308)(roomNumber)) RoomLocation(3, "SE", room)
       else if(range(309, 319)(roomNumber)) RoomLocation(3, "NE", room)
-      else if(range(320, 325)(roomNumber)) RoomLocation(3, "CE", room)
-      else if(range(326, 329)(roomNumber)) RoomLocation(3, "CW", room)
+      else if(range(320, 324)(roomNumber)) RoomLocation(3, "CE", room)
+      else if(range(325, 329)(roomNumber)) RoomLocation(3, "CW", room)
       else if(range(330, 334)(roomNumber)) RoomLocation(3, "NW", room)
       else if(range(334, 340)(roomNumber)) RoomLocation(3, "SW", room)
       else RoomLocation(3, "ANNEX", room)
     } else if(floor == 4) {
       RoomLocation(4, "CE", room)
     } else {
-      throw new Exception("Room not in Manual.")
+      RoomLocation(1, "YPAS", room)
     }
   }
   

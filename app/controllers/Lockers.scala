@@ -137,7 +137,9 @@ object Lockers extends Controller {
           
           val availabilityList = if(vb.valueOf(LockerForm.available)) Locker.availableLockers()(pm) else Locker.allLockers()(pm)
           val finalList = availabilityList.filter(matcher)
-          Ok(views.html.lockers.lockerList(finalList))
+          val search = new LockerSearch(finalList)
+          pm.makePersistent[LockerSearch](search)
+          Redirect(routes.Lockers.searchResults(search.id))
         }
       }
     }
