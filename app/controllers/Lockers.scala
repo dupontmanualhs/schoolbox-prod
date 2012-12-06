@@ -81,7 +81,7 @@ object Lockers extends Controller {
     Ok(views.html.lockers.lockerList(list))
   }
   
-  def findLocker = DbAction { implicit req =>
+  def lockerByNumber = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
     object NumberForm extends Form {
       val number: TextField = new TextField("number")
@@ -98,10 +98,10 @@ object Lockers extends Controller {
       }
     }
     if(req.method == "GET") {
-      Ok(views.html.lockers.findLocker(Binding(NumberForm)))
+      Ok(views.html.lockers.lockerByNumber(Binding(NumberForm)))
     } else {
       Binding(NumberForm, req) match {
-        case ib: InvalidBinding => Ok(views.html.lockers.findLocker(ib))
+        case ib: InvalidBinding => Ok(views.html.lockers.lockerByNumber(ib))
         case vb: ValidBinding => {
           val maybeLocker = Locker.getByNumber(toInt(vb.valueOf(NumberForm.number)))(pm)
           maybeLocker match {
@@ -137,24 +137,22 @@ object Lockers extends Controller {
           
           val availabilityList = if(vb.valueOf(LockerForm.available)) Locker.availableLockers()(pm) else Locker.allLockers()(pm)
           val finalList = availabilityList.filter(matcher)
-          val search = new LockerSearch(finalList)
-          pm.makePersistent[LockerSearch](search)
-          Redirect(routes.Lockers.searchResults(search.id))
+          Ok(views.html.lockers.lockerList(finalList))
         }
       }
     }
   }
   
-  def searchResults(id: Long) = DbAction {implicit req =>
+  def lockerByRoom(room: String) = DbAction {implicit req =>
     implicit val pm = req.pm
-    val maybeSearchResults = LockerSearch.getById(id)
-    maybeSearchResults match {
-      case None => NotFound(views.html.notFound("No Such Search"))
-      case Some(results) => Ok(views.html.lockers.lockerList(results.lockers))
-    }
+    val roomLocation = RoomLocation.makeRoomLoc(room)
+    val matchingLockerLocation = roomLocation.toLockerLocation
+    val matcher: Locker => Boolean = (l: Locker) => l.matchingLocation(matchingLockerLocation)
+    val resultLocker = Locker.allLockers().filter(matcher)
+    Ok(views.html.lockers.lockerList(resultLocker))
   }
   
-  def lockerPicker = DbAction {implicit req => 
+  def schedule = DbAction {implicit req => 
     implicit val pm = req.pm
     val currentUser = User.current
     val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username)(pm).isDefined
@@ -173,13 +171,8 @@ object Lockers extends Controller {
       val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
       val table: List[NodeSeq] = periods.map { p =>
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-        val roomLocations = sectionsThisPeriod.map(s => RoomLocation.makeRoomLoc(s.room))
-        val matchingLockerLocations = roomLocations.map(rl => rl.toLockerLocation)
-        val matcher: Locker => Boolean = (l: Locker) => matchingLockerLocations.foldLeft(false)(_ || l.matchingLocation(_))
-        val resultLocker = Locker.availableLockers().filter(matcher)
-        val lockerSearch = new LockerSearch(resultLocker)
-        pm.makePersistent[LockerSearch](lockerSearch)
-        val linkNode: NodeSeq = {<a class ="btn" href={controllers.routes.Lockers.searchResults(lockerSearch.id).url}>Lockers Near Here</a>}
+        val roomName = sectionsThisPeriod.head.room.name
+        val linkNode: NodeSeq = {<a class ="btn" href={controllers.routes.Lockers.lockerByRoom(roomName).url}>Lockers Near Here</a>}
         <tr>
           <td>{ p.name }</td>
           <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br />) }</td>
@@ -188,7 +181,7 @@ object Lockers extends Controller {
           <td>{ linkNode }</td>
        </tr>
       }
-        Ok(views.html.lockers.lockerPicker(student, table, hasEnrollments))
+        Ok(views.html.lockers.schedule(student, table, hasEnrollments))
     }
   }
 }

@@ -10,7 +10,7 @@ import util.Helpers._
 
 abstract class Location 
 object Location {
-  val validHalls = List("NE","NW","SE","SW","CE","CW","ANNEX")
+  val validHalls = List("NE","NW","SE","SW","CE","CW","ANNEX", "YPAS","YA")
   val hallMap = Map(
       "north-east" -> "NE",
       "north-west" -> "NW",
@@ -18,7 +18,9 @@ object Location {
       "south-west" -> "SW",
       "center-east" -> "CE",
       "center-west" -> "CW",
-      "annex" -> "ANNEX"
+      "annex" -> "ANNEX",
+      "YPAS" -> "YPAS",
+      "YPAS annex" -> "YA"
       )
   val abbMap = {for((name, abbreviation) <- hallMap) yield (abbreviation, name)}.toMap
 }
@@ -27,15 +29,26 @@ object Location {
 case class LockerLocation(val floor: Int, val hall: String) extends Location {
   override def toString = "Floor " + floor + "- " + Location.abbMap(hall)
 }
-case class RoomLocation(val floor: Int, val hall: String, val room: Room) extends Location {
-  override def toString = "Room " + room.name + "- " + Location.abbMap(hall)
+case class RoomLocation(val floor: Int, val hall: String, val name: String) extends Location {
+  override def toString = "Room " + name + "- " + Location.abbMap(hall)
   def toLockerLocation = LockerLocation(floor, hall)
 }
 
 object RoomLocation {
-  def makeRoomLoc(room: Room) = {
-    val floor = room.name.toInt / 100
-    val roomNumber = room.name.toInt
+  def makeRoomLoc(room: String) = {
+    if(room.contains("Y")) {
+      if(room.contains("A")) {
+        RoomLocation(0, "YA", room)
+      } else {
+        if(room.contains("1")) {
+          RoomLocation(1, "YPAS", room)
+        } else {
+          RoomLocation(1, "YPAS", room)
+        }
+      }
+    }
+    val floor = room.toInt / 100
+    val roomNumber = room.toInt
     if(floor == 1) {
       if(range(100, 108)(roomNumber)) RoomLocation(1, "SE", room)
       else if(range(106, 119)(roomNumber)) RoomLocation(1, "NE", room)
