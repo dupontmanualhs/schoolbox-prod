@@ -45,7 +45,7 @@
 	    <div class="container">
 	      <div class="content">
 		      @if(req.flash.get("message").isDefined) {
-		        <div class="alert">@req.flash("message")</div>
+		        <div class="alert alert-success">@req.flash("message")</div>
 		      }
 	       	  @content
 	      </div>
