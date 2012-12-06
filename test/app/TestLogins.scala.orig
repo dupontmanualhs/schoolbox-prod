@@ -12,7 +12,11 @@ import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.interactions.Actions
 import util.DataStore
 
+<<<<<<< HEAD
 // This is a conflict
+=======
+// Hi everybody working on the project
+>>>>>>> achen13
 
 class TestLogins extends FunSuite {
   def driver = classOf[ChromeDriver]
