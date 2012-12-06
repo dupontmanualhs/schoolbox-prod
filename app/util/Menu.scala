@@ -22,7 +22,7 @@ object Menu {
   def buildMenu(persp: Option[Perspective]): Elem = {
     val acctItems = if (persp.isDefined) List(logout, changePassword) else List(login)
     val acct: MenuItem = new MenuItem("Account", "menu_account", None, acctItems)
-    val courses = new MenuItem("Courses", "menu_courses", None, Nil)
+    val courses = new MenuItem("Courses", "menu_courses", Some(controllers.routes.Courses.getMySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", Some(controllers.routes.Lockers.index().toString), Nil)
     val bar = new MenuBar(List(acct, courses, lockers))
     bar.asHtml
