@@ -171,7 +171,10 @@ object Lockers extends Controller {
       val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
       val table: List[NodeSeq] = periods.map { p =>
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-        val roomName = sectionsThisPeriod.head.room.name
+        val roomName = sectionsThisPeriod match {
+          case s :: list => s.room.name
+          case _ => "0s"
+        }
         val linkNode: NodeSeq = {<a class ="btn" href={controllers.routes.Lockers.lockerByRoom(roomName).url}>Lockers Near Here</a>}
         <tr>
           <td>{ p.name }</td>
