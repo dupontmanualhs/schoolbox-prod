@@ -14,4 +14,15 @@ object Application extends Controller {
   def stub() = DbAction { implicit req => 
     Ok(views.html.stub())
   }
+  
+  def home = DbAction { implicit req => 
+    Ok(views.html.grades.home())}
+  
+  def announcements = DbAction { implicit req => 
+    Ok(views.html.grades.announcements())}
+  
+  def assignments = DbAction { implicit req => 
+    Ok(views.html.grades.assignments())}
 }
+
+

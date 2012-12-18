@@ -50,7 +50,7 @@ POST    /assignments/check/:taskId              controllers.Assignments.check(ta
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
 GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
-#POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
+POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
 GET     /math/random                            controllers.Math.randomProblem()
 POST    /math/random                            controllers.Math.checkAnswer(temp)
 
@@ -116,8 +116,3 @@ GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch
 POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
 #GET    /lockers/lockerPicker                   controllers.Lockers.lockerPicker()
 #POST   /lockers/lockerPicker                   controllers.Lockers.lockerPickerSubmit()
-
-#Grades
-GET     /grades/home                        	controllers.Application.home()
-GET     /grades/announcements                   controllers.Application.announcements()
-GET     /grades/assignments                     controllers.Application.assignments()
