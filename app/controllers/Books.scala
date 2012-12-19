@@ -51,14 +51,14 @@ object Books extends Controller {
    * returns None.
    */
   def checkDigit(isbn: String): Option[String] = {
-    if (isbn.matches("^\\d+$")) {
+    // if (isbn.matches("^\\d+$")) {
       val digits = isbn.toList.map(_.toString.toInt)
       digits.length match {
         case 9 => Some(tenDigitCheckDigit(digits))
         case 12 => Some(thirteenDigitCheckDigit(digits))
         case _ => None
       }
-    } else None
+   // } else None
   }
 
   /**
@@ -81,7 +81,10 @@ object Books extends Controller {
     def verify(possIsbn: String): Option[String] = {
       val noCheck = possIsbn.substring(0, possIsbn.length - 1)
       val check = checkDigit(noCheck)
-      if (possIsbn == noCheck + check) Some(possIsbn) else None
+      check match {
+        case Some(cd) => if (possIsbn == noCheck + cd) Some(possIsbn) else None
+        case _ => None
+      }
     }
     val isbn = "-".r.replaceAllIn(text, "")
     isbn.length match {
