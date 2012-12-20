@@ -67,7 +67,7 @@ object Lockers extends Controller {
       				              pm.makePersistent(ol)
       				            }
       				          }
-      				          Redirect(routes.Lockers.index()).flashing("message" -> "You have successfully changed lockers.")
+      				          Redirect(routes.Application.index()).flashing("message" -> "You have successfully changed lockers.")
       				          }
       				        }
       				      } else {
