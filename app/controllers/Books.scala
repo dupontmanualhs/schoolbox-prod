@@ -121,7 +121,12 @@ object Books extends Controller {
         case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
         case vb: ValidBinding => {
           // TODO: try to get image from url
-          Redirect(routes.Application.index)
+          val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
+          vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
+          vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
+          new java.sql.Date(new java.util.Date().getTime()))
+          request.pm.makePersistent(t)
+          Redirect(routes.Books.addTitle)
         }
       }
     }

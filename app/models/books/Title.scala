@@ -17,7 +17,7 @@ class Title {
   private[this] var _publisher: String = _
   @Unique
   private[this] var _isbn: String = _
-  private[this] var _numPages: Int = _
+  private[this] var _numPages: Integer = _
   private[this] var _dimensions: String = _
   private[this] var _weight: Double = _
   // @Persistent(defaultFetchGroup="true")
@@ -26,8 +26,8 @@ class Title {
   private[this] var _verified: Boolean = _
   private[this] var _lastModified: java.sql.Date = _
 
-  def this(name: String, author: String, publisher: String, isbn: String, numPages: Int,
-    dimensions: String, weight: Double, verified: Boolean, lastModified: java.sql.Date) = {
+  def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date) = {
     this()
     _name = name
     _author = author
@@ -46,23 +46,23 @@ class Title {
   def name: String = _name
   def name_=(theName: String) { _name = theName }
 
-  def author: String = _author
-  def author_=(theAuthor: String) { _author = theAuthor }
+  def author: Option[String] = _author
+  def author_=(theAuthor: Option[String]) { _author = theAuthor }
 
-  def publisher: String = _publisher
-  def publisher_=(thePublisher: String) { _publisher = thePublisher }
+  def publisher: Option[String] = _publisher
+  def publisher_=(thePublisher: Option[String]) { _publisher = thePublisher }
 
   def isbn: String = _isbn
   def isbn_=(theIsbn: String) { _isbn = theIsbn }
 
-  def numPages: Int = _numPages
-  def numPages_=(theNumPages: Int) { _numPages = theNumPages }
+  def numPages: Option[Int] = _numPages
+  def numPages_=(theNumPages: Option[Int]) { _numPages = theNumPages }
 
-  def dimensions: String = _dimensions
-  def dimensions_=(theDimensions: String) { _dimensions = theDimensions }
+  def dimensions: Option[String] = _dimensions
+  def dimensions_=(theDimensions: Option[String]) { _dimensions = theDimensions }
 
-  def weight: Double = _weight
-  def weight_=(theWeight: Double) { _weight = theWeight }
+  def weight: Option[Double] = _weight
+  def weight_=(theWeight: Option[Double]) { _weight = theWeight }
   
   // def image: PersistableFile = _image
   // def image_=(theImage: PersistableFile) { _image = theImage }
