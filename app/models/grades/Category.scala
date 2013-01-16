@@ -34,15 +34,15 @@ class Category {
   def section_=(theSection: Section) { _section = theSection }
   
   
-  def weight: DOuble = _weight
-  def weight_=(theWeight: Double) { _due = theDue }
+  def weight: Double = _weight
+  def weight_=(theWeight: Double) { _weight = theWeight }
 }
 
-object Assignment {
+object Category {
   
 }
 
-trait QAssignment extends PersistableExpression[Assignment] {
+trait QCategory extends PersistableExpression[Assignment] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
@@ -52,17 +52,11 @@ trait QAssignment extends PersistableExpression[Assignment] {
   private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
   def section: ObjectExpression[Section] = _section
   
-  private[this] lazy val _points: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_points")
-  def points: NumericExpression[Int] = _points
-  
-  private[this] lazy val _post: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_post")
-  def post: ObjectExpression[java.sql.Date] = _post
-  
-  private[this] lazy val _due: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_due")
-  def due: ObjectExpression[java.sql.Date] = _due
+  private[this] lazy val _weight: ObjectExpression[Double] = new ObjectExpressionImpl[Double](this, "_weight")
+  def weight: ObjectExpression[Double] = _weight
 }
 
-object QAssignment {
+object QCategory {
   def apply(parent: PersistableExpression[Assignment], name: String, depth: Int): QAssignment = {
     new PersistableExpressionImpl[Assignment](parent, name) with QAssignment
   }

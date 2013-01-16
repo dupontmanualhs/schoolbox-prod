@@ -47,6 +47,9 @@ class Assignment {
   
   def due: java.sql.Date = _due
   def due_=(theDue: java.sql.Date) { _due = theDue }
+  
+  def category: Category = _category
+  def category_=(theCategory: Category) { _category = theCategory }
 }
 
 object Assignment {
@@ -71,6 +74,9 @@ trait QAssignment extends PersistableExpression[Assignment] {
   
   private[this] lazy val _due: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_due")
   def due: ObjectExpression[java.sql.Date] = _due
+  
+  private[this] lazy val _category: ObjectExpression[Category] = new ObjectExpressionImpl[Category](this, "_category")
+  def category: ObjectExpression[Category] = _category
 }
 
 object QAssignment {
