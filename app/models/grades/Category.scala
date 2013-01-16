@@ -10,25 +10,19 @@ import util.DataStore
 import models.courses.Section
 
 @PersistenceCapable(detachable="true")
-class Assignment {
+class Category {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _name: String = _
+  private[this] var _weight: Double = _
   private[this] var _section: Section = _
-  private[this] var _points: Int = _
-  private[this] var _post: java.sql.Date = _
-  private[this] var _due: java.sql.Date = _
-  private[this] var _category: Category = _
   
-  def this(name: String, section: Section, points: Int, post: java.sql.Date, due: java.sql.Date, category: Category) {
+  def this(name: String, section: Section, weight: Double) {
     this()
     _name = name
+    _weight = weight
     _section = section
-    _points = points
-    _post = post
-    _due = due
-    _category = category
   }
   
   def id: Long = _id
@@ -39,14 +33,9 @@ class Assignment {
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
   
-  def points: Int = _points
-  def points_=(thePoints: Int) { _points = thePoints }
   
-  def post: java.sql.Date = _post
-  def post_=(thePost: java.sql.Date) { _post = thePost }
-  
-  def due: java.sql.Date = _due
-  def due_=(theDue: java.sql.Date) { _due = theDue }
+  def weight: DOuble = _weight
+  def weight_=(theWeight: Double) { _due = theDue }
 }
 
 object Assignment {

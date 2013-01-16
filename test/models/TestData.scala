@@ -196,14 +196,14 @@ object TestData {
     //makeTeacherAssignments
     if (debug) println("Creating teacher assignments to sections...")
     
-    val assignments = Map(
+    val teacherAssignments = Map(
         maryTeacher -> List(r1plan, r2usHistA, r2usHistB, w1worldHistA, w1worldHistB, w2studySkill),
         christinaTeacher -> List(r1eng1A, r2plan, w1eng2A, w2eng3A, r1eng1B, w1eng2B, w2eng3B),
         toddTeacher -> List(r1alg1A, r2alg2A, w1plan, w2geoA, r1alg1B, r2alg2B, w2geoB),
         richardTeacher -> List(r1chemA, r1chemB, r2chemA, r2chemB, w1bioA, w1bioB, w2bioA, w2bioB)
     )
 
-    for ((teacher, sections) <- assignments) {
+    for ((teacher, sections) <- teacherAssignments) {
       for (sect <- sections) {
         pm.makePersistent(new TeacherAssignment(teacher, sect, null, null))
       }
@@ -240,6 +240,14 @@ object TestData {
     
     for(locker <- lockerList) {
       pm.makePersistent(locker)
+      
+      
+    //makeAssignmentData
+    if (debug) println("Creating Assigments...")
+    val r1alg1AQuizzes = new Category("Quizzes", r1alg1A, .25)
+    
+    
+    
     }
   }
   
