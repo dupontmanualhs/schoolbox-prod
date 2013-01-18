@@ -7,6 +7,7 @@ import models.users._
 import models.books._
 import models.courses._
 import models.lockers._
+import models.grades._
 import org.joda.time.LocalDate
 
 object TestData {
