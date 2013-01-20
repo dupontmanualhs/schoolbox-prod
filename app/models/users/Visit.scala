@@ -29,19 +29,6 @@ class Visit {
   @Serialized
   private[this] var _sessionItems: java.util.Map[String, Object] = _
   
-  /*
-  @Element(types=Array(classOf[Question]))
-  @Join
-  private[this] var _SAndQ: java.util.List[Question] = _
-  private[this] var _quiz: Quiz = _
-  @Element(types=Array(classOf[Question]))
-  @Join
-  private[this] var _LQ: java.util.List[Question] = _
-  @Element(types=Array(classOf[String]))
-  @Join
-  private[this] var _LA: java.util.List[String] = _
-  */
-  
   def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
     this()
     _expiration = theExpiration
@@ -91,17 +78,6 @@ class Visit {
     if (_sessionItems.containsKey(key)) Some(_sessionItems.get(key).asInstanceOf[T])
     else None
   }
-  
-  /*
-  def updateListOfQuestions(nSAQ: List[Question]){ _SAndQ = nSAQ.asJava }
-  def updateLQ(nLQ: List[Question]){ _LQ = nLQ.asJava }
-  def updateLA(nLA: List[String]){ _LA = nLA.asJava }
-  def updateQuiz(nQuiz: Quiz) { _quiz = nQuiz }
-  
-  def getQuiz = _quiz
-  def getLQ = _LQ.asScala.toList
-  def getLA = _LA.asScala.toList
-  */
 }
 
 object Visit {
