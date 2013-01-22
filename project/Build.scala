@@ -89,7 +89,7 @@ object Nucleus {
   
   def findAllClassesRecursively(dir: File): Seq[File] = {
     if (dir.isDirectory) {
-      files = dir.listFiles
+      val files = dir.listFiles
       files.flatMap(findAllClassesRecursively(_)) 
     } else if (dir.getName.endsWith(".class")) {
       Seq(dir)
