@@ -11,9 +11,10 @@ class Session {
   private[this] var _date: java.sql.Date = _
   private[this] var _cutoff: java.sql.Timestamp = _
   private[this] var _priority: java.sql.Timestamp = _
+  private[this] var _slotInterval: Int = _
   private[this] var _startTime: java.sql.Time = _
   private[this] var _endTime: java.sql.Time = _
-  private[this] var _slotInterval: Int = _
+  
   
   def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: java.sql.Timestamp, startTime: java.sql.Time, endTime: java.sql.Time, slotInterval: Int) = {
     this()

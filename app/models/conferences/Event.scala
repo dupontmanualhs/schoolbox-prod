@@ -6,8 +6,9 @@ import javax.jdo.annotations._
 class Event {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
-  private[this] var _name: String = _
   private[this] var _isActive: Boolean = _
+  @Unique
+  private[this] var _name: String = _
   
   def this(name: String, isActive: Boolean) = {
     this()

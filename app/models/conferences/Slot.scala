@@ -11,12 +11,13 @@ class Slot {
   private[this] var _session : Session = _
   private[this] var _teacher : Teacher = _
   private[this] var _student : Student = _
-  private[this] var _startTime : java.sql.Time = _
   private[this] var _parentName : String = _
   private[this] var _email : String = _
   private[this] var _phone : String = _
   private[this] var _alternatePhone : String = _
   private[this] var _comment : String = _
+  private[this] var _startTime : java.sql.Time = _
+  
   
   def this(session: Session, teacher: Teacher, student: Student, startTime: java.sql.Time, parentName: String, email: String, phone: String, alternatePhone: String, comment: String) = {
     this()
