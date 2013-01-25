@@ -21,10 +21,9 @@ class Assignment {
   private[this] var _due: java.sql.Date = _
   private[this] var _category: Category = _
   
-  def this(name: String, section: Section, points: Int, post: java.sql.Date, due: java.sql.Date, category: Category) {
+  def this(name: String, points: Int, post: java.sql.Date, due: java.sql.Date, category: Category) {
     this()
     _name = name
-    _section = section
     _points = points
     _post = post
     _due = due
@@ -35,9 +34,6 @@ class Assignment {
   
   def name: String = _name
   def name_=(theName: String) { _name = theName }
-  
-  def section: Section = _section
-  def section_=(theSection: Section) { _section = theSection }
   
   def points: Int = _points
   def points_=(thePoints: Int) { _points = thePoints }
@@ -62,10 +58,7 @@ trait QAssignment extends PersistableExpression[Assignment] {
   
   private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
   def name: StringExpression = _name
-  
-  private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
-  def section: ObjectExpression[Section] = _section
-  
+
   private[this] lazy val _points: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_points")
   def points: NumericExpression[Int] = _points
   

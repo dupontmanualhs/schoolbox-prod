@@ -243,12 +243,42 @@ object TestData {
       pm.makePersistent(locker)
       
       
-    //makeAssignmentData
-    if (debug) println("Creating Assigments...")
-    val r1alg1AQuizzes = new Category("Quizzes", r1alg1A, .25)
+    //makeCategories
+    if (debug) println("Creating Categories...")
+    val r1alg1AQuizzes = new Category("Quizzes", r1alg1A, .15)
+    val r1alg1ATests = new Category("Tests", r1alg1A, .40)
+    val r1alg1AHomework = new Category("Homework", r1alg1A, .20)
+    val r1alg1AClasswork = new Category("Classwork", r1alg1A, .15)
+    val r1alg1AParticipation = new Category("Participation", r1alg1A, .10)
+      
+    val r2usHistBQuizzes = new Category("Quizzes", r2usHistB, .2)
+    val r2usHistBTests = new Category("Tests", r2usHistB, .35)
+    val r2usHistBHomework = new Category("Homework", r2usHistB, .2)
+    val r2usHistBAPPractice = new Category("AP Practice", r2usHistB, .2)
+    val r2usHistBConduct = new Category("Conduct", r2usHistB, .05)
+    
+    //makeAssignments
+    if (debug) println("Creating Assignments...")
     
     
     
+    
+    val guildedAgeQuiz = new Assignment("Gilded Age Quiz", 25, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-13"), r2usHistBQuizzes)
+    val lincolnFavoriteFooodsQuiz = new Assignment("Lincoln's Favorite Foods Quiz", 35, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-01"), r2usHistBQuizzes)
+    
+    val civilWarTest = new Assignment("Civil War Test", 20000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBTests)
+    val secondCivilWarTest = new Assignment("Second Civil War Test: East Coast vs West Coast Hip Hop", 200000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBTests)
+    val thirdCivilWarTest = new Assignment("Third Civil War Test: Northeasterly Residents vs Middle Southwest Utah", 20, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBTests)
+    
+    val aLVHReview = new Assignment("Abraham Lincoln Vampire Hunter Review", 1, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
+    val theHistoryOfUSHistory = new Assignment("Worksheet: The History of US History", 2, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
+    val robotsAndKoreanWar = new Assignment("Paper: Advanced Androids Behind the Korean War", 5, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
+    val georgeWashingtonvsGodzilla = new Assignment("George Washington: Savior of Our Union", 8, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
+    
+    val apPractice1 = new Assignment("AP Practice 1", 111111, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBAPPractice)
+      
+    val conduct4 = new Assignment("4th 6 weeks Conduct", 10, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBConduct)
+    val conduct5 = new Assignment("5th 6 weeks Conduct", 4, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBConduct)
     }
   }
   
