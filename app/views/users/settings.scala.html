@@ -1,6 +1,6 @@
 @(pwForm: forms.Binding, themeForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Change your settings") {
-	@pwForm.asHtml(controllers.routes.Users.changePassword.url)
-	@themeForm.asHtml(controllers.routes.Users.changeTheme.url)
+	@pwForm.asHtml(controllers.routes.Users.changePassword.url, "Change your Password")
+	@themeForm.asHtml(controllers.routes.Users.changeTheme.url, "Set your Theme")
 }
