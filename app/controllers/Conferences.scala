@@ -17,6 +17,6 @@ import util.Helpers._
 
 object Conferences extends Controller {
 	def index() = DbAction { implicit req =>
-		Ok(views.html.stub())
+		Ok(views.html.conferences.index())
 	}
 }
