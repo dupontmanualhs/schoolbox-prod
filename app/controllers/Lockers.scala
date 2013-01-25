@@ -16,9 +16,6 @@ import forms.validators.ValidationError
 import util.Helpers._
 
 object Lockers extends Controller {
-  def index() = DbAction { implicit req =>
-    Ok(views.html.lockers.index())
-  }
    
   def getMyLocker() = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm

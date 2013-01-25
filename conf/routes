@@ -107,7 +107,6 @@ GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHi
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 
 #Lockers
-GET     /lockers                                controllers.Lockers.index()
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
 GET     /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
 POST    /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)

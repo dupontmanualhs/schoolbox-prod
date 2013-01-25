@@ -19,7 +19,7 @@ abstract class Form {
   def labelSuffix: String = ":"
     
   def asHtml(bound: Binding, action: String): Elem = {
-    <form method={ method } class="form-horizontal well" action={ action }><fieldset>
+    <form method={ method } class="form-horizontal well span7 offset1" action={ action }><fieldset>
     { if (bound.formErrors.isEmpty) NodeSeq.Empty else { bound.formErrors.asHtml } }  
     {fields.flatMap(f => {
       val name = f.name

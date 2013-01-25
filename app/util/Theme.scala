@@ -9,7 +9,7 @@ object Theme {
     case Some(u) => 
       u.theme match {
         case "default" => <link rel="stylesheet" media="screen" href="/assets/stylesheets/tester.css"/>
-        case "night" => <link rel="stylesheet" media="screen" href="/assets/stylesheets/metro.css"/>
+        case "night" => <link rel="stylesheet" media="screen" href="/assets/stylesheets/night.css"/>
       }
   }
 }
