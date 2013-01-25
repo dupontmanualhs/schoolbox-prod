@@ -116,3 +116,6 @@ GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch
 POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
 GET     /lockers/schedule                       controllers.Lockers.schedule()
 GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
+
+#Conferences
+GET		/conferences							controllers.Conferences.index()

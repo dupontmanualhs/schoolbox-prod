@@ -43,7 +43,8 @@ object Menu {
     val acct: MenuItem = new MenuItem("Account", "menu_account", None, acctItems)
     val courses = new MenuItem("Courses", "menu_courses", Some(controllers.routes.Courses.getMySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", /*Some(controllers.routes.Lockers.index().toString)*/None, locItems)
-    val bar = new MenuBar(List(courses, lockers))
+    val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
+    val bar = new MenuBar(List(courses, lockers, confr))
     bar.asHtml
   }
 }
