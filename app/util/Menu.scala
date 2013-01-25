@@ -31,14 +31,14 @@ class MenuBar(val menus: List[MenuItem]) {
 object Menu {
   val login = new MenuItem("Log in", "menu_login", Some(controllers.routes.Users.login().toString), Nil)
   val logout = new MenuItem("Log out", "menu_logout", Some(controllers.routes.Users.logout().toString), Nil)
-  val changePassword = new MenuItem("Change Password", "menu_changePassword", Some(controllers.routes.Users.changePassword().toString), Nil)
+  val settings = new MenuItem("Settings", "menu_settings", Some(controllers.routes.Users.settings().toString), Nil)
   val currloc = new MenuItem("My Locker", "menu_lockerStatus", Some(controllers.routes.Lockers.getMyLocker().toString), Nil)
   val findlocnum = new MenuItem("Find Locker by Number", "menu_lockerNum", Some(controllers.routes.Lockers.lockerByNumber().toString), Nil)
   val locsearch = new MenuItem("Find Locker", "menu_lockerSearch", Some(controllers.routes.Lockers.lockerSearch().toString), Nil)
   val locsched = new MenuItem("Find Locker by Class", "menu_lockerClass", Some(controllers.routes.Lockers.schedule().toString), Nil)
   
   def buildMenu(persp: Option[Perspective]): Elem = {
-    val acctItems = if (persp.isDefined) List(logout, changePassword) else List(login)
+    val acctItems = if (persp.isDefined) List(logout, settings) else List(login)
     val locItems = List(currloc, locsearch, locsched, findlocnum)
     val acct: MenuItem = new MenuItem("Account", "menu_account", None, acctItems)
     val courses = new MenuItem("Courses", "menu_courses", Some(controllers.routes.Courses.getMySchedule().toString), Nil)

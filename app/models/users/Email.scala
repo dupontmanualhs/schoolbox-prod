@@ -6,15 +6,15 @@ import org.datanucleus.api.jdo.query._
 
 @PersistenceCapable(detachable="true")
 class Email {
-	private[this] var _value: String = _
-	
-	def value = _value
-	def value_=(theValue: String) { _value = theValue }
-		
-	def this(value: String) {
-	    this()
-		value_=(value)
-	}
+    private[this] var _value: String = _
+
+    def value = _value
+    def value_=(theValue: String) { _value = theValue }
+
+    def this(value: String) {
+        this()
+        value_=(value)
+    }
 }
 
 trait QEmail extends PersistableExpression[Email] {
@@ -28,18 +28,18 @@ object QEmail {
   def apply(parent: PersistableExpression[Email], name: String, depth: Int): QEmail = {
     new PersistableExpressionImpl[Email](parent, name) with QEmail
   }
-  
+
   def apply(cls: Class[Email], name: String, exprType: ExpressionType): QEmail = {
     new PersistableExpressionImpl[Email](cls, name, exprType) with QEmail
   }
 
   private[this] lazy val jdoCandidate: QEmail = candidate("this")
-  
+
   def candidate(name: String): QEmail = QEmail(null, name, 5)
-  
+
   def candidate(): QEmail = jdoCandidate
-  
+
   def parameter(name: String): QEmail = QEmail(classOf[Email], name, ExpressionType.PARAMETER)
-  
+
   def variable(name: String): QEmail = QEmail(classOf[Email], name, ExpressionType.VARIABLE)
 }

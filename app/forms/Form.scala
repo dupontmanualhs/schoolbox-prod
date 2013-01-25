@@ -17,9 +17,11 @@ abstract class Form {
   def autoId: Option[String] = Some("id_%s")
   def prefix: Option[String] = None
   def labelSuffix: String = ":"
-  
-  def asHtml(bound: Binding): Elem = {
-    <form method={ method } class="form-horizontal well"><fieldset>
+    
+  def asHtml(bound: Binding, action: String, legend: String = ""): Elem = {
+    <form method={ method } class="form-horizontal well span7 offset1" action={ action }><fieldset>
+    { if (legend != "") <legend>{ legend }</legend> }
+    <fieldset>
     { if (bound.formErrors.isEmpty) NodeSeq.Empty else { bound.formErrors.asHtml } }  
     {fields.flatMap(f => {
       val name = f.name
@@ -46,6 +48,8 @@ abstract class Form {
     </div>
     </form> 
   }
+  
+  def asHtml(bound: Binding): Elem =  asHtml(bound, "")
     
   def addPrefix(fieldName: String): String = {
     prefix.map(p => "%s-%s".format(p, fieldName)).getOrElse(fieldName)

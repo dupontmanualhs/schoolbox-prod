@@ -13,15 +13,16 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 #Users
 GET		/login						            controllers.Users.login()
-POST    /login						          controllers.Users.login()
-GET     /choosePerspective          controllers.Users.choosePerspective()
-POST    /choosePerspective          controllers.Users.choosePerspective() 
-GET     /logout                     controllers.Users.logout()
-#GET    /settings                   controllers.Users.settings()
-#POST   /settings                   controllers.Users.updateSettings()
-GET     /changePassword             controllers.Users.changePassword()
-POST    /changePassword             controllers.Users.changePassword()
-GET     /listUsers                  controllers.Users.list()
+POST    /login						          	controllers.Users.login()
+GET     /choosePerspective          		  	controllers.Users.choosePerspective()
+POST    /choosePerspective         				controllers.Users.choosePerspective() 
+GET     /logout                     			controllers.Users.logout()
+GET     /settings                  				controllers.Users.settings()
+POST    /changeTheme   			                controllers.Users.changeTheme()
+GET     /changePassword         			    controllers.Users.changePassword()
+POST    /changePassword             			controllers.Users.changePassword()
+GET     /listUsers                 				controllers.Users.list()
+
 
 #Courses
 # current schedules
@@ -106,7 +107,6 @@ GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHi
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 
 #Lockers
-GET     /lockers                                controllers.Lockers.index()
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
 GET     /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
 POST    /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
