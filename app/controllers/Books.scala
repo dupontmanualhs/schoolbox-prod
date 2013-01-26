@@ -126,7 +126,7 @@ object Books extends Controller {
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
           new java.sql.Date(new java.util.Date().getTime()))
           request.pm.makePersistent(t)
-          Redirect(routes.Books.addTitle)
+          Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
         }
       }
     }
