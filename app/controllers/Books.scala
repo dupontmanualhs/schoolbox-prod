@@ -101,7 +101,9 @@ object Books extends Controller {
       override val validators = List(Validator((str: String) => asValidIsbn13(str) match {
         case None => ValidationError("This value must be a valid 10- or 13-digit ISBN.")
 	    case Some(isbn) => ValidationError(Nil)
-      }))
+    }), Validator((str: String) => Title.getByIsbn(str) match {
+        case Some(isbn) => ValidationError("ISBN already exists in database.")
+        case None => ValidationError(Nil)}))
     }
     val name = new TextField("name") { override val maxLength = Some(80) }
     val author = new TextFieldOptional("author(s)") { override val maxLength = Some(80) }
@@ -131,7 +133,7 @@ object Books extends Controller {
       }
     }
   }
-  
+
   def confirmation() = TODO
   
   def verifyTitle(isbnNum: Long) = TODO
