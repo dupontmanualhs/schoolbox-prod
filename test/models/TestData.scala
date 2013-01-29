@@ -10,6 +10,7 @@ import models.lockers._
 import models.grades._
 import org.joda.time.LocalDate
 
+
 object TestData {
   def load(debug: Boolean = false) {
     val dbFile = new File("data.h2.db")
@@ -256,13 +257,18 @@ object TestData {
     val r2usHistBHomework = new Category("Homework", r2usHistB, .2)
     val r2usHistBAPPractice = new Category("AP Practice", r2usHistB, .2)
     val r2usHistBConduct = new Category("Conduct", r2usHistB, .05)
+      
+    val w2bioAQuizzes = new Category("Quizzes", w2bioA, .25)
+    val w2bioATests = new Category("Tests", w2bioA, .4)
+    val w2bioAHomework = new Category("Homework", w2bioA, .2)
+    val w2bioALabs = new Category("Labs", w2bioA, .15)
     
     //makeAssignments
     if (debug) println("Creating Assignments...")
     
     
     
-    
+    // r2usHistB Assignments
     val guildedAgeQuiz = new Assignment("Gilded Age Quiz", 25, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-13"), r2usHistBQuizzes)
     val lincolnFavoriteFooodsQuiz = new Assignment("Lincoln's Favorite Foods Quiz", 35, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-01"), r2usHistBQuizzes)
     
@@ -279,6 +285,44 @@ object TestData {
       
     val conduct4 = new Assignment("4th 6 weeks Conduct", 10, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBConduct)
     val conduct5 = new Assignment("5th 6 weeks Conduct", 4, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBConduct)
+     
+      
+    // r1alg1A Assignments
+    val ass1 = new Assignment("Chaper 12.1 Quiz", 30, Date.valueOf("2012-10-31"), Date.valueOf("2012-10-31"), r1alg1AQuizzes)
+    val ass2 = new Assignment("Chaper 12.2 Quiz", 30, Date.valueOf("2012-11-7"), Date.valueOf("2012-11-7"), r1alg1AQuizzes)
+    val ass3 = new Assignment("Chaper 12.3 Quiz", 30, Date.valueOf("2012-11-14"), Date.valueOf("2012-11-14"), r1alg1AQuizzes)
+    val ass4 = new Assignment("Chaper 12.4 Quiz", 30, Date.valueOf("2012-11-21"), Date.valueOf("2012-11-21"), r1alg1AQuizzes)
+
+    val ass5 = new Assignment("Chaper 12 Test", 100, Date.valueOf("2012-11-30"), Date.valueOf("2012-11-30"), r1alg1ATests)
+
+    val ass6 = new Assignment("Chapter 12.1 Homework", 10, Date.valueOf("2012-10-28"), Date.valueOf("2012-10-31"), r1alg1AHomework)
+    val ass7 = new Assignment("Chapter 12.2 Homework", 10, Date.valueOf("2012-11-4"), Date.valueOf("2012-11-7"), r1alg1AHomework)
+    val ass8 = new Assignment("Chapter 12.3 Homework", 10, Date.valueOf("2012-11-11"), Date.valueOf("2012-11-14"), r1alg1AHomework)
+    val ass9 = new Assignment("Chapter 12.4 Homework", 10, Date.valueOf("2012-11-18"), Date.valueOf("2012-11-21"), r1alg1AHomework)
+
+    val ass10 = new Assignment("Week 10 Participation", 10, Date.valueOf("2012-10-31"), Date.valueOf("2012-11-7"), r1alg1AParticipation)
+
+    val ass11 = new Assignment("Chapter 12 Review", 15, Date.valueOf("2012-11-3"), Date.valueOf("2012-11-5"), r1alg1AClasswork)
+      
+      
+    // w2bioA Assignments
+    val carbonQuiz = new Assignment("Carbon Quiz", 40, Date.valueOf("2012-11-7"), Date.valueOf("2012-11-7"), w2bioAQuizzes)
+    val popQuiz = new Assignment("Surprise Muthatrucka", 25 , Date.valueOf("2012-11-11"), Date.valueOf("2012-11-11"), w2bioAQuizzes)
+    val cellQuiz = new Assignment("Cell Quiz", 40, Date.valueOf("2012-11-17"), Date.valueOf("2012-11-17"), w2bioAQuizzes)
+    
+      
+    val carbonTest = new Assignment("Carbon Test", 100, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-10"), w2bioATests)
+    val cellTest = new Assignment("Cell Test", 100, Date.valueOf("2012-11-20"), Date.valueOf("2012-11-20"), w2bioATests)
+      
+    val wordSearch = new Assignment("Word Search", 10 , Date.valueOf("2012-10-31"), Date.valueOf("2012-11-3"), w2bioAHomework)
+    val bookReading = new Assignment("Book Reading", 5, Date.valueOf("2012-11-3"), Date.valueOf("2012-11-5"), w2bioAHomework)
+    val carbonWorksheet = new Assignment("Carbon Worksheet", 20, Date.valueOf("2012-11-5"), Date.valueOf("2012-11-7"), w2bioAHomework)
+    val bondWorksheet = new Assignment("Bond Worksheet", 15, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-12"), w2bioAHomework)
+    val takeHomeProblems = new Assignment("Take Home Problems", 20, Date.valueOf("2012-11-12"), Date.valueOf("2012-11-14"), w2bioAHomework)
+    val cellWorksheet = new Assignment("Cell Worksheet", 20, Date.valueOf("2012-11-15"), Date.valueOf("2012-"), w2bioAHomework)
+      
+    val carbonExperiment = new Assignment("Carbon Experiment", 30, Date.valueOf("2012-11-5"), Date.valueOf("2012-11-7"), w2bioALabs)
+    val cellLab = new Assignment("Cell Lab", 30, Date.valueOf("2012-11-15"), Date.valueOf("2012-11-17"), w2bioALabs)
     }
   }
   
