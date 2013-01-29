@@ -46,6 +46,7 @@ abstract class Form {
     	<button type="submit" class="btn btn-primary">Submit</button>
     	<button type="reset" class="btn">Cancel</button>
     </div>
+    </fieldset>
     </form> 
   }
   
