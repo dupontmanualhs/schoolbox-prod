@@ -119,3 +119,4 @@ GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom
 
 #Conferences
 GET		/conferences							controllers.Conferences.index()
+GET		/conferences/admin 						controllers.Conferences.index()
