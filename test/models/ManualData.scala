@@ -307,14 +307,18 @@ object ManualData {
     }
   }
   
+  def asOptionString(s: String): Option[String] = {
+    if (s.trim() == "") None else Some(s.trim())
+  }
+  
   def loadTitles(titles: NodeSeq, debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
     val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
     val titleIdMap = mutable.Map[Long, Long]()
     pm.beginTransaction()
     for (t <- (titles \ "title")) {
       val djId = (t \ "id").text.toLong
-      val title = new Title((t \ "name").text, (t \ "author").text, (t \ "publisher").text, (t \ "isbn").text,
-                            asInt((t \ "numPages").text), (t \ "dimensions").text, asDouble((t \ "weight").text),
+      val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
+                            Option(asInt((t \ "numPages").text)), asOptionString((t \ "dimensions").text), Option(asDouble((t \ "weight").text)),
                             (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df))
       if (debug) println("Adding title: %s...".format(title.name))
       pm.makePersistent(title)
