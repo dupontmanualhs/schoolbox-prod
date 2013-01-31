@@ -119,23 +119,50 @@ object Users extends Controller {
     }
     
   }
+  
+  object ChangeTheme extends Form {
+    val theme = new ChoiceField("theme",List(("Default", "default"), ("Night", "night")))
+    
+    def fields = List(theme)
+  }
+  
+  def settings = Authenticated { implicit req =>
+    val user = req.visit.user.get
+    val pwForm = new ChangePasswordForm(user)
+    Ok(html.users.settings(Binding(pwForm), Binding(ChangeTheme)))
+  }
 
   def changePassword = Authenticated { implicit req =>
     val user = req.visit.user.get // TODO: this scares me -- we shouldn't get here if the user is None, but...
     val form = new ChangePasswordForm(user)
     if (req.method == "GET") {
-      Ok(html.users.changePassword(Binding(form)))
+      Ok(html.users.settings(Binding(form), Binding(ChangeTheme)))
     } else {
       Binding(form, req) match {
-        case ib: InvalidBinding => Ok(html.users.changePassword(ib))
+        case ib: InvalidBinding => Ok(html.users.settings(ib, Binding(ChangeTheme)))
         case vb: ValidBinding => {
           user.password = vb.valueOf(form.newPassword)
           req.pm.makePersistent(user)
-          Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
+          Redirect(routes.Application.index()).flashing("message" -> "Settings successfully changed.")
         }
       }
     }
   }
+  
+  def changeTheme = Authenticated { implicit req =>
+    val user = req.visit.user.get
+    val pwForm = new ChangePasswordForm(user)
+    Binding(ChangeTheme, req) match {
+      case ib: InvalidBinding => Ok(html.users.settings(Binding(pwForm), ib))
+      case vb: ValidBinding => {
+        user.theme = vb.valueOf(ChangeTheme.theme)
+        req.pm.makePersistent(user)
+        Redirect(routes.Application.index()).flashing("message" -> "Settings successfully changed.")
+      }
+    }
+  }
+  
+ //def settingsPage = 
   
   def list = DbAction { implicit request =>
     val cand = QUser.candidate

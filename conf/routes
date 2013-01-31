@@ -13,15 +13,16 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 #Users
 GET		/login						            controllers.Users.login()
-POST    /login						          controllers.Users.login()
-GET     /choosePerspective          controllers.Users.choosePerspective()
-POST    /choosePerspective          controllers.Users.choosePerspective() 
-GET     /logout                     controllers.Users.logout()
-#GET    /settings                   controllers.Users.settings()
-#POST   /settings                   controllers.Users.updateSettings()
-GET     /changePassword             controllers.Users.changePassword()
-POST    /changePassword             controllers.Users.changePassword()
-GET     /listUsers                  controllers.Users.list()
+POST    /login						          	controllers.Users.login()
+GET     /choosePerspective          		  	controllers.Users.choosePerspective()
+POST    /choosePerspective         				controllers.Users.choosePerspective() 
+GET     /logout                     			controllers.Users.logout()
+GET     /settings                  				controllers.Users.settings()
+POST    /changeTheme   			                controllers.Users.changeTheme()
+GET     /changePassword         			    controllers.Users.changePassword()
+POST    /changePassword             			controllers.Users.changePassword()
+GET     /listUsers                 				controllers.Users.list()
+
 
 #Courses
 # current schedules
@@ -69,13 +70,16 @@ GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHi
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 
 #Lockers
-GET     /lockers                                controllers.Lockers.index()
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
 GET     /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
 POST    /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
-GET     /lockers/findLocker                     controllers.Lockers.findLocker()
-POST    /lockers/findLocker                     controllers.Lockers.findLocker()
+GET     /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
+POST    /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
 GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
 POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
-GET     /lockers/lockerPicker                   controllers.Lockers.lockerPicker()
-GET     /lockers/searchResults/:searchId        controllers.Lockers.searchResults(searchId: Long)
+GET     /lockers/schedule                       controllers.Lockers.schedule()
+GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
+
+#Conferences
+GET		/conferences							controllers.Conferences.index()
+GET		/conferences/admin 						controllers.Conferences.index()
