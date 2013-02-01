@@ -1,0 +1,6 @@
+@(myForm: forms.Binding)(implicit req:util.DbRequest[_])
+@import helper._
+
+@main("Form Tester"){ 
+    	@myForm.render
+}

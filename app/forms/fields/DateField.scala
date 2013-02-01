@@ -3,7 +3,7 @@ import forms.validators.ValidationError
 import java.sql.Date
 
 class DateField(name: String) extends Field[Date](name) {
-  override def required = true
+  override def required = false
 
   def asValue(s: Seq[String]): Either[ValidationError, Date] =
     try {
