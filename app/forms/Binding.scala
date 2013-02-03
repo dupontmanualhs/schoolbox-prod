@@ -27,6 +27,7 @@ object Binding {
     })
   }
   
+  
   def apply(form: Form, request: play.api.mvc.Request[_]): Binding = {
     apply(form, 
       (request.body match {

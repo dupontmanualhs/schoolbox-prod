@@ -30,7 +30,7 @@ abstract class Form {
   }
   
   def scripts: NodeSeq = {
-    fields.flatMap(_.widget.scripts)
+    fields.flatMap(_.widget.scripts).distinct
   }
   
   def actions: NodeSeq = {
