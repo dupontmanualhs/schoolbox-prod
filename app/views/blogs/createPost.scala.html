@@ -1,6 +1,6 @@
 @(title: String, form: forms.Binding)(implicit req: util.DbRequest[_])
 
-@main("Create a post: " + title, views.JavascriptLibraries.TINY_MCE){
+@main("Create a post: " + title, form.form.scripts){
 	@form.render
 }
 	

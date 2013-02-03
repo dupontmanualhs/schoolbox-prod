@@ -1,10 +1,11 @@
 package forms.fields
 import forms.validators.ValidationError
 import java.sql.Date
+import forms.widgets.DateInput
 
 class DateField(name: String) extends Field[Date](name) {
-  override def required = false
-
+  override def widget = new DateInput(required)
+  
   def asValue(s: Seq[String]): Either[ValidationError, Date] =
     try {
       val splitdate = s(0).split("/")

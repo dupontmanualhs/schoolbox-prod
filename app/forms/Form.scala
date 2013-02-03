@@ -7,6 +7,7 @@ import forms.widgets.Widget
 import util.Helpers.camel2TitleCase
 import forms.validators.ValidationError
 import play.api.mvc.Request
+import play.api.templates.Html
 
 abstract class Form {
   // TODO: check that all names are unique
@@ -26,6 +27,10 @@ abstract class Form {
       { fields.flatMap(_.render(bound)) }
       { actions }
     </form>
+  }
+  
+  def scripts: NodeSeq = {
+    fields.flatMap(_.widget.scripts)
   }
   
   def actions: NodeSeq = {

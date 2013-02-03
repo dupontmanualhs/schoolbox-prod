@@ -60,8 +60,8 @@ GET     /tatro/mastery/scoreReport				controllers.Mastery.checkAnswers()
 #POST    /math/random                            controllers.Math.checkAnswer(temp)
 
 #Blogs
-GET     /blog/editor                            controllers.Blogs.editor()
-POST    /blog/editor                            controllers.Blogs.testSubmit()
+#GET     /blog/editor                            controllers.Blogs.editor()
+#POST    /blog/editor                            controllers.Blogs.testSubmit()
 GET     /blog/me                                controllers.Blogs.listCurrentUserBlogs
 GET     /blog/user/:id                          controllers.Blogs.listBlogsByPerspectiveId(id: Long)
 GET     /blog/:id                               controllers.Blogs.showBlog(id: Long)

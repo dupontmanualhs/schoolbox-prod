@@ -6,6 +6,7 @@ import forms.validators._
 import forms.Form
 import util.Helpers.camel2TitleCase
 import forms.Binding
+import play.api.templates.Html
 
 abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
   def validators: List[Validator[T]] = Nil
@@ -30,7 +31,7 @@ abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
       </div>  
     </div>
   }
-  
+    
   def labelElem(form: Form): NodeSeq = (label, id(form)) match {
     case (Some(label), Some(id)) => <label class="control-label" for={ id }>{ label }</label>
     case (Some(label), None) => <label class="control-label">{ label }</label>

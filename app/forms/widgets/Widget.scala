@@ -19,6 +19,8 @@ abstract class Widget(
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq
   
+  def scripts: NodeSeq = NodeSeq.Empty
+  
   //TODO: need something different for files
   def valueFromDatadict(data: Map[String, Seq[String]], name: String): Seq[String] = {
     data.getOrElse(name, Nil)

@@ -29,9 +29,9 @@ object Blogs extends Controller {
     "tinymce" -> text
   }
 
-  def editor() = DbAction { implicit req =>
+  /*def editor() = DbAction { implicit req =>
     Ok(views.html.blogs.editor(testEdit))
-  }
+  }*/
 
 
   /** List the blogs for a given user. If the user passed is the current user, the user can manage their blog.
@@ -146,13 +146,13 @@ object Blogs extends Controller {
     }
   }
 
-  def testSubmit() = DbAction { implicit req =>
+  /*def testSubmit() = DbAction { implicit req =>
     testEdit.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.blogs.editor(formWithErrors)),
       content => {
         Ok(views.html.blogs.feedback(content))
       }
     )
-  }
+  }*/
 }
 
