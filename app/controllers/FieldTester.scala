@@ -60,8 +60,8 @@ object FieldTester extends Controller {
         val TheChoiceField: String = { 
           val temp:Int = vb.valueOf(BasicFieldsForms.ChoiceFieldTest)
           if(temp==1) "choice 1"
-          if(temp==2) "choice 2"
-          else "ERROR"
+          else if(temp==2) "choice 2"
+          else "ERROR: "+temp.toString
         }
                 
         val TheDateField: java.sql.Date = vb.valueOf(BasicFieldsForms.DateFieldTest)

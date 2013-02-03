@@ -9,6 +9,7 @@ import forms.Binding
 import play.api.templates.Html
 
 abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
+  
   def validators: List[Validator[T]] = Nil
 
   def required: Boolean = man <:< Manifest.classType(classOf[Option[_]])

@@ -8,12 +8,12 @@ class Textarea(
     attrMap: MetaData = Null,
     tinyMCE: Boolean = false) extends 
     	Widget(required, 
-    	    new UnprefixedAttribute("cols", Text("40"), 
-    	    	new UnprefixedAttribute("rows", Text("10"), Null).append(attrMap))) {
+    	    new UnprefixedAttribute("cols", Text("80"), 
+    	    	new UnprefixedAttribute("rows", Text("5"), Null).append(attrMap))) {
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
-    val tinymce = if (tinyMCE) new UnprefixedAttribute("class", Text("tinymce"), Null) else Null 
-    <textarea name={ name }>{ if (value.isEmpty) "" else value(0) }</textarea> % attrs.append(attrList) % tinymce
+    val tinymce = if (tinyMCE) new UnprefixedAttribute("class", Text("tinymce"), Null) else Null
+    <textarea style="width:40em; height:10em" name={ name }>{ if (value.isEmpty) "" else value(0) }</textarea> % attrs.append(attrList) % tinymce
   }
   
   override def scripts = if (tinyMCE) {
