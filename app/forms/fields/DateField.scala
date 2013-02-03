@@ -4,7 +4,10 @@ import java.sql.Date
 import forms.widgets.DateInput
 
 class DateField(name: String) extends Field[Date](name) {
-  override def widget = new DateInput(required)
+  
+  val uuid=java.util.UUID.randomUUID()
+  
+  override def widget = new DateInput(required, uuid=uuid)
   
   def asValue(s: Seq[String]): Either[ValidationError, Date] =
     try {

@@ -27,28 +27,30 @@ object FieldTester extends Controller {
 
   object BasicFieldsForms extends Form {
 
-    val BooleanFieldTest = new BooleanField("Boolean Field")
+    //val BooleanFieldTest = new BooleanField("Boolean Field")
 
-    val ChoiceFieldTest = new ChoiceField("Choice Field", List(("choice 1", 1), ("choice 2", 2)))
+    //val ChoiceFieldTest = new ChoiceField("Choice Field", List(("choice 1", 1), ("choice 2", 2)))
 
     val DateFieldTest = new DateField("Date")
     
     val DateFieldTest2 = new DateField("Date2")
 
-    val EmailFieldTest = new EmailField("Email")
+    //val TimeFieldTest = new TimeField("Time")
+    
+    //val EmailFieldTest = new EmailField("Email")
 
-    val NumericFieldTest = new NumericField[Int]("Integer")
+    //val NumericFieldTest = new NumericField[Int]("Integer")
 
-    val PasswordFieldTest = new PasswordField("Password")
+    //val PasswordFieldTest = new PasswordField("Password")
 
-    val TextFieldTest = new TextField("Text Field")
+    //val TextFieldTest = new TextField("Text Field")
 
-    val TinyMCEFieldTest = new TinyMCEField("TinyMCE")
+    //val TinyMCEFieldTest = new TinyMCEField("TinyMCE")
 
-    val UrlFieldTest = new UrlField("Url")
+    //val UrlFieldTest = new UrlField("Url")
 
-    val fields = List(BooleanFieldTest, ChoiceFieldTest, DateFieldTest, DateFieldTest2, EmailFieldTest, NumericFieldTest, PasswordFieldTest,
-      TextFieldTest, TinyMCEFieldTest, UrlFieldTest)
+    val fields = List(/*BooleanFieldTest,*/ /*ChoiceFieldTest,*/ DateFieldTest, DateFieldTest2/*, EmailFieldTest,*/ /* NumericFieldTest,*/ /* PasswordFieldTest,*/
+      /*TextFieldTest, TinyMCEFieldTest, UrlFieldTest,*/)
 
   }
 
@@ -58,17 +60,17 @@ object FieldTester extends Controller {
       case ib: InvalidBinding => Ok(views.html.formtester(ib)) // there were errors
       case vb: ValidBinding => {
 
-        val TheBooleanField: Boolean = vb.valueOf(BasicFieldsForms.BooleanFieldTest)
+        /*val TheBooleanField: Boolean = vb.valueOf(BasicFieldsForms.BooleanFieldTest)
         val TheChoiceField: String = { 
           val temp:Int = vb.valueOf(BasicFieldsForms.ChoiceFieldTest)
           if(temp==1) "choice 1"
           else if(temp==2) "choice 2"
           else "ERROR: "+temp.toString
         }
-                
+            */    
         val TheDateField: java.sql.Date = vb.valueOf(BasicFieldsForms.DateFieldTest)
         val TheDateField2: java.sql.Date = vb.valueOf(BasicFieldsForms.DateFieldTest2)
-        val TheEmail: String = vb.valueOf(BasicFieldsForms.EmailFieldTest)
+        /*val TheEmail: String = vb.valueOf(BasicFieldsForms.EmailFieldTest)
         val TheNumeric: Int = vb.valueOf(BasicFieldsForms.NumericFieldTest)
         val ThePassword: String = vb.valueOf(BasicFieldsForms.PasswordFieldTest)
         val TheText: String = vb.valueOf(BasicFieldsForms.TextFieldTest)
@@ -76,12 +78,12 @@ object FieldTester extends Controller {
         val TheUrl: String = {
           val temp: java.net.URL = vb.valueOf(BasicFieldsForms.UrlFieldTest)
           temp.toString
-        }
-
+        }*/
+        //val TheTime: java.sql.Time = vb.valueOf(BasicFieldsForms.TimeFieldTest)
         // do whatever you want with the values now (notice they're typesafe!)
 
-        Ok(views.html.formtesteranswers(List(TheBooleanField.toString, TheChoiceField, TheDateField.toString, TheDateField2.toString, TheEmail, TheNumeric.toString,
-          ThePassword, TheText, TheTinyMCE, TheUrl)))
+        Ok(views.html.formtesteranswers(List(/*TheBooleanField.toString, TheChoiceField, */TheDateField.toString, TheDateField2.toString/*, TheEmail, TheNumeric.toString,
+          ThePassword, TheText, TheTinyMCE, TheUrl, TheTime.toString*/)))
       }
     }
   }
