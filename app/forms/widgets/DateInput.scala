@@ -14,7 +14,7 @@ class DateInput(
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     <input type="text" name={ name } placeholder="mm/dd/yyyy" class={"datepicker"+Name}>{ if (value.isEmpty) "" else value(0) }</input>
-    <input name={ Name } id={ Name } placeholder="DD, d MM, yy" class={ Name } size="30" type="text"/>
+    <input disabled="true" name={ Name } id={ Name } placeholder="DD, d MM, yy" class={ Name } size="30" type="text"/>
   }
   
   override def scripts: NodeSeq = 
@@ -23,11 +23,12 @@ class DateInput(
       $('.datepicker{Name}').datepicker({{
 		  changeMonth: true,
 		  changeYear: true,
-		  altField: '#{Name}',
+		  altField: '.{Name}',
 		  altFormat: 'DD, d MM, yy',
 		  showOtherMonths: true,
 		  selectOtherMonths: true,
 		  showOn: 'button',
+  		  buttonImageOnly: false,
 		  buttonImage: 'images/calendar.gif'
       }});
     }});

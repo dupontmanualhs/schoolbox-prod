@@ -34,6 +34,14 @@ object FieldTester extends Controller {
     val DateFieldTest = new DateField("Date")
     
     val DateFieldTest2 = new DateField("Date2")
+    
+    val DateFieldTest3 = new DateField("Date3")
+    
+    val DateFieldTest4 = new DateField("Date4")
+    
+    val DateFieldTest5 = new DateField("Date5")
+    
+    
 
     //val TimeFieldTest = new TimeField("Time")
     
@@ -49,8 +57,8 @@ object FieldTester extends Controller {
 
     //val UrlFieldTest = new UrlField("Url")
 
-    val fields = List(/*BooleanFieldTest,*/ /*ChoiceFieldTest,*/ DateFieldTest, DateFieldTest2/*, EmailFieldTest,*/ /* NumericFieldTest,*/ /* PasswordFieldTest,*/
-      /*TextFieldTest, TinyMCEFieldTest, UrlFieldTest,*/)
+    val fields = List(/*BooleanFieldTest,*/ /*ChoiceFieldTest,*/ DateFieldTest, DateFieldTest2,/* EmailFieldTest,*/ /* NumericFieldTest,*/ /* PasswordFieldTest,*/
+      /*TextFieldTest, TinyMCEFieldTest, UrlFieldTest,*/DateFieldTest3, DateFieldTest4, DateFieldTest5)
 
   }
 
