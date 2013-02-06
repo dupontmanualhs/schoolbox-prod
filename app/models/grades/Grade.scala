@@ -35,3 +35,49 @@ class Grade {
   def points: Double = _points
   def points_=(thePoints: Double) { _points = thePoints }
 }
+
+object Grade {
+/*def forAssignment(assignment: Assignment)(implicit pm: ScalaPersistenceManager = null): List[Grade] = {
+    def query(epm: ScalaPersistenceManager): List[Grade] = {
+      val cand = QGrade.candidate
+      epm.query[Grade].filter(cand.assignment.eq(assignment)).executeList
+    }
+    if(pm != null) query(pm)
+    else  DataStore.withTransaction( tpm => query(tpm) )
+  } */ // Not sure If this is actually useful
+  
+}
+
+trait QGrade extends PersistableExpression[Grade] {
+  private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
+  def id: NumericExpression[Long] = _id
+  
+  private[this] lazy val _student: ObjectExpression[Student] = new ObjectExpressionImpl(this, "_student")
+  def student: ObjectExpression[Student] = _student
+  
+  private[this] lazy val _assignment: ObjectExpression[Assignment] = new ObjectExpressionImpl[Assignment](this, "_assignment")
+  def assignment: ObjectExpression[Assignment] = _assignment
+  
+  private[this] lazy val _points: ObjectExpression[Double] = new ObjectExpressionImpl[Double](this, "_points")
+  def points: ObjectExpression[Double] = _points
+}
+
+object QGrade {
+  def apply(parent: PersistableExpression[Grade], name: String, depth: Int): QGrade = {
+    new PersistableExpressionImpl[Grade](parent, name) with QGrade
+  }
+  
+  def apply(cls: Class[Grade], name: String, exprType: ExpressionType): QGrade = {
+    new PersistableExpressionImpl[Grade](cls, name, exprType) with QGrade
+  }
+  
+  private[this] lazy val jdoCandidate: QGrade = candidate("this")
+  
+  def candidate(name: String): QGrade = QGrade(null, name, 5)
+  
+  def candidate(): QGrade = jdoCandidate
+  
+  def parameter(name: String): QGrade = QGrade(classOf[Grade], name, ExpressionType.PARAMETER)
+  
+  def variable(name: String): QGrade = QGrade(classOf[Grade], name, ExpressionType.VARIABLE)
+}

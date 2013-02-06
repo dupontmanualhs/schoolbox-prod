@@ -118,6 +118,6 @@ POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch
 #POST   /lockers/lockerPicker                   controllers.Lockers.lockerPickerSubmit()
 
 #Grades
-GET     /grades/home                        	controllers.Application.home()
-GET     /grades/announcements                   controllers.Application.announcements()
-GET     /grades/assignments                     controllers.Application.assignments()
+GET     /grades/home                        	controllers.Grades.home()
+GET     /grades/announcements                   controllers.Grades.announcements()
+GET     /grades/assignments/:sectionId          controllers.Grades.assignments(sectionId: Long)

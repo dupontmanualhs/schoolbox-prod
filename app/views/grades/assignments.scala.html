@@ -1,6 +1,5 @@
-@()(implicit req: util.DbRequest[_])
-
-<!DOCTYPE html>
+@(section: models.courses.Section, categories: List[models.grades.Category])(implicit req: util.DbRequest[_])
+@import models.grades._
 
 <html>
 <head>
@@ -90,7 +89,7 @@
 				<div class="span8">
 					<ul class="breadcrumb">
 						<li><a href="#">Courses</a> <span class="divider">/</span></li>
-						<li><a href="#">Special Topics</a> <span class="divider">/</span></li>
+						<li><a href="#">@section.course.name -@section.periodNames</a> <span class="divider">/</span></li>
 						<li class="active">Assignments</li>
 					</ul>
 				</div>
@@ -131,54 +130,24 @@
 					</div>
 					<!-- modal -->
 
-
-					<legend>Classwork</legend>
+				@for(c <- categories){
+					<legend>@c.name</legend>
 					<table class="table table-bordered">
 						<tr class="success">
 							<td>Assignment</td>
 							<td>Due</td>
 							<td>Out of</td>
 						</tr>
+						
+						@for(a <- Assignment.forCategory(c)){
 						<tr>
-							<td>Scala Course</td>
-							<td>Nov 11 at 11 pm</td>
-							<td>100</td>
+							<td>@a.name</td>
+							<td>@a.getDueDate</td>
+							<td>@a.points</td>
 						</tr>
-						<tr>
-							<td>Presentation</td>
-							<td>N/A</td>
-							<td>50</td>
-						</tr>
-						<tr>
-							<td>Head rub for John</td>
-							<td>Dec 12 at now</td>
-							<td>1000000</td>
-						</tr>
+						}
 					</table>
-
-					<legend>Homework</legend>
-					<table class="table table-bordered">
-						<tr class="success">
-							<td>Assignment</td>
-							<td>Due</td>
-							<td>Out of</td>
-						</tr>
-						<tr>
-							<td>Scala Course</td>
-							<td>Nov 11 at 11 pm</td>
-							<td>100</td>
-						</tr>
-						<tr>
-							<td>Presentation</td>
-							<td>N/A</td>
-							<td>50</td>
-						</tr>
-						<tr>
-							<td>Head rub for John</td>
-							<td>Dec 12 at now</td>
-							<td>1000000</td>
-						</tr>
-					</table>
+					}
 				</div>
 
 

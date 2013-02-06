@@ -17,7 +17,9 @@ class Assignment {
   private[this] var _name: String = _
   private[this] var _section: Section = _
   private[this] var _points: Int = _
+  @Persistent(defaultFetchGroup="true")
   private[this] var _post: java.sql.Date = _
+  @Persistent(defaultFetchGroup="true")
   private[this] var _due: java.sql.Date = _
   private[this] var _category: Category = _
   
@@ -46,9 +48,23 @@ class Assignment {
   
   def category: Category = _category
   def category_=(theCategory: Category) { _category = theCategory }
+  
+  def getDueDate: String = {
+   due.toString
+  }
 }
 
 object Assignment {
+  def forCategory(category: Category)(implicit pm: ScalaPersistenceManager = null): List[Assignment] = {
+    def query(epm: ScalaPersistenceManager): List[Assignment] = {
+      val cand = QAssignment.candidate
+      epm.query[Assignment].filter(cand.category.eq(category)).executeList
+    }
+    if(pm != null) query(pm)
+    else  DataStore.withTransaction( tpm => query(tpm) )
+  }
+  
+  
   
 }
 

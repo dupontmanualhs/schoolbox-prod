@@ -242,7 +242,7 @@ object TestData {
     
     for(locker <- lockerList) {
       pm.makePersistent(locker)
-      
+    }
       
     //makeCategories
     if (debug) println("Creating Categories...")
@@ -263,9 +263,12 @@ object TestData {
     val w2bioAHomework = new Category("Homework", w2bioA, .2)
     val w2bioALabs = new Category("Labs", w2bioA, .15)
     
+    pm.makePersistentAll(List(r1alg1AQuizzes, r1alg1ATests, r1alg1AHomework, r1alg1AClasswork, r1alg1AParticipation,
+                              r2usHistBQuizzes, r2usHistBTests, r2usHistBHomework, r2usHistBAPPractice, 
+                              r2usHistBConduct, w2bioAQuizzes, w2bioATests,w2bioAHomework, w2bioALabs))
+    
     //makeAssignments
     if (debug) println("Creating Assignments...")
-    
     
     
     // r2usHistB Assignments
@@ -289,24 +292,24 @@ object TestData {
       
     // r1alg1A Assignments
     val ass1 = new Assignment("Chaper 12.1 Quiz", 30, Date.valueOf("2012-10-31"), Date.valueOf("2012-10-31"), r1alg1AQuizzes)
-    val ass2 = new Assignment("Chaper 12.2 Quiz", 30, Date.valueOf("2012-11-7"), Date.valueOf("2012-11-7"), r1alg1AQuizzes)
+    val ass2 = new Assignment("Chaper 12.2 Quiz", 30, Date.valueOf("2012-11-07"), Date.valueOf("2012-11-07"), r1alg1AQuizzes)
     val ass3 = new Assignment("Chaper 12.3 Quiz", 30, Date.valueOf("2012-11-14"), Date.valueOf("2012-11-14"), r1alg1AQuizzes)
     val ass4 = new Assignment("Chaper 12.4 Quiz", 30, Date.valueOf("2012-11-21"), Date.valueOf("2012-11-21"), r1alg1AQuizzes)
 
     val ass5 = new Assignment("Chaper 12 Test", 100, Date.valueOf("2012-11-30"), Date.valueOf("2012-11-30"), r1alg1ATests)
 
     val ass6 = new Assignment("Chapter 12.1 Homework", 10, Date.valueOf("2012-10-28"), Date.valueOf("2012-10-31"), r1alg1AHomework)
-    val ass7 = new Assignment("Chapter 12.2 Homework", 10, Date.valueOf("2012-11-4"), Date.valueOf("2012-11-7"), r1alg1AHomework)
+    val ass7 = new Assignment("Chapter 12.2 Homework", 10, Date.valueOf("2012-11-24"), Date.valueOf("2012-11-27"), r1alg1AHomework)
     val ass8 = new Assignment("Chapter 12.3 Homework", 10, Date.valueOf("2012-11-11"), Date.valueOf("2012-11-14"), r1alg1AHomework)
     val ass9 = new Assignment("Chapter 12.4 Homework", 10, Date.valueOf("2012-11-18"), Date.valueOf("2012-11-21"), r1alg1AHomework)
 
-    val ass10 = new Assignment("Week 10 Participation", 10, Date.valueOf("2012-10-31"), Date.valueOf("2012-11-7"), r1alg1AParticipation)
+    val ass10 = new Assignment("Week 10 Participation", 10, Date.valueOf("2012-10-31"), Date.valueOf("2012-11-27"), r1alg1AParticipation)
 
-    val ass11 = new Assignment("Chapter 12 Review", 15, Date.valueOf("2012-11-3"), Date.valueOf("2012-11-5"), r1alg1AClasswork)
+    val ass11 = new Assignment("Chapter 12 Review", 15, Date.valueOf("2012-11-23"), Date.valueOf("2012-11-25"), r1alg1AClasswork)
       
       
     // w2bioA Assignments
-    val carbonQuiz = new Assignment("Carbon Quiz", 40, Date.valueOf("2012-11-7"), Date.valueOf("2012-11-7"), w2bioAQuizzes)
+    val carbonQuiz = new Assignment("Carbon Quiz", 40, Date.valueOf("2012-11-27"), Date.valueOf("2012-11-27"), w2bioAQuizzes)
     val popQuiz = new Assignment("Surprise Muthatrucka", 25 , Date.valueOf("2012-11-11"), Date.valueOf("2012-11-11"), w2bioAQuizzes)
     val cellQuiz = new Assignment("Cell Quiz", 40, Date.valueOf("2012-11-17"), Date.valueOf("2012-11-17"), w2bioAQuizzes)
     
@@ -314,16 +317,22 @@ object TestData {
     val carbonTest = new Assignment("Carbon Test", 100, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-10"), w2bioATests)
     val cellTest = new Assignment("Cell Test", 100, Date.valueOf("2012-11-20"), Date.valueOf("2012-11-20"), w2bioATests)
       
-    val wordSearch = new Assignment("Word Search", 10 , Date.valueOf("2012-10-31"), Date.valueOf("2012-11-3"), w2bioAHomework)
-    val bookReading = new Assignment("Book Reading", 5, Date.valueOf("2012-11-3"), Date.valueOf("2012-11-5"), w2bioAHomework)
-    val carbonWorksheet = new Assignment("Carbon Worksheet", 20, Date.valueOf("2012-11-5"), Date.valueOf("2012-11-7"), w2bioAHomework)
+    val wordSearch = new Assignment("Word Search", 10 , Date.valueOf("2012-10-31"), Date.valueOf("2012-11-23"), w2bioAHomework)
+    val bookReading = new Assignment("Book Reading", 5, Date.valueOf("2012-11-23"), Date.valueOf("2012-11-25"), w2bioAHomework)
+    val carbonWorksheet = new Assignment("Carbon Worksheet", 20, Date.valueOf("2012-11-25"), Date.valueOf("2012-11-27"), w2bioAHomework)
     val bondWorksheet = new Assignment("Bond Worksheet", 15, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-12"), w2bioAHomework)
     val takeHomeProblems = new Assignment("Take Home Problems", 20, Date.valueOf("2012-11-12"), Date.valueOf("2012-11-14"), w2bioAHomework)
-    val cellWorksheet = new Assignment("Cell Worksheet", 20, Date.valueOf("2012-11-15"), Date.valueOf("2012-"), w2bioAHomework)
+    val cellWorksheet = new Assignment("Cell Worksheet", 20, Date.valueOf("2012-11-15"), Date.valueOf("2012-11-16"), w2bioAHomework)
       
-    val carbonExperiment = new Assignment("Carbon Experiment", 30, Date.valueOf("2012-11-5"), Date.valueOf("2012-11-7"), w2bioALabs)
+    val carbonExperiment = new Assignment("Carbon Experiment", 30, Date.valueOf("2012-11-25"), Date.valueOf("2012-11-27"), w2bioALabs)
     val cellLab = new Assignment("Cell Lab", 30, Date.valueOf("2012-11-15"), Date.valueOf("2012-11-17"), w2bioALabs)
-    }
+    
+    pm.makePersistentAll(List(guildedAgeQuiz, lincolnFavoriteFooodsQuiz, civilWarTest, secondCivilWarTest, 
+                              thirdCivilWarTest, aLVHReview, theHistoryOfUSHistory, robotsAndKoreanWar, 
+                              georgeWashingtonvsGodzilla, apPractice1, conduct4, conduct5, ass1, ass2, ass3, ass4, 
+                              ass5, ass6, ass7, ass8, ass9, ass10, ass11, carbonQuiz, popQuiz, cellQuiz, carbonTest,
+                              cellTest, wordSearch, bookReading, carbonWorksheet, bondWorksheet, takeHomeProblems, 
+                              cellWorksheet, carbonExperiment, cellLab))
   }
   
 

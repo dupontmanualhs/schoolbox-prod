@@ -39,10 +39,18 @@ class Category {
 }
 
 object Category {
+  def forSection(section: Section)(implicit pm: ScalaPersistenceManager = null): List[Category] = {
+    def query(epm: ScalaPersistenceManager): List[Category] = {
+      val cand = QCategory.candidate
+      epm.query[Category].filter(cand.section.eq(section)).executeList
+    }
+    if(pm != null) query(pm)
+    else  DataStore.withTransaction( tpm => query(tpm) )
+  }
   
 }
 
-trait QCategory extends PersistableExpression[Assignment] {
+trait QCategory extends PersistableExpression[Category] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
@@ -57,21 +65,21 @@ trait QCategory extends PersistableExpression[Assignment] {
 }
 
 object QCategory {
-  def apply(parent: PersistableExpression[Assignment], name: String, depth: Int): QAssignment = {
-    new PersistableExpressionImpl[Assignment](parent, name) with QAssignment
+  def apply(parent: PersistableExpression[Category], name: String, depth: Int): QCategory = {
+    new PersistableExpressionImpl[Category](parent, name) with QCategory
   }
   
-  def apply(cls: Class[Assignment], name: String, exprType: ExpressionType): QAssignment = {
-    new PersistableExpressionImpl[Assignment](cls, name, exprType) with QAssignment
+  def apply(cls: Class[Category], name: String, exprType: ExpressionType): QCategory = {
+    new PersistableExpressionImpl[Category](cls, name, exprType) with QCategory
   }
   
-  private[this] lazy val jdoCandidate: QAssignment = candidate("this")
+  private[this] lazy val jdoCandidate: QCategory = candidate("this")
   
-  def candidate(name: String): QAssignment = QAssignment(null, name, 5)
+  def candidate(name: String): QCategory = QCategory(null, name, 5)
   
-  def candidate(): QAssignment = jdoCandidate
+  def candidate(): QCategory = jdoCandidate
   
-  def parameter(name: String): QAssignment = QAssignment(classOf[Assignment], name, ExpressionType.PARAMETER)
+  def parameter(name: String): QCategory = QCategory(classOf[Category], name, ExpressionType.PARAMETER)
   
-  def variable(name: String): QAssignment = QAssignment(classOf[Assignment], name, ExpressionType.VARIABLE)
+  def variable(name: String): QCategory = QCategory(classOf[Category], name, ExpressionType.VARIABLE)
 }
