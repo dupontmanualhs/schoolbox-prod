@@ -46,7 +46,7 @@ class AnswerField(question: Question) extends TextField(question.id.toString) {
   }
 }
 
-class MathWidget(text: String, attrs: MetaData = Null) extends TextInput(false, attrs) {
+class MathWidget(text: String, attrs: MetaData = Null) extends TextInput(false, attrs, "text") {
   override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     <span>{ text } = { super.render(name, value, attrList) }</span>
   }
