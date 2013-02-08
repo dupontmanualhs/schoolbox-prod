@@ -11,6 +11,7 @@ import forms.fields._
 import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
+import javax.imageio._
 
 object Books extends Controller {
   /**
@@ -126,13 +127,15 @@ object Books extends Controller {
           val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
-          new java.sql.Date(new java.util.Date().getTime()))
+          new java.sql.Date(new java.util.Date().getTime()), None)
           request.pm.makePersistent(t)
           Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
         }
       }
     }
   }
+
+  def downloadImage(url: java.net.URL) = TODO
 
   def confirmation() = TODO
   
