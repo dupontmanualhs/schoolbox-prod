@@ -14,10 +14,10 @@ abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
 
   def required: Boolean = man <:< Manifest.classType(classOf[Option[_]])
   def widget: Widget = new TextInput(required)
-
+  
   def initial: Seq[String] = asStringSeq(initialVal)  
   def initialVal: Option[T] = None
-
+  
   def label: Option[NodeSeq] = Some(Text(camel2TitleCase(name)))
   def id(form: Form): Option[String] = form.autoId.map(_.format(name))
   def helpText: Option[NodeSeq] = None
@@ -29,6 +29,8 @@ abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
       <div class="controls">  
         { asWidget(bound) }
         { helpText.map((text: NodeSeq) => <p class="help-block">{ text }</p>).getOrElse(NodeSeq.Empty) }
+        { try{bound.fieldErrors(name).render}catch {case _=> Nil} }
+        <p/>
       </div>  
     </div>
   }
