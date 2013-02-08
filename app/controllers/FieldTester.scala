@@ -30,6 +30,18 @@ object FieldTester extends Controller {
     //val BooleanFieldTest = new BooleanField("Boolean Field")
 
     //val ChoiceFieldTest = new ChoiceField("Choice Field", List(("choice 1", 1), ("choice 2", 2)))
+    
+    //Category (dropdown)
+    //Title
+    //# of Points
+    //Due Date
+    //Locked Until
+    
+    
+    
+    
+    
+    
 
     val DateFieldTest = new DateField("Date")
     
