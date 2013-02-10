@@ -36,8 +36,17 @@ object Application extends Controller {
     else Binding(formTests, req) match {
       case ib: InvalidBinding => Ok(views.html.formTester(ib))
       case vb: ValidBinding => {
-        //I'm a little too lazy to do this atm, soo...
-        Ok(views.html.index())
+        val TheChoice = vb.valueOf(formTests.ChoiceField)
+        val TheDate = vb.valueOf(formTests.DateField)
+        val TheEmail = vb.valueOf(formTests.EmailField)
+        val TheNumeric = vb.valueOf(formTests.NumericField)
+        val ThePassword = vb.valueOf(formTests.PasswordField)
+        val TheText = vb.valueOf(formTests.TextField)
+        val TheUrl = vb.valueOf(formTests.UrlField)
+        
+        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString))
+        
+        Ok(views.html.showResults(ListOfStuff))
       }
     }
   }
