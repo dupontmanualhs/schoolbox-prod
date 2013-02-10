@@ -51,7 +51,7 @@ abstract class Form {
     </form> 
   }
   
-  def asHtml(bound: Binding): Elem =  asHtml(bound, "")
+  def asHtml(bound: Binding): play.api.templates.Html = play.api.templates.Html(this.scripts.toString + asHtml(bound, "").toString)
   
   def scripts: play.api.templates.Html = play.api.templates.Html(fields.flatMap(_.widget.scripts).distinct.map(x=>x.toString).fold("")(_+_))
     

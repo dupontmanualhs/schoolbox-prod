@@ -1,6 +1,6 @@
 @(form: forms.Binding)(implicit req: util.DbRequest[_])
 
-@mainWithScripts("formTester", form.form.scripts) {
+@main("formTester") {
     
     @form.asHtml
     
