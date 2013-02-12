@@ -1,4 +1,4 @@
-@(section: models.courses.Section, categories: List[models.grades.Category])(implicit req: util.DbRequest[_])
+@(section: models.courses.Section, categories: List[models.grades.Category], dropForm: forms.Binding)(implicit req: util.DbRequest[_])
 @import models.grades._
 
 <html>
@@ -71,7 +71,7 @@
 				<div class="span3">
 					<div class="well sidebar-nav">
 						<ul class="nav nav-list">
-							<li class="nav-header">SpecTops</li>
+							<li class="nav-header">@section.course.name -@section.periodNames</li>
 							<li><a href="/grades/home">Home</a></li>
 							<li><a href="/grades/announcements">Announcements</a></li>
 							<li><a href="#">Discussions</a></li>
@@ -108,24 +108,9 @@
 							<h3 id="myModalLabel">Add Assignment</h3>
 						</div>
 						<div class="modal-body">
-							<form class="form-horizontal">
-								<div class="control-group">
-									<label>Type:</label> <select>
-										<option value="classwork">Classwork</option>
-										<option value="homework">Homework</option>
-									</select>
-									<label>Title</label> <input type="text" place-holder="title"/><br/>
-									<label>Points</label> <input type="text" place-holder="points"/><br/>
-									<label>Due</label> <input type="text" place-holder="due"/><br/>
-									<label>Locked until</label> <input place-holder="text" value="lockedUntil"/><br/>
-								</div>
-							</form>
+							@dropForm.asHtml
 						</div>
 						<!-- modal body -->
-						<div class="modal-footer">
-							<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-							<button class="btn btn-primary">Save changes</button>
-						</div>
 						<!-- modal footer -->
 					</div>
 					<!-- modal -->
