@@ -6,6 +6,7 @@
     <head>
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/tester.css")" />
+        <link rel="icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
         
         
         <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -37,27 +38,17 @@
 					<div class="pull-right">
 			      		@users.perspectiveInfo()
 			       </div>
-		       </div>
-		       
+		       </div>  
 		     </div>
 		   </div>
 		 </div>
 	      
 	    <div class="container">
-	      <!--<div class="header">
-	      	<img src="@routes.Assets.at("images/eschool-logo.png")" alt="Logo" width="300px" class="eschool-logo" />
-	      	<img src="@routes.Assets.at("images/jcps.png")" alt="Logo" class="jcps-logo" />
-	      </div>
-	      -->
-	      
-	           
-	      
-	      
-	      <div class="contentArea">
-	      @if(req.flash.get("message").isDefined) {
-	        <div class="message">@req.flash("message")</div>
-	      }
-	        <div class="content">@content</div>
+	      <div class="content">
+		      @if(req.flash.get("message").isDefined) {
+		        <div class="alert alert-success">@req.flash("message")</div>
+		      }
+	       	  @content
 	      </div>
 
 	    </div>

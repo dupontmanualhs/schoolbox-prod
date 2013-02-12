@@ -14,4 +14,5 @@ chromedriver.log
 .cache
 .directory
 .target
+.metadata
 

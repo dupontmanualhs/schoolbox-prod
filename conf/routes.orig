@@ -114,11 +114,16 @@ GET     /lockers/lockerByNumber                 controllers.Lockers.lockerByNumb
 POST    /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
 GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
 POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
-GET     /lockers/schedule                       controllers.Lockers.schedule()
-GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
+<<<<<<< HEAD
+#GET    /lockers/lockerPicker                   controllers.Lockers.lockerPicker()
+#POST   /lockers/lockerPicker                   controllers.Lockers.lockerPickerSubmit()
 
 #Grades
 GET     /grades/home                        	controllers.Grades.home()
 GET     /grades/announcements                   controllers.Grades.announcements()
 GET     /grades/assignments/:sectionId          controllers.Grades.assignments(sectionId: Long)
 POST	/grades/assignments/:sectionId			controllers.Grades.assignments(sectionId: Long)
+=======
+GET     /lockers/schedule                       controllers.Lockers.schedule()
+GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
+>>>>>>> master

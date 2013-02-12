@@ -4,11 +4,12 @@
   case Some(persp) => <ul class="nav">
   						<li class="dropdown" >
   							<a class="dropdown-toggle" data-toggle="dropdown" href="#" >
-  								Logged in as { persp.displayNameWithRole }
+  								{ persp.displayNameWithRole }
   								<b class="caret"></b>
   							</a>
   							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
   								<li>
+  								    <a tabindex="-1" href={ controllers.routes.Users.changePassword().toString }>Change Password</a>
   									<a tabindex="-1" href={ controllers.routes.Users.logout().toString }>Log out</a>
   								</li>
   							</ul>

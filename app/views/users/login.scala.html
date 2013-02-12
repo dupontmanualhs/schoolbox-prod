@@ -1,5 +1,9 @@
 @(loginForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Login") {
-  @loginForm.asHtml
+	<div class="row">
+		<div class="span7 offset1">
+		  @loginForm.asHtml
+		</div>
+	</div>
 }
