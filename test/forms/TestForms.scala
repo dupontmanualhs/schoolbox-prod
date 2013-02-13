@@ -14,7 +14,7 @@ class PersonForm extends Form {
   
   def fields = List(firstName, lastName, age)
 }
-
+/*
 object PersonForm {
   val unbound: Elem = 
 <form method="post">
@@ -124,4 +124,5 @@ class TestForms extends FunSuite {
     assert(vb.valueOf(f.lastName) === "Lennon")
     assert(vb.valueOf(f.age) === 72)
   }
-}
+  
+}*/
