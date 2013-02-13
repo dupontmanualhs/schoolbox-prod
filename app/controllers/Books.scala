@@ -129,21 +129,21 @@ object Books extends Controller {
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
           new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"))
-          request.pm.makePersistent(t)
+        request.pm.makePersistent(t)
 
-          try {
-            vb.valueOf(TitleForm.imageUrl) match {
-              case Some(url) => downloadImage(url, vb.valueOf(TitleForm.isbn))
-              case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
-            }
+        vb.valueOf(TitleForm.imageUrl) match {
+          case Some(url) => try {
+            downloadImage(url, vb.valueOf(TitleForm.isbn))
+            Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
           } catch {
-            case e: IOException => Redirect(routes.Books.addTitle()).flashing("message" -> "Image not downloaded. Update the title's image to try downloading again")
+            case e: Exception => Redirect(routes.Books.addTitle()).flashing("message" -> "Image not downloaded. Update the title's image to try downloading again")
           }
-          Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
+          case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
         }
       }
     }
   }
+}
 
   def downloadImage(url: java.net.URL, isbn: String) = {
     val pic = ImageIO.read(url)
