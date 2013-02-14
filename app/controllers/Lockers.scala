@@ -16,9 +16,6 @@ import forms.validators.ValidationError
 import util.Helpers._
 
 object Lockers extends Controller {
-  def index() = DbAction { implicit req =>
-    Ok(views.html.lockers.index())
-  }
    
   def getMyLocker() = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
@@ -173,7 +170,7 @@ object Lockers extends Controller {
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
         val roomName = sectionsThisPeriod match {
           case s :: list => s.room.name
-          case _ => "0s"
+          case _ => "0"
         }
         val linkNode: NodeSeq = {<a class ="btn" href={controllers.routes.Lockers.lockerByRoom(roomName).url}>Lockers Near Here</a>}
         <tr>

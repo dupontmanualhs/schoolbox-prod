@@ -51,14 +51,14 @@ object Books extends Controller {
    * returns None.
    */
   def checkDigit(isbn: String): Option[String] = {
-    if (isbn.matches("^\\d+$")) {
+    // if (isbn.matches("^\\d+$")) {
       val digits = isbn.toList.map(_.toString.toInt)
       digits.length match {
         case 9 => Some(tenDigitCheckDigit(digits))
         case 12 => Some(thirteenDigitCheckDigit(digits))
         case _ => None
       }
-    } else None
+   // } else None
   }
 
   /**
@@ -81,7 +81,10 @@ object Books extends Controller {
     def verify(possIsbn: String): Option[String] = {
       val noCheck = possIsbn.substring(0, possIsbn.length - 1)
       val check = checkDigit(noCheck)
-      if (possIsbn == noCheck + check) Some(possIsbn) else None
+      check match {
+        case Some(cd) => if (possIsbn == noCheck + cd) Some(possIsbn) else None
+        case _ => None
+      }
     }
     val isbn = "-".r.replaceAllIn(text, "")
     isbn.length match {
@@ -98,7 +101,9 @@ object Books extends Controller {
       override val validators = List(Validator((str: String) => asValidIsbn13(str) match {
         case None => ValidationError("This value must be a valid 10- or 13-digit ISBN.")
 	    case Some(isbn) => ValidationError(Nil)
-      }))
+    }), Validator((str: String) => Title.getByIsbn(str) match {
+        case Some(isbn) => ValidationError("ISBN already exists in database.")
+        case None => ValidationError(Nil)}))
     }
     val name = new TextField("name") { override val maxLength = Some(80) }
     val author = new TextFieldOptional("author(s)") { override val maxLength = Some(80) }
@@ -118,53 +123,40 @@ object Books extends Controller {
         case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
         case vb: ValidBinding => {
           // TODO: try to get image from url
-          Redirect(routes.Application.index)
+          val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
+          vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
+          vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
+          new java.sql.Date(new java.util.Date().getTime()))
+          request.pm.makePersistent(t)
+          Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
         }
       }
     }
   }
-  
+
   def confirmation() = TODO
-  
-  def confirmationSubmit() = TODO
   
   def verifyTitle(isbnNum: Long) = TODO
   
-  def verifyTitleSubmit(isbnNum: Long) = TODO
-  
   def addCopiesToPg(pgId: Long) = TODO
-  
-  def addCopiesToPgSubmit(pgId: Long) = TODO
   
   def addPurchaseGroup(titleId: Long) = TODO
   
-  def addPurchaseGroupSubmit(titleId: Long) = TODO
-  
   def addLabelsToQueue() = TODO
   
-  def addLabelsToQueueSubmit() = TODO
-  
   def printCenter() = TODO
-  
-  def printCenterSubmit() = TODO
   
   def bulkCheckoutHelper() = TODO
   
   def bulkCheckout() = TODO
   
-  def bulkCheckoutSubmit() = TODO
-  
   def checkout() = TODO
-  
-  def checkoutSubmit() = TODO
   
   def lookup() = TODO
   
   def inspect() = TODO
   
   def findBooksOut() = TODO
-  
-  def findBooksOutSubmit() = TODO
   
   def booksOut(perspectiveId: Long) = TODO
   
@@ -208,18 +200,12 @@ object Books extends Controller {
   
   def checkIn() = TODO
   
-  def checkInSubmit() = TODO
-  
   def checkInLostCopy() = TODO
   
   def delete(id: Long) = TODO
   
-  def deleteSubmit(id: Long) = TODO
-  
   def confirmDelete() = TODO
   
-  def confirmDeleteSubmit() = TODO
-
   def checkoutHistory(perspectiveId: Long) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
@@ -295,15 +281,10 @@ def findCheckoutHistory() = DbAction { implicit req =>
   }
 }
 
-  def checkoutHistorySubmit() = TODO
-  
   def checkoutsByTeacherStudents() = TODO
   
-  def checkoutsByTeacherStudentsSubmit() = TODO
- 
   def statistics() = TODO
   
- 
   def copyStatusByTitle() = TODO /* DbAction { implicit req =>
     implicit val pm = req.pm
     val form = Form(
@@ -312,8 +293,6 @@ def findCheckoutHistory() = DbAction { implicit req =>
     Ok(views.html.books.copyStatusByTitleForm())
     
   }*/
-  
-  def copyStatusByTitleSubmit() = TODO
   
   def allBooksOut(grade: Int = 13) = TODO
 }

@@ -1,0 +1,11 @@
+@(form: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("formTester") {
+    
+    <h1>Form Tester</h1>
+    <p>All of these fields are optional and should be used to test how the different types of fields work.</p>
+    <p/>
+    
+    @form.asHtml
+    
+}
