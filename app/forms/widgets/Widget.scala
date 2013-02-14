@@ -10,6 +10,8 @@ abstract class Widget(
   def isHidden: Boolean = false
 
   def needsMultipartForm: Boolean = false
+  
+  def scripts: NodeSeq = NodeSeq.Empty
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq
   

@@ -7,6 +7,7 @@ import forms.widgets.Widget
 import util.Helpers.camel2TitleCase
 import forms.validators.ValidationError
 import play.api.mvc.Request
+import play.api.templates.Html$
 
 abstract class Form {
   // TODO: check that fields have unique names?
@@ -51,7 +52,9 @@ abstract class Form {
     </form> 
   }
   
-  def asHtml(bound: Binding): Elem =  asHtml(bound, "")
+  def asHtml(bound: Binding): play.api.templates.Html = play.api.templates.Html(this.scripts.toString + asHtml(bound, "").toString)
+  
+  def scripts: play.api.templates.Html = play.api.templates.Html(fields.flatMap(_.widget.scripts).distinct.map(x=>x.toString).fold("")(_+_))
     
   def addPrefix(fieldName: String): String = {
     prefix.map(p => "%s-%s".format(p, fieldName)).getOrElse(fieldName)
