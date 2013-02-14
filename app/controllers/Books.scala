@@ -11,6 +11,8 @@ import forms.fields._
 import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
+import javax.imageio._
+import java.io._
 
 object Books extends Controller {
   /**
@@ -126,12 +128,26 @@ object Books extends Controller {
           val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
-          new java.sql.Date(new java.util.Date().getTime()))
-          request.pm.makePersistent(t)
-          Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
+          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"))
+        request.pm.makePersistent(t)
+
+        vb.valueOf(TitleForm.imageUrl) match {
+          case Some(url) => try {
+            downloadImage(url, vb.valueOf(TitleForm.isbn))
+            Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
+          } catch {
+            case e: Exception => Redirect(routes.Books.addTitle()).flashing("message" -> "Image not downloaded. Update the title's image to try downloading again")
+          }
+          case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
         }
       }
     }
+  }
+}
+
+  def downloadImage(url: java.net.URL, isbn: String) = {
+    val pic = ImageIO.read(url)
+    ImageIO.write(pic, "jpg", new File("public/images/books/" + isbn + ".jpg"))
   }
 
   def confirmation() = TODO

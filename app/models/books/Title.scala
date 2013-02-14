@@ -81,8 +81,14 @@ class Title {
   def lastModified_=(theLastModified: Option[java.sql.Date]) { _lastModified = theLastModified.getOrElse(null) }
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
 
+  @Column(allowsNull="true")
+  private[this] var _image: String = _
+  def image: Option[String] = Option(_image)
+  def image_=(theImage: Option[String]) {_image = theImage.getOrElse(null) }
+  def image_=(theImage: String) {_image = theImage}
+
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
-    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date) = {
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String]) = {
     this()
     name_=(name)
     author_=(author)
@@ -91,9 +97,9 @@ class Title {
     numPages_=(numPages)
     dimensions_=(dimensions)
     weight_=(weight)
-    // _image = image
     verified_=(verified)
     lastModified_=(lastModified)
+    image_=(image)
   }
 
   def howManyCopies(implicit pm: ScalaPersistenceManager = null): Int = {
@@ -206,6 +212,9 @@ trait QTitle extends PersistableExpression[Title] {
 
   private[this] lazy val _lastModified: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_lastModified")
   def lastModified: ObjectExpression[java.sql.Date] = _lastModified
+
+  private[this] lazy val _image: StringExpression = new StringExpressionImpl(this, "_image")
+  def image: StringExpression = _image
 }
 
 object QTitle {
