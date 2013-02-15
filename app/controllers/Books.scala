@@ -124,7 +124,6 @@ object Books extends Controller {
       Binding(TitleForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
         case vb: ValidBinding => {
-          // TODO: try to get image from url
           val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
@@ -165,8 +164,37 @@ object Books extends Controller {
   def bulkCheckoutHelper() = TODO
   
   def bulkCheckout() = TODO
-  
-  def checkout() = TODO
+
+  object CheckoutForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+      override val validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
+        case None => ValidationError("Copy does not exist.")
+        case Some(isbn) => ValidationError(Nil)
+    }))
+    }
+    val studentNumber = new TextField("Student Number") {
+      override val validators = List(Validator((str: String) => Student.getByStudentNumber(str) match {
+        case None => ValidationError("Student does not exist.")
+        case Some(isbn) => ValidationError(Nil)
+    }))
+    }
+    
+    val fields = List(barcode, studentNumber)
+  }
+
+  def checkout = DbAction { implicit request =>
+    if (request.method == "GET") Ok(views.html.books.checkout(Binding(CheckoutForm)))
+    else {
+      Binding(CheckoutForm, request) match {
+        case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
+        case vb: ValidBinding => {
+          Redirect(routes.Books.checkout()).flashing("message" -> "No Errors")
+      }
+    }
+  }
+}
   
   def lookup() = TODO
   

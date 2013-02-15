@@ -72,6 +72,8 @@ GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckou
 GET     /books/checkoutHistory/:perspectiveId   controllers.Books.checkoutHistory(perspectiveId: Long)
 GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
+GET     /books/checkout                         controllers.Books.checkout()
+POST    /books/checkout                         controllers.Books.checkout()
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
