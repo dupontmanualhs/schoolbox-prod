@@ -100,7 +100,7 @@ object Books extends Controller {
     val isbn = new TextField("isbn") {
       override val minLength = Some(10)
       override val maxLength = Some(13)
-      override val validators = List(Validator((str: String) => asValidIsbn13(str) match {
+      override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
         case None => ValidationError("This value must be a valid 10- or 13-digit ISBN.")
 	    case Some(isbn) => ValidationError(Nil)
     }), Validator((str: String) => Title.getByIsbn(str) match {
@@ -169,17 +169,8 @@ object Books extends Controller {
     val barcode = new TextField("Barcode") {
       override val minLength = Some(21)
       override val maxLength = Some(23)
-      override val validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
-        case None => ValidationError("Copy does not exist.")
-        case Some(isbn) => ValidationError(Nil)
-    }))
     }
-    val studentNumber = new TextField("Student Number") {
-      override val validators = List(Validator((str: String) => Student.getByStudentNumber(str) match {
-        case None => ValidationError("Student does not exist.")
-        case Some(isbn) => ValidationError(Nil)
-    }))
-    }
+    val studentNumber = new TextField("Student Number")
     
     val fields = List(barcode, studentNumber)
   }
