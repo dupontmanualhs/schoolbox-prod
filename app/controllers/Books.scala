@@ -170,18 +170,37 @@ object Books extends Controller {
       override val minLength = Some(21)
       override val maxLength = Some(23)
     }
-    val studentNumber = new TextField("Student Number")
+    val stateId = new TextField("Student State ID")
     
-    val fields = List(barcode, studentNumber)
+    val fields = List(barcode, stateId)
   }
 
   def checkout = DbAction { implicit request =>
     if (request.method == "GET") Ok(views.html.books.checkout(Binding(CheckoutForm)))
-    else {
+      else {
+      implicit val pm = request.pm
       Binding(CheckoutForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
         case vb: ValidBinding => {
-          Redirect(routes.Books.checkout()).flashing("message" -> "No Errors")
+          val student = Student.getByStateId(vb.valueOf(CheckoutForm.stateId))
+          val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
+          student match {
+            case None => Redirect(routes.Books.checkout()).flashing("message" -> "No student with that number.")
+            case Some(stu) => {
+              copy match {
+                case None => Redirect(routes.Books.checkout()).flashing("message" -> "No copy with that barcode.")
+                case Some(cpy) => {
+                  if (cpy.isCheckedOut) {
+                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy already checked out")
+                  } else {
+                    val c = new Checkout(stu, cpy, new java.sql.Date(new java.util.Date().getTime()), null)
+                    request.pm.makePersistent(c)
+                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
+                  }
+                }
+              }
+            }
+          }
       }
     }
   }
