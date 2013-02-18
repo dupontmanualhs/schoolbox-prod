@@ -319,7 +319,7 @@ object ManualData {
       val djId = (t \ "id").text.toLong
       val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
                             Option(asInt((t \ "numPages").text)), asOptionString((t \ "dimensions").text), Option(asDouble((t \ "weight").text)),
-                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df))
+                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df), asOptionString((t \ "image").text))
       if (debug) println("Adding title: %s...".format(title.name))
       pm.makePersistent(title)
       titleIdMap += (djId -> title.id)
