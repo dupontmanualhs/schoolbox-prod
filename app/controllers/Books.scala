@@ -298,35 +298,34 @@ def findCheckoutHistory() = DbAction { implicit req =>
   }
 
   def findCurrentCheckouts() = DbAction { implicit req =>
-    object ChoosePerspectiveForm extends Form {
-      val perspectiveId = new NumericField[Int]("Perspective ID")
+    object ChooseStudentForm extends Form {
+      val stateId = new TextField("Student")
 
-      def fields = List(perspectiveId)
+      def fields = List(stateId)
     }
     if (req.method == "GET") {
-      Ok(html.books.findPerspectiveHistory(Binding(ChoosePerspectiveForm)))
+      Ok(html.books.findPerspectiveHistory(Binding(ChooseStudentForm)))
     } else {
-      Binding(ChoosePerspectiveForm, req) match {
+      Binding(ChooseStudentForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findPerspectiveHistory(ib))
         case vb: ValidBinding => {
-          val lookupPerspectiveId: Long = vb.valueOf(ChoosePerspectiveForm.perspectiveId)
-          Redirect(routes.Books.currentCheckouts(lookupPerspectiveId))
+          val lookupStudentId: String = vb.valueOf(ChooseStudentForm.stateId)
+          Redirect(routes.Books.currentCheckouts(lookupStudentId))
         }
       }
     }
   }
 
-  def currentCheckouts(perspectiveId: Long) = DbAction { implicit req =>
+  def currentCheckouts(stateId: String) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
-  val perspectiveCand = QPerspective.candidate
-  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
+  Student.getByStateId(stateId) match {
     case None => NotFound("No student with the given id")
-    case Some(currentPerspective) => {
+    case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.perspective.eq(currentPerspective))).executeList()
-      val studentName = currentPerspective.displayName
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.perspective.eq(currentStudent))).executeList()
+      val studentName = currentStudent.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate))})
       Ok(views.html.books.currentCheckouts(header,rows))

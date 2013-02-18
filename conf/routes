@@ -68,7 +68,7 @@ GET     /books/findCurrentCheckouts             controllers.Books.findCurrentChe
 POST    /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
 GET     /books/copyHistory/:copyId              controllers.Books.copyHistory(copyId: Long)
 POST    /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
-GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckouts(perspectiveId: Long)
+GET     /books/currentCheckouts/:studentId      controllers.Books.currentCheckouts(studentId: String)
 GET     /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
 GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
