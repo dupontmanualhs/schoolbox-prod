@@ -170,9 +170,9 @@ object Books extends Controller {
       override val minLength = Some(21)
       override val maxLength = Some(23)
     }
-    val stateId = new TextField("Student State ID")
+    val student = new TextField("Student")
     
-    val fields = List(barcode, stateId)
+    val fields = List(barcode, student)
   }
 
   def checkout = DbAction { implicit request =>
@@ -182,10 +182,10 @@ object Books extends Controller {
       Binding(CheckoutForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
         case vb: ValidBinding => {
-          val student = Student.getByStateId(vb.valueOf(CheckoutForm.stateId))
+          val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
           val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
           student match {
-            case None => Redirect(routes.Books.checkout()).flashing("message" -> "No student with that number.")
+            case None => Redirect(routes.Books.checkout()).flashing("message" -> "No such student.")
             case Some(stu) => {
               copy match {
                 case None => Redirect(routes.Books.checkout()).flashing("message" -> "No copy with that barcode.")
@@ -260,17 +260,16 @@ object Books extends Controller {
   
   def confirmDelete() = TODO
   
-  def checkoutHistory(perspectiveId: Long) = DbAction { implicit req =>
+  def checkoutHistory(stateId: String) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
-  val perspectiveCand = QPerspective.candidate
-  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
-    case None => NotFound("No student with the given id")
-    case Some(currentPerspective) => {
+  Student.getByStateId(stateId) match {
+    case None => NotFound("No student with the given id.")
+    case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.perspective.eq(currentPerspective)).executeList()
-      val studentName = currentPerspective.displayName
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.perspective.eq(currentStudent)).executeList()
+      val studentName = currentStudent.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate),
         if (co.endDate == null) "" else df.format(co.endDate))})
@@ -280,19 +279,19 @@ object Books extends Controller {
 }
 
 def findCheckoutHistory() = DbAction { implicit req =>
-    object ChoosePerspectiveForm extends Form {
-      val perspectiveId = new NumericField[Int]("Perspective ID")
+    object ChooseStudentForm extends Form {
+      val student = new TextField("Student")
 
-      def fields = List(perspectiveId)
+      def fields = List(student)
     }
     if (req.method == "GET") {
-      Ok(html.books.findCheckoutHistory(Binding(ChoosePerspectiveForm)))
+      Ok(html.books.findCheckoutHistory(Binding(ChooseStudentForm)))
     } else {
-      Binding(ChoosePerspectiveForm, req) match {
+      Binding(ChooseStudentForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
         case vb: ValidBinding => {
-          val lookupPerspectiveId: Long = vb.valueOf(ChoosePerspectiveForm.perspectiveId)
-          Redirect(routes.Books.checkoutHistory(lookupPerspectiveId))
+          val lookupStudentId: String = vb.valueOf(ChooseStudentForm.student)
+          Redirect(routes.Books.checkoutHistory(lookupStudentId))
         }
       }
     }
