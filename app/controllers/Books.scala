@@ -216,9 +216,12 @@ object Books extends Controller {
   
   def findCopyHistory() = DbAction { implicit req =>
     object ChooseCopyForm extends Form {
-      val copyId = new NumericField[Int]("Copy ID")
+      val barcode = new TextField("Barcode") {
+        override val minLength = Some(21)
+        override val maxLength = Some(23)
+      }
 
-      def fields = List(copyId)
+      def fields = List(barcode)
     }
     if (req.method == "GET") {
       Ok(html.books.findCopyHistory(Binding(ChooseCopyForm)))
@@ -226,18 +229,17 @@ object Books extends Controller {
       Binding(ChooseCopyForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCopyHistory(ib))
         case vb: ValidBinding => {
-          val lookupCopyId: Long = vb.valueOf(ChooseCopyForm.copyId)
-          Redirect(routes.Books.copyHistory(lookupCopyId))
+          val lookupCopyBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
+          Redirect(routes.Books.copyHistory(lookupCopyBarcode))
         }
       }
     }
   }
   
-  def copyHistory(copyId: Long) = DbAction { implicit req =>
+  def copyHistory(barcode: String) = DbAction { implicit req =>
     implicit val pm = req.pm
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
-    val copyCand = QCopy.candidate
-    pm.query[Copy].filter(copyCand.id.eq(copyId)).executeOption() match {
+    Copy.getByBarcode(barcode) match {
       case None => NotFound("no copy with the given id")
       case Some(copy) => {
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
