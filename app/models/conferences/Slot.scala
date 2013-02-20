@@ -71,7 +71,7 @@ class Slot {
     _teacher = teacher
     _student = student
     _startTime = startTime
-    _endTime = calculateEndTime(_startTime, _session.slotInterval)
+    _endTime = calculateEndTime()
     _parentName = parentName
     _email = email
     _phone = phone
@@ -79,9 +79,10 @@ class Slot {
     _comment = comment.getOrElse(null)
   }
   
-  def calculateEndTime(startTime: java.sql.Time, slotInterval: Int): java.sql.Time = {
+  def calculateEndTime(): java.sql.Time = {
+    var slotInterval = _session.slotInterval
     //converts startTime to "hh:mm:dd" format, if someone knows a better way tell Ken
-    var initialTime = startTime.toString
+    var initialTime = _startTime.toString
     //splits the sections of the time
     var sections = initialTime.split(":")
     var hours = sections(0)
