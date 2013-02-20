@@ -79,8 +79,6 @@ class Slot {
     _comment = comment.getOrElse(null)
   }
   
-  
-  //TODO: Work on adding 0's in front of single digits and finish it
   def calculateEndTime(startTime: java.sql.Time, slotInterval: Int): java.sql.Time = {
     //converts startTime to "hh:mm:dd" format, if someone knows a better way tell Ken
     var initialTime = startTime.toString
@@ -89,10 +87,11 @@ class Slot {
     var hours = sections(0)
     var minutes = sections(1)
     var seconds = sections(2)
-    //Adds the slot Time to the current time, accounts for the bounds on minutes(0-59) and hours(0-23)
+    //Adds the slot time to the beginning time, accounts for the bounds on minutes(0-59) and hours(0-23)
     if (minutes.toInt + slotInterval > 59) {
-      hours = ((hours.toInt + 1) % 24).toString 
+      hours = (hours.toInt + ((minutes.toInt + slotInterval)/60)).toString
     }
+    hours = ((hours.toInt) % 24).toString 
     minutes = ((minutes.toInt + slotInterval) % 60).toString
     //Adds 0 to hours and minutes if they are a single digit
     if (hours.length == 1) hours = 0 + hours

@@ -58,6 +58,7 @@ class Session {
     _priority = priority.getOrElse(null)
     _startTime = startTime
     _endTime = endTime
+    //slotInterval is in minutes
     _slotInterval = slotInterval
   }
 }
