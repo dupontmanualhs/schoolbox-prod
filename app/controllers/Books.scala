@@ -205,6 +205,15 @@ object Books extends Controller {
     }
   }
 }
+
+  object CheckInForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+
+    val fields = List(barcode)
+  }
   
   def lookup() = TODO
   
@@ -212,7 +221,7 @@ object Books extends Controller {
   
   def findBooksOut() = TODO
   
-  def booksOut(perspectiveId: Long) = TODO
+  def booksOut(stateId: String) = TODO
   
   def findCopyHistory() = DbAction { implicit req =>
     object ChooseCopyForm extends Form {
