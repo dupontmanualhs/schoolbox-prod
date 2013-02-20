@@ -1,123 +1,94 @@
-@(section: models.courses.Section, categories: List[models.grades.Category], dropForm: forms.Binding)(implicit req: util.DbRequest[_])
-@import models.grades._
+@(section: models.courses.Section, categories:
+List[models.grades.Category], dropForm: forms.Binding, sectionId:
+Long)(implicit req: util.DbRequest[_]) @import models.grades._
 
 @main("Assignments"){
-<body>
-	<div class="navbar navbar-fixed-top">
-		<div class="navbar-inner">
-			<div class="container">
-				<a class="btn btn-navbar" data-toggle="collapse"
-					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
-					class="icon-bar"></span> <span class="icon-bar"></span>
-				</a> <a class="brand" href="../">JCPS eSchool</a>
-				<div class="nav-collapse colapse" id="main-menu">
-					<ul class="nav">
-						<li><a href="#" id="menu_account">Account</a>
-						<ul role="menu" class="dropdown-menu"
-								aria-labelledby="dropdownMenu">
-								<li><a href="/login" id="menu_login">Log in</a></li>
-							</ul></li>
-						<li><a href="#" id="menu_courses">Courses</a></li>
-					</ul>
 
-					<div class="pull-right">
-
-
-						<ul class="nav">
-							<li><a href="/login">Log in</a></li>
-						</ul>
-					</div>
-				</div>
-
-			</div>
-		</div>
+<div class="span3">
+	<div class="well sidebar-nav">
+		<ul class="nav nav-list">
+			<li class="nav-header">@section.course.name -
+				@section.periodNames</li>
+			<li><a href="/grades/home">Home</a></li>
+			<li><a href="/grades/announcements">Announcements</a></li>
+			<li><a href="#">Discussions</a></li>
+			<li><a href="#">Quizzes</a></li>
+			<li><a href="#">Files</a></li>
+			<li class="active"><a
+				href=@controllers.routes.Grades.assignments(sectionId)>Assignments</a></li>
+			<li><a href="#">Grades</a></li>
+			<li><a href="#">Syllabus</a></li>
+		</ul>
 	</div>
+	<!--/.well -->
+</div>
+<!--/span-->
 
-	<div class="container">
-		<!--<div class="header">
-	      	<img src="/assets/images/eschool-logo.png" alt="Logo" width="300px" class="eschool-logo" />
-	      	<img src="/assets/images/jcps.png" alt="Logo" class="jcps-logo" />
-	      </div>
-	      -->
+<div class="span8">
+	<ul class="breadcrumb">
+		<li><a href="#">Courses</a> <span class="divider">/</span></li>
+		<li><a href="#">@section.course.name -@section.periodNames</a> <span
+			class="divider">/</span></li>
+		<li class="active">Assignments</li>
+	</ul>
+</div>
 
+<div class="span8">
 
-
-
-		<div class="contentArea">
-
-			<div class="content">
-
-				<div class="span3">
-					<div class="well sidebar-nav">
-						<ul class="nav nav-list">
-							<li class="nav-header">@section.course.name -@section.periodNames</li>
-							<li><a href="/grades/home">Home</a></li>
-							<li><a href="/grades/announcements">Announcements</a></li>
-							<li><a href="#">Discussions</a></li>
-							<li><a href="#">Quizzes</a></li>
-							<li><a href="#">Files</a></li>
-							<li class="active"><a href="#">Assignments</a></li>
-							<li><a href="#">Grades</a></li>
-							<li><a href="#">Syllabus</a></li>
-						</ul>
-					</div>
-					<!--/.well -->
-				</div>
-				<!--/span-->
-
-				<div class="span8">
-					<ul class="breadcrumb">
-						<li><a href="#">Courses</a> <span class="divider">/</span></li>
-						<li><a href="#">@section.course.name -@section.periodNames</a> <span class="divider">/</span></li>
-						<li class="active">Assignments</li>
-					</ul>
-				</div>
-
-				<div class="span8">
-
-					<h2 class="pull-left">  Assignments</h2>
-					<button class="btn pull-right">Delete</button>
-					<a href="#myModal" role="button" class="btn pull-right"
-						data-toggle="modal">Add</a>
-					<div id="myModal" class="modal hide fade span12" tabindex="-1"
-						role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-							<div class="modal-header">
-								<button type="button" class="close" data-dismiss="modal"
-									aria-hidden="true">×</button>
-								<h3 id="myModalLabel">Add Assignment</h3>
-							</div>
-							<div class="modal-body">
-								@dropForm.asHtml
-							</div>
-							<!-- modal body -->
-							<!-- modal footer -->
-					</div>
-					<!-- modal -->
-
-				@for(c <- categories){
-					<legend>@c.name</legend>
-					<table class="table table-bordered">
-						<tr class="success">
-							<td>Assignment</td>
-							<td>Due</td>
-							<td>Out of</td>
-						</tr>
-						
-						@for(a <- Assignment.forCategory(c)){
-						<tr>
-							<td>@a.name</td>
-							<td>@a.getDueDate</td>
-							<td>@a.points</td>
-						</tr>
-						}
-					</table>
-					}
-				</div>
-
-
-			</div>
+	<h2 class="pull-left">Assignments</h2>
+	<a href="#myModal" role="button" class="btn pull-right"
+		data-toggle="modal">Add</a>
+	<div id="myModal" class="modal hide fade span12" tabindex="-1"
+		role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal"
+				aria-hidden="true">×</button>
+			<h3 id="myModalLabel">Add Assignment</h3>
 		</div>
-
+		<div class="modal-body">@dropForm.asHtml</div>
+		<!-- modal body -->
+		<!-- modal footer -->
 	</div>
-</body>
+	<!-- modal -->
+
+	@for(c <- categories){
+	<legend>@c.name</legend>
+	<table class="table table-bordered">
+		<tr class="success">
+			<td>Assignment</td>
+			<td>Due</td>
+			<td>Out of</td>
+			<td>Delete</td>
+		</tr>
+
+		@for(a <- Assignment.forCategory(c)){
+		<script>
+			$(function() {
+    $( "#@{a.toString}" ).dialog({
+      resizable: false,
+      height:140,
+      modal: true,
+      buttons: {
+        "Delete": function() {
+          $window.location.href=@controllers.routes.Grades.deleteAssignment(sectionId,a.id);
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    });
+  });
+	</script>
+
+
+		<tr>
+			<td>@a.name</td>
+			<td>@a.getDueDate</td>
+			<td>@a.points</td>
+			<td><div id=@a.toString><button type="button" id=@a.toString>Delete</button></div></td>
+		</tr>
+		}
+	</table>
+	}
+</div>
 }

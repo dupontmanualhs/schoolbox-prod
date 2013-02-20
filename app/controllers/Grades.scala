@@ -23,7 +23,9 @@ object Grades extends Controller {
     val numPoints = new forms.fields.NumericField[Int]("Points Possible")
     val dueDate = new DateField("DueDate")
     val locked = new DateField("Hidden Until")
-
+    
+    override val cancelTo = "url"
+    
     val fields = List(category, title, numPoints, dueDate, locked)
   }
 
@@ -37,9 +39,9 @@ object Grades extends Controller {
         val catsMap = Category.forSection(sect).map(c => (c.name, c))
         val dropMenu = new DropMenu(catsMap)
         if (req.method == "GET") {
-          Ok(html.grades.assignments(sect, cats, Binding(dropMenu)))
+          Ok(html.grades.assignments(sect, cats, Binding(dropMenu), sectionId))
         } else Binding(dropMenu, req) match {
-          case ib: InvalidBinding => Ok(views.html.grades.assignments(sect, cats, ib))
+          case ib: InvalidBinding => Ok(views.html.grades.assignments(sect, cats, ib, sectionId))
           case vb: ValidBinding => {
             val TheCat: Category = vb.valueOf(dropMenu.category)
             val TheTitle: String = vb.valueOf(dropMenu.title)
@@ -51,6 +53,18 @@ object Grades extends Controller {
             Redirect(routes.Grades.assignments(sectionId))
           }
         }
+      }
+    }
+  }
+  
+  def deleteAssignment(sectionId: Long, assignmentId: Long) = DbAction { implicit req =>
+    implicit val pm: ScalaPersistenceManager = req.pm
+    pm.query[Assignment].filter(QAssignment.candidate.id.eq(assignmentId)).executeOption() match {
+      case None => NotFound(views.html.notFound("No assignment with that id."))
+      case Some(assign) => {
+        pm.deletePersistent(assign)
+         Redirect(routes.Grades.assignments(sectionId))
+        //TODO
       }
     }
   }
