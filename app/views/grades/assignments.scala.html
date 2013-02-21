@@ -62,31 +62,19 @@ Long)(implicit req: util.DbRequest[_]) @import models.grades._
 		</tr>
 
 		@for(a <- Assignment.forCategory(c)){
-		<script>
-			$(function() {
-    $( "#@{a.toString}" ).dialog({
-      resizable: false,
-      height:140,
-      modal: true,
-      buttons: {
-        "Delete": function() {
-          $window.location.href=@controllers.routes.Grades.deleteAssignment(sectionId,a.id);
-        },
-        Cancel: function() {
-          $( this ).dialog( "close" );
-        }
-      }
-    });
-  });
-	</script>
+			
+			
 
 
-		<tr>
-			<td>@a.name</td>
-			<td>@a.getDueDate</td>
-			<td>@a.points</td>
-			<td><div id=@a.toString><button type="button" id=@a.toString>Delete</button></div></td>
-		</tr>
+			<tr>
+				<td>@a.name</td>
+				<td>@a.getDueDate</td>
+				<td>@a.points</td>
+				<td>
+				
+				<a class="confirmLink" href=@routes.Grades.deleteAssignment(sectionId,a.id)>Delete</button>
+				</td>
+			</tr>
 		}
 	</table>
 	}
