@@ -87,7 +87,7 @@ class Title {
   def image_=(theImage: String) {_image = theImage}
 
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
-    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String]) = {
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
     this()
     name_=(name)
     author_=(author)

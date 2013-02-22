@@ -19,6 +19,7 @@ object Application extends Controller {
     val TextField = new TextFieldOptional("Text")
     val UrlField = new UrlFieldOptional("Url")
     
+    
     val fields = List(ChoiceField, DateField, EmailField, NumericField, PasswordField, TextField, UrlField)
     
   }
