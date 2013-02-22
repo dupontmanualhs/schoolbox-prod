@@ -50,7 +50,33 @@ Long)(implicit req: util.DbRequest[_]) @import models.grades._
 		<!-- modal footer -->
 	</div>
 	<!-- modal -->
-
+	<script type="text/javascript">
+				$(document).ready(function() {
+				  $("#dialog").dialog({
+				  autoOpen: false,
+				  modal: true
+				  });
+				 });
+				 
+				 $(".confirmLink").click(function(e) {
+				  e.preventDefault();
+				  var targetUrl = $(this).attr("href");
+				  
+				  $("#dialog").dialog({
+				   buttons : {
+				    "Confirm" : function () {
+				     window.location.href = targetUrl;
+				    },
+				    "Cancel" : function() {
+				     $(this).dialog("close");
+				    }
+				   }
+				  });
+				  
+				  $("#dialog").dialog("open");
+				 });
+				</script>
+	<div id="dialog" title="Confirmation Required">Are you sure you wish to do this?</div>
 	@for(c <- categories){
 	<legend>@c.name</legend>
 	<table class="table table-bordered">
@@ -71,7 +97,6 @@ Long)(implicit req: util.DbRequest[_]) @import models.grades._
 				<td>@a.getDueDate</td>
 				<td>@a.points</td>
 				<td>
-				
 				<a class="confirmLink" href=@routes.Grades.deleteAssignment(sectionId,a.id)>Delete</button>
 				</td>
 			</tr>
