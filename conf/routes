@@ -74,6 +74,8 @@ GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHi
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 GET     /books/checkout                         controllers.Books.checkout()
 POST    /books/checkout                         controllers.Books.checkout()
+GET     /books/checkIn                          controllers.Books.checkIn()
+POST    /books/checkIn                          controllers.Books.checkIn()
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()

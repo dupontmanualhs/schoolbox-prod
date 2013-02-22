@@ -13,6 +13,8 @@ import forms.validators.Validator
 import forms.validators.ValidationError
 import javax.imageio._
 import java.io._
+import org.datanucleus.api.jdo.query._
+import org.datanucleus.query.typesafe._
 
 object Books extends Controller {
   /**
@@ -214,6 +216,26 @@ object Books extends Controller {
 
     val fields = List(barcode)
   }
+
+  def checkIn = DbAction { implicit request =>
+    if (request.method == "GET") Ok(views.html.books.checkIn(Binding(CheckInForm)))
+      else {
+      implicit val pm = request.pm
+      Binding(CheckInForm, request) match {
+        case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
+        case vb: ValidBinding => {
+          val cand = QCheckout.candidate
+          Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
+            case None => Redirect(routes.Books.checkIn()).flashing("message" -> "No copy with the given barcode")
+            case Some(cpy) => {
+              pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption()
+              Redirect(routes.Books.checkIn())
+          }
+        }
+        }
+      }
+    }
+  }
   
   def lookup() = TODO
   
@@ -262,8 +284,6 @@ object Books extends Controller {
   }
   
   def confirmCopyLost(copyId: Long) = TODO
-  
-  def checkIn() = TODO
   
   def checkInLostCopy() = TODO
   
