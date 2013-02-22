@@ -27,7 +27,7 @@ class ConferencesData extends FunSuite {
 	
 	var testSession1 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2, 10)
 	var testSession2 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2, 110)
-	var testSession3 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2, 1380)
+	var testSession3 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2, 1395)
 	
 	var testSlot1 = new Slot(testSession1, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null))
 	var testSlot2 = new Slot(testSession2, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null))
@@ -44,6 +44,6 @@ class ConferencesData extends FunSuite {
 	}
 	
 	test("models.Conferences.slot.calculateEndTime 5:00 + 23:00 hours") {
-		assert(testSlot3.calculateEndTime() === Time.valueOf("04:00:00"))
+		assert(testSlot3.calculateEndTime() === Time.valueOf("04:15:00"))
 	}
 }
