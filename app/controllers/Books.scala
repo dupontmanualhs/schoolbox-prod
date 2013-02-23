@@ -228,8 +228,14 @@ object Books extends Controller {
           Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
             case None => Redirect(routes.Books.checkIn()).flashing("message" -> "No copy with the given barcode")
             case Some(cpy) => {
-              pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption()
-              Redirect(routes.Books.checkIn())
+              pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+                case None => Redirect(routes.Books.checkIn()).flashing("message" -> "Copy not checked out")
+                case Some(currentCheckout) => {
+                  currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
+                  request.pm.makePersistent(currentCheckout)
+                  Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
+                }
+              }
           }
         }
         }
