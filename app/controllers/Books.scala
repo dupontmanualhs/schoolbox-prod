@@ -34,7 +34,7 @@ object Books extends Controller {
   }
   
   /**
-   * Given a list of tho first 12 digits from a 13-digit ISBN,
+   * Given a list of the first 12 digits from a 13-digit ISBN,
    * returns the expected check digit. The algorithm can be found
    * here:
    * http://en.wikipedia.org/wiki/International_Standard_Book_Number#Check_digits
@@ -56,13 +56,18 @@ object Books extends Controller {
    */
   def checkDigit(isbn: String): Option[String] = {
     // if (isbn.matches("^\\d+$")) {
+    try {
       val digits = isbn.toList.map(_.toString.toInt)
       digits.length match {
         case 9 => Some(tenDigitCheckDigit(digits))
         case 12 => Some(thirteenDigitCheckDigit(digits))
         case _ => None
       }
-   // } else None
+    }
+    catch {
+      case _: NumberFormatException => None
+    }
+    // } else None
   }
 
   /**
