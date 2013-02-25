@@ -66,7 +66,7 @@ GET     /books/findCopyHistory                  controllers.Books.findCopyHistor
 POST    /books/findCopyHistory                  controllers.Books.findCopyHistory
 GET     /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
 POST    /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
-GET     /books/copyHistory/:copyId              controllers.Books.copyHistory(copyId: Long)
+GET     /books/copyHistory/:barcode             controllers.Books.copyHistory(barcode: String)
 POST    /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
 GET     /books/currentCheckouts/:studentId      controllers.Books.currentCheckouts(studentId: String)
 GET     /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
@@ -74,6 +74,8 @@ GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHi
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 GET     /books/checkout                         controllers.Books.checkout()
 POST    /books/checkout                         controllers.Books.checkout()
+GET     /books/checkIn                          controllers.Books.checkIn()
+POST    /books/checkIn                          controllers.Books.checkIn()
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()

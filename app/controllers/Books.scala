@@ -13,6 +13,8 @@ import forms.validators.Validator
 import forms.validators.ValidationError
 import javax.imageio._
 import java.io._
+import org.datanucleus.api.jdo.query._
+import org.datanucleus.query.typesafe._
 
 object Books extends Controller {
   /**
@@ -205,6 +207,41 @@ object Books extends Controller {
     }
   }
 }
+
+  object CheckInForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+
+    val fields = List(barcode)
+  }
+
+  def checkIn = DbAction { implicit request =>
+    if (request.method == "GET") Ok(views.html.books.checkIn(Binding(CheckInForm)))
+      else {
+      implicit val pm = request.pm
+      Binding(CheckInForm, request) match {
+        case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
+        case vb: ValidBinding => {
+          val cand = QCheckout.candidate
+          Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
+            case None => Redirect(routes.Books.checkIn()).flashing("message" -> "No copy with the given barcode")
+            case Some(cpy) => {
+              pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+                case None => Redirect(routes.Books.checkIn()).flashing("message" -> "Copy not checked out")
+                case Some(currentCheckout) => {
+                  currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
+                  request.pm.makePersistent(currentCheckout)
+                  Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
+                }
+              }
+          }
+        }
+        }
+      }
+    }
+  }
   
   def lookup() = TODO
   
@@ -212,13 +249,16 @@ object Books extends Controller {
   
   def findBooksOut() = TODO
   
-  def booksOut(perspectiveId: Long) = TODO
+  def booksOut(stateId: String) = TODO
   
   def findCopyHistory() = DbAction { implicit req =>
     object ChooseCopyForm extends Form {
-      val copyId = new NumericField[Int]("Copy ID")
+      val barcode = new TextField("Barcode") {
+        override val minLength = Some(21)
+        override val maxLength = Some(23)
+      }
 
-      def fields = List(copyId)
+      def fields = List(barcode)
     }
     if (req.method == "GET") {
       Ok(html.books.findCopyHistory(Binding(ChooseCopyForm)))
@@ -226,18 +266,17 @@ object Books extends Controller {
       Binding(ChooseCopyForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCopyHistory(ib))
         case vb: ValidBinding => {
-          val lookupCopyId: Long = vb.valueOf(ChooseCopyForm.copyId)
-          Redirect(routes.Books.copyHistory(lookupCopyId))
+          val lookupCopyBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
+          Redirect(routes.Books.copyHistory(lookupCopyBarcode))
         }
       }
     }
   }
   
-  def copyHistory(copyId: Long) = DbAction { implicit req =>
+  def copyHistory(barcode: String) = DbAction { implicit req =>
     implicit val pm = req.pm
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
-    val copyCand = QCopy.candidate
-    pm.query[Copy].filter(copyCand.id.eq(copyId)).executeOption() match {
+    Copy.getByBarcode(barcode) match {
       case None => NotFound("no copy with the given id")
       case Some(copy) => {
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
@@ -251,8 +290,6 @@ object Books extends Controller {
   }
   
   def confirmCopyLost(copyId: Long) = TODO
-  
-  def checkIn() = TODO
   
   def checkInLostCopy() = TODO
   
