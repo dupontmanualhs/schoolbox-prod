@@ -21,25 +21,16 @@ class TestParser extends FunSuite {
     assert(Parser("""\pi""") === ConstantPi())
   }
   
-  //complex numbers don't work
-  //Parser can't handle the operations between the real and imaginary terms
-  //error: java.lang.RuntimeException: string matching regex `\z' expected but `+' found
-  //at scala.sys.package$.error(package.scala:27)
-  //at math.Parser$.apply(Parser.scala:8)
   test("complex numbers") {
-    //assert(Parser("3-2i") === ComplexNumber(Integer(3), Integer(-2)))
-    //assert(Parser("2+3i") === ComplexNumber(Integer(2), Integer(3)))
-    //assert(Parser("7/2+1/3i") === ComplexNumber(Fraction(Integer(7), Integer(2)), Fraction(Integer(1), Integer(3))))
+    assert(Parser("3-2i") === ComplexNumber(Integer(3), Integer(-2)))
+    assert(Parser("2+3i") === ComplexNumber(Integer(2), Integer(3)))
+    assert(Parser("7/2+1/3i") === ComplexNumber(Fraction(Integer(7), Integer(2)), Fraction(Integer(1), Integer(3))))
   }
   
   test("complex numbers solo terms") {
-    //This doesn't work either (for a different reason)
-    //assert(Parser("3") === ComplexNumber(Integer(3), Integer(0)))
-    
-    //Parser can't handle i
-    //java.lang.RuntimeException: string matching regex `\z' expected but `i' found
-    //assert(Parser("4i") === ComplexNumber(Integer(0), Integer(4)))
+    assert(Parser("4i") === ComplexNumber(Integer(0), Integer(4)))
   }
   
-  //test("vars") {}
+  //gotta make these
+  test("vars") {}
 }
