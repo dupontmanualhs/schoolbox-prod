@@ -22,7 +22,8 @@ abstract class Form {
   def labelSuffix: String = ":"
     
   def asHtml(bound: Binding, action: String, legend: String = ""): Elem = {
-    <form method={ method } class="form-horizontal well span7 offset1" action={ action }><fieldset>
+    <form method={ method } class="form-horizontal well span7 offset1" action={ action }>
+<fieldset>
     { if (legend != "") <legend>{ legend }</legend> }
     <fieldset>
     { if (bound.formErrors.isEmpty) NodeSeq.Empty else { bound.formErrors.asHtml } }  

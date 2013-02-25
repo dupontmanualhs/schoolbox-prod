@@ -1,5 +1,5 @@
-@()(implicit req: util.DbRequest[_])
+@(teacher: Option[models.users.Teacher])(implicit req: util.DbRequest[_])
 
 @main("Teacher Conferences") {
-	<h1> Scheduling will open soon </h1>
+	<h1> Hello @teacher.get.user.first </h1>
 }
