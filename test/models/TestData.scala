@@ -266,10 +266,10 @@ object TestData {
     //makeConferenceData(debug)
     if(debug) println("Creating Conferences...")
     val springConf = new Event("Spring Conferences", true)
-    val springSession = new Session(springConf, new Date(2013, 4, 1), new Timestamp(2013, 4, 21, 23, 59, 59, 99), 
-        Some(new Timestamp(2013, 4, 1, 23, 59, 59, 99)), new Time(0, 0, 0), new Time(23, 59, 59), 10)
+    val springSession = new Session(springConf, Date.valueOf("2013-04-01"), Timestamp.valueOf("2013-04-21 23:59:59"), 
+        Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:0:00"), Time.valueOf("23:59:59"), 10)
     val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher] /*ob*/, Student.getByUsername("RASHAH01").asInstanceOf[Student], 
-        new Time(12, 00, 00), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
+        Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
   }
   
 
