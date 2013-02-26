@@ -22,7 +22,7 @@ class DateInput(
   				changeMonth: true,
   				changeYear: true,
   				altField: '.{Name}',
-  				altFormat: 'DD, d MM, yy',
+  				altFormat: 'DD, MM, yy',
   				showOtherMonths: true,
   				selectOtherMonths: true,
   				showOn: 'both',
