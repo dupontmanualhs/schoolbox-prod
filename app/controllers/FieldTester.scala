@@ -42,23 +42,25 @@ object FieldTester extends Controller {
     
     
     
-	 /*
+	 
     val DateFieldTest = new DateField("Date")
     
-    val DateFieldTest2 = new DateField("Date2")
-    
+    //val DateFieldTest2 = new DateField("Date2")
+    /*
     val DateFieldTest3 = new DateField("Date3")
     
     val DateFieldTest4 = new DateField("Date4")
     
     val DateFieldTest5 = new DateField("Date5")
     */
-    //val DateFieldOptionalTest1 = new DateFieldOptional("DO1")
+    val DateFieldOptionalTest1 = new DateFieldOptional("DO1")
    
-    
+    val TimestampFieldTest1 = new TimestampField("Timestamp")
+    val TimestampFieldOptionalTest1 = new TimestampFieldOptional("TimestampOption")
     
 
     val TimeFieldTest = new TimeField("Time")
+    //val TimeFieldTest2 = new TimeField("Time2")
     
     val TimeFieldOptionalTest = new TimeFieldOptional("TimeOptional")
     
@@ -74,7 +76,7 @@ object FieldTester extends Controller {
 
     //val UrlFieldTest = new UrlField("Url")
 
-    val fields = List(TimeFieldTest, TimeFieldOptionalTest)
+    val fields = List(TimeFieldTest, TimeFieldOptionalTest,DateFieldTest, DateFieldOptionalTest1, TimestampFieldTest1, TimestampFieldOptionalTest1)
     //val fields = List(DateFieldTest, DateFieldTest2, DateFieldTest3, DateFieldTest4, DateFieldTest5)
     //val fields = List(/*BooleanFieldTest,*/ /*ChoiceFieldTest,*/ /*DateFieldTest, DateFieldTest2,*//* EmailFieldTest,*/ /* NumericFieldTest,*/ /* PasswordFieldTest,*/
     //  /*TextFieldTest, TinyMCEFieldTest, UrlFieldTest,*//*DateFieldTest3, DateFieldTest4, DateFieldTest5,*/ DateFieldOptionalTest1)
@@ -95,7 +97,7 @@ object FieldTester extends Controller {
           else "ERROR: "+temp.toString
         }
             */    
-        //val TheDateField: java.sql.Date = vb.valueOf(BasicFieldsForms.DateFieldTest)
+        val TheDateField: java.sql.Date = vb.valueOf(BasicFieldsForms.DateFieldTest)
         //val TheDateField2: java.sql.Date = vb.valueOf(BasicFieldsForms.DateFieldTest2)
         /*val TheEmail: String = vb.valueOf(BasicFieldsForms.EmailFieldTest)
         val TheNumeric: Int = vb.valueOf(BasicFieldsForms.NumericFieldTest)
@@ -107,12 +109,14 @@ object FieldTester extends Controller {
           temp.toString
         }*/
         val TheTime: java.sql.Time = vb.valueOf(BasicFieldsForms.TimeFieldTest)
-        val TheTimeOption: Option[java.sql.Time] = vb.valueOf(BasicFieldsForms.TimeFieldOptionalTest)
-        //val TheDateOptional: Option[java.sql.Date] = vb.valueOf(BasicFieldsForms.DateFieldOptionalTest1)
+        //val TheTime2: java.sql.Time = vb.valueOf(BasicFieldsForms.TimeFieldTest2)
+        val TheTimeOptional: Option[java.sql.Time] = vb.valueOf(BasicFieldsForms.TimeFieldOptionalTest)
+        val TheDateOptional: Option[java.sql.Date] = vb.valueOf(BasicFieldsForms.DateFieldOptionalTest1)
+        val TheTimestamp: java.sql.Timestamp = vb.valueOf(BasicFieldsForms.TimestampFieldTest1)
+        val TheTimestampOptional: Option[java.sql.Timestamp] = vb.valueOf(BasicFieldsForms.TimestampFieldOptionalTest1)
         // do whatever you want with the values now (notice they're typesafe!)
-
-        Ok(views.html.formtesteranswers(List(/*TheBooleanField.toString, TheChoiceField, *//*TheDateField.toString, TheDateField2.toString*//*, TheEmail, TheNumeric.toString,
-          ThePassword, TheText, TheTinyMCE, TheUrl,*/ TheTime.toString, TheTimeOption.toString )))
+        Ok(views.html.formtesteranswers(List(/*TheBooleanField.toString, TheChoiceField, *//* TheEmail, TheNumeric.toString,
+          ThePassword, TheText, TheTinyMCE, TheUrl,*/ TheTime.toString, TheTimeOptional.toString,TheDateField.toString, TheDateOptional.toString, TheTimestamp.toString, TheTimestampOptional.toString )))
       }
     }
   }

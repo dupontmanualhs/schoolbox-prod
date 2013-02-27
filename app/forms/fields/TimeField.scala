@@ -5,7 +5,10 @@ import java.sql.Time
 import forms.widgets.TimeInput
 
 abstract class BaseTimeField[T](name: String)(implicit man: Manifest[T]) extends Field[T](name) {
-  override def widget = new TimeInput(required)
+  
+  val uuid = java.util.UUID.randomUUID()
+  
+  override def widget = new TimeInput(required, uuid=uuid)
 }
 
 class TimeField(name: String) extends BaseTimeField[Time](name) {
@@ -14,9 +17,11 @@ class TimeField(name: String) extends BaseTimeField[Time](name) {
     try {
       var splitString = s(0).split(" ")
       var splitTime = splitString(0).split(":")
+      
       var hours = splitTime(0).toInt
       if (hours == 12 && splitString(1) == "AM") hours = 0
       if (splitString(1) == "PM" && hours != 12) hours = hours + 12
+      
       splitTime(0) = hours.toString
       Right(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00"))
     } catch {
@@ -33,9 +38,11 @@ class TimeFieldOptional(name: String) extends BaseTimeField[Option[Time]](name) 
     case Seq(str) => try {
       var splitString = s(0).split(" ")
       var splitTime = splitString(0).split(":")
+      
       var hours = splitTime(0).toInt
       if (hours == 12 && splitString(1) == "AM") hours = 0
       if (splitString(1) == "PM" && hours != 12) hours = hours + 12
+      
       splitTime(0) = hours.toString
       Right(Option(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00")))
     } catch {
