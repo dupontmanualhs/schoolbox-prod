@@ -16,6 +16,7 @@ import forms.{Binding, InvalidBinding, ValidBinding}
 import forms.validators.ValidationError
 import forms.validators.Validator
 import util.Authenticated
+import play.api.mvc.Flash._
 
 object Users extends Controller {  
   /**
@@ -80,7 +81,7 @@ object Users extends Controller {
           req.visit.perspective = Some(vb.valueOf(ChoosePerspectiveForm.perspective))
           req.visit.updateMenu
           req.pm.makePersistent(req.visit)
-          Redirect(routes.Application.index()).flashing("message" -> "You have successfuly logged in.")
+          Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
         }
       }
     }
@@ -92,7 +93,7 @@ object Users extends Controller {
   def logout = DbAction { implicit request =>
     request.pm.deletePersistent(request.visit)
     Redirect(routes.Application.index()).flashing(
-      "message" -> "You've been logged out..."
+      "message" -> "You have been logged out."
     )
   }
   
