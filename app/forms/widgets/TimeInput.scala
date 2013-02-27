@@ -16,9 +16,12 @@ class TimeInput(
   override def scripts: NodeSeq = 
   <script>
     $(function() {{
-      $('.timepicker').timepicker({{
-		  showPeriod: true,
-		  showLeadingZero: true
+      $('.timepicker').timePicker({{
+		  startTime: '00.00',
+          endTime: '24.00',
+          show24Hours: false,
+          separator: '.',
+          step: 15
       }});
     }});
   </script>
