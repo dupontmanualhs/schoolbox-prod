@@ -391,10 +391,11 @@ def findCheckoutHistory() = DbAction { implicit req =>
   def allBooksOut(grade: Int) = DbAction { implicit req =>
     implicit val pm = req.pm
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+    val stu = QStudent.variable("stu")
     val cand = QCheckout.candidate
-    val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.grade.eq(grade))).executeList()
+    val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.eq(stu)).and(stu.grade.eq(grade))).executeList()
     val header = "Current books out for grade " + grade
-    val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.perspective.formalName)})
+    val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.student.formalName)})
     Ok(views.html.books.allBooksOut(header, rows))
   }
 }
