@@ -398,4 +398,24 @@ def findCheckoutHistory() = DbAction { implicit req =>
     val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.student.formalName)})
     Ok(views.html.books.allBooksOut(header, rows))
   }
+
+  def findAllBooksOut() = DbAction { implicit req =>
+    object ChooseGradeForm extends Form {
+      val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
+
+      def fields = List(grade)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findAllBooksOut(Binding(ChooseGradeForm)))
+    } else {
+      Binding(ChooseGradeForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findAllBooksOut(ib))
+        case vb: ValidBinding => {
+          val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
+          Redirect(routes.Books.allBooksOut(lookupGrade))
+        }
+      }
+    }
+  }
+
 }

@@ -77,6 +77,8 @@ POST    /books/checkout                         controllers.Books.checkout()
 GET     /books/checkIn                          controllers.Books.checkIn()
 POST    /books/checkIn                          controllers.Books.checkIn()
 GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
+GET     /books/findAllBooksOut                  controllers.Books.findAllBooksOut
+POST    /books/findAllBooksOut                  controllers.Books.findAllBooksOut
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
