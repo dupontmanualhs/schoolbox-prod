@@ -108,7 +108,7 @@ object Books extends Controller {
       override val minLength = Some(10)
       override val maxLength = Some(13)
       override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
-        case None => ValidationError("This value must be a valid 10- or 13-digit ISBN.")
+        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
 	    case Some(isbn) => ValidationError(Nil)
     }), Validator((str: String) => Title.getByIsbn(str) match {
         case Some(isbn) => ValidationError("ISBN already exists in database.")
@@ -162,7 +162,44 @@ object Books extends Controller {
   
   def addCopiesToPg(pgId: Long) = TODO
   
-  def addPurchaseGroup(titleId: Long) = TODO
+  object AddPurchaseGroupForm extends Form {
+    val isbn = new TextField("isbn") {
+      override val minLength = Some(10)
+      override val maxLength = Some(13)
+      override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
+          case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
+          case Some(isbn) => ValidationError(Nil)
+        }))
+      }
+    val purchaseDate = new DateField("Purchase Date")
+    val price = new NumericField[Double]("Price")
+    val numCopies = new NumericField[Int]("Number of Copies")
+
+    val fields = List(isbn, purchaseDate, price, numCopies)
+    }
+
+  def addPurchaseGroup = DbAction { implicit request =>
+    if (request.method == "GET") Ok(views.html.books.addPurchaseGroup(Binding(AddPurchaseGroupForm)))
+      else {
+      implicit val pm = request.pm
+      Binding(AddPurchaseGroupForm, request) match {
+        case ib: InvalidBinding => Ok(views.html.books.addPurchaseGroup(ib))
+        case vb: ValidBinding => {
+        Title.getByIsbn(vb.valueOf(AddPurchaseGroupForm.isbn)) match {
+          case None => Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> "Title with the given ISBN not found")
+          case Some(t) => {
+            val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
+            request.pm.makePersistent(p)
+            val msg = "Purchase Group successfully added for: " + t.name
+            Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> msg)
+          }
+        }
+      }
+    }
+  }
+}
+
+
   
   def addLabelsToQueue() = TODO
   
@@ -251,10 +288,6 @@ object Books extends Controller {
   def lookup() = TODO
   
   def inspect() = TODO
-  
-  def findBooksOut() = TODO
-  
-  def booksOut(stateId: String) = TODO
   
   def findCopyHistory() = DbAction { implicit req =>
     object ChooseCopyForm extends Form {

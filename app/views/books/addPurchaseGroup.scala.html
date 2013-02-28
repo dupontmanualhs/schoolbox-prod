@@ -1,0 +1,5 @@
+@(addPurchaseGroupForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Add a Purchase Group") {
+  @addPurchaseGroupForm.asHtml
+}
