@@ -287,7 +287,7 @@ object Books extends Controller {
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
         val coCand = QCheckout.candidate
         val rows: List[(String, String, String)] = pm.query[Checkout].filter(coCand.copy.eq(copy)).executeList().map(co => {
-          (co.perspective.formalName, df.format(co.startDate), if (co.endDate == null) "" else df.format(co.endDate))
+          (co.student.formalName, df.format(co.startDate), if (co.endDate == null) "" else df.format(co.endDate))
         })
         Ok(views.html.books.copyHistory(header, rows))
       }
@@ -310,7 +310,7 @@ object Books extends Controller {
     case None => NotFound("No student with the given id.")
     case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.perspective.eq(currentStudent)).executeList()
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.student.eq(currentStudent)).executeList()
       val studentName = currentStudent.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate),
@@ -366,7 +366,7 @@ def findCheckoutHistory() = DbAction { implicit req =>
     case None => NotFound("No student with the given id")
     case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.perspective.eq(currentStudent))).executeList()
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
       val studentName = currentStudent.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate))})
@@ -392,7 +392,7 @@ def findCheckoutHistory() = DbAction { implicit req =>
     implicit val pm = req.pm
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
     val cand = QCheckout.candidate
-    val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date])/*.and(cand.perspective.asInstanceOf[Student].grade.eq(grade))*/).executeList()
+    val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.grade.eq(grade))).executeList()
     val header = "Current books out for grade " + grade
     val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.perspective.formalName)})
     Ok(views.html.books.allBooksOut(header, rows))
