@@ -190,7 +190,36 @@ object Books extends Controller {
           case Some(t) => {
             val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
             request.pm.makePersistent(p)
-            val msg = "Purchase Group successfully added for: " + t.name
+
+            // Next Copy Number
+            val cand = QCopy.candidate
+            val pCand = QPurchaseGroup.variable("pCand")
+            val currentCopies = pm.query[Copy].filter(cand.purchaseGroup.eq(pCand).and(pCand.title.eq(t))).executeList()
+            val newStart = currentCopies.length match {
+              case 0 => 1
+              case _ => {
+                val maxCopy = currentCopies.sortWith((c1, c2) => c1.number < c2.number).last.number
+                maxCopy + 1
+              }
+            }
+
+            def addCopies(copyNumber: Int, copyNumberEnd: Int, purchaseGroup: PurchaseGroup): Unit = {
+              if (copyNumber == copyNumberEnd) {
+                val cpy = new Copy(purchaseGroup, copyNumber, false)
+                request.pm.makePersistent(cpy)
+              } else {
+                val cpy = new Copy(purchaseGroup, copyNumber, false)
+                request.pm.makePersistent(cpy)
+                addCopies(copyNumber + 1, copyNumberEnd, purchaseGroup)
+              }
+            }
+
+            // Add New Copies
+            val copyNumberEnd = newStart + vb.valueOf(AddPurchaseGroupForm.numCopies) - 1
+            addCopies(newStart, copyNumberEnd, p)
+            val addedCopiesString = "copies " + newStart + " through " + copyNumberEnd + " added."
+
+            val msg = "Purchase Group successfully added for: " + t.name + ". With " + addedCopiesString
             Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> msg)
           }
         }
@@ -199,8 +228,6 @@ object Books extends Controller {
   }
 }
 
-
-  
   def addLabelsToQueue() = TODO
   
   def printCenter() = TODO

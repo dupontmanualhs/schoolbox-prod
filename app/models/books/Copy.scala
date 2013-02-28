@@ -14,7 +14,7 @@ class Copy /*extends StoreCallback*/ {
   private[this] var _id: Long = _
   private[this] var _purchaseGroup: PurchaseGroup = _
   private[this] var _number: Int = _
-  private[this] var _isLost: Boolean = _ // TODO: Make this false by default
+  private[this] var _isLost: Boolean = _
 
   def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false) = {
     this()
