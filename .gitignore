@@ -9,6 +9,7 @@ tmp
 *.orig
 chromedriver.log
 
+.metadata
 .classpath
 .project
 .settings
