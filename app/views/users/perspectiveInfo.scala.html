@@ -1,6 +1,19 @@
 @()(implicit req: util.DbRequest[_])
 
 @(req.visit.perspective match {
-  case Some(persp) => <p>You are logged in as { persp.displayNameWithRole }. <a href={ controllers.routes.Users.logout().toString }>Log out</a></p>
-  case None => <p><a href={ controllers.routes.Users.login().toString }>Log in</a></p>
+  case Some(persp) => <ul class="nav">
+  						<li class="dropdown" >
+  							<a class="dropdown-toggle" data-toggle="dropdown" href="#" >
+  								{ persp.displayNameWithRole }
+  								<b class="caret"></b>
+  							</a>
+  							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+  								<li>
+  								    <a tabindex="-1" href={ controllers.routes.Users.settings().toString }>Settings</a>
+  									<a tabindex="-1" href={ controllers.routes.Users.logout().toString }>Log out</a>
+  								</li>
+  							</ul>
+  						</li>
+  					  </ul>
+  case None => <ul class="nav"><li><a href={ controllers.routes.Users.login().toString }>Log in</a></li></ul>
 })

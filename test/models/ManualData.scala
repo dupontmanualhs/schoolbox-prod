@@ -8,7 +8,8 @@ import org.joda.time.format.DateTimeFormat
 import org.apache.poi.ss.usermodel.{ Sheet, Row, WorkbookFactory }
 import models.users._
 import models.courses._
-import util.{ DataStore, ScalaPersistenceManager }
+import models.lockers._
+import util.{ DataStore, ScalaPersistenceManager, Helpers }
 import java.io.File
 import models.assignments.AssignmentData
 import org.tukaani.xz.XZInputStream
@@ -32,6 +33,15 @@ object ManualData {
       pm.close()
     }
   }
+  
+  def loadL(debug: Boolean = false) {
+    val dbFile = new File("data.h2.db")
+    dbFile.delete()
+    DataStore.withManager {implicit pm =>
+      loadLockers(debug)
+      pm.close()
+    }
+  }
 
   def loadManualData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
     createYearsAndTerms(debug)
@@ -41,6 +51,7 @@ object ManualData {
     loadSections(debug)
     loadEnrollments(debug)
     loadBookData(debug)
+    loadLockers(debug)
   }
 
   def createYearsAndTerms(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
@@ -208,6 +219,22 @@ object ManualData {
     })
     pm.commitTransaction()
   }
+  
+  def loadLockers(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
+    pm.beginTransaction()
+    val doc = XML.load(getClass.getResourceAsStream("/manual-data/Lockers.xml"))
+    val lockers = doc \\ "student"
+    lockers foreach ((locker: Node) => {
+      val number = util.Helpers.toInt((locker \ "@lockerDetail.lockerNumber").text)
+      val location = LockerData.locationCreator((locker \ "@lockerDetail.location").text)
+      val combination = LockerData.randomCombination
+      if(debug) println("Adding Locker: #%d %s %s".format(number, combination, location))
+      val dbLocker = new Locker(number, combination, location, None, false)
+      pm.makePersistent(dbLocker)
+  
+    })
+    pm.commitTransaction()
+  }
 
   def asLocalDate(date: String): LocalDate = {
     val format = DateTimeFormat.forPattern("MM/dd/yyyy")
@@ -285,15 +312,19 @@ object ManualData {
     }
   }
   
+  def asOptionString(s: String): Option[String] = {
+    if (s.trim() == "") None else Some(s.trim())
+  }
+  
   def loadTitles(titles: NodeSeq, debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
     val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
     val titleIdMap = mutable.Map[Long, Long]()
     pm.beginTransaction()
     for (t <- (titles \ "title")) {
       val djId = (t \ "id").text.toLong
-      val title = new Title((t \ "name").text, (t \ "author").text, (t \ "publisher").text, (t \ "isbn").text,
-                            asInt((t \ "numPages").text), (t \ "dimensions").text, asDouble((t \ "weight").text),
-                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df))
+      val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
+                            Option(asInt((t \ "numPages").text)), asOptionString((t \ "dimensions").text), Option(asDouble((t \ "weight").text)),
+                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df), asOptionString((t \ "image").text))
       if (debug) println("Adding title: %s...".format(title.name))
       pm.makePersistent(title)
       titleIdMap += (djId -> title.id)

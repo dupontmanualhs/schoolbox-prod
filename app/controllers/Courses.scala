@@ -11,6 +11,7 @@ import play.api.mvc.PlainResult
 import util.DbRequest
 import util.ScalaPersistenceManager
 import scala.xml.Text
+import play.api.mvc.Flash._
 
 object Courses extends Controller {
   def getMySchedule() = DbAction { implicit req =>
@@ -23,7 +24,7 @@ object Courses extends Controller {
         studentSchedule(Student.getByUsername(currentUser.get.username)(pm).get, Term.current(pm))
       }
     } else {
-      NotFound(views.html.notFound("You are not logged in."))
+    	Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
     }
   }
   

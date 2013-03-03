@@ -1,8 +1,10 @@
 package models
 
 import java.io.File
-import java.sql.Date
+import java.sql._
 
+import models.lockers._
+import models.conferences._
 import org.joda.time.LocalDate
 
 import javax.jdo.annotations.Inheritance
@@ -242,19 +244,66 @@ object TestData {
 
     //makeBookData(debug)
     if (debug) println("Creating Titles...")
-    val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", "Bellman, Bragg and Charles", "Pearson Prentice Hall", "978-0130523167", 842, "10.9 x 8.8 x 1.6 inches", 4.5, true, new Date(System.currentTimeMillis()))
-    val algebra2Book = new Title("Prentice Hall Mathematics: Algebra 2", "Dan Kennedy, Randall I. Charles and Sadie Chavis Bragg", "Pearson Prentice Hall", "978-0131339989", 900, "10.9 x 8.8 x 2 inches", 5.3, true, new Date(System.currentTimeMillis()))
-    val geometryBook = new Title("Geometry", "Harold R. Jacobs", "W.H. Freeman & Company", "978-0716717454", 668, "10.1 x 7.7 x 1.4 inches", 3.3, true, new Date(System.currentTimeMillis()))
-    val chemistryBook = new Title("Chemistry", "Steven S. Zumdahl and Susan A. Zumdahl", "Houghton Mifflin", "978-0618528448", 1056, "10.6 x 8.5 x 1.6 inches", 5.5, true, new Date(System.currentTimeMillis()))
-    val biologyBook = new Title("Biology", "Neil A. Campbell, Jane B. Reece, Lisa A. Urry and Michael L. Cain", " Pearson Benjamin Cummings", "978-0805368444", 1393, "8.5 x 2.1 x 11 inches", 7.6, true, new Date(System.currentTimeMillis()))
-    val english1Book = new Title("Glencoe Language Arts Grammar And Language Workbook Grade 9", "John King", " Glencoe/McGraw-Hill", "978-0028182940", 348, "10.9 x 8.5 x 0.6 inches", 9.6, true, new Date(System.currentTimeMillis()))
-    val english2Book = new Title("Prentice Hall Literature Penguin: Grade 10: Student Edition (NATL)", "Todd O'Bryan", "PRENTICE HALL", "978-0131317185", 1163, "10 x 7.9 x 1.8 inches", 5.2, true, new Date(System.currentTimeMillis()))
-    val english3Book = new Title("Language of Literature, Grade 11 ", "Pat Day", "McDougal Littel", "978-0395931813", 1408, "1 x 0.8 x 0.2 inches", 6.0, true, new Date(System.currentTimeMillis()))
-    val worldHistoryBook = new Title("World History: Patterns of Interaction: Atlas by Rand McNally", "Roger B. Beck, Linda Black and Larry S. Krieger", "Mcdougal Littell/Houghton Mifflin", "978-0618690084", 1376, "11.2 x 8.7 x 1.8 inches", 6.8, true, new Date(System.currentTimeMillis()))
-    val usHistoryBook = new Title("The American Pageant", "David M. Kennedy and Lizabeth Cohen", "Wadsworth Publishing", "978-1111349530", 1152, "11 x 8.8 x 1.6 inches", 5.2, true, new Date(System.currentTimeMillis()))
-
+    val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", Some("Bellman, Bragg and Charles"), 
+        Some("Pearson Prentice Hall"), "9780130523167", Some(842), 
+        Some("10.9 x 8.8 x 1.6 inches"), Some(4.5), true, new Date(System.currentTimeMillis()), None)
+    val algebra2Book = new Title("Prentice Hall Mathematics: Algebra 2", Some("Dan Kennedy, Randall I. Charles and Sadie Chavis Bragg"),
+        Some("Pearson Prentice Hall"), "9780131339989",Some(900), 
+        Some("10.9 x 8.8 x 2 inches"), Some(5.3), true, new Date(System.currentTimeMillis()), None)
+    val geometryBook = new Title("Geometry", Some("Harold R. Jacobs"), 
+        Some("W.H. Freeman & Company"), "9780716717454", Some(668),
+        Some("10.1 x 7.7 x 1.4 inches"), Some(3.3), true, new Date(System.currentTimeMillis()), None)
+    val chemistryBook = new Title("Chemistry", Some("Steven S. Zumdahl and Susan A. Zumdahl"), 
+        Some("Houghton Mifflin"), "9780618528448", Some(1056), 
+        Some("10.6 x 8.5 x 1.6 inches"), Some(5.5), true, new Date(System.currentTimeMillis()), None)
+    val biologyBook = new Title("Biology", Some("Neil A. Campbell, Jane B. Reece, Lisa A. Urry and Michael L. Cain"),
+        Some("Pearson Benjamin Cummings"), "9780805368444", Some(1393),
+        Some("8.5 x 2.1 x 11 inches"), Some(7.6), true, new Date(System.currentTimeMillis()), None)
+    val english1Book = new Title("Glencoe Language Arts Grammar And Language Workbook Grade 9", Some("John King"), 
+        Some("Glencoe/McGraw-Hill"), "9780028182940", Some(348), 
+        Some("10.9 x 8.5 x 0.6 inches"), Some(9.6), true, new Date(System.currentTimeMillis()), None)
+    val english2Book = new Title("Prentice Hall Literature Penguin: Grade 10: Student Edition (NATL)", Some("Todd O'Bryan"),
+        Some("PRENTICE HALL"), "9780131317185", Some(1163), 
+        Some("10 x 7.9 x 1.8 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
+    val english3Book = new Title("Language of Literature, Grade 11 ", Some("Pat Day"),
+        Some("McDougal Littel"), "9780395931813", Some(1408),
+        Some("1 x 0.8 x 0.2 inches"), Some(6.0), true, new Date(System.currentTimeMillis()), None)
+    val worldHistoryBook = new Title("World History: Patterns of Interaction: Atlas by Rand McNally", Some("Roger B. Beck, Linda Black and Larry S. Krieger"),
+        Some("Mcdougal Littell/Houghton Mifflin"), "9780618690084", Some(1376), 
+        Some("11.2 x 8.7 x 1.8 inches"), Some(6.8), true, new Date(System.currentTimeMillis()), None)
+    val usHistoryBook = new Title("The American Pageant", Some("David M. Kennedy and Lizabeth Cohen"), 
+        Some("Wadsworth Publishing"), "9781111349530", Some(1152), 
+        Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
+        
     //makeMasteryData
     mastery.QuizData.load(debug)
+    
+    //makeLockerData(debug)
+    if (debug) println("Creating Lockers...")
+    val locker1 = new Locker(15, "23-96-23", LockerLocation(1,"CW"), None, false)
+    val locker2 = new Locker(16, "31-09-42", LockerLocation(1,"CW"), None, false)
+    val locker3 = new Locker(17, "91-23-68", LockerLocation(1,"CW"), None, false)
+    val locker4 = new Locker(18, "79-45-82", LockerLocation(1,"CW"), None, false)
+    val locker5 = new Locker(19, "21-16-55", LockerLocation(1,"CW"), None, false)
+    val locker6 = new Locker(20, "50-61-36", LockerLocation(1,"CW"), None, false)
+    val locker7 = new Locker(21, "74-13-89", LockerLocation(1,"CW"), None, false)
+    val locker8 = new Locker(22, "66-66-66", LockerLocation(1,"CW"), None, false)
+    val locker9 = new Locker(23, "32-82-42", LockerLocation(1,"CW"), None, false)
+    val locker10 = new Locker(24, "03-08-16", LockerLocation(2,"SE"), None, false)
+    val lockerList = List(locker1, locker2, locker3, locker4, locker5, locker6, locker7, locker8, locker9, locker10)
+    
+    for(locker <- lockerList) {
+      pm.makePersistent(locker)
+    }
+    
+    //makeConferenceData(debug)
+    if(debug) println("Creating Conferences...")
+    val springConf = new Event("Spring Conferences", true)
+    val springSession = new Session(springConf, Date.valueOf("2013-04-01"), Timestamp.valueOf("2013-04-21 23:59:59"), 
+        Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:0:00"), Time.valueOf("23:59:59"), 10)
+    val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher] /*ob*/, Student.getByUsername("RASHAH01").asInstanceOf[Student], 
+        Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
   }
+  
 
 }

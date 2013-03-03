@@ -3,23 +3,23 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import models.users.Perspective
+import models.users.Student
 
 @PersistenceCapable(detachable="true")
 class Checkout {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  private[this] var _perspective: Perspective = _
+  private[this] var _student: Student = _
   private[this] var _copy: Copy = _
   @Persistent
   private[this] var _startDate: java.sql.Date = _
   @Persistent
   private[this] var _endDate: java.sql.Date = _
 
-  def this(perspective: Perspective, copy: Copy, startDate: java.sql.Date, endDate: java.sql.Date) = {
+  def this(student: Student, copy: Copy, startDate: java.sql.Date, endDate: java.sql.Date) = {
     this()
-    _perspective = perspective
+    _student = student
     _copy = copy
     _startDate = startDate
     _endDate = endDate
@@ -27,8 +27,8 @@ class Checkout {
 
   def id: Long = _id
 
-  def perspective: Perspective = _perspective
-  def perspective_=(thePerspective: Perspective) { _perspective = thePerspective }
+  def student: Student = _student
+  def student_=(theStudent: Student) { _student = theStudent }
 
   def copy: Copy = _copy
   def copy_=(theCopy: Copy) { _copy = theCopy }
@@ -40,21 +40,20 @@ class Checkout {
   def endDate_=(theEndDate: java.sql.Date) { _endDate = theEndDate }
   
   override def toString: String = {
-    "Checkout: Copy %s to %s from %s to %s".format(copy, perspective.displayName, startDate, endDate)
+    "Checkout: Copy %s to %s from %s to %s".format(copy, student.displayName, startDate, endDate)
   }
 }
 
 object Checkout {
-  //def save
-  //TODO - Write the implementation
+  //TODO - Write the jdoPreStore method
 }
 
 trait QCheckout extends PersistableExpression[Checkout] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
 
-  private[this] lazy val _perspective: ObjectExpression[Perspective] = new ObjectExpressionImpl[Perspective](this, "_perspective")
-  def perspective: ObjectExpression[Perspective] = _perspective
+  private[this] lazy val _student: ObjectExpression[Student] = new ObjectExpressionImpl[Student](this, "_student")
+  def student: ObjectExpression[Student] = _student
 
   private[this] lazy val _copy: ObjectExpression[Copy] = new ObjectExpressionImpl[Copy](this, "_copy")
   def copy: ObjectExpression[Copy] = _copy

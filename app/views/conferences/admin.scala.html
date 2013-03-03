@@ -1,0 +1,8 @@
+@()(implicit req: util.DbRequest[_])
+
+@main("Admin Conferences") {
+	<h1> Hello OB </h1>
+	<p> What would you like to do? </p>
+	<a class ="btn" href=@controllers.routes.Application.stub() >Create An Event</a>
+	<a class ="btn" href=@controllers.routes.Conferences.viewAsTeacher() >View As Teacher</a>
+}

@@ -9,10 +9,10 @@
   <td>
     @elements.input
     @if(elements.hasErrors) {
-    <br/><span class="errors">@elements.errors.mkString(", ")</span>
+    <br /><span class="help-inline">@elements.errors.mkString(", ")</span>
     }
     @if(elements.infos.size > 0) {
-    <br/><span class="help">@elements.infos.mkString(", ")</span>
+    <br /><span class="help-inline">@elements.infos.mkString(", ")</span>
     }
   </td>
 </tr>

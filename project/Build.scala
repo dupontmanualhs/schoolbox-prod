@@ -79,6 +79,7 @@ object Nucleus {
       //val classpath = cp.files
       // the options passed to the Enhancer... 
       val options = Seq("-v") ++ findAllClassesRecursively(classes).map(_.getAbsolutePath)
+      Thread.sleep(1000)
       
       // run returns an option of errormessage
       val result = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, options, s.log)
@@ -89,7 +90,8 @@ object Nucleus {
   
   def findAllClassesRecursively(dir: File): Seq[File] = {
     if (dir.isDirectory) {
-      dir.listFiles.flatMap(findAllClassesRecursively(_)) 
+      val files = dir.listFiles
+      files.flatMap(findAllClassesRecursively(_)) 
     } else if (dir.getName.endsWith(".class")) {
       Seq(dir)
     } else {

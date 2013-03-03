@@ -1,13 +1,12 @@
 @(user: models.users.User, term: models.courses.Term, table: List[xml.NodeSeq], hasAssignments: Boolean)(implicit req: util.DbRequest[_])
 
 @main(user.displayName +"'s Schedule") {
-
-	<h2>@user.displayName</h2>
-
-	<h2>@term.name</h2>
+	<div class="page-header">
+		<h2>@user.displayName <small>@term.name</small></h2>
+	</div>
 
 	@if(hasAssignments) { 
-		<table>
+		<table class="table table-striped table-condensed">
   			<thead><th>Period</th><th>Course(s)</th><th>Room(s)</th></thead>
   			@for(row <- table) {
     			@row

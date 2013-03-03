@@ -29,6 +29,8 @@ class User extends Ordered[User] {
   private[this] var _preferred: String = _
 
   private[this] var _gender: Gender = _
+  
+  private[this] var _theme: String = _
 
   @Persistent(defaultFetchGroup="true")
   @Embedded
@@ -49,6 +51,7 @@ class User extends Ordered[User] {
     gender_=(gender)
     email_=(new Email(email))
     password_=(new Password(password))
+    theme_=("default")
   }
 
   def id: Long = _id
@@ -69,7 +72,10 @@ class User extends Ordered[User] {
   def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
   
   def gender: Gender = _gender
-  def gender_=(theGender: Gender) { _gender = gender }
+  def gender_=(theGender: Gender) { _gender = theGender }
+  
+  def theme: String = _theme
+  def theme_=(theTheme: String) {_theme = theTheme}
   
   def email: Option[String] = if (_email == null) None else Some(_email.value)
   def email_=(theEmail: Email) { _email = theEmail }
@@ -123,12 +129,15 @@ object User {
   }
   
   def current(implicit request: DbRequest[_]): Option[User] = {
-    request.session.get("username") match {
+    request.visit.user
+    /* request.session.get("username") match {
       case None => None
       case Some(username) => getByUsername(username)(request.pm)
-    }
+    } 
+    */
   }
 
+  
   def authenticate(username: String, password: String)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
     getByUsername(username) match {
 	  case Some(user) => authenticate(user, password)
@@ -166,6 +175,9 @@ trait QUser extends PersistableExpression[User] {
   
   private[this] lazy val _gender: ObjectExpression[Gender] = new ObjectExpressionImpl[Gender](this, "_gender")
   def gender: ObjectExpression[Gender] = _gender
+  
+  private[this] lazy val _theme: StringExpression = new StringExpressionImpl(this, "_theme")
+  def theme: StringExpression = _theme
   
   private[this] lazy val _email: ObjectExpression[Email] = new ObjectExpressionImpl[Email](this, "_email")
   def email: ObjectExpression[Email] = _email

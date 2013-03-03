@@ -17,3 +17,4 @@ chromedriver.log
 *.swp
 .target
 
+public/images/books

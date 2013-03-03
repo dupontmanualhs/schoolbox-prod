@@ -47,6 +47,8 @@ abstract class Binding(val form: Form, val rawData: Map[String, Seq[String]]) {
   def fieldErrors(field: Field[_]): Option[ValidationError] = fieldErrors.get(field.name)
   def hasErrors: Boolean = !(formErrors.isEmpty && fieldErrors.isEmpty)
   def render: Node = form.render(this)
+  def asHtml: play.api.templates.Html = form.asHtml(this)
+  def asHtml(action: String, legend: String = ""): Elem = form.asHtml(this, action, legend)
   
   def asStringSeq(field: Field[_]): Seq[String] = {
     rawData.getOrElse(field.name, Nil)

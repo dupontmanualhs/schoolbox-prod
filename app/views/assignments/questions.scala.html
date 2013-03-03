@@ -3,7 +3,10 @@
 @import scala.xml.Text
 
 @main("All Questions") {
-  <h1>All Questions</h1>
+  <div class="page-header">
+  	<h2>All Questions</h2>
+  </div>
+  
   <form action=@routes.Assignments.check(task.id) method="post" >
   @for((q, num) <- task.questions.zipWithIndex) {
     @q.toFormField((num + 1).toString))
