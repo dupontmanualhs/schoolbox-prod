@@ -12,7 +12,7 @@ object Binding {
   }
   
   def apply(form: Form, rawData: Map[String, Seq[String]]): Binding = {
-    val valuesOrErrors: List[(String, Either[ValidationError, Any])] = form.fields.map(f => (f.name, f.clean(rawData.getOrElse(f.name, Nil))))
+    val valuesOrErrors: List[(String, Either[ValidationError, Any])] = form.fields.map(f => (f.name, f.clean(f.widget.valueFromDatadict(rawData, f.name))))
     val (values, errors) = valuesOrErrors.partition(_._2.isRight)
     val fieldErrors: Map[String, ValidationError] = Map(errors.map(nmEr => (nmEr._1, nmEr._2.left.get)): _*)
     val cleanedData: Map[String, Any] = Map(values.map(nmVal => (nmVal._1, nmVal._2.right.get)): _*)
@@ -26,7 +26,6 @@ object Binding {
       case (name, value) => (name, List(value))
     })
   }
-  
   
   def apply(form: Form, request: play.api.mvc.Request[_]): Binding = {
     apply(form, 

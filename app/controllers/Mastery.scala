@@ -31,10 +31,10 @@ import forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
 
-class BlanksField(question: Question) extends Field[Seq[String]](question.id.toString) {
+class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
   
-  def asValue(strs: Seq[String]): Either[ValidationError, Seq[String]] = Right(strs)
+  def asValue(strs: Seq[String]): Either[ValidationError, String] = Right(strs.mkString(", "))
 }
 
 class AnswerField(question: Question) extends TextField(question.id.toString) {
@@ -48,7 +48,7 @@ class AnswerField(question: Question) extends TextField(question.id.toString) {
 
 class MathWidget(text: String, attrs: MetaData = Null) extends TextInput(false, attrs, "text") {
   override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
-    <span>{ text } = { super.render(name, value, attrList) }</span>
+    <span>{ text } { super.render(name, value, attrList) }</span>
   }
 }
 
@@ -74,9 +74,9 @@ class MultiBlankWidget(text: String, attrs: MetaData = Null) extends Widget(fals
     transform(qText, inputs.iterator)
   }
   
-  override def valueFromDatadict(data: Map[String, Seq[String]], name: String): Seq[String] = 
-    for (i <- 0 to numBlanks) yield data.get("%s[%d]".format(name, i)).map(_.mkString).getOrElse("")
-  
+  override def valueFromDatadict(data: Map[String, Seq[String]], name: String): Seq[String] = {
+    (for (i <- 0 until numBlanks) yield data.get("%s[%d]".format(name, i)).map(_.mkString).getOrElse(""))
+  }
 }
 
 
@@ -179,6 +179,7 @@ object Mastery extends Controller {
               })
             request.visit.set("quizId", quiz.id)
             request.visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
+            request.pm.makePersistent(request.visit)
             Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
           } else {
             val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
@@ -190,6 +191,7 @@ object Mastery extends Controller {
               case ib: InvalidBinding => Ok(html.tatro.mastery.displayMastery(quiz, ib)) // there were errors
               case vb: ValidBinding => {
                 request.visit.set("answers", form.fields.map(vb.valueOf(_)))
+                request.pm.makePersistent(request.visit)
                 Redirect(routes.Mastery.checkAnswers())
               }
             }
