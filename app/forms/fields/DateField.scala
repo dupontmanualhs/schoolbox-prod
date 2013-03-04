@@ -9,9 +9,6 @@ abstract class BaseDateField[T](name: String)(implicit man: Manifest[T]) extends
   val uuid=java.util.UUID.randomUUID()
   
   override def widget = new DateInput(required, uuid=uuid)
-  
-  def validators = Nil
-  
 }
 
 class DateField(name: String) extends BaseDateField[Date](name) {

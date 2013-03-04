@@ -23,11 +23,14 @@ abstract class Form {
   def includeCancel = false
   def cancelText = "Cancel"
     
-  def render(bound: Binding): Node = {
-    <form method={ method } class="form-horizontal">
-      { bound.formErrors.render }
-      { fields.flatMap(_.render(bound)) }
-      { actions }
+  def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): Node = {
+    <form method={ method } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
+      <fieldset>
+        { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
+        { bound.formErrors.render }
+        { fields.flatMap(_.render(bound)) }
+        { actions }
+      </fieldset>
     </form>
   }
   
@@ -40,7 +43,7 @@ abstract class Form {
   }
   
   //TODO: don't have these be based off of toStrings maybe?
-  def asHtml(bound: Binding): play.api.templates.Html = play.api.templates.Html(this.scripts.toString + asHtml(bound, "").toString)
+  //def asHtml(bound: Binding): play.api.templates.Html = play.api.templates.Html(this.scripts.toString + asHtml(bound, "").toString)
   
   def scripts: play.api.templates.Html = play.api.templates.Html(fields.flatMap(_.widget.scripts).distinct.map(x=>x.toString).fold("")(_+_))
         

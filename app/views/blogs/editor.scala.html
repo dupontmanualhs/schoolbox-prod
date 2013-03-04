@@ -3,7 +3,7 @@
 @import helper._
 
 
-@main("TinyMCE", views.JavascriptLibraries.TINY_MCE){
+@mainWithScripts("TinyMCE", views.JavascriptLibraries.TINY_MCE){
    @form(action = routes.Blogs.testSubmit) {
          @input(testForm("tinymce")) { (id, name, value, args) =>
              <textarea name="@name" id="@id" rows="15" cols="30" @toHtmlArgs(args)>@value</textarea>

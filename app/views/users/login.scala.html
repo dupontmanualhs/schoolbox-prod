@@ -1,5 +1,5 @@
 @(loginForm: forms.Binding)(implicit req: util.DbRequest[_], flash: Flash)
 
 @main("Login") {
-  @loginForm.render
+  @loginForm.render()
 }

@@ -100,8 +100,8 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     instructionsAndFields.flatMap(_._2)
   }
 
-  override def render(bound: Binding): Elem = {
-    <form method={ method } autocomplete="off">
+  override def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): Elem = {
+    <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
       <table class="table">
         { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
         {
