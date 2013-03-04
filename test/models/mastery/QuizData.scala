@@ -12,7 +12,7 @@ object QuizData {
     val exponents2partb = new Question("When you are adding monomials, the bases and exponents _____", 
         List("stay the same", "stay the same."))
     val exponents3 = new Question("When you are multiplying monomials, ____ the coefficients, and ____ the exponents whose ____ are the ____. (List answers with commas)", 
-        List("multiply,add,bases,same"))
+        List("multiply, add, bases, same"))
     val exponents4 = new Question("When you are raising monomials to a power, ____ coefficients ______ and ____ the exponents inside the parenthesis by _____. (List answers with commas)",
         List("raise, to the power outside, multiply, the exponents outside the ()"))
     val exponents5 = new Question("When you are dividing monomials, _____ the coefficients by the ____ and _____ the exponents whose ____ are the ____. (List answers with commas)",
