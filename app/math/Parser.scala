@@ -49,18 +49,12 @@ object Parser extends RegexParsers with PackratParsers {
     
   lazy val number: PackratParser[Constant] = (complexNumber | realNumber)  
   lazy val complexNumber: PackratParser[ComplexNumber] = 
-    realNumber <~ "i" ^^ { case im => ComplexNumber(Integer(0), im) } |
-       (realNumber ~ ("+" ~> posRealNumber <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
+    (realNumber <~ "i" ^^ { case im => ComplexNumber(Integer(0), im) } 
+     | realNumber ~ ("+" ~> posRealNumber <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
      | realNumber ~ (negRealNumber <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
-     // | (realNumber <~ "+") ~ (fraction <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
      | (realNumber <~ "+" <~ "(") ~ (fraction <~ ")" <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
      | (realNumber <~ "-" <~ "(") ~ (fraction <~ ")" <~ "i") ^^ { case re ~ im => ComplexNumber(re, im.negate) }
      )
-  /*
-   def complex: Parser[ComplexNumber] = ((imagcoeff ~ "i") ^^ {case (nonreal ~ "i") => ComplexNumber(Integer(0), nonreal)}) |
-    ((imagcoeff ~ "+" ~ imagcoeff ~ "i") ^^ {case (realcoeff ~ "+" ~ nonreal ~ "i") => ComplexNumber(realcoeff, nonreal)}) | 
-    ((imagcoeff ~ "-" ~ imagcoeff ~ "i") ^^ {case (realcoeff ~ "-" ~ nonreal ~ "i") => ComplexNumber(realcoeff, Integer(0) - nonreal)})
-   */
      
   lazy val realNumber: PackratParser[RealNumber] = (decimal | fraction | integer | constant)
   
@@ -85,16 +79,4 @@ object Parser extends RegexParsers with PackratParsers {
   lazy val variable: PackratParser[Var] = ("""[a-df-hj-z]{1}""".r) ^^  { case name => new Var(name) }
   
   lazy val grouping: PackratParser[Expression] = "(" ~> expr <~ ")" | "[" ~> expr <~ "]"
-  
-  /*
-  def number: Parser[Constant] = (complex | real | fraction | integer | constant)
-  def imagcoeff: Parser[RealNumber] = (real | fraction | integer)
-  def real: Parser[RealNumber] = ( """[-]?\d+\.\d*""".r | """[-]?\d*\.\d+""".r) ^^ { str => Decimal(BigDecimal(str))}
-  def fraction: Parser[Fraction] = (integer ~ "/" ~ integer) ^^ { case (num ~ "/" ~ denom) => Fraction(num, denom) }
-  def integer: Parser[Integer] = """[-]?\d+""".r ^^ { digits => Integer(BigInt(digits)) }
-  def constant: Parser[Constant] = "e" ^^^ ConstantE() | "\\pi" ^^^ ConstantPi()
-  def complex: Parser[ComplexNumber] = ((imagcoeff ~ "i") ^^ {case (nonreal ~ "i") => ComplexNumber(Integer(0), nonreal)}) |
-    ((imagcoeff ~ "+" ~ imagcoeff ~ "i") ^^ {case (realcoeff ~ "+" ~ nonreal ~ "i") => ComplexNumber(realcoeff, nonreal)}) | 
-    ((imagcoeff ~ "-" ~ imagcoeff ~ "i") ^^ {case (realcoeff ~ "-" ~ nonreal ~ "i") => ComplexNumber(realcoeff, Integer(0) - nonreal)})
-   */
 }
