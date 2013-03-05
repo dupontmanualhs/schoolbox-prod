@@ -24,7 +24,12 @@ class TestParser extends FunSuite {
   test("complex numbers") {
     assert(Parser("2+3i") === ComplexNumber(Integer(2), Integer(3)))
     assert(Parser("3-2i") === ComplexNumber(Integer(3), Integer(-2)))
-    assert(Parser("7/2+1/3i") === ComplexNumber(Fraction(Integer(7), Integer(2)), Fraction(Integer(1), Integer(3))))
+    assert(Parser("0.5+3.4i") === ComplexNumber(Decimal(0.5), Decimal(3.4)))
+    assert(Parser("3.4-3.56i") === ComplexNumber(Decimal(3.4), Decimal(-3.56)))
+    assert(Parser("7/2+(1/3)i") === ComplexNumber(Fraction(Integer(7), Integer(2)), Fraction(Integer(1), Integer(3))))
+    assert(Parser("7/2-(2/3)i") === ComplexNumber(Fraction(Integer(7), Integer(2)), Fraction(Integer(-2), Integer(3))))
+    //assert(Parser("7/2+1/3i") === ComplexNumber(Fraction(Integer(7), Integer(2)), Fraction(Integer(1), Integer(3))))
+    //assert(Parser("7/2-2/3i") === ComplexNumber(Fraction(Integer(7), Integer(2)), Fraction(Integer(-2), Integer(3))))
   }
   
   test("complex numbers solo terms") {
@@ -36,6 +41,7 @@ class TestParser extends FunSuite {
     assert(Parser("y") === Var("y"))
     assert(Parser("a") === Var("a"))
   }
+  
   test("operations") {
     assert(Parser("x+2") === Sum(Var("x"), Integer(BigInt("2"))))
     assert(Parser("x-2") === Difference(Var("x"), Integer(BigInt("2"))))
@@ -96,6 +102,7 @@ class TestParser extends FunSuite {
   }
   
   test("equivalence") {
+    //something here is failing--false did not equal true
     assert(Parser("1+2").equals(Parser("2+1")) === true)
     assert(Parser("2*a").equals(Parser("a*2")) === true)
     assert(Parser("a+a").equals(Parser("2*a")) === false)
