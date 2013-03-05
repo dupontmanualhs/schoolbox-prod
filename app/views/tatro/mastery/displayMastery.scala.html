@@ -1,0 +1,8 @@
+@(quiz: models.mastery.Quiz, myForm: forms.Binding)(implicit req:util.DbRequest[_]) 
+@import helper._ 
+@main(quiz.toString){ 
+	<h1>@quiz</h1>
+	<br />
+    	@myForm.render()
+}
+

@@ -7,7 +7,6 @@ import forms.widgets.TextInput
 
 trait BaseUrlField[T] extends Field[T] {
   override def widget = new TextInput(required, _inputType="url")
-  override def validators = Nil
 }
 
 class UrlField(name: String) extends Field[URL](name) with BaseUrlField[URL] {

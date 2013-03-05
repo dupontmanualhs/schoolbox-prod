@@ -1,19 +1,24 @@
 package forms.validators
 
-import scala.xml.NodeSeq
+import scala.xml.{NodeSeq, Text}
 
-// TODO: change to list of NodeSeq so can include tags
-class ValidationError(val messages: List[String]) extends Seq[String] {
+/**
+ * A ValidationError is a list of NodeSeq that explains what is wrong
+ * with a Field or Form. An empty ValidationError means nothing is wrong.
+ */
+class ValidationError(val messages: List[NodeSeq]) extends Seq[NodeSeq] {
   def apply(idx: Int) = messages(idx)
   def iterator = messages.iterator
   def length = messages.length
   
-  def asHtml: NodeSeq = <div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">×</button>
-  	{ messages.flatMap(msg => <p>{ msg }</p>) }</div> 
+  def render: NodeSeq = messages match {
+    case Nil => NodeSeq.Empty
+    case _ => messages.flatMap(msg => <div class="alert alert-error">{ msg }</div>)
+  }
 }
 
 object ValidationError {
-  def apply(message: String): ValidationError = ValidationError(List(message))
-  
-  def apply(messages: List[String]): ValidationError = new ValidationError(messages)
+  def apply(message: String): ValidationError = ValidationError(List(Text(message)))
+    
+  def apply(messages: List[NodeSeq]): ValidationError = new ValidationError(messages)
 }

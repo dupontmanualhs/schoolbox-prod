@@ -1,91 +1,74 @@
 package models.mastery
 
-import java.sql.Timestamp
 import javax.jdo.annotations._
-
-import scala.collection.JavaConverters._
-
-import org.joda.time.DateTime
-
+import models.mastery._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import util.DataStore
+import util.ScalaPersistenceManager
+import play.api.mvc.{RequestHeader, Session}
+import util.DbRequest
+import scala.collection.JavaConverters._
 
-import models.users.Student
-
-@PersistenceCapable(detachable="true")
+@PersistenceCapable(detachable = "true")
 class Quiz {
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
-  private[this] var _id: Long = _
-
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _student: Student = _
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
+  private[this] var _id: Long = _ //DB's id
+  private[this] var _name: String = _ //name of quiz (i.e. Foiling and Factoring Mastery)
+  @Element(types=Array(classOf[QuizSection]))
+  @Join
+  private[this] var _sections: java.util.List[QuizSection] = _ //list of sections that make up a quiz
   
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _date: Timestamp = _
-  
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _questions: java.util.List[Question] = _
-  
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _answers: java.util.List[String] = _
-  
-  def this(student: Student, date: DateTime, questions: List[Question], answers: List[String]) = {
+  def this(name: String, sections: List[QuizSection]) = {
     this()
-    student_=(student)
-    date_=(date)
-    questions_=(questions)
-    answers_=(answers)
+    _name=name
+    sections_=(sections)
   }
   
-  def student: Student = _student
-  def student_=(theStudent: Student) { _student = student }
-  
-  def date: DateTime = new DateTime(_date.getTime)
-  def date_=(theDate: DateTime) { _date = new Timestamp(theDate.getMillis) }
-  
-  def questions: List[Question] = _questions.asScala.toList
-  def questions_=(theQuestions: List[Question]) { _questions = theQuestions.asJava }
-  
-  def answers: List[String] = _answers.asScala.toList
-  def answers_=(theAnswers: List[String]) { _answers = theAnswers.asJava }
+  def id = _id
+  def name = _name
+  def sections: List[QuizSection] = _sections.asScala.toList
+  def sections_=(theSections: List[QuizSection]) { _sections = theSections.asJava}
+    
+  override def toString = { name }
+}
+object Quiz {
+  def getById(id: Long)(implicit ipm: ScalaPersistenceManager = null): Option[models.mastery.Quiz] = {
+    DataStore.execute { epm =>
+      val cand=QQuiz.candidate()
+      epm.query[Quiz].filter(cand.id.eq(id)).executeOption()
+    }
+  }
 }
 
-trait QQuiz extends PersistableExpression[Quiz] {
+trait QQuiz extends PersistableExpression[Quiz]{
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
-
-  private[this] lazy val _student: ObjectExpression[Student] = new ObjectExpressionImpl[Student](this, "_student")
-  def student: ObjectExpression[Student] = _student
   
-  private[this] lazy val _date: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Timestamp](this, "_date")
-  def date: DateExpression[java.util.Date] = _date
-
-  private[this] lazy val _questions: CollectionExpression[java.util.List[Question], Question] = 
-      new CollectionExpressionImpl[java.util.List[Question], Question](this, "_questions")
-  def questions: CollectionExpression[java.util.List[Question], Question] = _questions
-
-  private[this] lazy val _answers: CollectionExpression[java.util.List[String], String] = 
-      new CollectionExpressionImpl[java.util.List[String], String](this, "_answers")
-  def answers: CollectionExpression[java.util.List[String], String] = _answers
+  private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
+  def name: StringExpression = _name
+  
+  private[this] lazy val _sections: ObjectExpression[List[QuizSection]] = new ObjectExpressionImpl[List[QuizSection]](this, "_sections")
+  def sections: ObjectExpression[List[QuizSection]] = _sections
 }
 
 object QQuiz {
   def apply(parent: PersistableExpression[_], name: String, depth: Int): QQuiz = {
     new PersistableExpressionImpl[Quiz](parent, name) with QQuiz
   }
-  
+
   def apply(cls: Class[Quiz], name: String, exprType: ExpressionType): QQuiz = {
     new PersistableExpressionImpl[Quiz](cls, name, exprType) with QQuiz
   }
-  
+
   private[this] lazy val jdoCandidate: QQuiz = candidate("this")
-  
+
   def candidate(name: String): QQuiz = QQuiz(null, name, 5)
-  
+
   def candidate(): QQuiz = jdoCandidate
-  
+
   def parameter(name: String): QQuiz = QQuiz(classOf[Quiz], name, ExpressionType.PARAMETER)
-  
+
   def variable(name: String): QQuiz = QQuiz(classOf[Quiz], name, ExpressionType.VARIABLE)
 }

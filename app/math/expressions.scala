@@ -9,7 +9,7 @@ trait Expression {
 	def toLaTeX: String
 	def description: String
 	def evaluate(variables: HashMap[Expression, Value]): Expression
-	override def toString = this.toLaTeX
+	override def toString = this.description
 	def +(operand: Expression): Expression = {
 	  (this, operand) match {
 	    case (left: Constant, right: Constant) => left + right
@@ -113,8 +113,8 @@ object Expression {
 	}
 	//returns either the original variable/expression or the value it represents in the HashMap
 	def checkVar(expr: Expression, variables: HashMap[Expression, Value]): Expression = {
-	  if(expr.isInstanceOf[Variable]){
-	    variables.getOrElse(expr.asInstanceOf[Variable], expr)
+	  if(expr.isInstanceOf[Var]){
+	    variables.getOrElse(expr.asInstanceOf[Var], expr)
 	  } else {
 	    expr
 	  }
@@ -130,11 +130,18 @@ abstract class Value extends Expression {
 }
 
 object Value {
-	def apply(s: String): Option[Value] = {
-		Constant(s) orElse Variable(s)
+  def apply(s: String): Option[Value] = {
+	Constant(s) match {
+	  case Some(c) => Some(c)
+	  case None => try {
+	    Some(Var(s))
+	  } catch {
+	    case e: IllegalArgumentException => None
+	  }
 	}
+  }
 
-	def apply(c: Char): Option[Variable] = {
-		Variable(c)
-	}
+  def apply(c: Char): Option[Value] = {
+	Value(c.toString)
+  }
 }

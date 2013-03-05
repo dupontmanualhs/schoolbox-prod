@@ -1,0 +1,15 @@
+@(list: List[String])(implicit req:util.DbRequest[_]) 
+@import helper._
+
+@main("Form Tester Answers Strings"){
+<table>
+	<thead>
+		<th>Response</th>
+	</thead>
+	@for(item <- list) {
+	<tr>
+		<td>@item</td>
+	</tr>
+	}
+</table>
+}

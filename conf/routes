@@ -30,18 +30,17 @@ GET     /listUsers                 				controllers.Users.list()
 
 #Courses
 # current schedules
-GET	    /schedule/teacher/:username             controllers.Courses.getTeacherSchedule1(username)
+GET         /schedule/teacher/:username             controllers.Courses.getTeacherSchedule1(username)
 GET     /schedule/student/:username             controllers.Courses.getStudentSchedule1(username)
-GET 	/schedule/mySchedule					controllers.Courses.getMySchedule()
+GET     /schedule/mySchedule                                    controllers.Courses.getMySchedule()
 # schedules for given term
-GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSchedule2(username, termSlug)
+GET     /schedule/teacher/:termSlug/:username   controllers.Courses.getTeacherSchedule2(username, termSlug)
 GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSchedule2(username, termSlug)
 # section classes
-GET		/classes								controllers.Courses.classList()
-GET		/classes/:courseId						controllers.Courses.sectionTable(courseId: Long)
+GET             /classes                                                                controllers.Courses.classList()
+GET             /classes/:courseId                                              controllers.Courses.sectionTable(courseId: Long)
 # section roster
 GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
-
 
 #Assessments
 GET     /assessments                            controllers.Assessments.menu()
@@ -54,10 +53,21 @@ POST    /assignments/check/:taskId              controllers.Assignments.check(ta
 
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
-GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
-#POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
-GET     /math/random                            controllers.Math.randomProblem()
-POST    /math/random                            controllers.Math.checkAnswer(temp)
+GET 	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
+GET		/tatro/mastery/test						controllers.Mastery.testDataBase()  
+POST	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
+GET     /tatro/mastery/scoreReport				controllers.Mastery.checkAnswers()
+#GET     /math/random                            controllers.Math.randomProblem()
+#POST    /math/random                            controllers.Math.checkAnswer(temp)
+
+#Blogs
+GET     /blog/editor                            controllers.Blogs.editor()
+POST    /blog/editor                            controllers.Blogs.testSubmit()
+GET     /blog/me                                controllers.Blogs.listCurrentUserBlogs
+GET     /blog/user/:id                          controllers.Blogs.listBlogsByPerspectiveId(id: Long)
+GET     /blog/:id                               controllers.Blogs.showBlog(id: Long)
+GET     /blog/:id/new                           controllers.Blogs.createPost(id: Long)
+POST    /blog/:id/new                           controllers.Blogs.createPost(id: Long)
 
 #Books
 GET     /books/addTitle                         controllers.Books.addTitle()
@@ -76,6 +86,9 @@ GET     /books/checkout                         controllers.Books.checkout()
 POST    /books/checkout                         controllers.Books.checkout()
 GET     /books/checkIn                          controllers.Books.checkIn()
 POST    /books/checkIn                          controllers.Books.checkIn()
+GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
+GET     /books/findAllBooksOut                  controllers.Books.findAllBooksOut
+POST    /books/findAllBooksOut                  controllers.Books.findAllBooksOut
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
