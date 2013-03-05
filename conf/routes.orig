@@ -67,11 +67,13 @@ POST    /books/findCopyHistory                  controllers.Books.findCopyHistor
 GET     /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
 POST    /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
 GET     /books/copyHistory/:copyId              controllers.Books.copyHistory(copyId: Long)
-POST    /books/checkoutHistory/:perspectiveId   controllers.Books.checkoutHistory(perspectiveId: Long)
-GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckouts(perspectiveId: Long)
-GET     /books/checkoutHistory/:perspectiveId   controllers.Books.checkoutHistory(perspectiveId: Long)
+POST    /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
+GET     /books/currentCheckouts/:studentId      controllers.Books.currentCheckouts(studentId: String)
+GET     /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
 GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
+GET     /books/checkout                         controllers.Books.checkout()
+POST    /books/checkout                         controllers.Books.checkout()
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
@@ -84,14 +86,20 @@ POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch
 GET     /lockers/schedule                       controllers.Lockers.schedule()
 GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
 
-<<<<<<< HEAD
-#Grades
-GET     /grades/home                        	controllers.Grades.home()
-GET     /grades/announcements                   controllers.Grades.announcements()
-GET     /grades/assignments/:sectionId          controllers.Grades.assignments(sectionId: Long)
-POST	/grades/assignments/:sectionId			controllers.Grades.assignments(sectionId: Long)
-=======
+
+
 #Conferences
 GET		/conferences							controllers.Conferences.index()
+<<<<<<< HEAD
 GET		/conferences/admin 						controllers.Conferences.index()
->>>>>>> master
+
+
+#Grades
+GET     /grades/home                        	controllers.Grades.home()
+GET     /grades/announcements/:sectionId        controllers.Grades.announcements(sectionId: Long)
+GET     /grades/assignments/:sectionId          controllers.Grades.assignments(sectionId: Long)
+POST	/grades/assignments/:sectionId			controllers.Grades.assignments(sectionId: Long)
+GET     /grades/assignments/deleteAssignment/:sectionId/:assignmentId    controllers.Grades.deleteAssignment(sectionId: Long, assignmentId: Long)
+=======
+GET		/conferences/teacher 					controllers.Conferences.viewAsTeacher()
+>>>>>>> origin/jhouse14

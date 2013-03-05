@@ -19,7 +19,13 @@ object Conferences extends Controller {
 	def displayStub() = DbAction {implicit req =>
 	  Ok(views.html.stub())	  
 	}
-
+	
+	def viewAsTeacher() = DbAction { implicit req =>
+	  implicit val pm: ScalaPersistenceManager = req.pm
+	  val currUser: Option[User] = User.current
+	  Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username)))
+	}
+	
 	def index() = DbAction { implicit req =>
 	    implicit val pm: ScalaPersistenceManager = req.pm
 		val currUser: Option[User] = User.current
@@ -28,7 +34,7 @@ object Conferences extends Controller {
 			case Some(x) => {if(currUser.get.username == "736052") {  
 			  		Ok(views.html.conferences.admin())
 			  	} else if (Teacher.getByUsername(currUser.get.username)(pm).isDefined){ 
-			  	  Ok(views.html.conferences.teachers())
+			  	  Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username)))
 			  	}else{ 
 			  		val currentUser = User.current
 			  		val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username)(pm).isDefined
