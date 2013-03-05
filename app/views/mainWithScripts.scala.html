@@ -25,7 +25,38 @@
         
     
 				
-        
+        <script>
+$(document).ready(function(){
+
+    $("#dialog").dialog({
+      modal: true,
+            bgiframe: true,
+            width: 500,
+            height: 200,
+      autoOpen: false
+      });
+
+
+    $(".confirmLink").click(function(e) {
+        e.preventDefault();
+        var theHREF = $(this).attr("href");
+
+
+        $("#dialog").dialog('option', 'buttons', {
+                "Confirm" : function() {
+                    window.location.href = theHREF;
+                    },
+                "Cancel" : function() {
+                    $(this).dialog("close");
+                    }
+                });
+
+        $("#dialog").dialog("open");
+
+    });
+
+});
+</script>
         @scripts
         
     	
@@ -52,6 +83,8 @@
 		     </div>
 		   </div>
 		 </div>
+		 
+	<div id="dialog" title="Confirmation Required">Are you sure you wish to do this?</div>
 	      
 	    <div class="container">
 	      <div class="content">
