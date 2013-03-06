@@ -120,7 +120,7 @@ class TestParser extends FunSuite {
     // ERROR: assert(Parser("5sqrt(3)").equals(Parser("5*sqrt(3)")) === true)
     // ERROR: assert(Parser("5sqrt(3)").equals(Parser("sqrt(75)")) === false)
     assert(Parser("a^2").equals(Parser("a^(2)")) === true)
-    //FAIL: assert(Parser("a-b").equals(Parser("a+-b")) === true)
+    // FAIL: assert(Parser("a-b").equals(Parser("a+-b")) === true)
     assert(Parser("a^b^c").equals(Parser("a^(b^c)")) === true)
     assert(Parser("a^-1").equals(Parser("a^(-1)")) === true)
     assert(Parser("a^-1").equals(Parser("1/(a^1)")) === false)
