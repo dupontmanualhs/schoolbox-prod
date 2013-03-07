@@ -15,7 +15,6 @@ class Assignment {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _name: String = _
-  private[this] var _section: Section = _
   private[this] var _points: Int = _
   @Persistent(defaultFetchGroup="true")
   private[this] var _post: java.sql.Date = _

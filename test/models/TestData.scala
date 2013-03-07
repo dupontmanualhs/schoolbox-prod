@@ -272,7 +272,12 @@ object TestData {
     val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher] /*ob*/, Student.getByUsername("RASHAH01").asInstanceOf[Student], 
         new Time(12, 00, 00), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
 
-      
+    val r1alg1AQuizzes = new Category("Quizzes", r1alg1A, .1)
+    val r1alg1ATests = new Category("Tests", r1alg1A, .1)
+    val r1alg1AHomework = new Category("Homework", r1alg1A, .1)
+    val r1alg1AClasswork = new Category("Classwork", r1alg1A, .1)
+    val r1alg1AParticipation = new Category("Participation", r1alg1A, .6)
+    
     val r2usHistBQuizzes = new Category("Quizzes", r2usHistB, .2)
     val r2usHistBTests = new Category("Tests", r2usHistB, .35)
     val r2usHistBHomework = new Category("Homework", r2usHistB, .2)
@@ -354,7 +359,26 @@ object TestData {
                               ass5, ass6, ass7, ass8, ass9, ass10, ass11, carbonQuiz, popQuiz, cellQuiz, carbonTest,
                               cellTest, wordSearch, bookReading, carbonWorksheet, bondWorksheet, takeHomeProblems, 
                               cellWorksheet, carbonExperiment, cellLab))
+                              
+                              
+    //makeAnnouncements
+    if (debug) println("Creating Announcements...")
+    
+    
+    //r2usHistB Announcements
+    val ann1 = new Announcement("HEY KIDS! FIRST DAY OF CLASS AND I'M SOOOO EXCITED!", Date.valueOf("2012-08-15"),
+                                r2usHistB)
+    val ann2 = new Announcement("Review sheet #2 and old-school free-response. See you on Monday", 
+                                Date.valueOf("2012-09-15"), r2usHistB)
+    val ann3 = new Announcement("hksgkdnf", Date.valueOf("2012-09-30"), r2usHistB)
+    val ann4 = new Announcement("I apologize to my students for showing up to class trapped in a plastic bag. I " +
+    		                    "realize it severely impaired my teaching ability.",  Date.valueOf("2012-10-15"),
+    		                    r2usHistB)
+    
+    
+    
+    
   }
   
-
+  
 }
