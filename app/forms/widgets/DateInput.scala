@@ -24,7 +24,7 @@ class DateInput(
   				changeMonth: true,
   				changeYear: true,
   				altField: '.{Name}',
-  				altFormat: 'DD, MM, yy',
+  				altFormat: 'DD, d MM, yy',
   				showOtherMonths: true,
   				selectOtherMonths: true,
   				showOn: 'both',
