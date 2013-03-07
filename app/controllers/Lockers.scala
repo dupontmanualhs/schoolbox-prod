@@ -32,9 +32,9 @@ object Lockers extends Controller {
         }
       }
     } else {
-      req.visit.redirectURL_=("lockers/myLocker")
+      req.visit.redirectURL_=(routes.Lockers.getMyLocker())
       pm.makePersistent(req.visit)
-      Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
+      Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
     }
   }
   
@@ -70,9 +70,9 @@ object Lockers extends Controller {
       				          }
       				        }
       				      } else {
-      				        req.visit.redirectURL_=("lockers/myLocker/" + num.toString)
+      				        req.visit.redirectURL_=(routes.Lockers.getLocker(num))
       				        pm.makePersistent(req.visit)
-      				        Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
+      				        Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
       				      }
       				  }
     }

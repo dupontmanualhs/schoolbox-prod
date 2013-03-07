@@ -31,9 +31,9 @@ object Conferences extends Controller {
 		val currUser: Option[User] = User.current
 		currUser match {
 			case None => {
-				req.visit.redirectURL_=("conferences")
+				req.visit.redirectURL_=(routes.Conferences.index())
 				pm.makePersistent(req.visit)
-				Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
+				Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
 			  }
 			case Some(x) => {if(currUser.get.username == "736052") {  
 			  		Ok(views.html.conferences.admin())

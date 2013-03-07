@@ -57,7 +57,7 @@ object Users extends Controller {
               request.visit.perspective = Some(persp)
               request.visit.updateMenu
               request.pm.makePersistent(request.visit)
-              Redirect(request.visit.redirectURL.getOrElse("")).flashing("message" -> "You have successfully logged in.")
+              Redirect(request.visit.redirectURL.getOrElse(routes.Application.index())).flashing("message" -> "You have successfully logged in.")
             }
             // multiple perspectives
             case _ => Redirect(routes.Users.choosePerspective()).flashing("message" -> "Choose which perspective to use.")
