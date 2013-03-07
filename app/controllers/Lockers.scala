@@ -32,6 +32,8 @@ object Lockers extends Controller {
         }
       }
     } else {
+      req.visit.redirectURL_=("lockers/myLocker")
+      pm.makePersistent(req.visit)
       Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
     }
   }
@@ -68,6 +70,8 @@ object Lockers extends Controller {
       				          }
       				        }
       				      } else {
+      				        req.visit.redirectURL_=("lockers/myLocker/" + num.toString)
+      				        pm.makePersistent(req.visit)
       				        Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
       				      }
       				  }

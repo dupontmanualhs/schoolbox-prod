@@ -24,7 +24,9 @@ object Courses extends Controller {
         studentSchedule(Student.getByUsername(currentUser.get.username)(pm).get, Term.current(pm))
       }
     } else {
-    	Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
+      req.visit.redirectURL_=("schedule/mySchedule")
+      pm.makePersistent(req.visit)
+      Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
     }
   }
   

@@ -19,6 +19,8 @@ class Visit {
   private[this] var _expiration: Long = _
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
+  @Persistent(defaultFetchGroup = "true")
+  private[this] var _redirectURL: Option[String] = _
   @Element(types=Array(classOf[Permission]))
   @Join
   private[this] var _permissions: java.util.Set[Permission] = _
@@ -37,6 +39,7 @@ class Visit {
     permissions_=(Set[Permission]())
     menu_=(Menu.buildMenu(perspective))
     _sessionItems = new java.util.HashMap[String, Object]()  
+    _redirectURL = None
   }
   
   def uuid: String = _uuid
@@ -49,6 +52,9 @@ class Visit {
   
   def perspective: Option[Perspective] = if (_perspective == null) None else Some(_perspective)
   def perspective_=(maybePerspective: Option[Perspective]) { _perspective = maybePerspective.getOrElse(null) }
+  
+  def redirectURL: Option[String] = _redirectURL
+  def redirectURL_=(url: String) {_redirectURL = Some(url)}
   
   def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
   def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }
