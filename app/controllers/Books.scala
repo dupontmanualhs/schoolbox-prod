@@ -321,6 +321,10 @@ object Books extends Controller {
       val barcode = new TextField("Barcode") {
         override val minLength = Some(21)
         override val maxLength = Some(23)
+        override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
+          case None => ValidationError("Copy not found.")
+          case Some(barcode) => ValidationError(Nil)
+        }))
       }
 
       def fields = List(barcode)
@@ -342,7 +346,7 @@ object Books extends Controller {
     implicit val pm = req.pm
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
     Copy.getByBarcode(barcode) match {
-      case None => NotFound("no copy with the given id")
+      case None => NotFound("No copy with the given barcode.")
       case Some(copy) => {
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
         val coCand = QCheckout.candidate
@@ -367,7 +371,7 @@ object Books extends Controller {
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
   Student.getByStateId(stateId) match {
-    case None => NotFound("No student with the given id.")
+    case None => NotFound("Student not found.")
     case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
       val currentBooks = pm.query[Checkout].filter(checkoutCand.student.eq(currentStudent)).executeList()
@@ -380,13 +384,19 @@ object Books extends Controller {
   }
 }
 
-def findCheckoutHistory() = DbAction { implicit req =>
+  def findCheckoutHistory() = DbAction { implicit req =>
+    implicit val pm = req.pm
     object ChooseStudentForm extends Form {
-      val student = new TextField("Student")
+      val student = new TextField("Student") {
+          override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
+            case None => ValidationError("Student not found.")
+            case Some(student) => ValidationError(Nil)
+          }))
+      }
 
-      def fields = List(student)
-    }
-    if (req.method == "GET") {
+    def fields = List(student)
+  }
+  if (req.method == "GET") {
       Ok(html.books.findCheckoutHistory(Binding(ChooseStudentForm)))
     } else {
       Binding(ChooseStudentForm, req) match {
@@ -400,8 +410,14 @@ def findCheckoutHistory() = DbAction { implicit req =>
   }
 
   def findCurrentCheckouts() = DbAction { implicit req =>
+    implicit val pm = req.pm
     object ChooseStudentForm extends Form {
-      val stateId = new TextField("Student")
+      val stateId = new TextField("Student") {
+        override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
+          case None => ValidationError("Student not found.")
+          case Some(student) => ValidationError(Nil)
+        }))
+      }
 
       def fields = List(stateId)
     }
@@ -423,7 +439,7 @@ def findCheckoutHistory() = DbAction { implicit req =>
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
   Student.getByStateId(stateId) match {
-    case None => NotFound("No student with the given id")
+    case None => NotFound("Student not found.")
     case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
       val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
