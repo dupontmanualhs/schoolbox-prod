@@ -3,6 +3,8 @@ package forms
 import fields.Field
 import validators.ValidationError
 import scala.xml.Elem
+import scala.xml.NodeSeq
+import scala.xml.Node
 
 object Binding {
   def apply(form: Form): InitialBinding = {
@@ -10,7 +12,7 @@ object Binding {
   }
   
   def apply(form: Form, rawData: Map[String, Seq[String]]): Binding = {
-    val valuesOrErrors: List[(String, Either[ValidationError, Any])] = form.fields.map(f => (f.name, f.clean(rawData.getOrElse(f.name, Nil))))
+    val valuesOrErrors: List[(String, Either[ValidationError, Any])] = form.fields.map(f => (f.name, f.clean(f.widget.valueFromDatadict(rawData, f.name))))
     val (values, errors) = valuesOrErrors.partition(_._2.isRight)
     val fieldErrors: Map[String, ValidationError] = Map(errors.map(nmEr => (nmEr._1, nmEr._2.left.get)): _*)
     val cleanedData: Map[String, Any] = Map(values.map(nmVal => (nmVal._1, nmVal._2.right.get)): _*)
@@ -44,8 +46,7 @@ abstract class Binding(val form: Form, val rawData: Map[String, Seq[String]]) {
   def fieldErrors: Map[String, ValidationError] = Map()
   def fieldErrors(field: Field[_]): Option[ValidationError] = fieldErrors.get(field.name)
   def hasErrors: Boolean = !(formErrors.isEmpty && fieldErrors.isEmpty)
-  def asHtml: play.api.templates.Html = form.asHtml(this)
-  def asHtml(action: String, legend: String = ""): Elem = form.asHtml(this, action, legend)
+  def render(action: Option[String]=None, legend: Option[String]=None): Node = form.render(this, action, legend)
   
   def asStringSeq(field: Field[_]): Seq[String] = {
     rawData.getOrElse(field.name, Nil)

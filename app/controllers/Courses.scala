@@ -74,9 +74,9 @@ object Courses extends Controller {
       val sectionsThisPeriod = sections.filter(_.periods.contains(p))
       <tr>
         <td>{ p.name }</td>
-        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br/>) }</td>
-        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br/>) }</td>
-        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
+        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.course.name)), <br/>) }</td>
+        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.teachers.map(_.user.shortName).mkString("; "))), <br/>) }</td>
+        <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.room.name)), <br/>) }</td>
       </tr>
     }
     Ok(html.courses.studentSchedule(student.user, term, table, hasEnrollments))
@@ -104,7 +104,7 @@ object Courses extends Controller {
         <tr>
           <td>{ p.name }</td>
           <td>{ mkNodeSeq(sectionsThisPeriod.map(s => linkToRoster(s)), <br/>) }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.room.name)), <br/>) }</td>
         </tr>
       }
       Ok(html.courses.teacherSchedule(teacher.user, term, table, hasAssignments))

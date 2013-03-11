@@ -40,7 +40,7 @@ object Menu {
   val chkHistory = new MenuItem("Checkout History", "menu_chkHistory", Some(controllers.routes.Books.findCheckoutHistory.toString), Nil)
   val copyHistory = new MenuItem("Copy History", "menu_copyHistory", Some(controllers.routes.Books.findCopyHistory.toString), Nil)
   val currentBks = new MenuItem("Current Checkouts", "menu_currentBks", Some(controllers.routes.Books.findCurrentCheckouts.toString), Nil)     
-  
+    
   def buildMenu(persp: Option[Perspective]): Elem = {
     val acctItems = if (persp.isDefined) List(logout, settings) else List(login)
     val locItems = List(currloc, locsearch, locsched, findlocnum)
@@ -49,8 +49,9 @@ object Menu {
     val courses = new MenuItem("Courses", "menu_courses", Some(controllers.routes.Courses.getMySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)
     val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
+    val masteries: MenuItem = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
     val books = new MenuItem("Books", "menu_books", None, bookItems)
-    val bar = new MenuBar(List(courses, lockers, confr, books))
+    val bar = new MenuBar(List(acct, courses, lockers, confr, books, masteries))
     bar.asHtml
   }
 }

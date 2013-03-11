@@ -23,7 +23,7 @@ class NumericField[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
     }
   }
   
-  def validators = NumericField.minAndMaxValidators(minValue, maxValue)
+  override def validators = NumericField.minAndMaxValidators(minValue, maxValue)
 }
 
 class NumericFieldOptional[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
@@ -43,7 +43,7 @@ class NumericFieldOptional[T](name: String)(implicit n: Numeric[T], man: Manifes
     }
   }
   
-  def validators = OptionValidator(NumericField.minAndMaxValidators(minValue, maxValue))
+  override def validators = OptionValidator(NumericField.minAndMaxValidators(minValue, maxValue))
 }
 
 object NumericField {

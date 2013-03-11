@@ -1,6 +1,8 @@
 package models.users
 
+
 import java.util.UUID
+import models.mastery._
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
@@ -17,9 +19,15 @@ class Visit {
   private[this] var _expiration: Long = _
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
+  @Element(types=Array(classOf[Permission]))
+  @Join
   private[this] var _permissions: java.util.Set[Permission] = _
   @Column(jdbcType="CLOB")
   private[this] var _menu: String = _
+  @Key(types=Array(classOf[String]))
+  @Value(types=Array(classOf[Object]))
+  @Serialized
+  private[this] var _sessionItems: java.util.Map[String, Object] = _
   
   def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
     this()
@@ -28,6 +36,7 @@ class Visit {
     _perspective = maybePerspective.getOrElse(null)
     permissions_=(Set[Permission]())
     menu_=(Menu.buildMenu(perspective))
+    _sessionItems = new java.util.HashMap[String, Object]()  
   }
   
   def uuid: String = _uuid
@@ -46,10 +55,29 @@ class Visit {
   
   def menu: Elem = string2elem(_menu)
   def menu_=(theMenu: Elem) { _menu = theMenu.toString }
-  
+    
   def isExpired: Boolean = System.currentTimeMillis > expiration
   
   def updateMenu { menu = Menu.buildMenu(perspective) }
+  
+  def set(key: String, value: Any) {
+    value match {
+      case obj: AnyRef => _sessionItems.put(key, obj)
+      case byte: Byte => _sessionItems.put(key, byte: java.lang.Byte)
+      case short: Short => _sessionItems.put(key, short: java.lang.Short)
+      case int: Int => _sessionItems.put(key, int: java.lang.Integer)
+      case long: Long => _sessionItems.put(key, long: java.lang.Long)
+      case float: Float => _sessionItems.put(key, float: java.lang.Float)
+      case double: Double => _sessionItems.put(key, double: java.lang.Double)
+      case boolean: Boolean => _sessionItems.put(key, boolean: java.lang.Boolean)
+      case char: Char => _sessionItems.put(key, char: java.lang.Character)
+    }
+  }
+  
+  def getAs[T](key: String): Option[T] = {
+    if (_sessionItems.containsKey(key)) Some(_sessionItems.get(key).asInstanceOf[T])
+    else None
+  }
 }
 
 object Visit {

@@ -9,7 +9,7 @@
   
   <form action=@routes.Assignments.check(task.id) method="post" >
   @for((q, num) <- task.questions.zipWithIndex) {
-    @q.toQuizHtml(Text((num + 1).toString), "answers[%d]".format(num))
+    @q.toFormField((num + 1).toString))
   }
   <input type="submit" value="Submit" />
   </form>  

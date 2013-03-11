@@ -6,6 +6,7 @@ import javax.jdo.annotations._
 import models.assignments.DbQuestion
 import scala.xml.Elem
 import scala.xml.Node
+import forms.fields.TextField
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -42,6 +43,8 @@ class MultChoice extends DbQuestion {
       { answers.flatMap(_.toXml) }
     </question>
   }
+  
+  def toFormField(name: String) = new TextField(name)
   
   def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem = {
     val id: String = maybeId.getOrElse(name)

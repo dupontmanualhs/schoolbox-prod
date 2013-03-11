@@ -1,0 +1,10 @@
+@(blogs: List[models.blogs.Blog], perspective: models.users.Perspective)(implicit req: util.DbRequest[_])
+
+@main(perspective.user.displayName + "'s blogs") {
+   <ul>
+      @for(blog <- blogs) {
+         <li>@blog.title</li>
+      }
+   </ul>
+}
+
