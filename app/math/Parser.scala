@@ -49,11 +49,13 @@ object Parser extends RegexParsers with PackratParsers {
     
   lazy val number: PackratParser[Constant] = (complexNumber | realNumber)  
   lazy val complexNumber: PackratParser[ComplexNumber] = 
-    (realNumber ~ ("+" ~> posRealNumber <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
-     | realNumber ~ negRealNumber <~ "i" ^^ { case re ~ im => ComplexNumber(re, im) }
+    (realNumber <~ "i" ^^ { case im => ComplexNumber(Integer(0), im) } 
+     | realNumber ~ ("+" ~> posRealNumber <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
+     | realNumber ~ (negRealNumber <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
      | (realNumber <~ "+" <~ "(") ~ (fraction <~ ")" <~ "i") ^^ { case re ~ im => ComplexNumber(re, im) }
      | (realNumber <~ "-" <~ "(") ~ (fraction <~ ")" <~ "i") ^^ { case re ~ im => ComplexNumber(re, im.negate) }
      )
+     
   lazy val realNumber: PackratParser[RealNumber] = (decimal | fraction | integer | constant)
   
   lazy val fraction: PackratParser[Fraction] = (integer ~ "/" ~ integer) ^^ { case (num ~ "/" ~ denom) => Fraction(num, denom) }
