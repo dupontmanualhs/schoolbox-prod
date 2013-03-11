@@ -211,7 +211,7 @@ object TestData {
     
     
     //makeBookData(debug)
-    if (debug) println("Creating Titles...")
+/*    if (debug) println("Creating Titles...")
     val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", Some("Bellman, Bragg and Charles"), 
         Some("Pearson Prentice Hall"), "9780130523167", Some(842), 
         Some("10.9 x 8.8 x 1.6 inches"), Some(4.5), true, new Date(System.currentTimeMillis()))
@@ -241,7 +241,7 @@ object TestData {
         Some("11.2 x 8.7 x 1.8 inches"), Some(6.8), true, new Date(System.currentTimeMillis()))
     val usHistoryBook = new Title("The American Pageant", Some("David M. Kennedy and Lizabeth Cohen"), 
         Some("Wadsworth Publishing"), "9781111349530", Some(1152), 
-        Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()))
+        Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()))*/
     
     
     //makeLockerData(debug)

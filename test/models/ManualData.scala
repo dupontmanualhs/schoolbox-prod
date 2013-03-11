@@ -43,13 +43,21 @@ object ManualData {
   }
 
   def loadManualData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
+    if(!debug) println("Creating Year and Term Data...")
     createYearsAndTerms(debug)
+    if(!debug) println("Creating Student Data...")
     loadStudents(debug)
+    if(!debug) println("Creating Teacher Data...")
     loadTeachers(debug)
+    if(!debug) println("Creating Course Data...")
     loadCourses(debug)
+    if(!debug) println("Creating Section Data...")
     loadSections(debug)
+    if(!debug) println("Creating Enrollment Data...")
     loadEnrollments(debug)
+    if(!debug) println("Creating Book Data...")
     loadBookData(debug)
+    if(!debug) println("Creating Locker Data...")
     loadLockers(debug)
   }
 
@@ -188,6 +196,7 @@ object ManualData {
 
   def loadEnrollments(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
     pm.beginTransaction()
+    var wellThen = false
     import scala.collection.JavaConversions.asScalaSet
     val doc = XML.load(getClass.getResourceAsStream("/manual-data/Schedule.xml"))
     val enrollments = doc \\ "student"
@@ -208,10 +217,12 @@ object ManualData {
           })
         }
         case None => {
-          println("Student %s (id #%s) is in section #%s, which doesn't exist.".format(student.user.formalName, studentNumber, sectionId))
+          if(debug) println("Student %s (id #%s) is in section #%s, which doesn't exist.".format(student.user.formalName, studentNumber, sectionId))
+          if(!debug) wellThen = true
         }
       }
     })
+    if (wellThen) println("Some sections were not found D:")
     pm.commitTransaction()
   }
   
