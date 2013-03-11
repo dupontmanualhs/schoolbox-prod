@@ -1,7 +1,9 @@
 package controllers
 
 import scala.xml.Elem
+import java.util.UUID
 import scala.xml.MetaData
+import scala.xml.UnprefixedAttribute
 import scala.xml.Node
 import scala.xml.NodeSeq
 import scala.xml.NodeSeq.seqToNodeSeq
@@ -38,7 +40,8 @@ class BlanksField(question: Question) extends Field[String](question.id.toString
 }
 
 class AnswerField(question: Question) extends TextField(question.id.toString) {
-  override def widget = new MathWidget(question.text)
+  val uuid=java.util.UUID.randomUUID()
+  override def widget = new MathWidget(question.text, uuid=uuid)
   
   override def asValue(s: Seq[String]): Either[ValidationError, String] = s match {
     case Seq(ans) => Right(ans)
@@ -46,10 +49,42 @@ class AnswerField(question: Question) extends TextField(question.id.toString) {
   }
 }
 
-class MathWidget(text: String, attrs: MetaData = Null) extends TextInput(false, attrs, "text") {
+class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) extends TextInput(false, attrs, "text") {
+  val Name:String = uuid.toString()
   override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
-    <span>{ text } { super.render(name, value, attrList) }</span>
+    <span>{ text } { super.render(name, value, attrList.append(new UnprefixedAttribute("onkeyup", "UpdateMath(this.value)", Null))) }
+    <div id="MathOutput">
+    	You typed: ${{}}$
+    </div>
+</span>
   }
+  override def scripts: NodeSeq = 
+    <script type="text/x-mathjax-config">
+	  MathJax.Hub.Config({{
+		  tex2jax: {{
+      inlineMath: [['$','$'],['\\(','\\)']]
+		  }}
+		  }});
+	</script>
+
+	<script type="text/javascript"
+		  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
+	</script>
+
+	<script>
+	(function () {{
+    var QUEUE = MathJax.Hub.queue; 
+    var math = null;                
+    
+    QUEUE.Push(function () {{
+      math = MathJax.Hub.getAllJax('MathOutput')[0];
+    }});
+
+    window.UpdateMath = function (TeX) {{
+      QUEUE.Push(['Text',math,'\\displaystyle{{'+TeX+'}}']);
+    }}
+  }})();
+</script>
 }
 
 class MultiBlankWidget(text: String, attrs: MetaData = Null) extends Widget(false, attrs) {
