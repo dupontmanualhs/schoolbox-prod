@@ -14,6 +14,7 @@ import play.api.mvc.PlainResult
 import util.DbRequest
 import util.ScalaPersistenceManager
 import scala.xml.Text
+import util.Authenticated
 
 object Grades extends Controller {
 
@@ -29,7 +30,16 @@ object Grades extends Controller {
     val fields = List(category, title, numPoints, dueDate, locked)
   }
 
-  def assignments(sectionId: Long) = DbAction { implicit req =>
+  def assignments(sectionId: Long) = Authenticated { implicit req =>
+    val persp = req.visit.perspective.get
+    persp match {
+      case _:Teacher => assignmentsForTeachers(sectionId)(req)
+     // case _:Student => assignmentsForStudents(sectionId)
+    }
+    
+  }
+  
+  def assignmentsForTeachers(sectionId: Long) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
     val cand = QSection.candidate
     pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
@@ -64,7 +74,6 @@ object Grades extends Controller {
       case Some(assign) => {
         pm.deletePersistent(assign)
          Redirect(routes.Grades.assignments(sectionId))
-        //TODO
       }
     }
   }

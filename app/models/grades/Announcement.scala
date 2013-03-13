@@ -16,7 +16,7 @@ class Announcement {
   @Persistent(defaultFetchGroup="true")
   private[this] var _date: java.sql.Timestamp = _
   private[this] var _text: String = _
- // private[this] var _attachments: java.util.List[String] = _
+  //TODO: private[this] var _attachments: java.util.List[String] = _
   //TODO: make this be scala and convert correctly
   
   def this(text: String, date: java.sql.Timestamp, section: Section/*, attachments: Option[java.util.List[String]]*/) {
