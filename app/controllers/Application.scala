@@ -13,6 +13,8 @@ object Application extends Controller {
     //val BooleanField = new BooleanField("Boolean")
     val ChoiceField = new ChoiceFieldOptional("Choice", List(("hi", "hi"),("bye","bye")))
     val DateField = new DateFieldOptional("Date")
+    val TimeField = new TimeFieldOptional("Time")
+    val TimestampField = new TimestampFieldOptional("Timestamp")
     val EmailField = new EmailFieldOptional("Email")
     val NumericField = new NumericFieldOptional[Double]("Double")
     val PasswordField = new PasswordFieldOptional("Password")
@@ -20,7 +22,7 @@ object Application extends Controller {
     val UrlField = new UrlFieldOptional("Url")
     
     
-    val fields = List(ChoiceField, DateField, EmailField, NumericField, PasswordField, TextField, UrlField)
+    val fields = List(ChoiceField, DateField,TimeField, TimestampField, EmailField, NumericField, PasswordField, TextField, UrlField)
     
   }
   
@@ -39,13 +41,15 @@ object Application extends Controller {
       case vb: ValidBinding => {
         val TheChoice = vb.valueOf(formTests.ChoiceField)
         val TheDate = vb.valueOf(formTests.DateField)
+        val TheTime = vb.valueOf(formTests.TimeField)
+        val TheTimestamp = vb.valueOf(formTests.TimestampField)
         val TheEmail = vb.valueOf(formTests.EmailField)
         val TheNumeric = vb.valueOf(formTests.NumericField)
         val ThePassword = vb.valueOf(formTests.PasswordField)
         val TheText = vb.valueOf(formTests.TextField)
         val TheUrl = vb.valueOf(formTests.UrlField)
         
-        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString))
+        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString))
         
         Ok(views.html.showResults(ListOfStuff))
       }

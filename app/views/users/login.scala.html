@@ -1,5 +1,8 @@
 @(loginForm: forms.Binding)(implicit req: util.DbRequest[_], flash: Flash)
 
 @main("Login") {
+  @if(!flash.isEmpty) {
+	<div class="alert alert-error">@flash.get("error").getOrElse("An unknown error occurred")</div>
+  }
   @loginForm.render()
 }
