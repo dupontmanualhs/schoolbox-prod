@@ -1,7 +1,7 @@
 package forms.fields
 import forms.validators.ValidationError
 
-abstract class BooleanField(name: String) extends Field[Boolean](name) {
+class BooleanField(name: String) extends Field[Boolean](name) {
   override def required = false
   
   override def asStringSeq(value: Option[Boolean]) = value match {

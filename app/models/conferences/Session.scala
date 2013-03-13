@@ -2,6 +2,8 @@ package models.conferences
 
 import javax.jdo.annotations._
 import java.sql.Date
+import java.sql.Time
+import java.sql.Timestamp
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.QueryClass
@@ -28,10 +30,10 @@ class Session {
   def cutoff: java.sql.Timestamp = _cutoff
   def cutoff_=(theCutoff: java.sql.Timestamp) {_cutoff = theCutoff}
   
-  @Column(allowsNull="false")
+  @Column(allowsNull="true")
   private[this] var _priority: java.sql.Timestamp = _
-  def priority: java.sql.Timestamp = _priority
-  def priority_=(thePriority: java.sql.Timestamp) {_priority = thePriority}
+  def priority: Option[java.sql.Timestamp] = if (_priority == null) None else Some(_priority)
+  def priority_=(thePriority: Option[java.sql.Timestamp]) {_priority = thePriority.getOrElse(null)}
   
   @Column(allowsNull="false")
   private[this] var _startTime: java.sql.Time = _
@@ -48,14 +50,15 @@ class Session {
   def slotInterval: Int = _slotInterval
   def slotInterval_=(theSlotInterval: Int) {_slotInterval = theSlotInterval}
   
-  def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: java.sql.Timestamp, startTime: java.sql.Time, endTime: java.sql.Time, slotInterval: Int) = {
+  def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: Option[java.sql.Timestamp], startTime: java.sql.Time, endTime: java.sql.Time, slotInterval: Int) = {
     this()
     _event = event
     _date = date
     _cutoff = cutoff
-    _priority = priority
+    _priority = priority.getOrElse(null)
     _startTime = startTime
     _endTime = endTime
+    //slotInterval is in minutes
     _slotInterval = slotInterval
   }
 }

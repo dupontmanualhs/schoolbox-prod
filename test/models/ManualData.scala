@@ -20,6 +20,7 @@ import java.text.ParseException
 import models.books.PurchaseGroup
 import models.books.Copy
 import models.books.Checkout
+import models.blogs.Blog
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()
@@ -108,6 +109,10 @@ object ManualData {
       val dbStudent = new Student(user, stateId, studentNumber, grade, teamName)
       pm.makePersistent(dbStudent)
       if (debug) println("student saved")
+      // create Blog
+      val blog = new Blog(username + "'s Blog", dbStudent)
+      pm.makePersistent(blog)
+      if (debug) println("blog saved")
     })
     pm.commitTransaction()
   }
@@ -330,7 +335,7 @@ object ManualData {
       val djId = (t \ "id").text.toLong
       val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
                             Option(asInt((t \ "numPages").text)), asOptionString((t \ "dimensions").text), Option(asDouble((t \ "weight").text)),
-                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df))
+                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df), asOptionString((t \ "image").text))
       if (debug) println("Adding title: %s...".format(title.name))
       pm.makePersistent(title)
       titleIdMap += (djId -> title.id)

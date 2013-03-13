@@ -12,8 +12,8 @@ class TestFields extends FunSuite {
     val f = new TextField("default")
     assert(f.clean("1") === Right("1"))
     assert(f.clean("hello") === Right("hello"))
-    assert(f.clean("") === Left(ValidationError(List("This field is required."))))
-    assert(f.clean(Nil) === Left(ValidationError(List("This field is required."))))
+    assert(f.clean("") === Left(ValidationError("This field is required.")))
+    assert(f.clean(Nil) === Left(ValidationError("This field is required.")))
     assert(f.maxLength === None)
     assert(f.minLength === None)
   }
@@ -36,7 +36,7 @@ class TestFields extends FunSuite {
     assert(f.clean("1234567890") === Right(Some("1234567890")))
     assert(f.clean("") === Right(None))
     assert(f.clean(Nil) === Right(None))
-    assert(f.clean("12345678901") === Left(ValidationError(List("This value must have no more than 10 characters. (It has 11.)"))))
+    assert(f.clean("12345678901") === Left(ValidationError("This value must have no more than 10 characters. (It has 11.)")))
     assert(f.maxLength === Some(10))
     assert(f.minLength === None)
   }
@@ -57,8 +57,8 @@ class TestFields extends FunSuite {
     val f = new TextField("requiredMinLength") {
       override val minLength = Some(10)
     }
-    assert(f.clean("") === Left(ValidationError(List("This field is required."))))
-    assert(f.clean("123456") === Left(ValidationError(List("This value must have at least 10 characters. (It has 6.)"))))
+    assert(f.clean("") === Left(ValidationError("This field is required.")))
+    assert(f.clean("123456") === Left(ValidationError("This value must have at least 10 characters. (It has 6.)")))
     assert(f.clean("1234567890") === Right("1234567890"))
     assert(f.clean("1234567890a") === Right("1234567890a"))
     assert(f.maxLength === None)
@@ -275,11 +275,11 @@ class TestFields extends FunSuite {
     // TODO: are the commented-out tests right or wrong? We're using javax.mail
     //       to validate, so I'm kinda hoping it's right
     val f = new EmailField("default")
-    assert(f.clean("") === Left(ValidationError(List("This field is required."))))
-    assert(f.clean(Nil) === Left(ValidationError(List("This field is required."))))
+    assert(f.clean("") === Left(ValidationError("This field is required.")))
+    assert(f.clean(Nil) === Left(ValidationError("This field is required.")))
     assert(f.clean("person@example.com") === Right("person@example.com"))
-    assert(f.clean("foo") === Left(ValidationError(List("Enter a valid email address."))))
-    assert(f.clean("foo@") === Left(ValidationError(List("Enter a valid email address."))))
+    assert(f.clean("foo") === Left(ValidationError("Enter a valid email address.")))
+    assert(f.clean("foo@") === Left(ValidationError("Enter a valid email address.")))
     assert(f.clean("foo@bar") === Right("foo@bar")) //Left(ValidationError(List("Enter a valid email address."))))
     //assert(f.clean("example@invalid-.com") === Left(ValidationError(List("Enter a valid email address."))))
     //assert(f.clean("example@-invalid.com") === Left(ValidationError(List("Enter a valid email address."))))
@@ -287,7 +287,7 @@ class TestFields extends FunSuite {
     //assert(f.clean("example@inv-.-alid.com") === Left(ValidationError(List("Enter a valid email address."))))
     assert(f.clean("example@valid-----hyphens.com") === Right("example@valid-----hyphens.com"))
     assert(f.clean("example@valid-with-hyphens.com") === Right("example@valid-with-hyphens.com"))
-    assert(f.clean("example@.com") === Left(ValidationError(List("Enter a valid email address."))))
+    assert(f.clean("example@.com") === Left(ValidationError("Enter a valid email address.")))
     //assert(f.clean("local@domain.with.idn.xyz\u00e4\u00f6\u00fc\u00dfabc.part.com") === Right("local@domain.with.idn.xyz\u00e4\u00f6\u00fc\u00dfabc.part.com"))
     //assert(f.clean("viewx3dtextx26qx3d@yahoo.comx26latlngx3d15854521645943074058") === Left(ValidationError(List("Enter a valid email address."))))
   }
@@ -299,8 +299,8 @@ class TestFields extends FunSuite {
     assert(f.clean(Nil) === Right(None))
     assert(f.clean("person@example.com") === Right(Some("person@example.com")))
     assert(f.clean("      example@example.com  \t   \t ") === Right(Some("example@example.com")))
-    assert(f.clean("foo") === Left(ValidationError(List("Enter a valid email address."))))
-    assert(f.clean("foo@") === Left(ValidationError(List("Enter a valid email address."))))
+    assert(f.clean("foo") === Left(ValidationError("Enter a valid email address.")))
+    assert(f.clean("foo@") === Left(ValidationError("Enter a valid email address.")))
     assert(f.clean("foo@bar") === Right(Some("foo@bar"))) // Left(ValidationError(List("Enter a valid email adress."))))
   }
   
@@ -346,8 +346,8 @@ class TestFields extends FunSuite {
   test("1. ChoiceField") {
     val f = new ChoiceField[Int]("grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
     assert(f.clean("0") === Right(9))
-    assert(f.clean("foo") === Left(ValidationError(List("Illegal value submitted."))))
-    assert(f.clean("-1") === Left(ValidationError(List("This field is required. Please choose a value."))))
+    assert(f.clean("foo") === Left(ValidationError("Illegal value submitted.")))
+    assert(f.clean("-1") === Left(ValidationError("This field is required. Please choose a value.")))
   }
   
 }

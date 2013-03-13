@@ -16,6 +16,8 @@ import forms.{Binding, InvalidBinding, ValidBinding}
 import forms.validators.ValidationError
 import forms.validators.Validator
 import util.Authenticated
+import scala.xml.Text
+import play.api.mvc.Flash._
 
 object Users extends Controller {  
   /**
@@ -80,7 +82,7 @@ object Users extends Controller {
           req.visit.perspective = Some(vb.valueOf(ChoosePerspectiveForm.perspective))
           req.visit.updateMenu
           req.pm.makePersistent(req.visit)
-          Redirect(routes.Application.index()).flashing("message" -> "You have successfuly logged in.")
+          Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
         }
       }
     }
@@ -92,7 +94,7 @@ object Users extends Controller {
   def logout = DbAction { implicit request =>
     request.pm.deletePersistent(request.visit)
     Redirect(routes.Application.index()).flashing(
-      "message" -> "You've been logged out..."
+      "message" -> "You have been logged out."
     )
   }
   
@@ -102,7 +104,7 @@ object Users extends Controller {
         List(Validator((str: String) => {
           ValidationError(
             if (User.authenticate(user, str).isDefined) Nil
-            else List("Current password is incorrect.")
+            else List(Text("Current password is incorrect."))
           )
         }))
       }

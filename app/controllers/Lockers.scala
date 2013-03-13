@@ -32,7 +32,7 @@ object Lockers extends Controller {
         }
       }
     } else {
-      NotFound(views.html.notFound("You are not logged in."))
+      Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
     }
   }
   
@@ -68,7 +68,7 @@ object Lockers extends Controller {
       				          }
       				        }
       				      } else {
-      				        Ok(views.html.notFound("You are not logged in."))
+      				        Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
       				      }
       				  }
     }

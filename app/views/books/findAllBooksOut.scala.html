@@ -1,0 +1,5 @@
+@(allBooksOutLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Find All Books Out") {
+  @allBooksOutLookupForm.render()
+}
