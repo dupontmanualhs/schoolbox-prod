@@ -14,5 +14,6 @@ chromedriver.log
 .cache
 .directory
 .target
+.metadata
 
 public/images/books

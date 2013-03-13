@@ -19,7 +19,6 @@ object Application extends Controller {
     val TextField = new TextFieldOptional("Text")
     val UrlField = new UrlFieldOptional("Url")
     
-    
     val fields = List(ChoiceField, DateField, EmailField, NumericField, PasswordField, TextField, UrlField)
     
   }
@@ -32,6 +31,9 @@ object Application extends Controller {
     Ok(views.html.stub())
   }
   
+<<<<<<< HEAD
+
+=======
   def formTest() = DbAction { implicit req =>
     if(req.method=="GET") Ok(views.html.formTester(Binding(formTests)))
     else Binding(formTests, req) match {
@@ -52,6 +54,7 @@ object Application extends Controller {
     }
   }
   
+>>>>>>> master
 }
 
 

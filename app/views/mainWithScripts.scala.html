@@ -18,20 +18,52 @@
     
         <!-- <script type="text/javascript" src="https://d3eoax9i5htok0.cloudfront.net/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full" /> -->
         <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script> -->
-        
         <script src="http://code.jquery.com/jquery-1.9.0.js"></script>
         <script src="http://twitter.github.com/bootstrap/assets/js/bootstrap.js"></script>
         <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
         
-        
-        
+    
+				
+        <script>
+$(document).ready(function(){
+
+    $("#dialog").dialog({
+      modal: true,
+            bgiframe: true,
+            width: 500,
+            height: 200,
+      autoOpen: false
+      });
+
+
+    $(".confirmLink").click(function(e) {
+        e.preventDefault();
+        var theHREF = $(this).attr("href");
+
+
+        $("#dialog").dialog('option', 'buttons', {
+                "Confirm" : function() {
+                    window.location.href = theHREF;
+                    },
+                "Cancel" : function() {
+                    $(this).dialog("close");
+                    }
+                });
+
+        $("#dialog").dialog("open");
+
+    });
+
+});
+</script>
         @scripts
         
     	
 
     </head>
     <body>
+    
 	    <div class="navbar navbar-fixed-top">
 		   <div class="navbar-inner">
 		     <div class="container">
@@ -51,12 +83,15 @@
 		     </div>
 		   </div>
 		 </div>
+		 
+	<div id="dialog" title="Confirmation Required">Are you sure you wish to do this?</div>
 	      
 	    <div class="container">
 	      <div class="content">
 		      @if(req.flash.get("message").isDefined) {
 		        <div class="alert alert-success">@req.flash("message")</div>
 		      }
+		      
 	       	  @content
 	      </div>
 
