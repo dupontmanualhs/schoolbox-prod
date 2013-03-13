@@ -104,7 +104,7 @@ object Books extends Controller {
   }
   
   object TitleForm extends Form {
-    val isbn = new TextField("isbn") {
+    val isbn = new TextField("ISBN") {
       override val minLength = Some(10)
       override val maxLength = Some(13)
       override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
@@ -114,13 +114,13 @@ object Books extends Controller {
         case Some(isbn) => ValidationError("ISBN already exists in database.")
         case None => ValidationError(Nil)}))
     }
-    val name = new TextField("name") { override val maxLength = Some(80) }
-    val author = new TextFieldOptional("author(s)") { override val maxLength = Some(80) }
-    val publisher = new TextFieldOptional("publisher") { override val maxLength = Some(80) }
-    val numPages = new NumericFieldOptional[Int]("numberOfPages")
-    val dimensions = new TextFieldOptional("dimensions")
-    val weight = new NumericFieldOptional[Double]("weight")
-    val imageUrl = new UrlFieldOptional("imageUrl")
+    val name = new TextField("Name") { override val maxLength = Some(80) }
+    val author = new TextFieldOptional("Author(s)") { override val maxLength = Some(80) }
+    val publisher = new TextFieldOptional("Publisher") { override val maxLength = Some(80) }
+    val numPages = new NumericFieldOptional[Int]("Number Of Pages")
+    val dimensions = new TextFieldOptional("Dimensions (in)")
+    val weight = new NumericFieldOptional[Double]("Weight (lbs)")
+    val imageUrl = new UrlFieldOptional("Image URL")
     
     val fields = List(isbn, name, author, publisher, numPages, dimensions, weight, imageUrl)
   }
@@ -489,6 +489,61 @@ object Books extends Controller {
         case vb: ValidBinding => {
           val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
           Redirect(routes.Books.allBooksOut(lookupGrade))
+        }
+      }
+    }
+  }
+
+  def copyInfo(barcode: String) = DbAction { implicit req =>
+    implicit val pm = req.pm
+
+    Copy.getByBarcode(barcode) match {
+      case None => NotFound("Copy not found.")
+      case Some(cpy) => {
+        val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+
+        val lost = cpy.isLost
+        val num = cpy.number
+
+        val pGroup = cpy.purchaseGroup
+        val pDate = pGroup.purchaseDate
+        val price = pGroup.price
+
+        val title = pGroup.title
+        val name = title.name
+        val author = title.author
+        val publisher = title.publisher
+        val isbn = title.isbn
+        val pages = title.numPages
+        val dim = title.dimensions
+        val weight = title.weight
+
+        val checkedOut = cpy.isCheckedOut
+
+        val rows: List[(String, String)] = List(("Name:", name), ("Author:", author.getOrElse("Unknown")), ("Publisher:", publisher.getOrElse("Unknown")), ("ISBN:", isbn), ("Pages:", pages.getOrElse("Unknown").toString), 
+          ("Dimensions (in):", dim.getOrElse("Unknown")), ("Weight (lbs):", weight.getOrElse("Unknown").toString), ("Purchase Date:", df.format(pDate)), ("Price:", price.toString), ("Lost:", lost.toString), 
+          ("Copy Number:", num.toString), ("Checked Out:", checkedOut.toString))
+        val header = "Copy info for " + barcode
+
+        Ok(views.html.books.copyInfo(header, rows))
+      }
+    }
+  }
+
+  def findCopyInfo() = DbAction { implicit req =>
+    object ChooseCopyForm extends Form {
+      val barcode = new TextField("Barcode")
+
+      def fields = List(barcode)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findCopyInfo(Binding(ChooseCopyForm)))
+    } else {
+      Binding(ChooseCopyForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findCopyInfo(ib))
+        case vb: ValidBinding => {
+          val lookupBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
+          Redirect(routes.Books.copyInfo(lookupBarcode))
         }
       }
     }

@@ -1,0 +1,5 @@
+@(copyInfoLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Find Copy Info") {
+  @copyInfoLookupForm.render()
+}
