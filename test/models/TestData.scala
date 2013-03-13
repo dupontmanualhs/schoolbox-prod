@@ -368,14 +368,15 @@ object TestData {
     
     
     //r2usHistB Announcements
-    val ann1 = new Announcement("HEY KIDS! FIRST DAY OF CLASS AND I'M SOOOO EXCITED!", Date.valueOf("2012-08-15"),
+    val ann1 = new Announcement("HEY KIDS! FIRST DAY OF CLASS AND I'M SOOOO EXCITED!", Timestamp.valueOf("2012-08-15 14:35:21"),
                                 r2usHistB)
     val ann2 = new Announcement("Review sheet #2 and old-school free-response. See you on Monday", 
-                                Date.valueOf("2012-09-15"), r2usHistB)
-    val ann3 = new Announcement("hksgkdnf", Date.valueOf("2012-09-30"), r2usHistB)
+                                Timestamp.valueOf("2012-09-15 04:45:25"), r2usHistB)
+    val ann3 = new Announcement("hksgkdnf", Timestamp.valueOf("2012-09-15 14:34:25"), r2usHistB)
     val ann4 = new Announcement("I apologize to my students for showing up to class trapped in a plastic bag. I " +
-    		                    "realize it severely impaired my teaching ability.",  Date.valueOf("2012-10-15"),
+    		                    "realize it severely impaired my teaching ability.",  Timestamp.valueOf("2012-10-15 23:35:21"),
     		                    r2usHistB)
+    
     
     
     

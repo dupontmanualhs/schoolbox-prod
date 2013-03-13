@@ -1,4 +1,5 @@
-@(sectionId: Long, section: models.courses.Section)(implicit req: util.DbRequest[_]) @import models.grades._
+@(sectionId: Long, section: models.courses.Section)(implicit req: util.DbRequest[_]) 
+@import models.grades._
 
 <!DOCTYPE html>
 
@@ -63,7 +64,7 @@
          			<div class="well sidebar-nav">
 					<ul class="nav nav-list">
            		      <li class="nav-header">@section.course.name - @section.periodNames</li>
-          		      <li><a href="/grades/home">Home</a></li>
+          		      <li><a href=@controllers.routes.Grades.home(sectionId)>Home</a></li>
            		      <li class="active"><a href="#">Announcements</a></li>
     		          <li><a href="#">Discussions</a></li>
             		  <li><a href="#">Quizzes</a></li>

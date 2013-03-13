@@ -14,12 +14,12 @@ class Announcement {
   private[this] var _id: Long = _
   private[this] var _section: Section = _
   @Persistent(defaultFetchGroup="true")
-  private[this] var _date: java.sql.Date = _
+  private[this] var _date: java.sql.Timestamp = _
   private[this] var _text: String = _
  // private[this] var _attachments: java.util.List[String] = _
   //TODO: make this be scala and convert correctly
   
-  def this(text: String, date: java.sql.Date, section: Section/*, attachments: Option[java.util.List[String]]*/) {
+  def this(text: String, date: java.sql.Timestamp, section: Section/*, attachments: Option[java.util.List[String]]*/) {
     this()
     _text = text
     _section = section
@@ -29,8 +29,8 @@ class Announcement {
   
   def id: Long = _id
   
-  def date: java.sql.Date = _date
-  def date_=(theDate: java.sql.Date) { _date = theDate }
+  def date: java.sql.Timestamp = _date
+  def date_=(theDate: java.sql.Timestamp) { _date = theDate }
   
   def text: String = _text
   def text_=(theText: String) { _text = theText }
@@ -47,8 +47,8 @@ trait QAnnouncement extends PersistableExpression[Announcement] {
   private[this] lazy val _text: StringExpression = new StringExpressionImpl(this, "_text")
   def text: StringExpression = _text
   
-  private[this] lazy val _date: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_date")
-  def date: ObjectExpression[java.sql.Date] = _date
+  private[this] lazy val _date: ObjectExpression[java.sql.Timestamp] = new ObjectExpressionImpl[java.sql.Timestamp](this, "_date")
+  def date: ObjectExpression[java.sql.Timestamp] = _date
   
   private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
   def section: ObjectExpression[Section] = _section
