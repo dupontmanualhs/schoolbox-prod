@@ -1,0 +1,5 @@
+@(copyStatusByTitleLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Find Copy Status By Title") {
+  @copyStatusByTitleLookupForm.render()
+}

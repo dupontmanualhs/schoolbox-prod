@@ -455,15 +455,50 @@ object Books extends Controller {
   
   def statistics() = TODO
   
-  def copyStatusByTitle() = TODO /* DbAction { implicit req =>
+  def copyStatusByTitle(isbn: String) = DbAction { implicit req =>
+    // TODO - figure out how this should handle lost copies
     implicit val pm = req.pm
-    val form = Form(
-      "titleId" -> longNumber
-    )
-    Ok(views.html.books.copyStatusByTitleForm())
-    
-  }*/
+
+    Title.getByIsbn(isbn) match {
+      case None => NotFound("Title not found.")
+      case Some(t) => {
+        val cand = QCopy.candidate
+        val pCand = QPurchaseGroup.variable("pCand")
+        val currentCopies = pm.query[Copy].filter(cand.purchaseGroup.eq(pCand).and(pCand.title.eq(t))).executeList().sortWith((c1, c2) => c1.number < c2.number)
+
+        val header = "Copy Status for " + t.name
+        val rows: List[(String, String)] = currentCopies.map(cp => { (cp.number.toString, cp.isCheckedOut.toString)})
+        Ok(views.html.books.copyStatusByTitle(header, rows))
+      }
+    }
+  }
   
+  def findCopyStatusByTitle() = DbAction { implicit req =>
+    object ChooseTitleForm extends Form {
+      val isbn = new TextField("ISBN") {
+        override val minLength = Some(10)
+        override val maxLength = Some(13)
+        override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
+          case None => ValidationError("Title not found.")
+          case Some(isbn) => ValidationError(Nil)
+        }))
+      }
+
+      def fields = List(isbn)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findCopyStatusByTitle(Binding(ChooseTitleForm)))
+    } else {
+      Binding(ChooseTitleForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findCopyStatusByTitle(ib))
+        case vb: ValidBinding => {
+          val lookupTitleIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
+          Redirect(routes.Books.copyStatusByTitle(lookupTitleIsbn))
+        }
+      }
+    }
+  }
+
   def allBooksOut(grade: Int) = DbAction { implicit req =>
     implicit val pm = req.pm
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")

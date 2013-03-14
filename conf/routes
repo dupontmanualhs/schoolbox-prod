@@ -94,6 +94,9 @@ POST    /books/addPurchaseGroup                 controllers.Books.addPurchaseGro
 GET     /books/copyInfo/:barcode                controllers.Books.copyInfo(barcode: String)
 GET     /books/findCopyInfo                     controllers.Books.findCopyInfo
 POST    /books/findCopyInfo                     controllers.Books.findCopyInfo
+GET     /books/copyStatusByTitle/:isbn          controllers.Books.copyStatusByTitle(isbn: String)
+GET     /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
+POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
