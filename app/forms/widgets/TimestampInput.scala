@@ -22,14 +22,16 @@ class TimestampInput(
 	$(function() {{
       $('.datepicker{Name}').datepicker({{
 		  changeMonth: true,
-		  changeYear: true,
-		  altField: '.{Name}',
-		  altFormat: 'DD, d MM, yy',
-		  showOtherMonths: true,
-		  selectOtherMonths: true,
-		  showOn: 'button',
-  		  buttonImageOnly: false,
-		  buttonImage: 'images/calendar.gif'
+  		  changeYear: true,
+  		  altField: '.{Name}',
+  		  altFormat: 'DD, d MM, yy',
+  		  showOtherMonths: true,
+  		  selectOtherMonths: true,
+  		  showOn: 'both',
+  		  buttonImageOnly: true,
+  		  buttonImage: '/assets/images/calendar.jpeg',
+  		  shortYearCutoff: 99,
+  		  buttonText: 'Chooser'
       }});
     }});
 	$(function() {{

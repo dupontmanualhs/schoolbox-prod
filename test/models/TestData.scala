@@ -243,7 +243,7 @@ object TestData {
     }
 
     //makeBookData(debug)
-    if (debug) println("Creating Titles...")
+/*    if (debug) println("Creating Titles...")
     val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", Some("Bellman, Bragg and Charles"), 
         Some("Pearson Prentice Hall"), "9780130523167", Some(842), 
         Some("10.9 x 8.8 x 1.6 inches"), Some(4.5), true, new Date(System.currentTimeMillis()), None)
