@@ -532,7 +532,14 @@ object Books extends Controller {
 
   def findCopyInfo() = DbAction { implicit req =>
     object ChooseCopyForm extends Form {
-      val barcode = new TextField("Barcode")
+      val barcode = new TextField("Barcode") {
+        override val minLength = Some(21)
+        override val maxLength = Some(23)
+        override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
+          case None => ValidationError("Copy not found.")
+          case Some(barcode) => ValidationError(Nil)
+        }))
+      }
 
       def fields = List(barcode)
     }
