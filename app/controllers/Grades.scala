@@ -69,12 +69,26 @@ object Grades extends Controller {
     }
   }
 
-  def home = DbAction { implicit req =>
-    Ok(views.html.grades.home())
+  def home(sectionId: Long) = DbAction { implicit req => 
+    implicit val pm: ScalaPersistenceManager = req.pm
+    val cand = QSection.candidate
+    pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
+      case None => NotFound(views.html.notFound("No section with that id."))
+      case Some(sect) => {
+    	 Ok(views.html.grades.home(sectionId, sect))
+      }
+    }
   }
 
-  def announcements = DbAction { implicit req =>
-    Ok(views.html.grades.announcements())
+  def announcements(sectionId: Long) = DbAction { implicit req => 
+    implicit val pm: ScalaPersistenceManager = req.pm
+    val cand = QSection.candidate
+    pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
+      case None => NotFound(views.html.notFound("No section with that id."))
+      case Some(sect) => {
+    	 Ok(views.html.grades.announcements(sectionId, sect))
+      }
+    }
   }
 
 }

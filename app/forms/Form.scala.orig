@@ -23,12 +23,11 @@ abstract class Form {
     
   def asHtml(bound: Binding, action: String, legend: String = ""): Elem = {
 <<<<<<< HEAD
-    <form method={ method } class="form-horizontal well" action={ action }>
+    <form method={ method } class="form-horizontal well" action={ action }><fieldset>
 =======
- <form method={ method } class="form-horizontal well span7 offset1" action={ action }>
-
->>>>>>> jking13
+    <form method={ method } class="form-horizontal well span7 offset1" action={ action }>
 <fieldset>
+>>>>>>> origin/jhouse14
     { if (legend != "") <legend>{ legend }</legend> }
     <fieldset>
     { if (bound.formErrors.isEmpty) NodeSeq.Empty else { bound.formErrors.asHtml } }  

@@ -7,15 +7,13 @@ Long)(implicit req: util.DbRequest[_]) @import models.grades._
 <div class="span3">
 	<div class="well sidebar-nav">
 		<ul class="nav nav-list">
-			<li class="nav-header">@section.course.name -
-				@section.periodNames</li>
-			<li><a href="/grades/home">Home</a></li>
-			<li><a href="/grades/announcements">Announcements</a></li>
+			<li class="nav-header">@section.course.name - @section.periodNames</li>
+			<li><a href=@controllers.routes.Grades.home(sectionId)>Home</a></li>
+			<li><a href=@controllers.routes.Grades.announcements(sectionId)>Announcements</a></li>
 			<li><a href="#">Discussions</a></li>
 			<li><a href="#">Quizzes</a></li>
 			<li><a href="#">Files</a></li>
-			<li class="active"><a
-				href=@controllers.routes.Grades.assignments(sectionId)>Assignments</a></li>
+			<li class="active"><a href=@controllers.routes.Grades.assignments(sectionId)>Assignments</a></li>
 			<li><a href="#">Grades</a></li>
 			<li><a href="#">Syllabus</a></li>
 		</ul>
@@ -27,7 +25,7 @@ Long)(implicit req: util.DbRequest[_]) @import models.grades._
 <div class="span8">
 	<ul class="breadcrumb">
 		<li><a href="#">Courses</a> <span class="divider">/</span></li>
-		<li><a href="#">@section.course.name -@section.periodNames</a> <span
+		<li><a href="#">@section.course.name - @section.periodNames</a> <span
 			class="divider">/</span></li>
 		<li class="active">Assignments</li>
 	</ul>
@@ -38,7 +36,7 @@ Long)(implicit req: util.DbRequest[_]) @import models.grades._
 	<h2 class="pull-left">Assignments</h2>
 	<a href="#myModal" role="button" class="btn pull-right"
 		data-toggle="modal">Add</a>
-	<div id="myModal" class="modal hide fade span12" tabindex="-1"
+	<div id="myModal" class="modal hide fade custom-modal-size" tabindex="-1"
 		role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal"
