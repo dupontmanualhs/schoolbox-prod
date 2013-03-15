@@ -591,4 +591,14 @@ object Books extends Controller {
     }
   }
 
+  def inventory() = DbAction { implicit req =>
+    implicit val pm = req.pm
+
+    val titles = pm.query[Title].executeList
+    // TODO - This may need to be sorted alphabetically
+
+    val rows: List[(String, String, String, String)] = titles.map(ti => { (ti.name, ti.howManyCopies().toString, ti.howManyCheckedOut().toString, (ti.howManyCopies() - ti.howManyCheckedOut()).toString)})
+    Ok(views.html.books.inventory(rows))
+  }
+
 }

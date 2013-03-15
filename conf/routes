@@ -97,6 +97,7 @@ POST    /books/findCopyInfo                     controllers.Books.findCopyInfo
 GET     /books/copyStatusByTitle/:isbn          controllers.Books.copyStatusByTitle(isbn: String)
 GET     /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
 POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
+GET     /books/inventory                        controllers.Books.inventory
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
