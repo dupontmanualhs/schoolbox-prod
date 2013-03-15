@@ -15,6 +15,7 @@ import util.DbRequest
 import util.ScalaPersistenceManager
 import scala.xml.Text
 import util.Authenticated
+import play.api.mvc.Result
 
 object Grades extends Controller {
 
@@ -33,18 +34,21 @@ object Grades extends Controller {
   def assignments(sectionId: Long) = Authenticated { implicit req =>
     val persp = req.visit.perspective.get
     persp match {
-      case _:Teacher => assignmentsForTeachers(sectionId)(req)
+      case teacher: Teacher => assignmentsForTeachers(sectionId, teacher)(req).asInstanceOf[PlainResult] //TODO fix this cast
      // case _:Student => assignmentsForStudents(sectionId)
     }
     
   }
   
-  def assignmentsForTeachers(sectionId: Long) = DbAction { implicit req =>
+  def assignmentsForTeachers(sectionId: Long, teacher: Teacher) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
     val cand = QSection.candidate
     pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
+        if (!sect.teachers.contains(teacher)){
+          NotFound(views.html.notFound("You do not have permisson to view this course."))
+        }
         val cats = Category.forSection(sect)
         val catsMap = Category.forSection(sect).map(c => (c.name, c))
         val dropMenu = new DropMenu(catsMap)
