@@ -187,6 +187,7 @@ object Books extends Controller {
         case vb: ValidBinding => {
         Title.getByIsbn(vb.valueOf(AddPurchaseGroupForm.isbn)) match {
           case None => Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> "Title with the given ISBN not found")
+          // TODO - Ask if the user would like to add the title if it is not found
           case Some(t) => {
             val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
             request.pm.makePersistent(p)
@@ -594,8 +595,7 @@ object Books extends Controller {
   def inventory() = DbAction { implicit req =>
     implicit val pm = req.pm
 
-    val titles = pm.query[Title].executeList
-    // TODO - This may need to be sorted alphabetically
+    val titles = pm.query[Title].executeList.sortWith((c1, c2) => c1.name < c2.name)
 
     val rows: List[(String, String, String, String)] = titles.map(ti => { (ti.name, ti.howManyCopies().toString, ti.howManyCheckedOut().toString, (ti.howManyCopies() - ti.howManyCheckedOut()).toString)})
     Ok(views.html.books.inventory(rows))
