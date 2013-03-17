@@ -1,0 +1,18 @@
+@(addCopyForm: forms.Binding, stu: Student, bks: List[(Copy, Title)])(implicit req: util.DbRequest[_])
+
+@main("Checkout Bulk") {
+
+<div class="page-header">
+	<h2>Bulk Checkout to @stu.displayName()</h2>
+</div>
+
+<table class="table table-striped table-condensed">
+   <tr><th>Title</th><th>Copy Number</th></tr>
+   @for(bk <- bks) {
+   <tr><td>@bk._2.name</td><td>@row._1.number</td></tr>
+   }
+</table>
+
+addCopyForm.render()
+
+}

@@ -98,6 +98,10 @@ GET     /books/copyStatusByTitle/:isbn          controllers.Books.copyStatusByTi
 GET     /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
 POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
 GET     /books/inventory                        controllers.Books.inventory
+GET     /books/checkoutBulk                     controllers.Books.checkoutBulk
+POST    /books/checkoutBulk                     controllers.Books.checkoutBulk
+GET     /books/checkoutBulkHelper               controllers.Books.checkoutBulkHelper
+POST    /books/checkoutBulkHelper               controllers.Books.checkoutBulkHelper
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()

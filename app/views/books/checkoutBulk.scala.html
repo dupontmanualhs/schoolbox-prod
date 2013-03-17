@@ -1,0 +1,5 @@
+@(checkoutBulkForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Check Out In Bulk") {
+  @checkoutBulkForm.render()
+}

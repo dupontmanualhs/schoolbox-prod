@@ -1,5 +1,5 @@
-@(checkoutForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(checkInForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Check In a Copy") {
-  @checkoutForm.render()
+  @checkInForm.render()
 }

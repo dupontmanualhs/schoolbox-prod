@@ -278,6 +278,64 @@ object Books extends Controller {
   }
 }
 
+  object CheckoutBulkForm extends Form {
+    val student = new TextField("Student") {
+      override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
+          case None => ValidationError("Student not found.")
+          case Some(stu) => ValidationError(Nil)
+        }))
+    }
+
+    val fields = List(student)
+  }
+
+  def checkoutBulk() = DbAction { implicit request =>
+    if (request.method == "GET") {
+      Ok(html.books.checkoutBulk(Binding(CheckoutBulkForm)))
+    } else {
+      implicit val pm = request.pm
+      Binding(CheckoutBulkForm, request) match {
+        case ib: InvalidBinding => Ok(html.books.checkoutBulk(ib))
+        case vb: ValidBinding => {
+          val checkoutStu: Student = Student.getByStateId(vb.valueOf(CheckoutBulkForm.student)).get
+          Redirect(routes.Books.checkoutBulkHelper(checkoutStu, Nil))
+        }
+      }
+    }
+  }
+
+  object CheckoutBulkHelperForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+
+    val fields = List(barcode)
+  }
+
+  def checkoutBulkHelper(stu: Student, bks: List[(Copy, Title)]) = DbAction { implicit request =>
+    if (request.method == "GET") {
+      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks))
+    } else {
+      implicit val pm = request.pm
+      Binding(CheckoutBulkHelperForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib))
+        case vb: ValidBinding => {
+          Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
+            case None => Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks)).flashing("message" -> "Copy not found.")
+            case Some(cpy) => {
+              if (cpy.isCheckedOut) {
+                Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks)).flashing("message" -> "Copy already checked out.")
+              } else {
+                Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks ++ (cpy, cpy.purchaseGroup.title)))
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   object CheckInForm extends Form {
     val barcode = new TextField("Barcode") {
       override val minLength = Some(21)
