@@ -295,10 +295,7 @@ object Books extends Controller {
           val checkoutStu: String = vb.valueOf(CheckoutBulkForm.student)
           Student.getByStateId(checkoutStu) match {
             case None => Redirect(routes.Books.checkoutBulk).flashing("message" -> "Student not found.")
-            case Some(s) => {
-              request.visit.set("checkoutList", List[String]())
-              Redirect(routes.Books.checkoutBulkHelper(checkoutStu))
-            }
+            case Some(s) => Redirect(routes.Books.checkoutBulkHelper(checkoutStu))
           }
         }
       }
@@ -321,10 +318,10 @@ object Books extends Controller {
         case None => "Unknown"
         case Some(s) => s.displayName
       }
-      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, request.visit.getAs[List[String]]("checkoutList").getOrElse(List[String]())))
+      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())))
     } else {
       Binding(CheckoutBulkHelperForm, request) match {
-        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, stu, request.visit.getAs[List[String]]("checkoutList").getOrElse(List[String]())))
+        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, stu, request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())))
         case vb: ValidBinding => {
           Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
             case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy not found.")
@@ -332,7 +329,7 @@ object Books extends Controller {
               if (cpy.isCheckedOut) {
                 Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy already checked out.")
               } else {
-                request.visit.set("checkoutList", cpy.getBarcode() ++ request.visit.getAs[List[String]]("checkoutList"))
+                request.visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
                 Redirect(routes.Books.checkoutBulkHelper(stu))
               }
             }
