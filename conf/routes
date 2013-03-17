@@ -100,8 +100,8 @@ POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatus
 GET     /books/inventory                        controllers.Books.inventory
 GET     /books/checkoutBulk                     controllers.Books.checkoutBulk
 POST    /books/checkoutBulk                     controllers.Books.checkoutBulk
-GET     /books/checkoutBulkHelper               controllers.Books.checkoutBulkHelper
-POST    /books/checkoutBulkHelper               controllers.Books.checkoutBulkHelper
+GET     /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
+POST    /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()

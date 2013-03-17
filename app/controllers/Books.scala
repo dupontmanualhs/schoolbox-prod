@@ -279,12 +279,7 @@ object Books extends Controller {
 }
 
   object CheckoutBulkForm extends Form {
-    val student = new TextField("Student") {
-      override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
-          case None => ValidationError("Student not found.")
-          case Some(stu) => ValidationError(Nil)
-        }))
-    }
+    val student = new TextField("Student")
 
     val fields = List(student)
   }
@@ -297,8 +292,14 @@ object Books extends Controller {
       Binding(CheckoutBulkForm, request) match {
         case ib: InvalidBinding => Ok(html.books.checkoutBulk(ib))
         case vb: ValidBinding => {
-          val checkoutStu: Student = Student.getByStateId(vb.valueOf(CheckoutBulkForm.student)).get
-          Redirect(routes.Books.checkoutBulkHelper(checkoutStu, Nil))
+          val checkoutStu: String = vb.valueOf(CheckoutBulkForm.student)
+          Student.getByStateId(checkoutStu) match {
+            case None => Redirect(routes.Books.checkoutBulk).flashing("message" -> "Student not found.")
+            case Some(s) => {
+              request.visit.set("checkoutList", List[String]())
+              Redirect(routes.Books.checkoutBulkHelper(checkoutStu))
+            }
+          }
         }
       }
     }
@@ -313,21 +314,26 @@ object Books extends Controller {
     val fields = List(barcode)
   }
 
-  def checkoutBulkHelper(stu: Student, bks: List[(Copy, Title)]) = DbAction { implicit request =>
+  def checkoutBulkHelper(stu: String) = DbAction { implicit request =>
+    implicit val pm = request.pm
     if (request.method == "GET") {
-      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks))
+      val dName = Student.getByStateId(stu) match {
+        case None => "Unknown"
+        case Some(s) => s.displayName
+      }
+      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, request.visit.getAs[List[String]]("checkoutList").getOrElse(List[String]())))
     } else {
-      implicit val pm = request.pm
-      Binding(CheckoutBulkHelperForm, req) match {
-        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib))
+      Binding(CheckoutBulkHelperForm, request) match {
+        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, stu, request.visit.getAs[List[String]]("checkoutList").getOrElse(List[String]())))
         case vb: ValidBinding => {
           Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
-            case None => Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks)).flashing("message" -> "Copy not found.")
+            case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy not found.")
             case Some(cpy) => {
               if (cpy.isCheckedOut) {
-                Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks)).flashing("message" -> "Copy already checked out.")
+                Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy already checked out.")
               } else {
-                Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), stu, bks ++ (cpy, cpy.purchaseGroup.title)))
+                request.visit.set("checkoutList", cpy.getBarcode() ++ request.visit.getAs[List[String]]("checkoutList"))
+                Redirect(routes.Books.checkoutBulkHelper(stu))
               }
             }
           }

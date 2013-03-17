@@ -1,18 +1,19 @@
-@(addCopyForm: forms.Binding, stu: Student, bks: List[(Copy, Title)])(implicit req: util.DbRequest[_])
+@(addCopyForm: forms.Binding, stu: String, bks: List[String])(implicit req: util.DbRequest[_])
+@import models.books.Copy
 
 @main("Checkout Bulk") {
 
 <div class="page-header">
-	<h2>Bulk Checkout to @stu.displayName()</h2>
+	<h2>@stu</h2>
 </div>
 
 <table class="table table-striped table-condensed">
    <tr><th>Title</th><th>Copy Number</th></tr>
    @for(bk <- bks) {
-   <tr><td>@bk._2.name</td><td>@row._1.number</td></tr>
+   <tr><td>@Copy.getByBarcode(bk).get.number</td><td>@Copy.getByBarcode(bk).get.purchaseGroup.title.name</td></tr>
    }
 </table>
 
-addCopyForm.render()
+@addCopyForm.render()
 
 }
