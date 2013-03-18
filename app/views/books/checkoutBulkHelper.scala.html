@@ -1,5 +1,6 @@
-@(addCopyForm: forms.Binding, stu: String, bks: Vector[String])(implicit req: util.DbRequest[_])
+@(addCopyForm: forms.Binding, stu: String, bks: Vector[((String, String), Int)])(implicit req: util.DbRequest[_])
 @import models.books.Copy
+@import models.books.Title
 
 @main("Checkout Bulk") {
 
@@ -8,9 +9,9 @@
 </div>
 
 <table class="table table-striped table-condensed">
-   <tr><th>Title</th><th>Copy Number</th></tr>
+   <tr><th>Number</th><th>Title</th><th>Copy Number</th></tr>
    @for(bk <- bks) {
-   <tr><td>Put title here</td><td>@Copy.getByBarcode(bk).get.number</td></tr>
+   <tr><td>@(bk._2 + 1)</td><td>@Title.getByIsbn(bk._1._2).get.name</td><td>@Copy.getByBarcode(bk._1._1).get.number</td></tr>
    }
 </table>
 

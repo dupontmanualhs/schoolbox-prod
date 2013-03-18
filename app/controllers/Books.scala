@@ -318,10 +318,16 @@ object Books extends Controller {
         case None => "Unknown"
         case Some(s) => s.displayName
       }
-      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())))
+      val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+      val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
+      val zipped = ct.zipWithIndex
+      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped))
     } else {
+      val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+      val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
+      val zipped = ct.zipWithIndex
       Binding(CheckoutBulkHelperForm, request) match {
-        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, stu, request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())))
+        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, stu, zipped))
         case vb: ValidBinding => {
           Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
             case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy not found.")
