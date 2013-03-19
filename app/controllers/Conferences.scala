@@ -30,7 +30,11 @@ object Conferences extends Controller {
 	    implicit val pm: ScalaPersistenceManager = req.pm
 		val currUser: Option[User] = User.current
 		currUser match {
-			case None => Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
+			case None => {
+				req.visit.redirectURL_=(routes.Conferences.index())
+				pm.makePersistent(req.visit)
+				Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
+			  }
 			case Some(x) => {if(currUser.get.username == "736052") {  
 			  		Ok(views.html.conferences.admin())
 			  	} else if (Teacher.getByUsername(currUser.get.username)(pm).isDefined){ 
