@@ -31,22 +31,24 @@ object Grades extends Controller {
     val fields = List(category, title, numPoints, dueDate, locked)
   }
 
-  def assignments(sectionId: Long) = Authenticated { implicit req =>
+  def assignments(sectionId: String) = Authenticated { implicit req =>
     val persp = req.visit.perspective.get
     persp match {
       case teacher: Teacher => assignmentsForTeachers(sectionId, teacher)(req).asInstanceOf[PlainResult] //TODO fix this cast
-      // case _:Student => assignmentsForStudents(sectionId)
+      //case _:Student => assignmentsForStudents(sectionId)
     }
 
   }
 
-  def assignmentsForTeachers(sectionId: Long, teacher: Teacher) = DbAction { implicit req =>
+  def assignmentsForTeachers(sectionId: String, teacher: Teacher) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
-    val cand = QSection.candidate
-    pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
+    Section.getBySectionId(sectionId) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
         if (!sect.teachers.contains(teacher)) {
+          println(sect.teachers.head.toString)
+          println()
+          println(req.visit.perspective.get)
           NotFound(views.html.notFound("You do not have permisson to view this course."))
         } else {
           val cats = Category.forSection(sect)
@@ -72,7 +74,7 @@ object Grades extends Controller {
     }
   }
 
-  def deleteAssignment(sectionId: Long, assignmentId: Long) = DbAction { implicit req =>
+  def deleteAssignment(sectionId: String, assignmentId: Long) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
     pm.query[Assignment].filter(QAssignment.candidate.id.eq(assignmentId)).executeOption() match {
       case None => NotFound(views.html.notFound("No assignment with that id."))
@@ -83,10 +85,9 @@ object Grades extends Controller {
     }
   }
 
-  def home(sectionId: Long) = DbAction { implicit req =>
+  def home(sectionId: String) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
-    val cand = QSection.candidate
-    pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
+    Section.getBySectionId(sectionId) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
         Ok(views.html.grades.home(sectionId, sect))
@@ -94,10 +95,9 @@ object Grades extends Controller {
     }
   }
 
-  def announcements(sectionId: Long) = DbAction { implicit req =>
+  def announcements(sectionId: String) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
-    val cand = QSection.candidate
-    pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
+    Section.getBySectionId(sectionId) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
         Ok(views.html.grades.announcements(sectionId, sect))

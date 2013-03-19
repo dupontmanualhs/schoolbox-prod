@@ -72,7 +72,7 @@ class Section {
     def query(epm: ScalaPersistenceManager): List[Teacher] = {	
     	val cand = QTeacherAssignment.candidate
     	val assignments = pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
-    	assignments.map(_.teacher)
+    	assignments.map(x => x.teacher)
     }
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )
@@ -91,6 +91,17 @@ class Section {
     def query(epm: ScalaPersistenceManager): List[StudentEnrollment] = {	
     	val cand = QStudentEnrollment.candidate
     	pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
+}
+
+object Section {
+  def getBySectionId(id: String)(implicit pm: ScalaPersistenceManager = null): Option[Section] = {
+    def query(epm: ScalaPersistenceManager): Option[Section] = {
+      val cand = QSection.candidate
+      epm.query[Section].filter(cand.sectionId.eq(id)).executeOption()
     }
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )
