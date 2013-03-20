@@ -28,6 +28,13 @@ class Teacher extends Perspective {
   def stateId_=(theStateId: String) { _stateId = theStateId }
   
   def role = "Teacher"
+    
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Teacher]
+  override def equals(other: Any): Boolean = other match {
+    case that: Teacher => that.canEqual(this) && that.id == this.id
+    case _ => false
+  }
+  override def hashCode: Int = 41 * (41 + getClass.hashCode) + id.hashCode
 }
 
 object Teacher {
