@@ -31,18 +31,18 @@ object Grades extends Controller {
     val fields = List(category, title, numPoints, dueDate, locked)
   }
 
-  def assignments(sectionId: String) = Authenticated { implicit req =>
+  def assignments(id: Long) = Authenticated { implicit req =>
     val persp = req.visit.perspective.get
     persp match {
-      case teacher: Teacher => assignmentsForTeachers(sectionId, teacher)(req).asInstanceOf[PlainResult] //TODO fix this cast
-      //case _:Student => assignmentsForStudents(sectionId)
+      case teacher: Teacher => assignmentsForTeachers(id, teacher)(req).asInstanceOf[PlainResult] //TODO fix this cast
+      //case _:Student => assignmentsForStudents(id)
     }
 
   }
 
-  def assignmentsForTeachers(sectionId: String, teacher: Teacher) = DbAction { implicit req =>
+  def assignmentsForTeachers(id: Long, teacher: Teacher) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
-    Section.getBySectionId(sectionId) match {
+    Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
         if (!sect.teachers.contains(teacher)) {
@@ -55,9 +55,9 @@ object Grades extends Controller {
           val catsMap = Category.forSection(sect).map(c => (c.name, c))
           val dropMenu = new DropMenu(catsMap)
           if (req.method == "GET") {
-            Ok(html.grades.assignments(sect, cats, Binding(dropMenu), sectionId))
+            Ok(html.grades.assignments(sect, cats, Binding(dropMenu), id))
           } else Binding(dropMenu, req) match {
-            case ib: InvalidBinding => Ok(views.html.grades.assignments(sect, cats, ib, sectionId))
+            case ib: InvalidBinding => Ok(views.html.grades.assignments(sect, cats, ib, id))
             case vb: ValidBinding => {
               val TheCat: Category = vb.valueOf(dropMenu.category)
               val TheTitle: String = vb.valueOf(dropMenu.title)
@@ -66,7 +66,7 @@ object Grades extends Controller {
               val TheLocked: java.sql.Date = vb.valueOf(dropMenu.locked)
               val assignment = new Assignment(TheTitle, ThePoints, TheDueDate, TheLocked, TheCat)
               pm.makePersistent(assignment)
-              Redirect(routes.Grades.assignments(sectionId))
+              Redirect(routes.Grades.assignments(id))
             }
           }
         }
@@ -74,33 +74,33 @@ object Grades extends Controller {
     }
   }
 
-  def deleteAssignment(sectionId: String, assignmentId: Long) = DbAction { implicit req =>
+  def deleteAssignment(id: Long, assignmentId: Long) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
     pm.query[Assignment].filter(QAssignment.candidate.id.eq(assignmentId)).executeOption() match {
       case None => NotFound(views.html.notFound("No assignment with that id."))
       case Some(assign) => {
         pm.deletePersistent(assign)
-        Redirect(routes.Grades.assignments(sectionId))
+        Redirect(routes.Grades.assignments(id))
       }
     }
   }
 
-  def home(sectionId: String) = DbAction { implicit req =>
+  def home(id: Long) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
-    Section.getBySectionId(sectionId) match {
+    Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        Ok(views.html.grades.home(sectionId, sect))
+        Ok(views.html.grades.home(id, sect))
       }
     }
   }
 
-  def announcements(sectionId: String) = DbAction { implicit req =>
+  def announcements(id: Long) = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
-    Section.getBySectionId(sectionId) match {
+    Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        Ok(views.html.grades.announcements(sectionId, sect))
+        Ok(views.html.grades.announcements(id, sect))
       }
     }
   }

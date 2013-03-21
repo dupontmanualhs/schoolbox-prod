@@ -1,6 +1,5 @@
-@(section: models.courses.Section, categories:
-List[models.grades.Category], dropForm: forms.Binding, sectionId:
-String)(implicit req: util.DbRequest[_]) @import models.grades._
+@(section: models.courses.Section, categories: List[models.grades.Category], dropForm: forms.Binding, 
+id: Long)(implicit req: util.DbRequest[_]) @import models.grades._
 
 @main("Assignments"){
 
@@ -8,14 +7,15 @@ String)(implicit req: util.DbRequest[_]) @import models.grades._
 	<div class="well sidebar-nav">
 		<ul class="nav nav-list">
 			<li class="nav-header">@section.course.name - @section.periodNames</li>
-			<li><a href=@controllers.routes.Grades.home(sectionId)>Home</a></li>
-			<li><a href=@controllers.routes.Grades.announcements(sectionId)>Announcements</a></li>
+			<li><a href=@controllers.routes.Grades.home(id)>Home</a></li>
+			<li><a href=@controllers.routes.Grades.announcements(id)>Announcements</a></li>
 			<li><a href="#">Discussions</a></li>
 			<li><a href="#">Quizzes</a></li>
 			<li><a href="#">Files</a></li>
-			<li class="active"><a href=@controllers.routes.Grades.assignments(sectionId)>Assignments</a></li>
+			<li class="active"><a href=@controllers.routes.Grades.assignments(id)>Assignments</a></li>
 			<li><a href="#">Grades</a></li>
 			<li><a href="#">Syllabus</a></li>
+			<li><a href=@controllers.routes.Courses.roster(id)>Roster</a></li>
 		</ul>
 	</div>
 	<!--/.well -->
@@ -69,7 +69,7 @@ String)(implicit req: util.DbRequest[_]) @import models.grades._
 				<td>@a.getDueDate</td>
 				<td>@a.points</td>
 				<td>
-				<button class="confirmLink btn" href=@routes.Grades.deleteAssignment(sectionId,a.id)>Delete</button>
+				<button class="confirmLink btn" href=@routes.Grades.deleteAssignment(id,a.id)>Delete</button>
 				</td>
 			</tr>
 		}

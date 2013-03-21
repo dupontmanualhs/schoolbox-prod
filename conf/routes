@@ -94,8 +94,8 @@ GET		/conferences/teacher 					controllers.Conferences.viewAsTeacher()
 
 
 #Grades
-GET     /grades/home/:sectionId					controllers.Grades.home(sectionId: String)
-GET     /grades/announcements/:sectionId        controllers.Grades.announcements(sectionId: String)
-GET     /grades/assignments/:sectionId          controllers.Grades.assignments(sectionId: String)
-POST	/grades/assignments/:sectionId			controllers.Grades.assignments(sectionId: String)
-GET     /grades/assignments/deleteAssignment/:sectionId/:assignmentId    controllers.Grades.deleteAssignment(sectionId: String, assignmentId: Long)
+GET     /grades/home/:sectionId					controllers.Grades.home(sectionId: Long)
+GET     /grades/announcements/:sectionId        controllers.Grades.announcements(sectionId: Long)
+GET     /grades/assignments/:sectionId          controllers.Grades.assignments(sectionId: Long)
+POST	/grades/assignments/:sectionId			controllers.Grades.assignments(sectionId: Long)
+GET     /grades/assignments/deleteAssignment/:sectionId/:assignmentId    controllers.Grades.deleteAssignment(sectionId: Long, assignmentId: Long)

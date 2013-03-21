@@ -102,7 +102,7 @@ object Courses extends Controller {
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
         <tr>
           <td>{ p.name }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => linkToRoster(s)), <br/>) }</td>
+          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => linkToPage(s)), <br/>) }</td>
           <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
         </tr>
       }
@@ -110,6 +110,11 @@ object Courses extends Controller {
     }
   }
 
+  def linkToPage(section:Section): NodeSeq = {
+    val link = controllers.routes.Grades.home(section.id)
+    <a href={ link.url }>{ section.course.name }</a>
+  }
+  
   def linkToRoster(section: Section): NodeSeq = {
     val link = controllers.routes.Courses.roster(section.id)
     <a href={ link.url }>{ section.course.name }</a>

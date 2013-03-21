@@ -98,13 +98,23 @@ class Section {
 }
 
 object Section {
-  def getBySectionId(id: String)(implicit pm: ScalaPersistenceManager = null): Option[Section] = {
+  def getBySectionId(sectionId: String)(implicit pm: ScalaPersistenceManager = null): Option[Section] = {
     def query(epm: ScalaPersistenceManager): Option[Section] = {
       val cand = QSection.candidate
-      epm.query[Section].filter(cand.sectionId.eq(id)).executeOption()
+      epm.query[Section].filter(cand.sectionId.eq(sectionId)).executeOption()
     }
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )
+  }
+  
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Section] = {
+    def query(epm: ScalaPersistenceManager): Option[Section] = {
+      val cand = QSection.candidate
+      epm.query[Section].filter(cand.id.eq(id)).executeOption()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  
   }
 }
 
