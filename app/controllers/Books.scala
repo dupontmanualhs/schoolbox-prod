@@ -345,6 +345,15 @@ object Books extends Controller {
     }
   }
 
+  def removeCopyFromList(stu: String, barcode: String) = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+    val newCopies = copies.filter(_ != barcode)
+    request.visit.set("checkoutList", newCopies)
+    Redirect(routes.Books.checkoutBulkHelper(stu))
+  }
+
   object CheckInForm extends Form {
     val barcode = new TextField("Barcode") {
       override val minLength = Some(21)
