@@ -22,6 +22,9 @@ object Application extends Controller {
     val PasswordField = new PasswordFieldOptional("Password")
     val TextField = new TextFieldOptional("Text")
     val UrlField = new UrlFieldOptional("Url")
+    val PhoneField = new PhoneFieldOptional("Phone")
+    val listOfSpectopers = List("Allen","Zach","John","Others")
+    val ACField = new AutocompleteFieldOptional("AC", listOfSpectopers)
     
     val editedTextField = new TextFieldOptional("edited") {      
       override def widget = new TextInput(required)
@@ -38,7 +41,7 @@ object Application extends Controller {
     }
     
     
-    val fields = List(ChoiceField, DateField,TimeField, TimestampField, EmailField, NumericField, PasswordField, TextField, UrlField, editedTextField)
+    val fields = List(ACField, ChoiceField, DateField,TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField, editedTextField)
     
     override def cancelTo: String = "url"
     override def prefix: Option[String] = None
@@ -71,7 +74,8 @@ object Application extends Controller {
         val TheText = vb.valueOf(formTests.TextField)
         val TheUrl = vb.valueOf(formTests.UrlField)
         val TheEdited = vb.valueOf(formTests.editedTextField)
-        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
+        val ThePhone = vb.valueOf(formTests.PhoneField)
+        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Phone Field", ThePhone.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
         
         Ok(views.html.showResults(ListOfStuff))
       }

@@ -1,6 +1,0 @@
-@(myForm: forms.Binding)(implicit req:util.DbRequest[_])
-@import helper._
-
-@mainWithScripts("Form Tester", Html(myForm.form.scripts.toString)){ 
-  @myForm.render()
-}
