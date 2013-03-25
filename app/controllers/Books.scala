@@ -313,21 +313,21 @@ object Books extends Controller {
 
   def checkoutBulkHelper(stu: String) = DbAction { implicit request =>
     implicit val pm = request.pm
-    if (request.method == "GET") {
-      val dName = Student.getByStateId(stu) match {
+    val dName = Student.getByStateId(stu) match {
         case None => "Unknown"
         case Some(s) => s.displayName
       }
+    if (request.method == "GET") {
       val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
       val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
       val zipped = ct.zipWithIndex
-      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped))
+      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped, stu))
     } else {
       val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
       val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
       val zipped = ct.zipWithIndex
       Binding(CheckoutBulkHelperForm, request) match {
-        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, stu, zipped))
+        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, dName, zipped, stu))
         case vb: ValidBinding => {
           Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
             case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy not found.")

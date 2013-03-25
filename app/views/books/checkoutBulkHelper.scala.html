@@ -1,4 +1,4 @@
-@(addCopyForm: forms.Binding, stu: String, bks: Vector[((String, String), Int)])(implicit req: util.DbRequest[_])
+@(addCopyForm: forms.Binding, stu: String, bks: Vector[((String, String), Int)], stuNum: String)(implicit req: util.DbRequest[_])
 @import models.books.Copy
 @import models.books.Title
 
@@ -9,9 +9,9 @@
 </div>
 
 <table class="table table-striped table-condensed">
-   <tr><th>Number</th><th>Title</th><th>Copy Number</th></tr>
+   <tr><th>Number</th><th>Title</th><th>Copy Number</th><th></th></tr>
    @for(bk <- bks) {
-   <tr><td>@(bk._2 + 1)</td><td>@Title.getByIsbn(bk._1._2).get.name</td><td>@Copy.getByBarcode(bk._1._1).get.number</td></tr>
+   <tr><td>@(bk._2 + 1)</td><td>@Title.getByIsbn(bk._1._2).get.name</td><td>@Copy.getByBarcode(bk._1._1).get.number</td><td><button type="button" class="btn" onclick="window.location.href='/books/removeCopyFromList/@stuNum/@bk._1._1'">Remove</button></td></tr>
    }
 </table>
 
