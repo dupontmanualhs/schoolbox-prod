@@ -1,0 +1,8 @@
+@(myForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Current Checkouts") {
+
+<h1>Pay Here</h1>
+	Enter your information here:
+	@{myForm.render(legend = (Some(Payment Information)))}
+}
