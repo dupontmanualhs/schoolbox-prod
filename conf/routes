@@ -104,6 +104,10 @@ GET     /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHe
 POST    /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
 GET     /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
 POST    /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
+GET     /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
+POST    /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
+GET     /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
+POST    /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
