@@ -47,11 +47,12 @@ object Menu {
   val copyInfo = new MenuItem("Copy Info", "menu_copyInfo", Some(controllers.routes.Books.findCopyInfo.toString), Nil)
   val allBksOut = new MenuItem("All Books Out", "menu_allBksOut", Some(controllers.routes.Books.findAllBooksOut.toString), Nil)
   val copyStatusByTitle = new MenuItem("Copy Status By Title", "menu_copyStatusByTitle", Some(controllers.routes.Books.findCopyStatusByTitle.toString), Nil)
+  val blkCheckout = new MenuItem("Bulk Checkout", "menu_bulkCheckout", Some(controllers.routes.Books.checkoutBulk.toString), Nil)
     
   def buildMenu(persp: Option[Perspective]): Elem = {
     val acctItems = if (persp.isDefined) List(logout, settings) else List(login)
     val locItems = List(currloc, locsearch, locsched, findlocnum)
-    val bookItems = List(addTitle, chkHistory, copyHistory, currentBks, addPurchaseGroup, inventory, checkout, checkIn, copyInfo, allBksOut, copyStatusByTitle)
+    val bookItems = List(addTitle, chkHistory, copyHistory, currentBks, addPurchaseGroup, inventory, checkout, checkIn, copyInfo, allBksOut, copyStatusByTitle, blkCheckout)
     val acct: MenuItem = new MenuItem("Account", "menu_account", None, acctItems)
     val courses = new MenuItem("Courses", "menu_courses", Some(controllers.routes.Courses.getMySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)

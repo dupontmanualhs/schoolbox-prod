@@ -368,6 +368,16 @@ object Books extends Controller {
     Redirect(routes.Books.checkoutBulk())
   }
 
+  def checkoutBulkSubmit(stu: String) = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+    copies.foreach(c => request.pm.makePersistent(new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, new java.sql.Date(new java.util.Date().getTime()), null)))
+
+    val mes = copies.length + " copies successfully checked out to " + Student.getByStateId(stu).get.displayName
+    request.visit.set("checkoutList", Vector[String]())
+    Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)
+  }
 
   object CheckInForm extends Form {
     val barcode = new TextField("Barcode") {
