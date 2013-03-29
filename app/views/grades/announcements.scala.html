@@ -1,7 +1,7 @@
 @(id: Long, section: models.courses.Section)(implicit req: util.DbRequest[_]) 
 @import models.grades._
 
-@main("Assignments"){
+@main("Announcements"){
 
 	        	<div class="span3">
          			<div class="well sidebar-nav">
@@ -30,12 +30,17 @@
     	
     	<div class="span8">
     		<h2>Announcements</h2>
-  		  	<ul> <li>Mr. O'Bryan would like to tell Allen Boss to get back to work and quit distracting John and Patrick
-  		  	         from work that has the potential to change the course of the human race.</li>
-    	   		 <li>Ian Ferre has official been banned from the cupboards near the entrance to room 202 after his 
+  		  	<div class="well well-small">
+  		  		<h4>Mr. O'Brizzle<small> 2013-3-21</small></h4>
+  		  		<p>Mr. O'Bryan would like to tell Allen Boss to get back to work and quit distracting John and Patrick
+  		  	         from work that has the potential to change the course of the human race.</p>
+  		  	    <button class="btn btn-primary pull-right btn-small">Comment</button><br />
+  		  	</div>
+  		  	         
+    	   		 <p>Ian Ferre has official been banned from the cupboards near the entrance to room 202 after his 
     	   		     secret stash of ferrets escaped and attacked Mrs. Tatro. Anyone who sees Ian near the cupboards,
-    	   		     please alert school security and animal control. Thank you. </li>
+    	   		     please alert school security and animal control. Thank you. </p>
     		</ul>
     	</div>
     	
-}
+  }

@@ -91,6 +91,11 @@ GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom
 #Conferences
 GET		/conferences							controllers.Conferences.index()
 <<<<<<< HEAD
+<<<<<<< HEAD
+GET		/conferences/teacher 					controllers.Conferences.viewAsTeacher()
+=======
+=======
+>>>>>>> jking13
 GET		/conferences/admin 						controllers.Conferences.index()
 
 
@@ -100,6 +105,10 @@ GET     /grades/announcements/:sectionId        controllers.Grades.announcements
 GET     /grades/assignments/:sectionId          controllers.Grades.assignments(sectionId: Long)
 POST	/grades/assignments/:sectionId			controllers.Grades.assignments(sectionId: Long)
 GET     /grades/assignments/deleteAssignment/:sectionId/:assignmentId    controllers.Grades.deleteAssignment(sectionId: Long, assignmentId: Long)
+<<<<<<< HEAD
+>>>>>>> origin/jking13
+=======
 =======
 GET		/conferences/teacher 					controllers.Conferences.viewAsTeacher()
 >>>>>>> origin/jhouse14
+>>>>>>> jking13
