@@ -271,19 +271,19 @@ object TestData {
     //makeConferenceData(debug)
     if(debug) println("Creating Conferences...")
     val springConf = new Event("Spring Conferences", true)
-    val springSession = new Session(springConf, new Date(2013, 4, 1), new Timestamp(2013, 4, 21, 23, 59, 59, 99), 
-        new Timestamp(2013, 4, 1, 23, 59, 59, 99), new Time(0, 0, 0), new Time(23, 59, 59), 10)
-    val firstSlot = new Slot(springSession, maryTeacher, jackStud, new Time(12, 00, 00), "Mark Shah", 
-        "fakeemail@n00b.com", "5025555555", null, null)
-      
-    //makeCategories
-    if (debug) println("Creating Categories...")
-    val r1alg1AQuizzes = new Category("Quizzes", r1alg1A, .15)
-    val r1alg1ATests = new Category("Tests", r1alg1A, .40)
-    val r1alg1AHomework = new Category("Homework", r1alg1A, .20)
-    val r1alg1AClasswork = new Category("Classwork", r1alg1A, .15)
-    val r1alg1AParticipation = new Category("Participation", r1alg1A, .10)
-      
+    val springSession = new Session(springConf, Date.valueOf("2013-04-01"), Timestamp.valueOf("2013-04-21 23:59:59"), 
+        Timestamp.valueOf("2013-04-01 23:59:59"), Time.valueOf("00:00:00"), Time.valueOf("23:59:59"), 10)
+    val firstSlot = new Slot(springSession, Teacher.getByUsername("todd").get /*ob*/, Student.getByUsername("jack").get, 
+        Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
+
+//makeCategories    
+    if(debug) println("Creating Conferences...")  
+    val r1alg1AQuizzes = new Category("Quizzes", r1alg1A, .1)
+    val r1alg1ATests = new Category("Tests", r1alg1A, .1)
+    val r1alg1AHomework = new Category("Homework", r1alg1A, .1)
+    val r1alg1AClasswork = new Category("Classwork", r1alg1A, .1)
+    val r1alg1AParticipation = new Category("Participation", r1alg1A, .6)
+    
     val r2usHistBQuizzes = new Category("Quizzes", r2usHistB, .2)
     val r2usHistBTests = new Category("Tests", r2usHistB, .35)
     val r2usHistBHomework = new Category("Homework", r2usHistB, .2)
@@ -364,7 +364,8 @@ object TestData {
                               georgeWashingtonvsGodzilla, apPractice1, conduct4, conduct5, ass1, ass2, ass3, ass4, 
                               ass5, ass6, ass7, ass8, ass9, ass10, ass11, carbonQuiz, popQuiz, cellQuiz, carbonTest,
                               cellTest, wordSearch, bookReading, carbonWorksheet, bondWorksheet, takeHomeProblems, 
-                              cellWorksheet, carbonExperiment, cellLab))                  
+                              cellWorksheet, carbonExperiment, cellLab))
+                              
                               
     //makeAnnouncements
     if (debug) println("Creating Announcements...")
