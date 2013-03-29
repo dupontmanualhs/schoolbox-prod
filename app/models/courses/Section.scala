@@ -9,6 +9,8 @@ import util.ScalaPersistenceManager
 import scala.xml.NodeSeq
 import util.DataStore
 import org.joda.time.LocalDate
+import models.grades._
+import models.users.{Student, QStudent}
 
 import util.Helpers.LocalDateOrdering
 
@@ -91,6 +93,16 @@ class Section {
     def query(epm: ScalaPersistenceManager): List[StudentEnrollment] = {	
     	val cand = QStudentEnrollment.candidate
     	pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
+  
+  def getAssignments(implicit pm: ScalaPersistenceManager = null): List[Assignment] = {
+    def query(epm: ScalaPersistenceManager): List[Assignment] = {
+      val cand = QAssignment.candidate
+      val varble = QCategory.variable("sect")
+      pm.query[Assignment].filter(cand.category.eq(varble).and(varble.section.eq(this))).executeList
     }
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )

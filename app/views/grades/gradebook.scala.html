@@ -1,0 +1,42 @@
+@(students: List[models.users.Student], assignments: List[models.grades.Assignment], section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_]) 
+@import models.grades._
+
+@main("Assignments"){
+
+	        	<div class="span3">
+         			<div class="well sidebar-nav">
+					<ul class="nav nav-list">
+           		      <li class="nav-header">@section.course.name - @section.periodNames</li>
+          		      <li><a href=@controllers.routes.Grades.home(id)>Home</a></li>
+           		      <li><a href=@controllers.routes.Grades.announcements(id)>Announcements</a></li>
+    		          <li><a href="#">Discussions</a></li>
+            		  <li><a href="#">Quizzes</a></li>
+	                  <li><a href="#">Files</a></li>
+    	              <li><a href=@controllers.routes.Grades.assignments(id)>Assignments</a></li>
+        	          <li class="active"><a href="#">Grades</a></li>
+                	  <li><a href="#">Syllabus</a>
+                	  <li><a href=@controllers.routes.Courses.roster(id)>Roster</a></li>
+    	            </ul>
+                    </div><!--/.well -->
+                </div><!--/span-->
+    
+    	<div class="span8">
+ 		  	 <ul class="breadcrumb">
+  				<li><a href="#">Courses</a> <span class="divider">/</span></li>
+ 				 <li><a href="#">@section.course.name - @section.periodNames</a> <span class="divider">/</span></li>
+ 				 <li class="active">Grades</li>
+			</ul>
+    	</div>
+    	
+    	<table class="table table-striped table-condensed">
+    		@for(s <- students){
+    			<tr>
+    				@for(a <- assignments){
+    					<td>s.getScore(a).map(_.points.toString).getOrElse("")</td>
+    				}
+    			</tr>
+    		}
+    	</table>
+    	
+    	
+}

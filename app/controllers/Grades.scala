@@ -104,5 +104,17 @@ object Grades extends Controller {
       }
     }
   }
+  
+  def gradebook(id: Long) = DbAction { implicit req =>
+    implicit val pm: ScalaPersistenceManager = req.pm
+    Section.getById(id) match {
+      case None => NotFound(views.html.notFound("No section with that id."))
+      case Some(sect) => {
+        val assignments = sect.getAssignments()
+        val students = sect.students
+        Ok(views.html.grades.gradebook(students, assignments, sect, id))
+      }
+    }  
+  }
 
 }
