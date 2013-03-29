@@ -22,12 +22,7 @@ abstract class Form {
   def labelSuffix: String = ":"
     
   def asHtml(bound: Binding, action: String, legend: String = ""): Elem = {
-<<<<<<< HEAD
-    <form method={ method } class="form-horizontal well" action={ action }>
-=======
- <form method={ method } class="form-horizontal well span7 offset1" action={ action }>
-
->>>>>>> jking13
+ <form method={ method } class="form-horizontal well" action={ action }>
 <fieldset>
     { if (legend != "") <legend>{ legend }</legend> }
     <fieldset>

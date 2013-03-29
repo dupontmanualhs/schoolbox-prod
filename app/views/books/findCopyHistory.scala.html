@@ -1,5 +1,7 @@
 @(copyHistoryLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Find Copy History") {
+<div class="span7 offset1">
   @copyHistoryLookupForm.asHtml
+</div>
 }
