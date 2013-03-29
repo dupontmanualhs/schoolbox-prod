@@ -335,8 +335,12 @@ object Books extends Controller {
               if (cpy.isCheckedOut) {
                 Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy already checked out.")
               } else {
-                request.visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
-                Redirect(routes.Books.checkoutBulkHelper(stu))
+                if (request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
+                  Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy already in queue.")
+                } else {
+                  request.visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
+                  Redirect(routes.Books.checkoutBulkHelper(stu))
+                }
               }
             }
           }
@@ -370,13 +374,18 @@ object Books extends Controller {
 
   def checkoutBulkSubmit(stu: String) = DbAction { implicit request =>
     implicit val pm = request.pm
+    val copies: Vector[String] = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+    val checkedOutCopies: Vector[String] = copies.filter(c => Copy.getByBarcode(c).get.isCheckedOut)
 
-    val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
-    copies.foreach(c => request.pm.makePersistent(new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, new java.sql.Date(new java.util.Date().getTime()), null)))
-
-    val mes = copies.length + " copies successfully checked out to " + Student.getByStateId(stu).get.displayName
-    request.visit.set("checkoutList", Vector[String]())
-    Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)
+    if (checkedOutCopies.isEmpty) {
+      copies.foreach(c => request.pm.makePersistent(new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, new java.sql.Date(new java.util.Date().getTime()), null)))
+      val mes = copies.length + " copie(s) successfully checked out to " + Student.getByStateId(stu).get.displayName
+      request.visit.set("checkoutList", Vector[String]())
+      Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)
+    } else {
+      val mes = "Books with the following barcodes already checked out: " + checkedOutCopies.toString.substring(7, checkedOutCopies.toString.length - 1)
+      Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> mes)
+    }
   }
 
   object CheckInForm extends Form {
