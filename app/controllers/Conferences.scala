@@ -34,8 +34,12 @@ object Conferences extends Controller {
 	    val events = pm.query[Event].executeList()
 	    val sessions = pm.query[models.conferences.Session].executeList()
 		val currUser: Option[User] = User.current
-		currUser match {
-			case None => Redirect(routes.Users.login).flashing("error" -> "You are not logged in.")
+		currUser match {	
+			case None => {
+				req.visit.redirectURL_=(routes.Conferences.index())
+				pm.makePersistent(req.visit)
+				Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
+			  }
 			case Some(x) => {if(currUser.get.username == "736052" || currUser.get.username == "todd") {  
 			  		Ok(views.html.conferences.admin(events, sessions))
 			  	} else if (Teacher.getByUsername(currUser.get.username)(pm).isDefined){ 
@@ -77,7 +81,6 @@ object Conferences extends Controller {
 	  val name = new TextField("name"){
 	    override val maxLength = Some(50)
 	  }
-	  //Doesn't work, change it
 	  val isActive = new ChoiceField[Boolean]("active", List(("Yes", true), ("No", true)))
 	  
 	  val fields = List(name, isActive)

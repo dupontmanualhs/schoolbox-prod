@@ -46,7 +46,7 @@ abstract class Binding(val form: Form, val rawData: Map[String, Seq[String]]) {
   def fieldErrors: Map[String, ValidationError] = Map()
   def fieldErrors(field: Field[_]): Option[ValidationError] = fieldErrors.get(field.name)
   def hasErrors: Boolean = !(formErrors.isEmpty && fieldErrors.isEmpty)
-  def render(action: Option[String]=None, legend: Option[String]=None): Node = form.render(this, action, legend)
+  def render(action: Option[String]=None, legend: Option[String]=None): NodeSeq = form.render(this, action, legend)
   
   def asStringSeq(field: Field[_]): Seq[String] = {
     rawData.getOrElse(field.name, Nil)

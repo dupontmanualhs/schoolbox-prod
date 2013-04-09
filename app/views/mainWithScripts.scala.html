@@ -23,6 +23,7 @@
         <script src="@routes.Assets.at("javascripts/jquery-1.9.1.min.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/jquery-ui.js")" type="text/javascript"></script>
         <script src="@routes.Assets.at("javascripts/jquery.timepicker.js")" type="text/javascript"></script>
+        <script src="@{routes.Assets.at("javascripts/maskedinput.js")}" type="text/javascript"></script> 
         
         
         @scripts
@@ -55,6 +56,9 @@
 	      <div class="content">
 		      @if(req.flash.get("message").isDefined) {
 		        <div class="alert alert-success">@req.flash("message")</div>
+		      }
+		      @if(req.flash.get("error").isDefined) {
+		        <div class="alert alert-error">@req.flash("error")</div>
 		      }
 	       	  @content
 	      </div>

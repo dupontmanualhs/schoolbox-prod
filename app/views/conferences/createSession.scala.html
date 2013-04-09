@@ -1,0 +1,6 @@
+@(sessionForm: forms.Binding, eventId: Long)(implicit req: util.DbRequest[_])
+
+@main("Create a conferencing session") {
+  <h2>Create Session</h2>
+  @sessionForm.render()
+}

@@ -3,6 +3,8 @@ package controllers
 import play.api._
 import forms._
 import forms.fields._
+import forms.validators._
+import forms.widgets._
 import play.api.mvc._
 import util.{DataStore, ScalaPersistenceManager}
 import util.DbAction
@@ -20,9 +22,32 @@ object Application extends Controller {
     val PasswordField = new PasswordFieldOptional("Password")
     val TextField = new TextFieldOptional("Text")
     val UrlField = new UrlFieldOptional("Url")
+    val PhoneField = new PhoneFieldOptional("Phone")
+    val listOfSpectopers = List("Allen","Zach","John","Others")
+    val ACField = new AutocompleteFieldOptional("AC", listOfSpectopers)
+    
+    val editedTextField = new TextFieldOptional("edited") {      
+      override def widget = new TextInput(required)
+      
+      override def helpText = Some(<p>Please input "lolCats" for true</p><p>here is a reset button: <button type="reset" class="btn">useless</button></p>)
+      
+      override def asValue(s: Seq[String]): Either[ValidationError, Option[String]] = {
+        s match {
+        case Seq() => Right(None)
+        case Seq(str) => if(str=="lolCats") Right(Some("true")) else Right(Some("false"))
+        case _ => Left(ValidationError("Expected a single value, got multiples."))
+    }
+      }
+    }
     
     
-    val fields = List(ChoiceField, DateField,TimeField, TimestampField, EmailField, NumericField, PasswordField, TextField, UrlField)
+    val fields = List(ACField, ChoiceField, DateField,TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField, editedTextField)
+    
+    override def cancelTo: String = "url"
+    override def prefix: Option[String] = None
+    override def submitText = "Submit"
+    override def includeCancel = true
+    override def cancelText = "Cancel"
     
   }
   
@@ -48,8 +73,9 @@ object Application extends Controller {
         val ThePassword = vb.valueOf(formTests.PasswordField)
         val TheText = vb.valueOf(formTests.TextField)
         val TheUrl = vb.valueOf(formTests.UrlField)
-        
-        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString))
+        val TheEdited = vb.valueOf(formTests.editedTextField)
+        val ThePhone = vb.valueOf(formTests.PhoneField)
+        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Phone Field", ThePhone.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
         
         Ok(views.html.showResults(ListOfStuff))
       }

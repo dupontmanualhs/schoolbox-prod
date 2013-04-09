@@ -22,14 +22,16 @@ class TimestampInput(
 	$(function() {{
       $('.datepicker{Name}').datepicker({{
 		  changeMonth: true,
-		  changeYear: true,
-		  altField: '.{Name}',
-		  altFormat: 'DD, d MM, yy',
-		  showOtherMonths: true,
-		  selectOtherMonths: true,
-		  showOn: 'button',
-  		  buttonImageOnly: false,
-		  buttonImage: 'images/calendar.gif'
+  		  changeYear: true,
+  		  altField: '.{Name}',
+  		  altFormat: 'DD, d MM, yy',
+  		  showOtherMonths: true,
+  		  selectOtherMonths: true,
+  		  showOn: 'both',
+  		  buttonImageOnly: true,
+  		  buttonImage: '/assets/images/calendar.jpeg',
+  		  shortYearCutoff: 99,
+  		  buttonText: 'Chooser'
       }});
     }});
 	$(function() {{
@@ -38,5 +40,13 @@ class TimestampInput(
     	showLeadingZero: true
       }});
     }});
-	</script>
+	</script><script type="text/javascript">
+  	jQuery(function($){{
+  		$('.datepicker{Name}').mask('99/99/9999', {{placeholder:' '}});
+  	}});
+  </script><script type="text/javascript">
+  	jQuery(function($){{
+  		$('.timepicker{Name}').mask('99:99 aa', {{placeholder:' '}});
+  	}});
+  </script>
 }

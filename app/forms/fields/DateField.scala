@@ -43,6 +43,9 @@ class DateFieldOptional(name: String) extends BaseDateField[Option[Date]](name) 
       
       Right(Option[Date](Date.valueOf(splitdate(2)+"-"+splitdate(0)+"-"+splitdate(1))))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is in mm/dd/yyyy format."))
+      case _ => {
+        if(s.isEmpty) Right(None)
+        else Left(ValidationError("Please make sure input is in mm/dd/yyyy format."))
+      }
     }
-}
+  }

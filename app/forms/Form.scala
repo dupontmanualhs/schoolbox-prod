@@ -18,12 +18,13 @@ abstract class Form {
   def prefix: Option[String] = None
   def autoId: Option[String] = Some("id_%s")
   def submitText = "Submit"
-  def includeCancel = false
+  def includeCancel = true
   def cancelText = "Cancel"
     
-  def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): Node = {
+  def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): NodeSeq = {
     <form method={ method } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
       <fieldset>
+    	{this.scripts}
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
         { bound.formErrors.render }
         { fields.flatMap(_.render(bound)) }
@@ -39,7 +40,11 @@ abstract class Form {
   def actions: NodeSeq = {
     <div class="form-actions">
       <button type="submit" class="btn btn-primary">{ submitText }</button>
-      { if (includeCancel) <button type="button" class="btn">{ cancelText }</button>
+      { if (includeCancel && cancelTo=="url") <button type="button" class="btn" onclick="window.location.href=document.URL">{ cancelText }</button>
+        else if (includeCancel){ 
+          val newLink = "window.location.href='"+cancelTo+"'"
+          <button type="button" class="btn" onclick={newLink}>{cancelText}</button>
+        }
         else NodeSeq.Empty }
     </div>
   }
