@@ -107,6 +107,16 @@ class Section {
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )
   }
+  
+  def getAnnouncements(implicit pm: ScalaPersistenceManager = null): List[Announcement] = {
+    def query(epm: ScalaPersistenceManager): List[Announcement] = {
+      val cand = QAnnouncement.candidate
+      //this throws a null pointer exception. Maybe needs an equals method for Section?
+      pm.query[Announcement].filter(cand.section.eq(this)).executeList
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
 }
 
 object Section {

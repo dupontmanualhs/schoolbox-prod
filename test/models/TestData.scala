@@ -284,11 +284,11 @@ object TestData {
     val r1alg1AClasswork = new Category("Classwork", r1alg1A, .1)
     val r1alg1AParticipation = new Category("Participation", r1alg1A, .6)
     
-    val r2usHistBQuizzes = new Category("Quizzes", r2usHistB, .2)
-    val r2usHistBTests = new Category("Tests", r2usHistB, .35)
-    val r2usHistBHomework = new Category("Homework", r2usHistB, .2)
-    val r2usHistBAPPractice = new Category("AP Practice", r2usHistB, .2)
-    val r2usHistBConduct = new Category("Conduct", r2usHistB, .05)
+    val r2usHistAQuizzes = new Category("Quizzes", r2usHistA, .2)
+    val r2usHistATests = new Category("Tests", r2usHistA, .35)
+    val r2usHistAHomework = new Category("Homework", r2usHistA, .2)
+    val r2usHistAAPPractice = new Category("AP Practice", r2usHistA, .2)
+    val r2usHistAConduct = new Category("Conduct", r2usHistA, .05)
       
     val w2bioAQuizzes = new Category("Quizzes", w2bioA, .25)
     val w2bioATests = new Category("Tests", w2bioA, .4)
@@ -296,30 +296,30 @@ object TestData {
     val w2bioALabs = new Category("Labs", w2bioA, .15)
     
     pm.makePersistentAll(List(r1alg1AQuizzes, r1alg1ATests, r1alg1AHomework, r1alg1AClasswork, r1alg1AParticipation,
-                              r2usHistBQuizzes, r2usHistBTests, r2usHistBHomework, r2usHistBAPPractice, 
-                              r2usHistBConduct, w2bioAQuizzes, w2bioATests,w2bioAHomework, w2bioALabs))
+                              r2usHistAQuizzes, r2usHistATests, r2usHistAHomework, r2usHistAAPPractice, 
+                              r2usHistAConduct, w2bioAQuizzes, w2bioATests,w2bioAHomework, w2bioALabs))
     
     //makeAssignments
     if (debug) println("Creating Assignments...")
     
     
-    // r2usHistB Assignments
-    val guildedAgeQuiz = new Assignment("Gilded Age Quiz", 25, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-13"), r2usHistBQuizzes)
-    val lincolnFavoriteFooodsQuiz = new Assignment("Lincoln's Favorite Foods Quiz", 35, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-01"), r2usHistBQuizzes)
+    // r2usHistA Assignments
+    val guildedAgeQuiz = new Assignment("Gilded Age Quiz", 25, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-13"), r2usHistAQuizzes)
+    val lincolnFavoriteFooodsQuiz = new Assignment("Lincoln's Favorite Foods Quiz", 35, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-01"), r2usHistAQuizzes)
     
-    val civilWarTest = new Assignment("Civil War Test", 20000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBTests)
-    val secondCivilWarTest = new Assignment("Second Civil War Test: East Coast vs West Coast Hip Hop", 200000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBTests)
-    val thirdCivilWarTest = new Assignment("Third Civil War Test: Northeasterly Residents vs Middle Southwest Utah", 20, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBTests)
+    val civilWarTest = new Assignment("Civil War Test", 20000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
+    val secondCivilWarTest = new Assignment("Second Civil War Test: East Coast vs West Coast Hip Hop", 200000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
+    val thirdCivilWarTest = new Assignment("Third Civil War Test: Northeasterly Residents vs Middle Southwest Utah", 20, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
     
-    val aLVHReview = new Assignment("Abraham Lincoln Vampire Hunter Review", 1, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
-    val theHistoryOfUSHistory = new Assignment("Worksheet: The History of US History", 2, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
-    val robotsAndKoreanWar = new Assignment("Paper: Advanced Androids Behind the Korean War", 5, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
-    val georgeWashingtonvsGodzilla = new Assignment("George Washington: Savior of Our Union", 8, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBHomework)
+    val aLVHReview = new Assignment("Abraham Lincoln Vampire Hunter Review", 1, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
+    val theHistoryOfUSHistory = new Assignment("Worksheet: The History of US History", 2, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
+    val robotsAndKoreanWar = new Assignment("Paper: Advanced Androids Behind the Korean War", 5, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
+    val georgeWashingtonvsGodzilla = new Assignment("George Washington: Savior of Our Union", 8, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
     
-    val apPractice1 = new Assignment("AP Practice 1", 111111, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBAPPractice)
+    val apPractice1 = new Assignment("AP Practice 1", 111111, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAAPPractice)
       
-    val conduct4 = new Assignment("4th 6 weeks Conduct", 10, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBConduct)
-    val conduct5 = new Assignment("5th 6 weeks Conduct", 4, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistBConduct)
+    val conduct4 = new Assignment("4th 6 weeks Conduct", 10, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAConduct)
+    val conduct5 = new Assignment("5th 6 weeks Conduct", 4, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAConduct)
      
       
     // r1alg1A Assignments
@@ -371,16 +371,22 @@ object TestData {
     if (debug) println("Creating Announcements...")
     
     
-    //r2usHistB Announcements
+    //r2usHistA Announcements
     val ann1 = new Announcement("HEY KIDS! FIRST DAY OF CLASS AND I'M SOOOO EXCITED!", Timestamp.valueOf("2012-08-15 14:35:21"),
-                                r2usHistB)
+                                r2usHistA, mary)
     val ann2 = new Announcement("Review sheet #2 and old-school free-response. See you on Monday", 
-                                Timestamp.valueOf("2012-09-15 04:45:25"), r2usHistB)
-    val ann3 = new Announcement("hksgkdnf", Timestamp.valueOf("2012-09-15 14:34:25"), r2usHistB)
+                                Timestamp.valueOf("2012-09-15 04:45:25"), r2usHistA, mary)
+    val ann3 = new Announcement("hksgkdnf", Timestamp.valueOf("2012-09-15 14:34:25"), r2usHistA, mary)
     val ann4 = new Announcement("I apologize to my students for showing up to class trapped in a plastic bag. I " +
     		                    "realize it severely impaired my teaching ability.",  Timestamp.valueOf("2012-10-15 23:35:21"),
-    		                    r2usHistB)
-    
+    		                    r2usHistA, mary)
+    val ann5 = new Announcement("All further announcements will be copied from Mr. Purvis's Edmodo", Timestamp.valueOf("2012-10-30 14:23:51"),
+    							r2usHistA, mary)
+    val ann6 = new Announcement("Hi", Timestamp.valueOf("2012-10-31 00:00:00"), r2usHistA, mary)
+    val ann7 = new Announcement("Due Wednesday: 2011 Form B Free-Response Questions. Please bring your responses and" + 
+    							"scores for each of the questions (scoring rubrics are posted below)\nDue Friday: Series" +
+    							"Exam Test corrections. Left column--what i did wrong; right column--what i should have done." +
+    							"See multiple choice questions below.", Timestamp.valueOf("2012-11-01 19:19:19"), r2usHistA, mary)
     //TODO: make test data for announcements and gradebook
 
   }

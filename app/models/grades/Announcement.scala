@@ -8,6 +8,7 @@ import util.ScalaPersistenceManager
 import util.PersistableFile
 import util.DataStore
 import models.courses.Section
+import models.users.User
 
 class Announcement {
 
@@ -16,14 +17,16 @@ class Announcement {
   @Persistent(defaultFetchGroup="true")
   private[this] var _date: java.sql.Timestamp = _
   private[this] var _text: String = _
+  private[this] var _author: User = _
   //TODO: private[this] var _attachments: java.util.List[String] = _
   //TODO: make this be scala and convert correctly
   
-  def this(text: String, date: java.sql.Timestamp, section: Section/*, attachments: Option[java.util.List[String]]*/) {
+  def this(text: String, date: java.sql.Timestamp, section: Section, author: User/*, attachments: Option[java.util.List[String]]*/) {
     this()
     _text = text
     _section = section
     _date = date
+    _author = author
 //  _attachments = TODO
   }
   
@@ -37,6 +40,9 @@ class Announcement {
   
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
+  
+  def author: User = _author
+  def author_=(theAuthor: User) { _author = theAuthor}
   
 }
 
@@ -52,6 +58,10 @@ trait QAnnouncement extends PersistableExpression[Announcement] {
   
   private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
   def section: ObjectExpression[Section] = _section
+  
+  private[this] lazy val _author: ObjectExpression[User] = new ObjectExpressionImpl[User](this, "_author")
+  def author: ObjectExpression[User] = _author
+  
 }
 
 object QAnnouncement {
