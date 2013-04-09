@@ -14,7 +14,7 @@ class Session {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
-   
+  
   @Column(allowsNull="false")
   private[this] var _event : Event = _
   def event: Event = _event

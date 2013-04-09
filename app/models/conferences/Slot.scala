@@ -74,14 +74,14 @@ class Slot {
     _endTime = calculateEndTime()
     _parentName = parentName
     _email = email
-    _phone = phone
+    _phone = phone 
     _alternatePhone = alternatePhone.getOrElse(null)
     _comment = comment.getOrElse(null)
   }
   
   def calculateEndTime(): java.sql.Time = {
     var slotInterval = _session.slotInterval
-    //converts startTime to "hh:mm:dd" format, if someone knows a better way tell Ken
+    //converts startTime to "hh:mm:dd" format, if someone knows a better way that isn't deprecated tell Ken
     var initialTime = _startTime.toString
     //splits the sections of the time
     var sections = initialTime.split(":")
@@ -99,6 +99,8 @@ class Slot {
     if (minutes.length == 1) minutes = 0 + minutes
     Time.valueOf(hours + ":" + minutes + ":" + seconds)
   }
+  
+  
   
 }
 

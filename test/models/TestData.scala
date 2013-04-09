@@ -301,9 +301,14 @@ object TestData {
     val springConf = new Event("Spring Conferences", true)
     val springSession = new Session(springConf, Date.valueOf("2013-04-01"), Timestamp.valueOf("2013-04-21 23:59:59"), 
         Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:0:00"), Time.valueOf("23:59:59"), 10)
-    val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher] /*ob*/, Student.getByUsername("RASHAH01").asInstanceOf[Student], 
-        Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
+    val firstSlot = new Slot(springSession, Teacher.getByUsername("todd").get /*ob*/, Student.getByUsername("jack").get, 
+        Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", None, None)
+    pm.makePersistentAll(List(springConf, springSession, firstSlot))
   }
   
-
+  def allSessions: List[models.conferences.Session] = {
+    DataStore.withManager { implicit pm =>
+      pm.query[models.conferences.Session].executeList()
+      }
+  }
 }
