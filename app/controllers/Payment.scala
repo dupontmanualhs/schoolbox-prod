@@ -14,21 +14,21 @@ object Payment extends Controller {
     val address = new TextField("Address")
     val phone = new NumericField[Int]("Phone")
     val account = new NumericField[Int]("Account")
-    val pin = new NumericField[Double]("PIN")
+    val pin = new NumericField[Int]("PIN")
     val fields = List(address, phone, account, pin)
   }
 
-  def PaymentForm = DbAction { implicit request => 
+  def payForm() = DbAction { implicit request => 
   	if (request.method == "GET") Ok(views.html.payment.paymentInfo(Binding(PaymentForm)))
   		else Binding(PaymentForm, request) match {
-  		case ib: InvalidBinding => Ok(views.html.formTemplate(ib)) // there were errors
+  		case ib: InvalidBinding => Ok(views.html.payment.paymentInfo(ib)) // there were errors
   		case vb: ValidBinding => {
  			val theAddress: String = vb.valueOf(PaymentForm.address)
   			val thePhone: Int = vb.valueOf(PaymentForm.phone)
   			val theAccount: Int = vb.valueOf(PaymentForm.account)
   			val thePIN: Int = vb.valueOf(PaymentForm.pin)
   			// do whatever you want with the values now (notice they're typesafe!)
-  		Redirect(routes.Application.nextPage())
+  		//Redirect(routes.Application.nextPage())
   			}
   		}
 	}

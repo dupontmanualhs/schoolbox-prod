@@ -12,7 +12,7 @@ import util.ScalaPersistenceManager
 import util.DbRequest
 
 @PersistenceCapable(detachable="true")
-class Fees {
+class Payment {
 	@PrimaryKey
 	@Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
 	private[this] var _id: Long = _
@@ -26,16 +26,13 @@ class Fees {
 	
 	private[this] var _course: Course = _
 	
-	private[this] var _dateAssigned: Date = _
-	
 	private[this] var _datePaid: Date = _
 	
-	def this(cost: Int, teacher: Teacher, student: Student, course: Course, dateAss: Date, datePay: Date = null) = {
+	def this(cost: Int, teacher: Teacher, student: Student, course: Course, datePay: Date = null) = {
 	  this()
 	  _cost = cost
 	  _teacher = teacher
 	  _course = course
-	  _dateAssigned = dateAss
 	  _datePaid = datePay
 	}
 	
@@ -51,9 +48,6 @@ class Fees {
 	def course: Course = _course
 	def course_(theCourse: Course) = {_course = theCourse}
 	
-	def dateAss: Date = _dateAssigned
-	def dateAss_(theDate: Date) = {_dateAssigned = theDate}
-	
 	def datePay: Date = _datePaid
 	def datePay_(theDate: Date) = {_datePaid = theDate}
 	
@@ -62,7 +56,7 @@ class Fees {
 	private[this] var _cost$: Double = (this.cost/100) + (this.cost%100)/100.0
 }
 
-trait QFees extends PersistableExpression[Fees] {
+trait QPayment extends PersistableExpression[Payment] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
@@ -78,29 +72,26 @@ trait QFees extends PersistableExpression[Fees] {
   private[this] lazy val _course: ObjectExpression[Course] = new ObjectExpressionImpl[Course](this, "_course")
   def course: ObjectExpression[Course] = _course
   
-  private[this] lazy val _dateAss: ObjectExpression[Date] = new ObjectExpressionImpl[Date](this, "_dateAss")
-  def dateAss: ObjectExpression[Date] = _dateAss
-  
   private[this] lazy val _datePay: ObjectExpression[Date] = new ObjectExpressionImpl[Date](this, "_datePay")
   def datePay: ObjectExpression[Date] = _datePay
 }
 
-object QFees {
-  def apply(parent: PersistableExpression[_], name: String, depth: Int): QFees = {
-    new PersistableExpressionImpl[Fees](parent, name) with QFees
+object QPayment {
+  def apply(parent: PersistableExpression[_], name: String, depth: Int): QPayment = {
+    new PersistableExpressionImpl[Payment](parent, name) with QPayment
   }
   
-  def apply(cls: Class[Fees], name: String, exprType: ExpressionType): QFees = {
-    new PersistableExpressionImpl[Fees](cls, name, exprType) with QFees
+  def apply(cls: Class[Payment], name: String, exprType: ExpressionType): QPayment = {
+    new PersistableExpressionImpl[Payment](cls, name, exprType) with QPayment
   }
   
-  private[this] lazy val jdoCandidate: QFees = candidate("this")
+  private[this] lazy val jdoCandidate: QPayment = candidate("this")
   
-  def candidate(name: String): QFees = QFees(null, name, 5)
+  def candidate(name: String): QPayment = QPayment(null, name, 5)
   
-  def candidate(): QFees = jdoCandidate
+  def candidate(): QPayment = jdoCandidate
   
-  def parameter(name: String): QFees = QFees(classOf[Fees], name, ExpressionType.PARAMETER)
+  def parameter(name: String): QPayment = QPayment(classOf[Payment], name, ExpressionType.PARAMETER)
   
-  def variable(name: String): QFees = QFees(classOf[Fees], name, ExpressionType.VARIABLE)
+  def variable(name: String): QPayment = QPayment(classOf[Payment], name, ExpressionType.VARIABLE)
 }

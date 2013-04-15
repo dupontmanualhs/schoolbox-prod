@@ -118,5 +118,5 @@ GET     /lockers/schedule                       controllers.Lockers.schedule()
 GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
 
 #Payment
-GET		/payment								controllers.Payment.PaymentForm()
-POST	/payment								controllers.Payment.PaymentForm()
+GET		/payment								controllers.Payment.payForm()
+POST	/payment								controllers.Payment.payForm()
