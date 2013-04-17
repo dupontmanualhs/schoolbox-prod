@@ -755,7 +755,7 @@ object Books extends Controller {
           title.lastModified = new java.sql.Date(new java.util.Date().getTime())
           request.pm.makePersistent(title)
 
-          vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).imageUrl) match {
+          vb.valueOf(f.imageUrl) match {
             case Some(url) => try {
               downloadImage(url, isbn)
               Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")

@@ -56,11 +56,11 @@ class Title {
   
   @Column(allowsNull="true")
   private[this] var _weight: java.lang.Double = _
-  def weight: Option[Double] = Option(_weight)
+  def weight: Option[Double] = if (_weight == null) None else Some(_weight)
   def weight_=(theWeight: Option[Double]) {
     theWeight match {
-      case None => _weight = null
       case Some(w) => _weight = w
+      case _ => _weight = null
     }
   }
   def weight_=(theWeight: Double) { _weight = theWeight }
