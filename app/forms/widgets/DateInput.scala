@@ -34,10 +34,6 @@ class DateInput(
   				buttonText: 'Chooser'
   			}});
   		}});
-  </script><script type="text/javascript">
-  	jQuery(function($){{
-  		$('.datepicker{Name}').mask('99/99/9999', {{placeholder:' '}});
-  	}});
   </script>
 
 }

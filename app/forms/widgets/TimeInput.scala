@@ -18,15 +18,11 @@ class TimeInput(
   
   override def scripts: NodeSeq = 
   <script>
-    jQuery(function() {{
+    $(function() {{
       $('.timepicker{Name}').timepicker({{
 		showPeriod: true,
     	showLeadingZero: true
       }});
     }});
-  </script><script type="text/javascript">
-  	jQuery(function($){{
-  		$('.timepicker{Name}').mask('99:99 aa', {{placeholder:' '}});
-  	}});
   </script>
 }
