@@ -742,15 +742,16 @@ object Books extends Controller {
     if (request.method == "GET") {
       Ok(html.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
     } else {
-      Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight), request) match {
+      val f = new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight)
+      Binding(f, request) match {
         case ib: InvalidBinding => Ok(html.books.editTitleHelper(ib))
         case vb: ValidBinding => {
-          title.name = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).name)
-          title.author = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).author)
-          title.publisher = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).publisher)
-          title.numPages = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).numPages)
-          title.dimensions = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).dimensions)
-          title.weight = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).weight)
+          title.name = vb.valueOf(f.name)
+          title.author = vb.valueOf(f.author)
+          title.publisher = vb.valueOf(f.publisher)
+          title.numPages = vb.valueOf(f.numPages)
+          title.dimensions = vb.valueOf(f.dimensions)
+          title.weight = vb.valueOf(f.weight)
           title.lastModified = new java.sql.Date(new java.util.Date().getTime())
           request.pm.makePersistent(title)
 
