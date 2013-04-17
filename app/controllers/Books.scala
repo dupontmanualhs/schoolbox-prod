@@ -711,4 +711,49 @@ object Books extends Controller {
     Ok(views.html.books.inventory(rows))
   }
 
+  class EditTitleForm(iName: String, iAuthor: Option[String], iPublisher: Option[String], iNumPages: Option[Int], iDimensions: Option[String], iWeight: Option[Double]) extends Form {
+    val name = new TextField("Name") {
+      override def initialVal = Some(iName)
+      override val maxLength = Some(80)
+    }
+    val author = new TextFieldOptional("Author(s)") {
+      override def initialVal = Some(iAuthor)
+      override val maxLength = Some(80)
+    }
+    val publisher = new TextFieldOptional("Publisher") {
+      override def initialVal = Some(iPublisher)
+      override val maxLength = Some(80)
+    }
+    val numPages = new NumericFieldOptional[Int]("Number Of Pages") {
+      override def initialVal = Some(iNumPages)
+    }
+    val dimensions = new TextFieldOptional("Dimensions (in)") {
+      override def initialVal = Some(iDimensions)
+    }
+    val weight = new NumericFieldOptional[Double]("Weight (lbs)") {
+      override def initialVal = Some(iWeight)
+    }
+    val imageUrl = new UrlFieldOptional("New Image URL")
+
+
+    def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
+  }
+
+  def editTitleHelper(isbn: String) = DbAction { implicit request =>
+    implicit val pm = request.pm
+    val title = Title.getByIsbn(isbn).get
+
+    if (request.method == "GET") {
+      Ok(html.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
+    } else {
+      Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight), request) match {
+        case ib: InvalidBinding => Ok(html.books.editTitleHelper(ib))
+        case vb: ValidBinding => {
+          // stuff goes here
+          Redirect(routes.Application.index()).flashing("message" -> "Form submitted")
+        }
+      }
+    }
+  }
+
 }
