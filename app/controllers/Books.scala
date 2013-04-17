@@ -233,10 +233,6 @@ object Books extends Controller {
   
   def printCenter() = TODO
   
-  def bulkCheckoutHelper() = TODO
-  
-  def bulkCheckout() = TODO
-
   object CheckoutForm extends Form {
     val barcode = new TextField("Barcode") {
       override val minLength = Some(21)
@@ -749,8 +745,24 @@ object Books extends Controller {
       Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight), request) match {
         case ib: InvalidBinding => Ok(html.books.editTitleHelper(ib))
         case vb: ValidBinding => {
-          // stuff goes here
-          Redirect(routes.Application.index()).flashing("message" -> "Form submitted")
+          title.name = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).name)
+          title.author = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).author)
+          title.publisher = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).publisher)
+          title.numPages = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).numPages)
+          title.dimensions = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).dimensions)
+          title.weight = vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).weight)
+          title.lastModified = new java.sql.Date(new java.util.Date().getTime())
+          request.pm.makePersistent(title)
+
+          vb.valueOf(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight).imageUrl) match {
+            case Some(url) => try {
+              downloadImage(url, isbn)
+              Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
+            } catch {
+              case e: Exception => Redirect(routes.Application.index()).flashing("message" -> "Image not downloaded. Edit the tite to try downloading again")
+            }
+            case None => Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
+          }
         }
       }
     }
