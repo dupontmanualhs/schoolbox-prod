@@ -237,33 +237,6 @@ object Conferences extends Controller {
 	    }
 	}
 	
-	def toAmericanString(obj: Object): String = obj match {
-		case timestamp : java.sql.Timestamp => {
-	  	  val timestampString = timestamp.toString
-	  	  val splitString = timestampString.split(" ")
-	  	  val date = Date.valueOf(splitString(0))
-	  	  val time = Time.valueOf(splitString(1).substring(0,8))
-	  	  toAmericanString(date) + " " + toAmericanString(time)
-	  	}
-	  	case time: java.sql.Time => {
-	  	  val timeString = time.toString
-	  	  val splitString = timeString.split(":")
-	  	  var hours = splitString(0).toInt
-	  	  val ender = {
-	  	    if (hours < 12) "AM"
-	  	    else "PM"
-	  	  }
-	  	  if (hours == 0) hours = 12
-	  	  else if (hours > 12) hours = hours - 12
-	  	  hours.toString + ":" + splitString(1) + " " + ender
-	  	  
-	  	}
-	  	case date: java.sql.Date => {
-	  	  val dateString = date.toString
-	  	  val splitString = dateString.split("-")
-	  	  splitString(1) + "/" + splitString(2) + "/" + splitString(0)
-	  	}
-	  	case _ => ""
-	}
+	
 	
 }
