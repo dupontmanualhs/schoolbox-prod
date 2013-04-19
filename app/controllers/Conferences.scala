@@ -23,6 +23,7 @@ object Conferences extends Controller {
 	  Ok(views.html.stub())	  
 	}
 	
+	
 	def viewAsTeacher() = DbAction { implicit req =>
 	  implicit val pm: ScalaPersistenceManager = req.pm
 	  val currUser: Option[User] = User.current
@@ -40,7 +41,8 @@ object Conferences extends Controller {
 				pm.makePersistent(req.visit)
 				Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
 			  }
-			case Some(x) => {if(currUser.get.username == "736052" || currUser.get.username == "todd") {  
+			case Some(x) => {if(currUser.get.username == "736052" || currUser.get.username == "todd") {
+			  //remove teacherId after done teaching
 			  		Ok(views.html.conferences.admin(events, sessions))
 			  	} else if (Teacher.getByUsername(currUser.get.username)(pm).isDefined){ 
 			  	  Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username)))
@@ -109,7 +111,10 @@ object Conferences extends Controller {
 	    case None => NotFound(views.html.notFound("No event could be found"))
 	    case Some(event) => {
 	      val sessions = pm.query[models.conferences.Session].filter(QSession.candidate.event.eq(event)).executeList()
-	      for (session <- sessions) deleteSession(session.id)
+	      val slots = List[Slot]()
+	      for (session <- sessions) pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList() ++ slots
+	      for (slot <- slots) pm.deletePersistent(slot)
+	      for (session <- sessions) pm.deletePersistent(session)
 	      pm.deletePersistent(event)
 	      Redirect(routes.Conferences.index()).flashing("message" -> ("\"" + event.name + "\" was deleted."))
 	    } 
@@ -140,6 +145,7 @@ object Conferences extends Controller {
 	        //val thePriority = vb.valueOf(SessionForm.priority)
 	        val theStartTime = vb.valueOf(SessionForm.startTime)
 	        val theEndTime = vb.valueOf(SessionForm.endTime)
+	        println(theDate + " " + theStartTime + " " + theEndTime)
 	        val theSlotInterval = vb.valueOf(SessionForm.slotInterval)
 	        val s = new models.conferences.Session(theEvent(0) , theDate, theCutoff, thePriority, theStartTime, theEndTime, theSlotInterval)
 	        pm.makePersistent(s)
@@ -155,7 +161,7 @@ object Conferences extends Controller {
 	    case None => NotFound(views.html.notFound("No session could be found"))
 	    case Some(session) => {
 	      val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList()
-	      for (slot <- slots) deleteSlot(slot.id)
+	      for (slot <- slots) pm.deletePersistent(slot)
 	      pm.deletePersistent(session)
 	      Redirect(routes.Conferences.index()).flashing("message" -> ("Session was deleted."))
 	    } 
@@ -195,6 +201,9 @@ object Conferences extends Controller {
 	        val theAlternatePhone = vb.valueOf(SlotForm.alternatePhone)
 	        val theComment = vb.valueOf(SlotForm.comment)
 	        val s = new Slot(theSession.get, theTeacher.get, theStudent.get, theStartTime, theParent, theEmail, thePhone, theAlternatePhone, theComment)
+	        if (validateSlot(s)) {
+	          Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
+	        }
 	        pm.makePersistent(s)
 	        Redirect(routes.Conferences.index()).flashing("message" -> "Successfully created slot!")
 	      }
@@ -215,5 +224,46 @@ object Conferences extends Controller {
 	
 	
 	  //TODO: Write a method that checks if there already exists a slot within the same time-period
+	def validateSlot(slot: Slot): Boolean = {
+	  val startTime = slot.startTime
+	  val endTime = slot.endTime
+	  DataStore.withManager { implicit pm =>
+	    val slots = pm.query[Slot].executeList()
+	    for (slot <- slots) {
+	      if ((startTime.compareTo(slot.startTime) >= 0) && (startTime.compareTo(slot.endTime) < 0)) true
+	      if ((endTime.compareTo(slot.startTime) > 0) && (endTime.compareTo(slot.endTime) <= 0)) true
+	    }
+	    false
+	    }
+	}
+	
+	def toAmericanString(obj: Object): String = obj match {
+		case timestamp : java.sql.Timestamp => {
+	  	  val timestampString = timestamp.toString
+	  	  val splitString = timestampString.split(" ")
+	  	  val date = Date.valueOf(splitString(0))
+	  	  val time = Time.valueOf(splitString(1).substring(0,8))
+	  	  toAmericanString(date) + " " + toAmericanString(time)
+	  	}
+	  	case time: java.sql.Time => {
+	  	  val timeString = time.toString
+	  	  val splitString = timeString.split(":")
+	  	  var hours = splitString(0).toInt
+	  	  val ender = {
+	  	    if (hours < 12) "AM"
+	  	    else "PM"
+	  	  }
+	  	  if (hours == 0) hours = 12
+	  	  else if (hours > 12) hours = hours - 12
+	  	  hours.toString + ":" + splitString(1) + " " + ender
+	  	  
+	  	}
+	  	case date: java.sql.Date => {
+	  	  val dateString = date.toString
+	  	  val splitString = dateString.split("-")
+	  	  splitString(1) + "/" + splitString(2) + "/" + splitString(0)
+	  	}
+	  	case _ => ""
+	}
 	
 }

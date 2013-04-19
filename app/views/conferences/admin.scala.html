@@ -1,5 +1,7 @@
 @(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: util.DbRequest[_])
 
+@import controllers.Conferences._
+
 @main("Admin Conferences") {
 	<h1> Hello OB </h1>
 	<p> What would you like to do? </p>
@@ -9,20 +11,21 @@
 			<tr>
 			<td>@event.name</td>
 			<td>@{if (event.isActive) "Yes" else "No"}</td>
-			<td><button class="confirmLink btn" href=@routes.Conferences.deleteEvent(event.id)>Delete</button></td>
+			<td><a class="confirmLink btn" href=@routes.Conferences.deleteEvent(event.id)>Delete</a></td>
 			</tr>
-			@for(session <- sessions) {
+			@for(session <- sessions if session.event == event) {
 			<tr>
-			<td>@session.date.toString()</td>
-			<td>@session.cutoff.toString()</td>
-			<td>@{session.startTime.toString() + " - " + session.endTime.toString()}</td>
+			<td>@toAmericanString(session.date)</td>
+			<td>@toAmericanString(session.cutoff)</td>
+			<td>@{toAmericanString(session.startTime) + " - " + toAmericanString(session.endTime)}</td>
+			<td>@session.slotInterval</td>
+			<td><a class="confirmLink btn" href=@routes.Conferences.deleteSession(session.id)>Delete</a></td>
 			</tr>
 			}
 			<tr>
 			<td><a class="btn btn-small" href=@controllers.routes.Conferences.createSession(event.id)>Add a new session</a></td>
 			</tr>
 		}
-	</table>
 	<a class ="btn" href=@controllers.routes.Conferences.createEvent() >Create An Event</a>
 	<a class ="btn" href=@controllers.routes.Conferences.viewAsTeacher() >View As Teacher</a>
 }

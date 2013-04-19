@@ -55,11 +55,13 @@ class Slot {
   def comment: Option[String] = if (_comment == null) None else Some(_comment)
   def comment_=(theComment: Option[String]) {_comment = theComment.getOrElse(null)}
   
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _startTime : java.sql.Time = _
   def startTime: java.sql.Time = _startTime
   def startTime_=(theStartTime: java.sql.Time) {_startTime = theStartTime}
   
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _endTime : java.sql.Time = _
   def endTime: java.sql.Time = _endTime
