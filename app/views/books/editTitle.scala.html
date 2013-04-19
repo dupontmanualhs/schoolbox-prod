@@ -1,0 +1,5 @@
+@(TitleLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
+
+@main("Edit a Title") {
+  @TitleLookupForm.render()
+}

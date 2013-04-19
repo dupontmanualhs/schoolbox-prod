@@ -15,6 +15,7 @@ import javax.imageio._
 import java.io._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
+import net.sourceforge.barbecue.{BarcodeFactory, Barcode}
 
 object Books extends Controller {
   /**
@@ -731,6 +732,7 @@ object Books extends Controller {
     }
     val imageUrl = new UrlFieldOptional("New Image URL")
 
+    override def cancelTo = "/books/editTitle"
 
     def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
   }
@@ -767,6 +769,38 @@ object Books extends Controller {
         }
       }
     }
+  }
+
+  object ChooseTitleForm extends Form {
+    val isbn = new TextField("ISBN") {
+      override val minLength = Some(10)
+      override val maxLength = Some(13)
+      override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
+          case None => ValidationError("Title with the given ISBN not found.")
+          case Some(title) => ValidationError(Nil)
+        }))
+    }
+
+    val fields = List(isbn)
+  }
+
+  def editTitle() = DbAction { implicit req =>
+    implicit val pm = req.pm
+    if (req.method == "GET") {
+      Ok(html.books.editTitle(Binding(ChooseTitleForm)))
+    } else {
+      Binding(ChooseTitleForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.editTitle(ib))
+        case vb: ValidBinding => {
+          val lookupIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
+          Redirect(routes.Books.editTitleHelper(lookupIsbn))
+        }
+      }
+    }
+  }
+
+  def makeBarcode(barcode: String): Barcode =  {
+    BarcodeFactory.createCode128A(barcode)
   }
 
 }

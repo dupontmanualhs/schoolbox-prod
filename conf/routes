@@ -112,6 +112,8 @@ GET     /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSu
 POST    /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSubmit(stu: String)
 GET     /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
 POST    /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
+GET     /books/editTitle                        controllers.Books.editTitle
+POST    /books/editTitle                        controllers.Books.editTitle
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
