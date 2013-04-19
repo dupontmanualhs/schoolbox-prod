@@ -21,13 +21,13 @@ class Title {
   
   @Column(allowsNull="true")
   private[this] var _author: String = _
-  def author: Option[String] = Option(_author)
+  def author: Option[String] = if (_author == null) None else Some(_author)
   def author_=(theAuthor: Option[String]) { _author = theAuthor.getOrElse(null) }
   def author_=(theAuthor: String) { _author = theAuthor }
   
   @Column(allowsNull="true")
   private[this] var _publisher: String = _
-  def publisher: Option[String] = Option(_publisher)
+  def publisher: Option[String] = if (_publisher == null) None else Some(_publisher)
   def publisher_=(thePublisher: Option[String]) { _publisher = thePublisher.getOrElse(null) }
   def publisher_=(thePublisher: String) { _publisher = thePublisher }
   
@@ -39,7 +39,7 @@ class Title {
   
   @Column(allowsNull="true")
   private[this] var _numPages: java.lang.Integer = _
-  def numPages: Option[Int] = Option(_numPages)
+  def numPages: Option[Int] = if (_numPages == null) None else Some(_numPages)
   def numPages_=(theNumPages: Option[Int]) {
     theNumPages match {
       case None => _numPages = null
@@ -50,7 +50,7 @@ class Title {
   
   @Column(allowsNull="true")
   private[this] var _dimensions: String = _
-  def dimensions: Option[String] = Option(_dimensions)
+  def dimensions: Option[String] = if (_dimensions == null) None else Some(_dimensions)
   def dimensions_=(theDimensions: Option[String]) { _dimensions = theDimensions.getOrElse(null) }
   def dimensions_=(theDimensions: String) { _dimensions = theDimensions }
   
@@ -82,7 +82,7 @@ class Title {
 
   @Column(allowsNull="true")
   private[this] var _image: String = _
-  def image: Option[String] = Option(_image)
+  def image: Option[String] = if (_image == null) None else Some(_image)
   def image_=(theImage: Option[String]) {_image = theImage.getOrElse(null) }
   def image_=(theImage: String) {_image = theImage}
 
