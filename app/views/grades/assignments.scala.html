@@ -57,10 +57,6 @@ id: Long)(implicit req: util.DbRequest[_]) @import models.grades._
 		</tr>
 
 		@for(a <- Assignment.forCategory(c)){
-			
-			
-
-
 			<tr>
 				<td>@a.name</td>
 				<td>@a.getDueDate</td>

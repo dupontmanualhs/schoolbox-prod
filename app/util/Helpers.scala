@@ -4,6 +4,7 @@ import xml.{Atom, Comment, Elem, MetaData, Node, NodeSeq, Text, XML}
 import java.util.Locale
 import views.html.helper.FieldConstructor
 import org.joda.time.LocalDate
+import java.text.SimpleDateFormat
 
 object Helpers {
   implicit val tableFields = FieldConstructor(views.html.templates.fieldAsTableRow(_))
@@ -11,6 +12,10 @@ object Helpers {
   implicit object LocalDateOrdering extends Ordering[LocalDate] {
     def compare(ld1: LocalDate, ld2: LocalDate) = ld1.compareTo(ld2)
   }
+  
+  val date = new SimpleDateFormat("M/d/yyyy")
+  val time = new SimpleDateFormat("h:mm a")
+  val datetime = new SimpleDateFormat("M/d/yyyy' at 'h:mm a")
   
   def camel2TitleCase(camel: String): String = {
     camel match {

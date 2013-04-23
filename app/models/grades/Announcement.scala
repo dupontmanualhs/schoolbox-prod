@@ -10,13 +10,17 @@ import util.DataStore
 import models.courses.Section
 import models.users.User
 
+@PersistenceCapable(detachable="true")
 class Announcement {
 
   private[this] var _id: Long = _
+  @Persistent(defaultFetchGroup="true")
   private[this] var _section: Section = _
   @Persistent(defaultFetchGroup="true")
   private[this] var _date: java.sql.Timestamp = _
+  @Column(jdbcType="CLOB")
   private[this] var _text: String = _
+  @Persistent(defaultFetchGroup="true")
   private[this] var _author: User = _
   //TODO: private[this] var _attachments: java.util.List[String] = _
   //TODO: make this be scala and convert correctly
@@ -62,6 +66,18 @@ trait QAnnouncement extends PersistableExpression[Announcement] {
   private[this] lazy val _author: ObjectExpression[User] = new ObjectExpressionImpl[User](this, "_author")
   def author: ObjectExpression[User] = _author
   
+}
+
+object Announcement {
+
+  def getAnnouncements(section: Section)(implicit pm: ScalaPersistenceManager = null): List[Announcement] = {
+    def query(epm: ScalaPersistenceManager): List[Announcement] = {
+      val cand = QAnnouncement.candidate
+      epm.query[Announcement].filter(cand.section.eq(section)).executeList
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
 }
 
 object QAnnouncement {

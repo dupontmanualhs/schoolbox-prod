@@ -63,7 +63,16 @@ object Assignment {
     else  DataStore.withTransaction( tpm => query(tpm) )
   }
   
-  
+    
+  def getAssignments(section: Section)(implicit pm: ScalaPersistenceManager = null): List[Assignment] = {
+    def query(epm: ScalaPersistenceManager): List[Assignment] = {
+      val cand = QAssignment.candidate
+      val varble = QCategory.variable("sect")
+      epm.query[Assignment].filter(cand.category.eq(varble).and(varble.section.eq(section))).executeList
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
   
 }
 

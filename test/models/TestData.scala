@@ -387,6 +387,10 @@ object TestData {
     							"scores for each of the questions (scoring rubrics are posted below)\nDue Friday: Series" +
     							"Exam Test corrections. Left column--what i did wrong; right column--what i should have done." +
     							"See multiple choice questions below.", Timestamp.valueOf("2012-11-01 19:19:19"), r2usHistA, mary)
+    
+    pm.makePersistentAll(List(ann1, ann2, ann3, ann4, ann5, ann6, ann7))
+    
+    
     //TODO: make test data for announcements and gradebook
 
   }

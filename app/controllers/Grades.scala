@@ -100,7 +100,7 @@ object Grades extends Controller {
     Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        val announcements = sect.getAnnouncements()
+        val announcements = Announcement.getAnnouncements(sect)
         Ok(views.html.grades.announcements(id, sect, announcements))
       }
     }
@@ -111,7 +111,7 @@ object Grades extends Controller {
     Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        val assignments = sect.getAssignments()
+        val assignments = Assignment.getAssignments(sect)
         val students = sect.students
         Ok(views.html.grades.gradebook(students, assignments, sect, id))
       }
