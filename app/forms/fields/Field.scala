@@ -59,7 +59,7 @@ abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
   
   def asStringSeq(value: Option[T]): Seq[String] = value match {
     case Some(Some(t)) => if(required) List(Some(t).toString) else List(t.toString)
-  	case Some(t) => List(t.toString)
+  	case Some(t) => if(!t.equals(None)) List(t.toString) else List("") 
     case None => Nil
   }
   
