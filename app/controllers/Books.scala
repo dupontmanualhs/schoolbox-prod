@@ -15,7 +15,8 @@ import javax.imageio._
 import java.io._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import net.sourceforge.barbecue.{BarcodeFactory, Barcode}
+import com.itextpdf.text.pdf.{Barcode128, Barcode, PdfContentByte, PdfWriter}
+import com.itextpdf.text.{BaseColor, Document, DocumentException, PageSize, Paragraph}
 
 object Books extends Controller {
   /**
@@ -800,7 +801,21 @@ object Books extends Controller {
   }
 
   def makeBarcode(barcode: String): Barcode =  {
-    BarcodeFactory.createCode128A(barcode)
+    val b: Barcode128 = new Barcode128()
+    b.setCode(barcode)
+    b.setAltText(barcode)
+    return b
+  }
+
+  def placeOneBarcode(barcode: Barcode) {
+    val result: String = "public/test.pdf"
+    val document: Document = new Document(PageSize.LETTER)
+    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
+    document.open()
+    val cb: PdfContentByte = writer.getDirectContent()
+    document.add(new Paragraph("Label Here"))
+    document.add(barcode.createImageWithBarcode(cb, null, null))
+    document.close()
   }
 
 }
