@@ -123,7 +123,7 @@ object Users extends Controller {
   }
   
   object ChangeTheme extends Form {
-    val theme = new ChoiceField("theme",List(("Default", "default"), ("Night", "night")))
+    val theme = new ChoiceField("theme",List(("Default", "default"), ("Night", "night"), ("Cyborg", "cyborg")))
     
     def fields = List(theme)
   }

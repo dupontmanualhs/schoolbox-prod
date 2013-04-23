@@ -59,7 +59,7 @@ object Menu {
     val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
     val masteries: MenuItem = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
     val books = new MenuItem("Books", "menu_books", None, bookItems)
-    val bar = new MenuBar(List(acct, courses, lockers, confr, books, masteries))
+    val bar = new MenuBar(List(courses, lockers, confr, books, masteries))
     bar.asHtml
   }
 }

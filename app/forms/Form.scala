@@ -22,6 +22,7 @@ abstract class Form {
   def cancelText = "Cancel"
     
   def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): NodeSeq = {
+    this.scripts ++
     <form method={ method } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
       <fieldset>
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
@@ -29,7 +30,7 @@ abstract class Form {
         { fields.flatMap(_.render(bound)) }
         { actions }
       </fieldset>
-    </form> +: this.scripts
+    </form>
   }
   
   def scripts: NodeSeq = {

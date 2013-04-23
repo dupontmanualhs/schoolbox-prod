@@ -24,6 +24,7 @@ class TimestampField[T](name: String) extends BaseTimestampField[Timestamp](name
       //Identical to TimeField code except s(1)
       var splitString = s(1).split(" ")
       var splitTime = splitString(0).split(":")
+      splitString(1)=splitString(1).capitalize
       var hours = splitTime(0).toInt
       if (hours == 12 && splitString(1) == "AM") hours = 0
       if (splitString(1) == "PM" && hours != 12) hours = hours + 12
@@ -55,6 +56,7 @@ class TimestampFieldOptional[T](name: String) extends BaseTimestampField[Option[
       var splitString = s(1).split(" ")
       var splitTime = splitString(0).split(":")
       var hours = splitTime(0).toInt
+      splitString(1)=splitString(1).capitalize
       if (hours == 12 && splitString(1) == "AM") hours = 0
       if (splitString(1) == "PM" && hours != 12) hours = hours + 12
       splitTime(0) = hours.toString
