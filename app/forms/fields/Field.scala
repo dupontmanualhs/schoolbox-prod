@@ -58,7 +58,8 @@ abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
   def errorMessages = _errorMessages
   
   def asStringSeq(value: Option[T]): Seq[String] = value match {
-    case Some(t) => List(t.toString)
+    case Some(Some(t)) => if(required) List(Some(t).toString) else List(t.toString)
+  	case Some(t) => List(t.toString)
     case None => Nil
   }
   

@@ -13,8 +13,8 @@ class DateInput(
   val Name:String = uuid.toString
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
-    <input type="text" name={ name } value={if(value.isEmpty) "" else value(0) } placeholder="mm/dd/yyyy" class={"datepicker"+Name}></input>
-    <input disabled="true" style="background-color: #C0C0C0" name={ Name } is={ Name } placeholder="DD, d MM, yy" class={ Name } size="30" type="text"/>
+    <input type="text" name={ name } value={if(value.isEmpty) "" else value(0) } placeholder="mm/dd/yyyy" class={"datepicker"+Name+" datepicker"}></input> % attrs % reqAttr % attrList ++
+    <input disabled="true" style="background-color: #C0C0C0" name={ Name } is={ Name } placeholder="DD, d MM, yy" class={ Name } size="30" type="text"/> % attrs % reqAttr % attrList
   }
   
   override def scripts: NodeSeq =
@@ -34,6 +34,10 @@ class DateInput(
   				buttonText: 'Chooser'
   			}});
   		}});
+  </script><script type="text/javascript">
+	jQuery(function($){{
+		$('.datepicker').mask('99/99/9999',{{placeholder:'_'}});
+  	}});
   </script>
 
 }
