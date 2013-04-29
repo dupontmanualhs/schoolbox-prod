@@ -1,0 +1,12 @@
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, activated: Boolean)(implicit req: util.DbRequest[_])
+
+@import util.Helpers._
+
+@main("Conferences for this session") {
+	@if(!activated) { 
+		<p>This session has not been activated</p>
+		<a class="btn" href="@routes.Conferences.activateTeacherSession(session.id)">Click here to activate</a>
+	} else {
+	  <p>Hi</p> 
+	}
+}

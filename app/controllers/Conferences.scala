@@ -27,7 +27,9 @@ object Conferences extends Controller {
 	def viewAsTeacher() = DbAction { implicit req =>
 	  implicit val pm: ScalaPersistenceManager = req.pm
 	  val currUser: Option[User] = User.current
-	  Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username)))
+	  val events = pm.query[Event].executeList()
+	  val sessions = pm.query[models.conferences.Session].executeList()
+	  Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username), events, sessions))
 	}
 	
 	def index() = DbAction { implicit req =>
@@ -45,7 +47,7 @@ object Conferences extends Controller {
 			  //remove teacherId after done teaching
 			  		Ok(views.html.conferences.admin(events, sessions))
 			  	} else if (Teacher.getByUsername(currUser.get.username)(pm).isDefined){ 
-			  	  Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username)))
+			  	  Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username), events, sessions))
 			  	}else { 
 			  		val currentUser = User.current
 			  		val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username)(pm).isDefined
@@ -104,15 +106,15 @@ object Conferences extends Controller {
 	    }
 	  }
 	}
-	
+	//TODO: Make sure this works
 	def deleteEvent(eventId: Long) = DbAction	{ implicit request =>
 	  implicit val pm: ScalaPersistenceManager = request.pm
 	  pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeOption() match {
 	    case None => NotFound(views.html.notFound("No event could be found"))
 	    case Some(event) => {
 	      val sessions = pm.query[models.conferences.Session].filter(QSession.candidate.event.eq(event)).executeList()
-	      val slots = List[Slot]()
-	      for (session <- sessions) pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList() ++ slots
+	      var slots = List[Slot]()
+	      for (session <- sessions) slots = slots ++ pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList()
 	      for (slot <- slots) pm.deletePersistent(slot)
 	      for (session <- sessions) pm.deletePersistent(session)
 	      pm.deletePersistent(event)
@@ -127,8 +129,7 @@ object Conferences extends Controller {
 	  //val priority = new TimestampFieldOptional("priority")
 	  val startTime = new TimeField("start time")
 	  val endTime = new TimeField("end time")
-	  val slotInterval = new ChoiceField[Int]("slot intervals", List(("5", 5), ("10", 10), ("15", 15), ("20", 20), ("25", 25), ("30", 30)))
-	  val fields = List(date, cutoff, /*priority,*/ startTime, endTime, slotInterval)
+	  val fields = List(date, cutoff, /*priority,*/ startTime, endTime)
 	}
 	
 	def createSession(eventId: Long) = DbAction { implicit request =>
@@ -146,8 +147,7 @@ object Conferences extends Controller {
 	        val theStartTime = vb.valueOf(SessionForm.startTime)
 	        val theEndTime = vb.valueOf(SessionForm.endTime)
 	        println(theDate + " " + theStartTime + " " + theEndTime)
-	        val theSlotInterval = vb.valueOf(SessionForm.slotInterval)
-	        val s = new models.conferences.Session(theEvent(0) , theDate, theCutoff, thePriority, theStartTime, theEndTime, theSlotInterval)
+	        val s = new models.conferences.Session(theEvent(0) , theDate, theCutoff, thePriority, theStartTime, theEndTime)
 	        pm.makePersistent(s)
 	        Redirect(routes.Conferences.index()).flashing("message" -> "Session successfully created!")
 	      }
@@ -193,14 +193,17 @@ object Conferences extends Controller {
 	        if (theTeacher == None) NotFound(views.html.notFound("Invalid teacher ID"))
 	        val theStudent = Student.getByUsername(User.current.get.username)(pm)
 	        if (theStudent == None) NotFound(views.html.notFound("Invalid student"))
-	        
+	      
 	        val theStartTime = vb.valueOf(SlotForm.startTime)
 	        val theParent = vb.valueOf(SlotForm.parentName)
 	        val theEmail = vb.valueOf(SlotForm.email)
 	        val thePhone = vb.valueOf(SlotForm.phone)
 	        val theAlternatePhone = vb.valueOf(SlotForm.alternatePhone)
 	        val theComment = vb.valueOf(SlotForm.comment)
-	        val s = new Slot(theSession.get, theTeacher.get, theStudent.get, theStartTime, theParent, theEmail, thePhone, theAlternatePhone, theComment)
+	        //Get slotinterval from teacher activations
+	        val theTeacherActivation = pm.query[TeacherActivation].filter(QTeacherActivation.candidate.teacher.eq(theTeacher.get)).executeList()
+	        val s = new Slot(theSession.get, theTeacher.get, theStudent.get, theStartTime, theParent, theEmail, thePhone, theAlternatePhone, theComment, theTeacherActivation(0).slotInterval)
+	        //Slot validating has not been tested yet
 	        if (validateSlot(s)) {
 	          Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
 	        }
@@ -224,6 +227,7 @@ object Conferences extends Controller {
 	
 	
 	  //TODO: Write a method that checks if there already exists a slot within the same time-period
+	  //Not tested yet
 	def validateSlot(slot: Slot): Boolean = {
 	  val startTime = slot.startTime
 	  val endTime = slot.endTime
@@ -237,6 +241,62 @@ object Conferences extends Controller {
 	    }
 	}
 	
+	def teacherSession(sessionId: Long) = DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+	  val slots = pm.query[Slot].executeList()
+	  val currUser = User.current
+	  val teacher = Teacher.getByUsername(currUser.get.username).get
+	  val cand = QTeacherActivation.candidate()
+	  //TODO: This needs to work
+	  pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption match {
+	    case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, true)) 
+	    case None => Ok(views.html.conferences.teacherSession(slots, session, false))
+	  }
+	}
+	  
+	object TeacherActivationForm extends Form {
+	  val slotInterval = new NumericField[Int]("Default slot interval")
+	  val note = new TextFieldOptional("note")
+	  
+	  val fields = List(slotInterval, note)
+	}
+	
+	def activateTeacherSession(sessionId: Long) = DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  if (request.method == "GET") Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
+	  else {
+	    Binding(TeacherActivationForm, request) match {
+	      case ib: InvalidBinding => Ok(views.html.conferences.activateSession(ib, sessionId))
+	      case vb: ValidBinding => {
+	        val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+	        val currUser = User.current
+	        val teacher = Teacher.getByUsername(currUser.get.username).get
+	        val slotInterval = vb.valueOf(TeacherActivationForm.slotInterval)
+	        val note = vb.valueOf(TeacherActivationForm.note)
+	        
+	        val t = new TeacherActivation(session, teacher, slotInterval, note)
+	        pm.makePersistent(t)
+	        Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session activated")
+	      }
+	    }
+	  }
+	}
+	
+	def deactivateTeacherSession(sessionId: Long) = DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  val cand = QTeacherActivation.candidate()
+	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+	  val currUser = User.current
+	  val teacher = Teacher.getByUsername(currUser.get.username).get
+	  //TODO: This needs to work
+	  pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption() match {
+	    case None => NotFound("Session not activated yet")
+	    case Some(activated) => pm.deletePersistent(activated)
+	  }
+	  Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session deactivated")
+	}
+	  
 	
 	
 }

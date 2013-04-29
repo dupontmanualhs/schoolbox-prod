@@ -18,7 +18,6 @@
 			<td>@toAmericanString(session.date)</td>
 			<td>@toAmericanString(session.cutoff)</td>
 			<td>@{toAmericanString(session.startTime) + " - " + toAmericanString(session.endTime)}</td>
-			<td>@session.slotInterval</td>
 			<td><a class="confirmLink btn" href=@routes.Conferences.deleteSession(session.id)>Delete</a></td>
 			</tr>
 			}
@@ -26,6 +25,7 @@
 			<td><a class="btn btn-small" href=@controllers.routes.Conferences.createSession(event.id)>Add a new session</a></td>
 			</tr>
 		}
+		</table>
 	<a class ="btn" href=@controllers.routes.Conferences.createEvent() >Create An Event</a>
 	<a class ="btn" href=@controllers.routes.Conferences.viewAsTeacher() >View As Teacher</a>
 }

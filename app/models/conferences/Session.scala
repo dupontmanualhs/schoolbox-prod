@@ -50,12 +50,7 @@ class Session {
   def endTime: java.sql.Time = _endTime
   def endTime_=(theEndTime: java.sql.Time) {_endTime = theEndTime}
   
-  @Column(allowsNull="false")
-  private[this] var _slotInterval: Int = _
-  def slotInterval: Int = _slotInterval
-  def slotInterval_=(theSlotInterval: Int) {_slotInterval = theSlotInterval}
-  
-  def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: Option[java.sql.Timestamp], startTime: java.sql.Time, endTime: java.sql.Time, slotInterval: Int) = {
+  def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: Option[java.sql.Timestamp], startTime: java.sql.Time, endTime: java.sql.Time) = {
     this()
     _event = event
     _date = date
@@ -63,8 +58,6 @@ class Session {
     _priority = priority.getOrElse(null)
     _startTime = startTime
     _endTime = endTime
-    //slotInterval is in minutes
-    _slotInterval = slotInterval
   }
 }
 
@@ -90,8 +83,6 @@ trait QSession extends PersistableExpression[Session] {
   private[this] lazy val _endTime: TimeExpression[java.util.Date] = new TimeExpressionImpl(this, "_endTime")
   def endTime: TimeExpression[java.util.Date] = _endTime
 
-  private[this] lazy val _slotInterval: NumericExpression[Int] = new NumericExpressionImpl(this, "_slotInterval")
-  def slotInterval: NumericExpression[Int] = _slotInterval
 }
 
 object QSession extends QueryClass[Session, QSession] {

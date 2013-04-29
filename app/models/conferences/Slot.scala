@@ -67,7 +67,12 @@ class Slot {
   def endTime: java.sql.Time = _endTime
   def endTime_=(theEndTime: java.sql.Time) {_endTime = theEndTime}
   
-  def this(session: Session, teacher: Teacher, student: Student, startTime: java.sql.Time, parentName: String, email: String, phone: String, alternatePhone: Option[String], comment: Option[String]) = {
+  @Column(allowsNull="false")
+  private[this] var _slotInterval: Int = _
+  def slotInterval: Int = _slotInterval
+  def slotInterval_=(theSlotInterval: Int) {_slotInterval = theSlotInterval}
+  
+  def this(session: Session, teacher: Teacher, student: Student, startTime: java.sql.Time, parentName: String, email: String, phone: String, alternatePhone: Option[String], comment: Option[String], slotInterval: Int) = {
     this()
     _session = session
     _teacher = teacher
@@ -79,10 +84,10 @@ class Slot {
     _phone = phone 
     _alternatePhone = alternatePhone.getOrElse(null)
     _comment = comment.getOrElse(null)
+    _slotInterval = slotInterval
   }
   
   def calculateEndTime(): java.sql.Time = {
-    var slotInterval = _session.slotInterval
     //converts startTime to "hh:mm:dd" format, if someone knows a better way that isn't deprecated tell Ken
     var initialTime = _startTime.toString
     //splits the sections of the time
@@ -139,6 +144,9 @@ trait QSlot extends PersistableExpression[Slot] {
   
   private[this] lazy val _comment: StringExpression = new StringExpressionImpl(this, "_comment")
   def comment: StringExpression = _comment
+  
+  private[this] lazy val _slotInterval: NumericExpression[Int] = new NumericExpressionImpl(this, "_slotInterval")
+  def slotInterval: NumericExpression[Int] = _slotInterval
 }
 
 object QSlot extends QueryClass[Slot, QSlot] {
