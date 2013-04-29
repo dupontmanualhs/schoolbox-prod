@@ -11,6 +11,7 @@ trait BaseNumericField[T] {
 
 class NumericField[T](name: String)(implicit n: Numeric[T], man: Manifest[T]) 
     extends Field[T](name) with BaseNumericField[T] {
+  override def widget = new TextInput(required, _inputType = "number")
   def asValue(strs: Seq[String]): Either[ValidationError, T] = {
     val (toT, errorMsg) = NumericField.conversionFunction[T]
     strs match {
@@ -29,6 +30,7 @@ class NumericField[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
 class NumericFieldOptional[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
     extends Field[Option[T]](name) with BaseNumericField[T] {
   override def required = false
+  override def widget = new TextInput(required, _inputType = "number")
   
   def asValue(strs: Seq[String]): Either[ValidationError, Option[T]] = {
     val (toT, errorMsg) = NumericField.conversionFunction[T]
