@@ -1,24 +1,7 @@
 @(students: List[models.users.Student], assignments: List[models.grades.Assignment], section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_]) 
 @import models.grades._
 
-@mainWithScripts("Assignments", Html("""
-        <script src="@routes.Assets.at("javascripts/jquery.handsontable.full.js")"></script>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/jquery.handsontable.full.css")" />
-        
-<script>
-  var data = [
-    ["", "Kia", "Nissan", "Toyota", "Honda"],
-    ["2008", 10, 11, 12, 13],
-    ["2009", 20, 11, 14, 13],
-    ["2010", 30, 15, 12, 13]
-  ];
-  $("#dataTable").handsontable({
-    data: data,
-    startRows: 6,
-    startCols: 8
-  });
-</script>"""
-)) {
+@mainWithScripts("Assignments", handsOnTable()) {
 	        	<div class="span3">
          			<div class="well sidebar-nav">
 					<ul class="nav nav-list">
@@ -41,7 +24,22 @@
 			</ul>
     	</div>
     	
-    	<div id="gradebook"></div>
+    	<div class="span8">
+    	  <div id="gradebook"></div>
+    	</div>
+<script>
+  var data = [
+    ["", "Kia", "Nissan", "Toyota", "Honda"],
+    ["2008", 10, 11, 12, 13],
+    ["2009", 20, 11, 14, 13],
+    ["2010", 30, 15, 12, 13]
+  ];
+  $("#gradebook").handsontable({
+    data: data,
+    startRows: 6,
+    startCols: 8
+  });
+</script>
     	
     	
 }
