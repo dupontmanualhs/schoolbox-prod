@@ -247,11 +247,10 @@ object Conferences extends Controller {
 	  val slots = pm.query[Slot].executeList()
 	  val currUser = User.current
 	  val teacher = Teacher.getByUsername(currUser.get.username).get
-	  val cand = QTeacherActivation.candidate()
-	  //TODO: This needs to work
+	  val cand = QTeacherActivation.candidate
 	  pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption match {
-	    case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, true)) 
-	    case None => Ok(views.html.conferences.teacherSession(slots, session, false))
+	    case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, Some(teacherActivation))) 
+	    case None => Ok(views.html.conferences.teacherSession(slots, session, None))
 	  }
 	}
 	  
