@@ -16,7 +16,7 @@ import java.io._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import com.itextpdf.text.pdf.{Barcode128, Barcode, PdfContentByte, PdfWriter}
-import com.itextpdf.text.{BaseColor, Document, DocumentException, PageSize, Paragraph}
+import com.itextpdf.text.{BaseColor, Document, DocumentException, PageSize, Paragraph, Utilities}
 
 object Books extends Controller {
   /**
@@ -815,6 +815,46 @@ object Books extends Controller {
     val cb: PdfContentByte = writer.getDirectContent()
     document.add(new Paragraph("Label Here"))
     document.add(barcode.createImageWithBarcode(cb, null, null))
+    document.close()
+  }
+
+  def makePdf(barcodes: List[(Barcode, String)]) {
+    // Spacing in points
+    // Bottom left: 0,0
+    // Top right: 576, 756
+
+    // Avery 5160 labels have 1/2 inch top/bottom margins and 0.18 inch left/right margins.
+    // Labels are 2.6" by 1". Labels abut vertically but there is a .15" gutter horizontally.
+
+    // A Barcode Label is an Avery 5160 label with three lines of text across the top and
+    // a Code128 barcode under them. The text is cropped to an appropriate width and the
+    // barcode is sized to fit within the remainder of the label.
+
+    // inchesToPoints gives the point value for a measurement in inches
+
+    // Spacing Increments
+    // Top to bottom (inches)
+    // 0.5 1.0 1.0 1.0 0.5
+    // Left to right (inches)
+    // 0.18 2.6 0.15 2.6 0.15 2.6 0.18
+
+    val halfInch = Utilities.inchesToPoints(.5f)
+    val inch = Utilities.inchesToPoints(1f)
+    val gutter = Utilities.inchesToPoints(.15f)
+    val lAndRBorder = Utilities.inchesToPoints(.18f)
+    val labelWidth = Utilities.inchesToPoints(2.6f)
+
+    val topLeftX = lAndRBorder
+    val topLeftY = 756f - inch
+
+    val result: String = "public/printable.pdf"
+    val document: Document = new Document(PageSize.LETTER)
+    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
+    document.open()
+    val cb = writer.getDirectContent()
+    val b = barcodes(0)._1
+    val img = b.createImageWithBarcode(cb, null, null)
+    cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, topLeftX, topLeftY)
     document.close()
   }
 
