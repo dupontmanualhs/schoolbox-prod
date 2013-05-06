@@ -24,6 +24,7 @@ abstract class Form {
   def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): NodeSeq = {
     <form method={ method } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
       <fieldset>
+    	{this.scripts}
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
         { bound.formErrors.render }
         { fields.flatMap(_.render(bound)) }
