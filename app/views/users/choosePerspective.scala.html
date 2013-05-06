@@ -1,5 +1,5 @@
 @(perspForm: forms.Binding)(implicit req: util.DbRequest[_])
 
 @main("Choose Perspective") {
-  @perspForm.asHtml
+  @perspForm.render()
 }

@@ -6,12 +6,16 @@ target
 tmp
 *.db
 *~
+*.orig
 chromedriver.log
 
+.metadata
 .classpath
 .project
 .settings
 .cache
 .directory
+*.swp
 .target
 
+public/images/books

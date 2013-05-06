@@ -48,7 +48,7 @@ class Copy /*extends StoreCallback*/ {
   def isCheckedOut(implicit pm: ScalaPersistenceManager = null): Boolean = {
     def query(epm: ScalaPersistenceManager): Boolean = {
       val cand = QCheckout.candidate
-      epm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().isEmpty
+      !epm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().isEmpty
     }
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )

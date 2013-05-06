@@ -68,8 +68,8 @@ class TestOperations extends FunSuite {
 	assert(fourthRoot16.description === "Root(Index: Integer(4), Radicand: Integer(16))")
 	assert(fourthRoot16.toLaTeX === "\\sqrt[4]{16}")
 	//assert(fourthRoot16.simplify === Integer(2))
-	val xthRootx2 = Root(Variable("x").get, Exponentiation(Variable("x").get, Integer(2)))
-	assert(xthRootx2.description === "Root(Index: Variable(x), Radicand: Exponentiation(Variable(x), Integer(2)))")
+	val xthRootx2 = Root(Var("x"), Exponentiation(Var("x"), Integer(2)))
+	assert(xthRootx2.description === "Root(Index: Var(x), Radicand: Exponentiation(Var(x), Integer(2)))")
 	assert(xthRootx2.toLaTeX === "\\sqrt[x]{x^{2}}")
 	//assert(xthRootx2.simplify === Integer(2))
   }

@@ -20,6 +20,7 @@ import java.text.ParseException
 import models.books.PurchaseGroup
 import models.books.Copy
 import models.books.Checkout
+import models.blogs.Blog
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()
@@ -43,13 +44,21 @@ object ManualData {
   }
 
   def loadManualData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
+    if(!debug) println("Creating Year and Term Data...")
     createYearsAndTerms(debug)
+    if(!debug) println("Creating Student Data...")
     loadStudents(debug)
+    if(!debug) println("Creating Teacher Data...")
     loadTeachers(debug)
+    if(!debug) println("Creating Course Data...")
     loadCourses(debug)
+    if(!debug) println("Creating Section Data...")
     loadSections(debug)
+    if(!debug) println("Creating Enrollment Data...")
     loadEnrollments(debug)
+    if(!debug) println("Creating Book Data...")
     loadBookData(debug)
+    if(!debug) println("Creating Locker Data...")
     loadLockers(debug)
   }
 
@@ -100,6 +109,10 @@ object ManualData {
       val dbStudent = new Student(user, stateId, studentNumber, grade, teamName)
       pm.makePersistent(dbStudent)
       if (debug) println("student saved")
+      // create Blog
+      val blog = new Blog(username + "'s Blog", dbStudent)
+      pm.makePersistent(blog)
+      if (debug) println("blog saved")
     })
     pm.commitTransaction()
   }
@@ -188,6 +201,7 @@ object ManualData {
 
   def loadEnrollments(debug: Boolean)(implicit pm: ScalaPersistenceManager) {
     pm.beginTransaction()
+    var wellThen = false
     import scala.collection.JavaConversions.asScalaSet
     val doc = XML.load(getClass.getResourceAsStream("/manual-data/Schedule.xml"))
     val enrollments = doc \\ "student"
@@ -208,10 +222,12 @@ object ManualData {
           })
         }
         case None => {
-          println("Student %s (id #%s) is in section #%s, which doesn't exist.".format(student.user.formalName, studentNumber, sectionId))
+          if(debug) println("Student %s (id #%s) is in section #%s, which doesn't exist.".format(student.user.formalName, studentNumber, sectionId))
+          if(!debug) wellThen = true
         }
       }
     })
+    if (wellThen) println("Some sections were not found D:")
     pm.commitTransaction()
   }
   
@@ -307,15 +323,19 @@ object ManualData {
     }
   }
   
+  def asOptionString(s: String): Option[String] = {
+    if (s.trim() == "") None else Some(s.trim())
+  }
+  
   def loadTitles(titles: NodeSeq, debug: Boolean = false)(implicit pm: ScalaPersistenceManager): mutable.Map[Long, Long] = {
     val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
     val titleIdMap = mutable.Map[Long, Long]()
     pm.beginTransaction()
     for (t <- (titles \ "title")) {
       val djId = (t \ "id").text.toLong
-      val title = new Title((t \ "name").text, (t \ "author").text, (t \ "publisher").text, (t \ "isbn").text,
-                            asInt((t \ "numPages").text), (t \ "dimensions").text, asDouble((t \ "weight").text),
-                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df))
+      val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
+                            Option(asInt((t \ "numPages").text)), asOptionString((t \ "dimensions").text), Option(asDouble((t \ "weight").text)),
+                            (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df), asOptionString((t \ "image").text))
       if (debug) println("Adding title: %s...".format(title.name))
       pm.makePersistent(title)
       titleIdMap += (djId -> title.id)

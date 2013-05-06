@@ -12,66 +12,94 @@ class Title {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+  
+  @Column(allowsNull="false")
   private[this] var _name: String = _
+  def name: String = _name
+  def name_=(theName: String) { _name = theName }
+  
+  @Column(allowsNull="true")
   private[this] var _author: String = _
+  def author: Option[String] = Option(_author)
+  def author_=(theAuthor: Option[String]) { _author = theAuthor.getOrElse(null) }
+  def author_=(theAuthor: String) { _author = theAuthor }
+  
+  @Column(allowsNull="true")
   private[this] var _publisher: String = _
+  def publisher: Option[String] = Option(_publisher)
+  def publisher_=(thePublisher: Option[String]) { _publisher = thePublisher.getOrElse(null) }
+  def publisher_=(thePublisher: String) { _publisher = thePublisher }
+  
   @Unique
+  @Column(allowsNull="false")
   private[this] var _isbn: String = _
-  private[this] var _numPages: Int = _
+  def isbn: String = _isbn
+  def isbn_=(theIsbn: String) { _isbn = theIsbn }
+  
+  @Column(allowsNull="true")
+  private[this] var _numPages: java.lang.Integer = _
+  def numPages: Option[Int] = Option(_numPages)
+  def numPages_=(theNumPages: Option[Int]) {
+    theNumPages match {
+      case None => _numPages = null
+      case Some(i) => _numPages = i
+    }
+  }
+  def numPages_=(theNumPages: Int) { _numPages = theNumPages }
+  
+  @Column(allowsNull="true")
   private[this] var _dimensions: String = _
-  private[this] var _weight: Double = _
+  def dimensions: Option[String] = Option(_dimensions)
+  def dimensions_=(theDimensions: Option[String]) { _dimensions = theDimensions.getOrElse(null) }
+  def dimensions_=(theDimensions: String) { _dimensions = theDimensions }
+  
+  @Column(allowsNull="true")
+  private[this] var _weight: java.lang.Double = _
+  def weight: Option[Double] = Option(_weight)
+  def weight_=(theWeight: Option[Double]) {
+    theWeight match {
+      case None => _weight = null
+      case Some(w) => _weight = w
+    }
+  }
+  def weight_=(theWeight: Double) { _weight = theWeight }
+  
   // @Persistent(defaultFetchGroup="true")
   // @Embedded  
   // private[this] var _image: PersistableFile = _
-  private[this] var _verified: Boolean = _
-  private[this] var _lastModified: java.sql.Date = _
-
-  def this(name: String, author: String, publisher: String, isbn: String, numPages: Int,
-    dimensions: String, weight: Double, verified: Boolean, lastModified: java.sql.Date) = {
-    this()
-    _name = name
-    _author = author
-    _publisher = publisher
-    _isbn = isbn
-    _numPages = numPages
-    _dimensions = dimensions
-    _weight = weight
-    // _image = image
-    _verified = verified
-    _lastModified = lastModified
-  }
-
-  def id: Long = _id
-
-  def name: String = _name
-  def name_=(theName: String) { _name = theName }
-
-  def author: String = _author
-  def author_=(theAuthor: String) { _author = theAuthor }
-
-  def publisher: String = _publisher
-  def publisher_=(thePublisher: String) { _publisher = thePublisher }
-
-  def isbn: String = _isbn
-  def isbn_=(theIsbn: String) { _isbn = theIsbn }
-
-  def numPages: Int = _numPages
-  def numPages_=(theNumPages: Int) { _numPages = theNumPages }
-
-  def dimensions: String = _dimensions
-  def dimensions_=(theDimensions: String) { _dimensions = theDimensions }
-
-  def weight: Double = _weight
-  def weight_=(theWeight: Double) { _weight = theWeight }
   
-  // def image: PersistableFile = _image
-  // def image_=(theImage: PersistableFile) { _image = theImage }
-
+  @Column(allowsNull="false")
+  private[this] var _verified: Boolean = _
   def verified: Boolean = _verified
-  def verified_(theVerified: Boolean) { _verified = theVerified }
-
-  def lastModified: java.sql.Date = _lastModified
+  def verified_=(theVerified: Boolean) { _verified = theVerified }
+  
+  @Column(allowsNull="true")
+  private[this] var _lastModified: java.sql.Date = _
+  def lastModified: Option[java.sql.Date] = Option(_lastModified)
+  def lastModified_=(theLastModified: Option[java.sql.Date]) { _lastModified = theLastModified.getOrElse(null) }
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
+
+  @Column(allowsNull="true")
+  private[this] var _image: String = _
+  def image: Option[String] = Option(_image)
+  def image_=(theImage: Option[String]) {_image = theImage.getOrElse(null) }
+  def image_=(theImage: String) {_image = theImage}
+
+  def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
+    this()
+    name_=(name)
+    author_=(author)
+    publisher_=(publisher)
+    isbn_=(isbn)
+    numPages_=(numPages)
+    dimensions_=(dimensions)
+    weight_=(weight)
+    verified_=(verified)
+    lastModified_=(lastModified)
+    image_=(image)
+  }
 
   def howManyCopies(implicit pm: ScalaPersistenceManager = null): Int = {
     def query(epm: ScalaPersistenceManager): Int = {
@@ -183,6 +211,9 @@ trait QTitle extends PersistableExpression[Title] {
 
   private[this] lazy val _lastModified: ObjectExpression[java.sql.Date] = new ObjectExpressionImpl[java.sql.Date](this, "_lastModified")
   def lastModified: ObjectExpression[java.sql.Date] = _lastModified
+
+  private[this] lazy val _image: StringExpression = new StringExpressionImpl(this, "_image")
+  def image: StringExpression = _image
 }
 
 object QTitle {

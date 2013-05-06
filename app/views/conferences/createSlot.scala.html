@@ -1,0 +1,6 @@
+@(slotForm: forms.Binding, sessionId: Long, teacherId: Long)(implicit req: util.DbRequest[_])
+
+@main("Create a conferencing slot") {
+  <h2>Create Slot</h2>
+  @slotForm.render()
+}

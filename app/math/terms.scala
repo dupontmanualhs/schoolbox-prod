@@ -3,7 +3,7 @@ package math
 import scala.collection.immutable.TreeMap
 import scala.collection.immutable.HashMap
 
-class Vars(val varsWithPowers: TreeMap[Variable, Integer]) {
+class Vars(val varsWithPowers: TreeMap[Var, Integer]) {
   
 }
 
@@ -50,7 +50,7 @@ class Term(coefficient: Constant, variableSequence: TreeMap[String, Integer]) ex
     }
   }
   private def varPowToExponentiation(varPow: (String, Integer)): Exponentiation = {
-    Exponentiation(Variable(varPow._1).get, varPow._2)
+    Exponentiation(Var(varPow._1), varPow._2)
   }
   private def variableSequenceDescription: String = {
     (for ((name: String, pow: Integer) <- this.getVariableSequence) yield {
@@ -151,19 +151,23 @@ object Term {
   }
 
   def extractVariablePowered(s: String): Option[(String, Integer)] = {
-    val variableAndPowerSplit = """[\^]""".r.split(s)
-    if (variableAndPowerSplit.isEmpty) {
-      None
-    } else if (variableAndPowerSplit.size == 1) { //string contains a var without a power
-      Variable(variableAndPowerSplit.head) match {
-        case Some(aVar) => Some(aVar.getName, Integer(1))
-        case _ => None
-      }
-    } else {
-      (Variable(variableAndPowerSplit.head), Integer(withoutBracketsAroundPower(variableAndPowerSplit.tail.mkString))) match {
-        case (None, _) => None
-        case (Some(aVar), None) => None
-        case (Some(aVar), Some(aInteger)) => Some((aVar.getName, aInteger))
+    """[\^]""".r.split(s).toList match {
+      case Nil => None
+      case varName :: rst => {
+        val aVar = try {
+          Some(Var(varName).getName)
+        } catch {
+          case e: IllegalArgumentException => None  
+        }
+        val expt = rst match {
+          case Nil => Some(Integer(1))
+          case _ => Integer(withoutBracketsAroundPower(rst.mkString))
+        }
+        (aVar, expt) match {
+          case (None, _) => None
+          case (Some(x), None) => None
+          case (Some(x), Some(aInteger)) => Some((x, aInteger))
+        }
       }
     }
   }

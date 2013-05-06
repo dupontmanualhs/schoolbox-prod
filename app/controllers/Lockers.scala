@@ -16,9 +16,6 @@ import forms.validators.ValidationError
 import util.Helpers._
 
 object Lockers extends Controller {
-  def index() = DbAction { implicit req =>
-    Ok(views.html.lockers.index())
-  }
    
   def getMyLocker() = DbAction { implicit req =>
     implicit val pm: ScalaPersistenceManager = req.pm
@@ -35,7 +32,9 @@ object Lockers extends Controller {
         }
       }
     } else {
-      NotFound(views.html.notFound("You are not logged in."))
+      req.visit.redirectURL_=(routes.Lockers.getMyLocker())
+      pm.makePersistent(req.visit)
+      Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
     }
   }
   
@@ -71,7 +70,9 @@ object Lockers extends Controller {
       				          }
       				        }
       				      } else {
-      				        Ok(views.html.notFound("You are not logged in."))
+      				        req.visit.redirectURL_=(routes.Lockers.getLocker(num))
+      				        pm.makePersistent(req.visit)
+      				        Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
       				      }
       				  }
     }

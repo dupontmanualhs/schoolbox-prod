@@ -59,6 +59,8 @@ object Polynomial {
 	def removeAllSpacesIn(s: String): String = {
 		""" """.r.replaceAllIn(s, "")
 	}
+	
+	//TODO: Rewrite this regex so it works with (2x)(x-7) or the like.
 	def getAllTerms(s: String): List[String] = {
 		val regexSplit = """(?<=\S)(?=[+-])""".r
 		regexSplit.split(s).toList
@@ -68,7 +70,10 @@ object Polynomial {
 	}
 	def convertToTerms(strings: List[String]): List[Term] = {
 		(for (s <- strings) yield {
-			Term(s).get
+			Term(s) match {
+			  case None => Term("").get
+			  case Some(mt) => mt
+			}
 		}).toList
 	}
 }

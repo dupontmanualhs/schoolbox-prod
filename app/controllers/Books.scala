@@ -11,6 +11,10 @@ import forms.fields._
 import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
+import javax.imageio._
+import java.io._
+import org.datanucleus.api.jdo.query._
+import org.datanucleus.query.typesafe._
 
 object Books extends Controller {
   /**
@@ -30,7 +34,7 @@ object Books extends Controller {
   }
   
   /**
-   * Given a list of tho first 12 digits from a 13-digit ISBN,
+   * Given a list of the first 12 digits from a 13-digit ISBN,
    * returns the expected check digit. The algorithm can be found
    * here:
    * http://en.wikipedia.org/wiki/International_Standard_Book_Number#Check_digits
@@ -51,14 +55,19 @@ object Books extends Controller {
    * returns None.
    */
   def checkDigit(isbn: String): Option[String] = {
-    if (isbn.matches("^\\d+$")) {
+    // if (isbn.matches("^\\d+$")) {
+    try {
       val digits = isbn.toList.map(_.toString.toInt)
       digits.length match {
         case 9 => Some(tenDigitCheckDigit(digits))
         case 12 => Some(thirteenDigitCheckDigit(digits))
         case _ => None
       }
-    } else None
+    }
+    catch {
+      case _: NumberFormatException => None
+    }
+    // } else None
   }
 
   /**
@@ -81,7 +90,10 @@ object Books extends Controller {
     def verify(possIsbn: String): Option[String] = {
       val noCheck = possIsbn.substring(0, possIsbn.length - 1)
       val check = checkDigit(noCheck)
-      if (possIsbn == noCheck + check) Some(possIsbn) else None
+      check match {
+        case Some(cd) => if (possIsbn == noCheck + cd) Some(possIsbn) else None
+        case _ => None
+      }
     }
     val isbn = "-".r.replaceAllIn(text, "")
     isbn.length match {
@@ -95,10 +107,12 @@ object Books extends Controller {
     val isbn = new TextField("isbn") {
       override val minLength = Some(10)
       override val maxLength = Some(13)
-      override val validators = List(Validator((str: String) => asValidIsbn13(str) match {
+      override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
         case None => ValidationError("This value must be a valid 10- or 13-digit ISBN.")
 	    case Some(isbn) => ValidationError(Nil)
-      }))
+    }), Validator((str: String) => Title.getByIsbn(str) match {
+        case Some(isbn) => ValidationError("ISBN already exists in database.")
+        case None => ValidationError(Nil)}))
     }
     val name = new TextField("name") { override val maxLength = Some(80) }
     val author = new TextFieldOptional("author(s)") { override val maxLength = Some(80) }
@@ -117,46 +131,122 @@ object Books extends Controller {
       Binding(TitleForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
         case vb: ValidBinding => {
-          // TODO: try to get image from url
-          Redirect(routes.Application.index)
+          val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
+          vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
+          vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
+          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"))
+        request.pm.makePersistent(t)
+
+        vb.valueOf(TitleForm.imageUrl) match {
+          case Some(url) => try {
+            downloadImage(url, vb.valueOf(TitleForm.isbn))
+            Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
+          } catch {
+            case e: Exception => Redirect(routes.Books.addTitle()).flashing("message" -> "Image not downloaded. Update the title's image to try downloading again")
+          }
+          case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
         }
       }
     }
   }
-  
+}
+
+  def downloadImage(url: java.net.URL, isbn: String) = {
+    val pic = ImageIO.read(url)
+    ImageIO.write(pic, "jpg", new File("public/images/books/" + isbn + ".jpg"))
+  }
+
   def confirmation() = TODO
-  
-  def confirmationSubmit() = TODO
   
   def verifyTitle(isbnNum: Long) = TODO
   
-  def verifyTitleSubmit(isbnNum: Long) = TODO
-  
   def addCopiesToPg(pgId: Long) = TODO
-  
-  def addCopiesToPgSubmit(pgId: Long) = TODO
   
   def addPurchaseGroup(titleId: Long) = TODO
   
-  def addPurchaseGroupSubmit(titleId: Long) = TODO
-  
   def addLabelsToQueue() = TODO
   
-  def addLabelsToQueueSubmit() = TODO
-  
   def printCenter() = TODO
-  
-  def printCenterSubmit() = TODO
   
   def bulkCheckoutHelper() = TODO
   
   def bulkCheckout() = TODO
-  
-  def bulkCheckoutSubmit() = TODO
-  
-  def checkout() = TODO
-  
-  def checkoutSubmit() = TODO
+
+  object CheckoutForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+    val student = new TextField("Student")
+    
+    val fields = List(barcode, student)
+  }
+
+  def checkout = DbAction { implicit request =>
+    if (request.method == "GET") Ok(views.html.books.checkout(Binding(CheckoutForm)))
+      else {
+      implicit val pm = request.pm
+      Binding(CheckoutForm, request) match {
+        case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
+        case vb: ValidBinding => {
+          val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
+          val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
+          student match {
+            case None => Redirect(routes.Books.checkout()).flashing("message" -> "No such student.")
+            case Some(stu) => {
+              copy match {
+                case None => Redirect(routes.Books.checkout()).flashing("message" -> "No copy with that barcode.")
+                case Some(cpy) => {
+                  if (cpy.isCheckedOut) {
+                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy already checked out")
+                  } else {
+                    val c = new Checkout(stu, cpy, new java.sql.Date(new java.util.Date().getTime()), null)
+                    request.pm.makePersistent(c)
+                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
+                  }
+                }
+              }
+            }
+          }
+      }
+    }
+  }
+}
+
+  object CheckInForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+
+    val fields = List(barcode)
+  }
+
+  def checkIn = DbAction { implicit request =>
+    if (request.method == "GET") Ok(views.html.books.checkIn(Binding(CheckInForm)))
+      else {
+      implicit val pm = request.pm
+      Binding(CheckInForm, request) match {
+        case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
+        case vb: ValidBinding => {
+          val cand = QCheckout.candidate
+          Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
+            case None => Redirect(routes.Books.checkIn()).flashing("message" -> "No copy with the given barcode")
+            case Some(cpy) => {
+              pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+                case None => Redirect(routes.Books.checkIn()).flashing("message" -> "Copy not checked out")
+                case Some(currentCheckout) => {
+                  currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
+                  request.pm.makePersistent(currentCheckout)
+                  Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
+                }
+              }
+          }
+        }
+        }
+      }
+    }
+  }
   
   def lookup() = TODO
   
@@ -164,15 +254,16 @@ object Books extends Controller {
   
   def findBooksOut() = TODO
   
-  def findBooksOutSubmit() = TODO
-  
-  def booksOut(perspectiveId: Long) = TODO
+  def booksOut(stateId: String) = TODO
   
   def findCopyHistory() = DbAction { implicit req =>
     object ChooseCopyForm extends Form {
-      val copyId = new NumericField[Int]("Copy ID")
+      val barcode = new TextField("Barcode") {
+        override val minLength = Some(21)
+        override val maxLength = Some(23)
+      }
 
-      def fields = List(copyId)
+      def fields = List(barcode)
     }
     if (req.method == "GET") {
       Ok(html.books.findCopyHistory(Binding(ChooseCopyForm)))
@@ -180,24 +271,23 @@ object Books extends Controller {
       Binding(ChooseCopyForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCopyHistory(ib))
         case vb: ValidBinding => {
-          val lookupCopyId: Long = vb.valueOf(ChooseCopyForm.copyId)
-          Redirect(routes.Books.copyHistory(lookupCopyId))
+          val lookupCopyBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
+          Redirect(routes.Books.copyHistory(lookupCopyBarcode))
         }
       }
     }
   }
   
-  def copyHistory(copyId: Long) = DbAction { implicit req =>
+  def copyHistory(barcode: String) = DbAction { implicit req =>
     implicit val pm = req.pm
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
-    val copyCand = QCopy.candidate
-    pm.query[Copy].filter(copyCand.id.eq(copyId)).executeOption() match {
+    Copy.getByBarcode(barcode) match {
       case None => NotFound("no copy with the given id")
       case Some(copy) => {
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
         val coCand = QCheckout.candidate
         val rows: List[(String, String, String)] = pm.query[Checkout].filter(coCand.copy.eq(copy)).executeList().map(co => {
-          (co.perspective.formalName, df.format(co.startDate), if (co.endDate == null) "" else df.format(co.endDate))
+          (co.student.formalName, df.format(co.startDate), if (co.endDate == null) "" else df.format(co.endDate))
         })
         Ok(views.html.books.copyHistory(header, rows))
       }
@@ -206,31 +296,22 @@ object Books extends Controller {
   
   def confirmCopyLost(copyId: Long) = TODO
   
-  def checkIn() = TODO
-  
-  def checkInSubmit() = TODO
-  
   def checkInLostCopy() = TODO
   
   def delete(id: Long) = TODO
   
-  def deleteSubmit(id: Long) = TODO
-  
   def confirmDelete() = TODO
   
-  def confirmDeleteSubmit() = TODO
-
-  def checkoutHistory(perspectiveId: Long) = DbAction { implicit req =>
+  def checkoutHistory(stateId: String) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
-  val perspectiveCand = QPerspective.candidate
-  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
-    case None => NotFound("No student with the given id")
-    case Some(currentPerspective) => {
+  Student.getByStateId(stateId) match {
+    case None => NotFound("No student with the given id.")
+    case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.perspective.eq(currentPerspective)).executeList()
-      val studentName = currentPerspective.displayName
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.student.eq(currentStudent)).executeList()
+      val studentName = currentStudent.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate),
         if (co.endDate == null) "" else df.format(co.endDate))})
@@ -240,54 +321,53 @@ object Books extends Controller {
 }
 
 def findCheckoutHistory() = DbAction { implicit req =>
-    object ChoosePerspectiveForm extends Form {
-      val perspectiveId = new NumericField[Int]("Perspective ID")
+    object ChooseStudentForm extends Form {
+      val student = new TextField("Student")
 
-      def fields = List(perspectiveId)
+      def fields = List(student)
     }
     if (req.method == "GET") {
-      Ok(html.books.findCheckoutHistory(Binding(ChoosePerspectiveForm)))
+      Ok(html.books.findCheckoutHistory(Binding(ChooseStudentForm)))
     } else {
-      Binding(ChoosePerspectiveForm, req) match {
+      Binding(ChooseStudentForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
         case vb: ValidBinding => {
-          val lookupPerspectiveId: Long = vb.valueOf(ChoosePerspectiveForm.perspectiveId)
-          Redirect(routes.Books.checkoutHistory(lookupPerspectiveId))
+          val lookupStudentId: String = vb.valueOf(ChooseStudentForm.student)
+          Redirect(routes.Books.checkoutHistory(lookupStudentId))
         }
       }
     }
   }
 
   def findCurrentCheckouts() = DbAction { implicit req =>
-    object ChoosePerspectiveForm extends Form {
-      val perspectiveId = new NumericField[Int]("Perspective ID")
+    object ChooseStudentForm extends Form {
+      val stateId = new TextField("Student")
 
-      def fields = List(perspectiveId)
+      def fields = List(stateId)
     }
     if (req.method == "GET") {
-      Ok(html.books.findPerspectiveHistory(Binding(ChoosePerspectiveForm)))
+      Ok(html.books.findPerspectiveHistory(Binding(ChooseStudentForm)))
     } else {
-      Binding(ChoosePerspectiveForm, req) match {
+      Binding(ChooseStudentForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findPerspectiveHistory(ib))
         case vb: ValidBinding => {
-          val lookupPerspectiveId: Long = vb.valueOf(ChoosePerspectiveForm.perspectiveId)
-          Redirect(routes.Books.currentCheckouts(lookupPerspectiveId))
+          val lookupStudentId: String = vb.valueOf(ChooseStudentForm.stateId)
+          Redirect(routes.Books.currentCheckouts(lookupStudentId))
         }
       }
     }
   }
 
-  def currentCheckouts(perspectiveId: Long) = DbAction { implicit req =>
+  def currentCheckouts(stateId: String) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
-  val perspectiveCand = QPerspective.candidate
-  pm.query[Perspective].filter(perspectiveCand.id.eq(perspectiveId)).executeOption() match {
+  Student.getByStateId(stateId) match {
     case None => NotFound("No student with the given id")
-    case Some(currentPerspective) => {
+    case Some(currentStudent) => {
       val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.perspective.eq(currentPerspective))).executeList()
-      val studentName = currentPerspective.displayName
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
+      val studentName = currentStudent.displayName
       val header = "Student: %s".format(studentName)
       val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate))})
       Ok(views.html.books.currentCheckouts(header,rows))
@@ -295,15 +375,10 @@ def findCheckoutHistory() = DbAction { implicit req =>
   }
 }
 
-  def checkoutHistorySubmit() = TODO
-  
   def checkoutsByTeacherStudents() = TODO
   
-  def checkoutsByTeacherStudentsSubmit() = TODO
- 
   def statistics() = TODO
   
- 
   def copyStatusByTitle() = TODO /* DbAction { implicit req =>
     implicit val pm = req.pm
     val form = Form(
@@ -313,7 +388,34 @@ def findCheckoutHistory() = DbAction { implicit req =>
     
   }*/
   
-  def copyStatusByTitleSubmit() = TODO
-  
-  def allBooksOut(grade: Int = 13) = TODO
+  def allBooksOut(grade: Int) = DbAction { implicit req =>
+    implicit val pm = req.pm
+    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+    val stu = QStudent.variable("stu")
+    val cand = QCheckout.candidate
+    val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.eq(stu)).and(stu.grade.eq(grade))).executeList()
+    val header = "Current books out for grade " + grade
+    val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.student.formalName)})
+    Ok(views.html.books.allBooksOut(header, rows))
+  }
+
+  def findAllBooksOut() = DbAction { implicit req =>
+    object ChooseGradeForm extends Form {
+      val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
+
+      def fields = List(grade)
+    }
+    if (req.method == "GET") {
+      Ok(html.books.findAllBooksOut(Binding(ChooseGradeForm)))
+    } else {
+      Binding(ChooseGradeForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.findAllBooksOut(ib))
+        case vb: ValidBinding => {
+          val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
+          Redirect(routes.Books.allBooksOut(lookupGrade))
+        }
+      }
+    }
+  }
+
 }

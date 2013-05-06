@@ -71,34 +71,25 @@ abstract class Constant extends Value {
 object Constant {
 	def apply(s: String): Option[Constant] = {
 		s match {
-			case "\\pi" => Some(ConstantPi())
-			case "e"  => Some(ConstantE())
+			case "\\pi" => Some(ConstantPi)
+			case "e"  => Some(ConstantE)
 			case _    => Number(s)
 		}
 	}
 }
 
-class ConstantE extends Constant {
+object ConstantE extends RealNumber {
 	override def getValue: BigDecimal = scala.math.E
 	override def toLaTeX: String = "e"
-	override def simplify = new ConstantE
+	override def simplify = ConstantE
 	override def description: String = "ConstantE"
+	def toApproximation: ApproxNumber = ApproxNumber(scala.math.E)
 }
 
-object ConstantE {
-	def apply() = new ConstantE
-}
-
-class ConstantPi extends Constant {
+object ConstantPi extends RealNumber {
 	override def getValue: BigDecimal = scala.math.Pi
-	override def toLaTeX: String = ConstantPi.symbol
-	override def simplify = new ConstantPi
+	override def toLaTeX: String = "\\pi"
+	override def simplify = ConstantPi
 	override def description: String = "ConstantPi"
+	def toApproximation: ApproxNumber = ApproxNumber(scala.math.Pi)
 }
-
-object ConstantPi {
-	def apply() = new ConstantPi
-	def symbol = "\\pi"
-}
-
-

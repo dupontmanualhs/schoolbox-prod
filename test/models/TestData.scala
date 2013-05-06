@@ -1,13 +1,38 @@
 package models
 
 import java.io.File
-import java.sql.Date
-import util.{DataStore, ScalaPersistenceManager}
-import models.users._
-import models.books._
-import models.courses._
+import java.sql._
+
 import models.lockers._
+import models.conferences._
 import org.joda.time.LocalDate
+
+import javax.jdo.annotations.Inheritance
+import javax.jdo.annotations.PersistenceCapable
+import javax.jdo.annotations.Unique
+import models.blogs.Blog
+import models.books.Title
+import models.courses.AcademicYear
+import models.courses.Course
+import models.courses.Department
+import models.courses.Period
+import models.courses.Room
+import models.courses.Section
+import models.courses.StudentEnrollment
+import models.courses.TeacherAssignment
+import models.courses.Term
+import models.mastery.M
+import models.mastery.Question
+import models.mastery.QuestionSet
+import models.mastery.Quiz
+import models.mastery.QuizSection
+import models.users.Gender
+import models.users.Guardian
+import models.users.Student
+import models.users.Teacher
+import models.users.User
+import util.DataStore
+import util.ScalaPersistenceManager
 
 object TestData {
   def load(debug: Boolean = false) {
@@ -18,7 +43,7 @@ object TestData {
       pm.close()
     }
   }
-  
+
   def loadScheduleData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
     //createUserData(debug
     //createYearsAndTerms(debug)
@@ -27,7 +52,7 @@ object TestData {
     //makeEnrollments(debug)
     //makeTeacherAssignments(debug)
     //makeBookData(debug)
-    
+
     //create User Data
     if (debug) println("Creating sample users...")
     // teachers
@@ -39,7 +64,7 @@ object TestData {
     val christinaTeacher = new Teacher(christina, "542358", "8795177958")
     val richardTeacher = new Teacher(richard, "423423", "4478340832")
     val toddTeacher = new Teacher(todd, "323423", "3042093480")
-    
+
     // students
     val jack = new User("jack", "Jack", Some("Oliver"), "Phillips", None, Gender.MALE, "jack@jack.com", "phi123")
     val fitzgerald = new User("fitzgerald", "Fitzgerald", Some("Longfellow"), "Pennyworth", Some("Fitz of Fury"), Gender.MALE, "fitzgerald@fitzgerald.com", "pen123")
@@ -52,7 +77,8 @@ object TestData {
     val emma = new User("emma", "Emma", Some("Kathryn"), "King", None, Gender.FEMALE, "emma@emma.com", "kin123")
     val laura = new User("laura", "Laura", Some("Ann"), "King", None, Gender.FEMALE, "laura@laura.com", "kin123")
     val john = new User("john", "John", Some("Francis"), "King", None, Gender.MALE, "john@john.com", "kin123")
-    val eric = new User("eric", "Eric", None, "McKnight", None, Gender.MALE, "eric@eric.com", "mck123")
+    val bobby = new User("bobby", "Bobby", None, "Hill", Some("Dangit Bobby"), Gender.MALE, "bobby@bobby.com", "hil123")
+    val eric = new User("eric", "Eric", None, "McKnight", Some("Dungeon Defenders"), Gender.MALE, "eric@eric.com", "mck123")
     val ericStud = new Student(eric, "4208935702", "384979", 6, "MST")
     val jackStud = new Student(jack, "3757202948", "425636", 0, "MST")
     val fitzgeraldStud = new Student(fitzgerald, "8340522509", "382085", 4, "VA")
@@ -65,20 +91,29 @@ object TestData {
     val emmaStud = new Student(emma, "4534414554", "245434", 6, "CMA")
     val lauraStud = new Student(laura, "3943334223", "403024", 3, "YPAS")
     val johnStud = new Student(john, "5022165324", "154524", 12, "HSU")
+    val bobbyStud = new Student(bobby, "4235612205", "425451", 12, "Propane Studies")
 
     // guardians
     val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.MALE, null, "pen123")
+    val hank = new User("hank", "Hank", None, "Hill", Some("Propane and Propane Accessories"), Gender.MALE, null, "hil123")
     val toddGuardian = new Guardian(todd, Set(meriadocStud, peregrinStud))
     val regGuardian = new Guardian(reg, Set(fitzgeraldStud))
-    
-    
+    val hankGuardian = new Guardian(hank, Set(bobbyStud))
+
+    if (debug) println("Creating the blagosphere")
+    // blogs
+    val toddTeacherBlog = new Blog("Todd's Blag", toddTeacher)
+    val toddGuardianBlog = new Blog("Father O'Bryan's Blog", toddGuardian)
+    val tylerBlog = new Blog("Tydar's s'radyT", tylerStud)
+    val jordanBlog = new Blog("Jordan doesn't 'Get It(R)'", jordanStud)
+
     pm.makePersistentAll(List(
-        mary, christina, richard, todd, 
-        maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
-          jack, john, fitzgerald, emma, laura, tyler, jordan,  andrew, mack, meriadoc, peregrin, eric, 
-          ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
-          reg, toddGuardian, regGuardian))
- 
+      mary, christina, richard, todd,
+      maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
+      jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
+      ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
+      reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian, toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
+
     //createYearsAndTerms(debug)
     if (debug) println("Creating AcademicYear, Terms, and Periods...")
     val acadYear = new AcademicYear("2012-13")
@@ -93,7 +128,7 @@ object TestData {
     val w2 = new Period("White 2", 4)
     val periods: List[Period] = List(r1, r2, w1, w2)
     pm.makePersistentAll(periods)
-    
+
     //makeCourses(debug)
     if (debug) println("Creating Departments and Courses...")
     val scienceDept = new Department("Science")
@@ -123,11 +158,11 @@ object TestData {
     val worldHistB = new Course("World History B", "424239242", socialStudiesDept)
     val planning = new Course("Planning", "909989980", miscDept)
     val studySkills = new Course("Study Skills", "324342440", miscDept)
-    pm.makePersistentAll(List(scienceDept, englishDept, mathematicsDept, socialStudiesDept, 
-        bioA, chemA, alg1A,alg2A, geoA, eng1A, eng2A, eng3A, usHistA, worldHistA,
-        bioB, chemB, alg1B,alg2B, geoB, eng1B, eng2B, eng3B, usHistB, worldHistB,
-        planning, studySkills))
-    
+    pm.makePersistentAll(List(scienceDept, englishDept, mathematicsDept, socialStudiesDept,
+      bioA, chemA, alg1A, alg2A, geoA, eng1A, eng2A, eng3A, usHistA, worldHistA,
+      bioB, chemB, alg1B, alg2B, geoB, eng1B, eng2B, eng3B, usHistB, worldHistB,
+      planning, studySkills))
+
     // makeRooms
     if (debug) println("Creating Rooms...")
     val r201 = new Room("201")
@@ -135,7 +170,7 @@ object TestData {
     val r203 = new Room("203")
     val r204 = new Room("204")
     pm.makePersistentAll(List(r201, r202, r203, r204))
-    
+
     //makeSections(debug)
     if (debug) println("Creating Sections of courses...")
     val r1chemA = new Section(chemA, "333211", Set(fall2012), Set(r1), r201)
@@ -167,63 +202,82 @@ object TestData {
     val w1worldHistB = new Section(worldHistB, "888882", Set(spring2013), Set(w1), r204)
     val w2studySkill = new Section(studySkills, "444444", Set(fall2012, spring2013), Set(w2), r204)
     pm.makePersistentAll(List(
-        r1chemA, r2chemA, w1bioA, w2bioA, r1alg1A, r2alg2A, w2geoA, r1eng1A, w1eng2A, w2eng3A, r2usHistA, w1worldHistA,
-        r1chemB, r2chemB, w1bioB, w2bioB, r1alg1B, r2alg2B, w2geoB, r1eng1B, w1eng2B, w2eng3B, r2usHistB, w1worldHistB,
-        r1plan, w1plan, r2plan, w2studySkill))
+      r1chemA, r2chemA, w1bioA, w2bioA, r1alg1A, r2alg2A, w2geoA, r1eng1A, w1eng2A, w2eng3A, r2usHistA, w1worldHistA,
+      r1chemB, r2chemB, w1bioB, w2bioB, r1alg1B, r2alg2B, w2geoB, r1eng1B, w1eng2B, w2eng3B, r2usHistB, w1worldHistB,
+      r1plan, w1plan, r2plan, w2studySkill))
 
     //makeEnrollments(debug)
     if (debug) println("Creating student enrollments in sections...")
     val enrollments = Map(
-        johnStud -> List(r2chemA, r2chemB, r1alg1A, r1alg1B, w2eng3A, w2eng3B, w1worldHistA, w1worldHistB),
-        emmaStud -> List(r2chemA, r2chemB, w2geoA, w2geoB, r1eng1A, r1eng1B, w1worldHistA, w1worldHistB),
-        lauraStud -> List(r1chemA, r2alg2A, w2eng3A, w1worldHistA, r1chemB, r2alg2B, w2eng3B, w1worldHistB),
-        jackStud -> List(w1bioA, r2alg2A, r1eng1A, w2studySkill, w1bioB, r2alg2B, r1eng1B),
-        meriadocStud -> List(w2bioA, r1alg1A, w1eng2A, r2usHistA, w2bioB, r1alg1B, w1eng2B, r2usHistB),
-        peregrinStud -> List(w2bioA, r2alg2A, r1eng1A, w1worldHistA, w2bioB, r2alg2B, r1eng1B, w1worldHistB),
-        fitzgeraldStud -> List(w1bioA, r1alg1A, w2eng3A, r2usHistA, w1bioB, r1alg1B, w2eng3B, r2usHistB),
-        mackStud -> List(w1bioA, r1alg1A, w2eng3A, r2usHistA, w1bioB, r1alg1B, w2eng3B, r2usHistB),
-        ericStud -> List(r2chemA, w2geoA, r1eng1A, w1worldHistA, r2chemB, w2geoB, r1eng1B, w1worldHistB),
-        tylerStud -> List(r1chemA, r2alg2A, w1eng2A, w2studySkill, r1chemB, r2alg2B, w1eng2B),
-        jordanStud -> List(r1chemA, w2geoA, w1eng2A, r2usHistA, r1chemB, w2geoB, w1eng2B, r2usHistB)
-    )
+      johnStud -> List(r2chemA, r2chemB, r1alg1A, r1alg1B, w2eng3A, w2eng3B, w1worldHistA, w1worldHistB),
+      emmaStud -> List(r2chemA, r2chemB, w2geoA, w2geoB, r1eng1A, r1eng1B, w1worldHistA, w1worldHistB),
+      lauraStud -> List(r1chemA, r2alg2A, w2eng3A, w1worldHistA, r1chemB, r2alg2B, w2eng3B, w1worldHistB),
+      jackStud -> List(w1bioA, r2alg2A, r1eng1A, w2studySkill, w1bioB, r2alg2B, r1eng1B),
+      meriadocStud -> List(w2bioA, r1alg1A, w1eng2A, r2usHistA, w2bioB, r1alg1B, w1eng2B, r2usHistB),
+      peregrinStud -> List(w2bioA, r2alg2A, r1eng1A, w1worldHistA, w2bioB, r2alg2B, r1eng1B, w1worldHistB),
+      fitzgeraldStud -> List(w1bioA, r1alg1A, w2eng3A, r2usHistA, w1bioB, r1alg1B, w2eng3B, r2usHistB),
+      mackStud -> List(w1bioA, r1alg1A, w2eng3A, r2usHistA, w1bioB, r1alg1B, w2eng3B, r2usHistB),
+      ericStud -> List(r2chemA, w2geoA, r1eng1A, w1worldHistA, r2chemB, w2geoB, r1eng1B, w1worldHistB),
+      tylerStud -> List(r1chemA, r2alg2A, w1eng2A, w2studySkill, r1chemB, r2alg2B, w1eng2B),
+      jordanStud -> List(r1chemA, w2geoA, w1eng2A, r2usHistA, r1chemB, w2geoB, w1eng2B, r2usHistB))
 
     for ((student, sections) <- enrollments) {
       for (sect <- sections) {
         pm.makePersistent(new StudentEnrollment(student, sect, null, null))
       }
     }
-    
+
     //makeTeacherAssignments
     if (debug) println("Creating teacher assignments to sections...")
-    
+
     val assignments = Map(
-        maryTeacher -> List(r1plan, r2usHistA, r2usHistB, w1worldHistA, w1worldHistB, w2studySkill),
-        christinaTeacher -> List(r1eng1A, r2plan, w1eng2A, w2eng3A, r1eng1B, w1eng2B, w2eng3B),
-        toddTeacher -> List(r1alg1A, r2alg2A, w1plan, w2geoA, r1alg1B, r2alg2B, w2geoB),
-        richardTeacher -> List(r1chemA, r1chemB, r2chemA, r2chemB, w1bioA, w1bioB, w2bioA, w2bioB)
-    )
+      maryTeacher -> List(r1plan, r2usHistA, r2usHistB, w1worldHistA, w1worldHistB, w2studySkill),
+      christinaTeacher -> List(r1eng1A, r2plan, w1eng2A, w2eng3A, r1eng1B, w1eng2B, w2eng3B),
+      toddTeacher -> List(r1alg1A, r2alg2A, w1plan, w2geoA, r1alg1B, r2alg2B, w2geoB),
+      richardTeacher -> List(r1chemA, r1chemB, r2chemA, r2chemB, w1bioA, w1bioB, w2bioA, w2bioB))
 
     for ((teacher, sections) <- assignments) {
       for (sect <- sections) {
         pm.makePersistent(new TeacherAssignment(teacher, sect, null, null))
       }
     }
-    
-    
+
     //makeBookData(debug)
-    if (debug) println("Creating Titles...")
-    val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", "Bellman, Bragg and Charles", "Pearson Prentice Hall", "978-0130523167", 842, "10.9 x 8.8 x 1.6 inches", 4.5, true, new Date(System.currentTimeMillis()))
-    val algebra2Book = new Title("Prentice Hall Mathematics: Algebra 2", "Dan Kennedy, Randall I. Charles and Sadie Chavis Bragg", "Pearson Prentice Hall", "978-0131339989",900, "10.9 x 8.8 x 2 inches", 5.3, true, new Date(System.currentTimeMillis()))
-    val geometryBook = new Title("Geometry", "Harold R. Jacobs", "W.H. Freeman & Company", "978-0716717454", 668, "10.1 x 7.7 x 1.4 inches", 3.3, true, new Date(System.currentTimeMillis()))
-    val chemistryBook = new Title("Chemistry", "Steven S. Zumdahl and Susan A. Zumdahl", "Houghton Mifflin", "978-0618528448", 1056, "10.6 x 8.5 x 1.6 inches", 5.5, true, new Date(System.currentTimeMillis()))
-    val biologyBook = new Title("Biology", "Neil A. Campbell, Jane B. Reece, Lisa A. Urry and Michael L. Cain", " Pearson Benjamin Cummings", "978-0805368444", 1393, "8.5 x 2.1 x 11 inches", 7.6, true, new Date(System.currentTimeMillis()))
-    val english1Book = new Title("Glencoe Language Arts Grammar And Language Workbook Grade 9", "John King", " Glencoe/McGraw-Hill", "978-0028182940", 348, "10.9 x 8.5 x 0.6 inches", 9.6, true, new Date(System.currentTimeMillis()))
-    val english2Book = new Title("Prentice Hall Literature Penguin: Grade 10: Student Edition (NATL)", "Todd O'Bryan", "PRENTICE HALL", "978-0131317185", 1163, "10 x 7.9 x 1.8 inches", 5.2, true, new Date(System.currentTimeMillis()))
-    val english3Book = new Title("Language of Literature, Grade 11 ", "Pat Day", "McDougal Littel", "978-0395931813", 1408, "1 x 0.8 x 0.2 inches", 6.0, true, new Date(System.currentTimeMillis()))
-    val worldHistoryBook = new Title("World History: Patterns of Interaction: Atlas by Rand McNally", "Roger B. Beck, Linda Black and Larry S. Krieger", "Mcdougal Littell/Houghton Mifflin", "978-0618690084", 1376, "11.2 x 8.7 x 1.8 inches", 6.8, true, new Date(System.currentTimeMillis()))
-    val usHistoryBook = new Title("The American Pageant", "David M. Kennedy and Lizabeth Cohen", "Wadsworth Publishing", "978-1111349530", 1152, "11 x 8.8 x 1.6 inches", 5.2, true, new Date(System.currentTimeMillis()))
-    
-    
+/*    if (debug) println("Creating Titles...")
+    val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", Some("Bellman, Bragg and Charles"),
+        Some("Pearson Prentice Hall"), "9780130523167", Some(842),
+        Some("10.9 x 8.8 x 1.6 inches"), Some(4.5), true, new Date(System.currentTimeMillis()), None)
+    val algebra2Book = new Title("Prentice Hall Mathematics: Algebra 2", Some("Dan Kennedy, Randall I. Charles and Sadie Chavis Bragg"),
+        Some("Pearson Prentice Hall"), "9780131339989",Some(900),
+        Some("10.9 x 8.8 x 2 inches"), Some(5.3), true, new Date(System.currentTimeMillis()), None)
+    val geometryBook = new Title("Geometry", Some("Harold R. Jacobs"),
+        Some("W.H. Freeman & Company"), "9780716717454", Some(668),
+        Some("10.1 x 7.7 x 1.4 inches"), Some(3.3), true, new Date(System.currentTimeMillis()), None)
+    val chemistryBook = new Title("Chemistry", Some("Steven S. Zumdahl and Susan A. Zumdahl"),
+        Some("Houghton Mifflin"), "9780618528448", Some(1056),
+        Some("10.6 x 8.5 x 1.6 inches"), Some(5.5), true, new Date(System.currentTimeMillis()), None)
+    val biologyBook = new Title("Biology", Some("Neil A. Campbell, Jane B. Reece, Lisa A. Urry and Michael L. Cain"),
+        Some("Pearson Benjamin Cummings"), "9780805368444", Some(1393),
+        Some("8.5 x 2.1 x 11 inches"), Some(7.6), true, new Date(System.currentTimeMillis()), None)
+    val english1Book = new Title("Glencoe Language Arts Grammar And Language Workbook Grade 9", Some("John King"),
+        Some("Glencoe/McGraw-Hill"), "9780028182940", Some(348),
+        Some("10.9 x 8.5 x 0.6 inches"), Some(9.6), true, new Date(System.currentTimeMillis()), None)
+    val english2Book = new Title("Prentice Hall Literature Penguin: Grade 10: Student Edition (NATL)", Some("Todd O'Bryan"),
+        Some("PRENTICE HALL"), "9780131317185", Some(1163),
+        Some("10 x 7.9 x 1.8 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
+    val english3Book = new Title("Language of Literature, Grade 11 ", Some("Pat Day"),
+        Some("McDougal Littel"), "9780395931813", Some(1408),
+        Some("1 x 0.8 x 0.2 inches"), Some(6.0), true, new Date(System.currentTimeMillis()), None)
+    val worldHistoryBook = new Title("World History: Patterns of Interaction: Atlas by Rand McNally", Some("Roger B. Beck, Linda Black and Larry S. Krieger"),
+        Some("Mcdougal Littell/Houghton Mifflin"), "9780618690084", Some(1376),
+        Some("11.2 x 8.7 x 1.8 inches"), Some(6.8), true, new Date(System.currentTimeMillis()), None)
+    val usHistoryBook = new Title("The American Pageant", Some("David M. Kennedy and Lizabeth Cohen"),
+        Some("Wadsworth Publishing"), "9781111349530", Some(1152),
+        Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
+
+    //makeMasteryData
+    mastery.QuizData.load(debug)
+
     //makeLockerData(debug)
     if (debug) println("Creating Lockers...")
     val locker1 = new Locker(15, "23-96-23", LockerLocation(1,"CW"), None, false)
@@ -237,11 +291,19 @@ object TestData {
     val locker9 = new Locker(23, "32-82-42", LockerLocation(1,"CW"), None, false)
     val locker10 = new Locker(24, "03-08-16", LockerLocation(2,"SE"), None, false)
     val lockerList = List(locker1, locker2, locker3, locker4, locker5, locker6, locker7, locker8, locker9, locker10)
-    
+
     for(locker <- lockerList) {
       pm.makePersistent(locker)
     }
-  }
-  
 
+    //makeConferenceData(debug)
+    if(debug) println("Creating Conferences...")
+    val springConf = new Event("Spring Conferences", true)
+    val springSession = new Session(springConf, Date.valueOf("2013-04-01"), Timestamp.valueOf("2013-04-21 23:59:59"),
+        Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:00:00"), Time.valueOf("23:59:59"), 10)
+    val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher] /*ob*/, Student.getByUsername("RASHAH01").asInstanceOf[Student],
+        Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)*/
+  }    
+
+  
 }

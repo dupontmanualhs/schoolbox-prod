@@ -16,6 +16,8 @@ import forms.{Binding, InvalidBinding, ValidBinding}
 import forms.validators.ValidationError
 import forms.validators.Validator
 import util.Authenticated
+import scala.xml.Text
+import play.api.mvc.Flash._
 
 object Users extends Controller {  
   /**
@@ -55,7 +57,7 @@ object Users extends Controller {
               request.visit.perspective = Some(persp)
               request.visit.updateMenu
               request.pm.makePersistent(request.visit)
-              Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
+              Redirect(request.visit.redirectURL.getOrElse(routes.Application.index())).flashing("message" -> "You have successfully logged in.")
             }
             // multiple perspectives
             case _ => Redirect(routes.Users.choosePerspective()).flashing("message" -> "Choose which perspective to use.")
@@ -80,7 +82,7 @@ object Users extends Controller {
           req.visit.perspective = Some(vb.valueOf(ChoosePerspectiveForm.perspective))
           req.visit.updateMenu
           req.pm.makePersistent(req.visit)
-          Redirect(routes.Application.index()).flashing("message" -> "You have successfuly logged in.")
+          Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
         }
       }
     }
@@ -92,7 +94,7 @@ object Users extends Controller {
   def logout = DbAction { implicit request =>
     request.pm.deletePersistent(request.visit)
     Redirect(routes.Application.index()).flashing(
-      "message" -> "You've been logged out..."
+      "message" -> "You have been logged out."
     )
   }
   
@@ -102,7 +104,7 @@ object Users extends Controller {
         List(Validator((str: String) => {
           ValidationError(
             if (User.authenticate(user, str).isDefined) Nil
-            else List("Current password is incorrect.")
+            else List(Text("Current password is incorrect."))
           )
         }))
       }
@@ -119,23 +121,50 @@ object Users extends Controller {
     }
     
   }
+  
+  object ChangeTheme extends Form {
+    val theme = new ChoiceField("theme",List(("Default", "default"), ("Night", "night"), ("Cyborg", "cyborg")))
+    
+    def fields = List(theme)
+  }
+  
+  def settings = Authenticated { implicit req =>
+    val user = req.visit.user.get
+    val pwForm = new ChangePasswordForm(user)
+    Ok(html.users.settings(Binding(pwForm), Binding(ChangeTheme)))
+  }
 
   def changePassword = Authenticated { implicit req =>
     val user = req.visit.user.get // TODO: this scares me -- we shouldn't get here if the user is None, but...
     val form = new ChangePasswordForm(user)
     if (req.method == "GET") {
-      Ok(html.users.changePassword(Binding(form)))
+      Ok(html.users.settings(Binding(form), Binding(ChangeTheme)))
     } else {
       Binding(form, req) match {
-        case ib: InvalidBinding => Ok(html.users.changePassword(ib))
+        case ib: InvalidBinding => Ok(html.users.settings(ib, Binding(ChangeTheme)))
         case vb: ValidBinding => {
           user.password = vb.valueOf(form.newPassword)
           req.pm.makePersistent(user)
-          Redirect(routes.Application.index()).flashing("message" -> "Password successfully changed.")
+          Redirect(routes.Application.index()).flashing("message" -> "Settings successfully changed.")
         }
       }
     }
   }
+  
+  def changeTheme = Authenticated { implicit req =>
+    val user = req.visit.user.get
+    val pwForm = new ChangePasswordForm(user)
+    Binding(ChangeTheme, req) match {
+      case ib: InvalidBinding => Ok(html.users.settings(Binding(pwForm), ib))
+      case vb: ValidBinding => {
+        user.theme = vb.valueOf(ChangeTheme.theme)
+        req.pm.makePersistent(user)
+        Redirect(routes.Application.index()).flashing("message" -> "Settings successfully changed.")
+      }
+    }
+  }
+  
+ //def settingsPage = 
   
   def list = DbAction { implicit request =>
     val cand = QUser.candidate

@@ -63,6 +63,15 @@ object Student {
     if(pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )
   }
+
+  def getByStateId(stateId: String)(implicit pm: ScalaPersistenceManager = null): Option[Student] = {
+    def query(epm: ScalaPersistenceManager): Option[Student] = {
+    	val cand = QStudent.candidate
+    	pm.query[Student].filter(cand.stateId.eq(stateId)).executeOption()
+    }
+    if(pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
   
 }
 
