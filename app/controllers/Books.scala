@@ -862,7 +862,7 @@ object Books extends Controller {
     cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._3, topLeftX, (topLeftY - 8), 0)
     cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._4, topLeftX, (topLeftY - 16), 0)
     val b = barcodes(0)._1
-    b.setX(0.6f)
+    b.setX(0.7f)
     val img = b.createImageWithBarcode(cb, null, null)
     cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, topLeftX, (topLeftY - 56))
 
