@@ -15,7 +15,7 @@ import javax.imageio._
 import java.io._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import com.itextpdf.text.pdf.{Barcode128, Barcode, PdfContentByte, PdfWriter}
+import com.itextpdf.text.pdf.{Barcode128, Barcode, PdfContentByte, PdfWriter, BaseFont}
 import com.itextpdf.text.{BaseColor, Document, DocumentException, PageSize, Paragraph, Utilities}
 
 object Books extends Controller {
@@ -818,10 +818,10 @@ object Books extends Controller {
     document.close()
   }
 
-  def makePdf(barcodes: List[(Barcode, String)]) {
+  def makePdf(barcodes: List[(Barcode, String, String, String)]) { //Barcode, title.name, title.author, title.publisher
     // Spacing in points
     // Bottom left: 0,0
-    // Top right: 576, 756
+    // Top right: 612, 792
 
     // Avery 5160 labels have 1/2 inch top/bottom margins and 0.18 inch left/right margins.
     // Labels are 2.6" by 1". Labels abut vertically but there is a .15" gutter horizontally.
@@ -845,16 +845,27 @@ object Books extends Controller {
     val labelWidth = Utilities.inchesToPoints(2.6f)
 
     val topLeftX = lAndRBorder
-    val topLeftY = 756f - inch
+    val topLeftY = 792 - halfInch - 5
 
     val result: String = "public/printable.pdf"
     val document: Document = new Document(PageSize.LETTER)
     val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
     document.open()
-    val cb = writer.getDirectContent()
+    val cb = writer.getDirectContent() //PdfContentByte
+    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
+    cb.setFontAndSize(font, 10)
+
+    // Do this for each barcode but change the position so that it is a new label each time
+    val labelTopLeftX = topLeftX
+    val labelTopLeftY = topLeftY
+    cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._2, topLeftX, topLeftY, 0)
+    cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._3, topLeftX, (topLeftY - 8), 0)
+    cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._4, topLeftX, (topLeftY - 16), 0)
     val b = barcodes(0)._1
+    b.setX(0.6f)
     val img = b.createImageWithBarcode(cb, null, null)
-    cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, topLeftX, topLeftY)
+    cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, topLeftX, (topLeftY - 56))
+
     document.close()
   }
 
