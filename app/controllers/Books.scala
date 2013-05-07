@@ -807,15 +807,15 @@ object Books extends Controller {
     return b
   }
 
-  def placeOneBarcode(barcode: Barcode) {
-    val result: String = "public/test.pdf"
-    val document: Document = new Document(PageSize.LETTER)
-    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
-    document.open()
-    val cb: PdfContentByte = writer.getDirectContent()
-    document.add(new Paragraph("Label Here"))
-    document.add(barcode.createImageWithBarcode(cb, null, null))
-    document.close()
+  def cropText(s: String): String = {
+    // This will crop strings so that they fit on a label
+    val w = Utilities.inchesToPoints(2.6f) - 12
+    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
+    if (font.getWidthPoint(s, 10f) <= w) {
+      s
+    } else {
+      cropText(s.substring(0, s.length - 1))
+    }
   }
 
   def makePdf(barcodes: List[(Barcode, String, String, String)]) { //Barcode, title.name, title.author, title.publisher
@@ -845,7 +845,7 @@ object Books extends Controller {
     val labelWidth = Utilities.inchesToPoints(2.6f)
 
     val topLeftX = lAndRBorder
-    val topLeftY = 792 - halfInch - 5
+    val topLeftY = 792 - halfInch - 10
 
     val result: String = "public/printable.pdf"
     val document: Document = new Document(PageSize.LETTER)
@@ -854,19 +854,46 @@ object Books extends Controller {
     val cb = writer.getDirectContent() //PdfContentByte
     val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
     cb.setFontAndSize(font, 10)
+    var labelTopLeftX = topLeftX
+    var labelTopLeftY = topLeftY
+    var n = 0
 
-    // Do this for each barcode but change the position so that it is a new label each time
-    val labelTopLeftX = topLeftX
-    val labelTopLeftY = topLeftY
-    cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._2, topLeftX, topLeftY, 0)
-    cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._3, topLeftX, (topLeftY - 8), 0)
-    cb.showTextAligned(PdfContentByte.ALIGN_LEFT, barcodes(0)._4, topLeftX, (topLeftY - 16), 0)
-    val b = barcodes(0)._1
-    b.setX(0.7f)
-    val img = b.createImageWithBarcode(cb, null, null)
-    cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, topLeftX, (topLeftY - 56))
+    for (barcode <- barcodes) {
+      // Do this for each barcode but change the position so that it is a new label each time
+
+      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._2), (labelTopLeftX + 6), labelTopLeftY, 0)
+      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._3), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
+      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._4), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+      val b = barcode._1
+      b.setX(0.7f)
+      val img = b.createImageWithBarcode(cb, null, null)
+      val barcodeOffset = (labelWidth - img.getPlainWidth())/2
+      cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, (labelTopLeftX + barcodeOffset), (labelTopLeftY - 52))
+
+      n += 1
+
+      if (n % 3 == 0) {
+        labelTopLeftX = topLeftX
+        labelTopLeftY = labelTopLeftY - inch
+      } else {
+        labelTopLeftX = labelTopLeftX + labelWidth + gutter
+      }
+      if (n % 30 == 0) {
+        // Make a new page
+        document.newPage()
+        cb.setFontAndSize(font, 10)
+        labelTopLeftY = topLeftY
+      }
+    }
 
     document.close()
   }
+
+  val tempBarcode = makeBarcode("1234567890123-200-00001")
+
+  val testBarcodes = List((tempBarcode, "123456788901234567890123456789012345678901234567890", "abcdefghijklmnopqrstuvwxyz123456789012345678901234567890", "qwertyuiopasdfghjklzxcvbnm098765432112345678901234567890"),
+    (tempBarcode, "Name", "Author", "Publisher"), (tempBarcode, "Herp", "Derp", "Snerp"), (tempBarcode, "Welp", "Foo", "Bar"))
+
+  val longTestBarcodes = testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes
 
 }
