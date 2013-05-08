@@ -83,6 +83,8 @@ trait QSession extends PersistableExpression[Session] {
   private[this] lazy val _endTime: TimeExpression[java.util.Date] = new TimeExpressionImpl(this, "_endTime")
   def endTime: TimeExpression[java.util.Date] = _endTime
 
+  private[this] lazy val _slotInterval: NumericExpression[Int] = new NumericExpressionImpl(this, "_slotInterval")
+  def slotInterval: NumericExpression[Int] = _slotInterval
 }
 
 object QSession extends QueryClass[Session, QSession] {

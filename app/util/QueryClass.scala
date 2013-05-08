@@ -1,5 +1,4 @@
 package util
-
 import org.datanucleus.query.typesafe.PersistableExpression
 import org.datanucleus.api.jdo.query.ExpressionType
 

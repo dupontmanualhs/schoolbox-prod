@@ -112,12 +112,14 @@ object Conferences extends Controller {
 	    case None => NotFound(views.html.notFound("No event could be found"))
 	    case Some(event) => {
 	      val sessions = pm.query[models.conferences.Session].filter(QSession.candidate.event.eq(event)).executeList()
-	      var slots = List[Slot]()
-	      for (session <- sessions) slots = slots ++ pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList()
-	      for (slot <- slots) pm.deletePersistent(slot)
-	      for (session <- sessions) pm.deletePersistent(session)
+	      for (session <- sessions) {
+	        val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList()
+	        pm.deletePersistentAll(slots)
+	      }
+	      pm.deletePersistentAll(sessions)
+	      val message = "Conference event '%s' was deleted.".format(event.name)
 	      pm.deletePersistent(event)
-	      Redirect(routes.Conferences.index()).flashing("message" -> ("\"" + event.name + "\" was deleted."))
+	      Redirect(routes.Conferences.index()).flashing("message" -> message)
 	    } 
 	  }
 	}
