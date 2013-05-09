@@ -114,6 +114,12 @@ GET     /books/editTitleHelper/:isbn            controllers.Books.editTitleHelpe
 POST    /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
 GET     /books/editTitle                        controllers.Books.editTitle
 POST    /books/editTitle                        controllers.Books.editTitle
+GET     /books/addTitleToPrintQueue/:isbn/:cR   controllers.Books.addTitleToPrintQueue(isbn: String, cR: String)
+POST    /books/addTitleToPrintQueue/:isbn/:cR   controllers.Books.addTitleToPrintQueue(isbn: String, cR: String)
+GET     /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrintQueueHelper
+POST    /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrintQueueHelper
+GET     /books/viewPrintQueue                   controllers.Books.viewPrintQueue
+GET     /books/removeFromPrintQueue/:id         controllers.Books.removeFromPrintQueue(id: Long)
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()

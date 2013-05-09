@@ -4,6 +4,8 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.Perspective
+import util.DataStore
+import util.ScalaPersistenceManager
 
 @PersistenceCapable(detachable="true")
 class LabelQueueSet {
@@ -38,6 +40,14 @@ class LabelQueueSet {
 }
 
 object LabelQueueSet {
+  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[LabelQueueSet] = {
+    def query(epm: ScalaPersistenceManager): Option[LabelQueueSet] = {
+      val cand = QLabelQueueSet.candidate
+      epm.query[LabelQueueSet].filter(cand.id.eq(id)).executeOption()
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
 }
 
 trait QLabelQueueSet extends PersistableExpression[LabelQueueSet] {

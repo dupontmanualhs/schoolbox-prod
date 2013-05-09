@@ -900,10 +900,16 @@ object Books extends Controller {
     implicit val pm = request.pm
 
     Title.getByIsbn(isbn) match {
-      case None => //Redirect()
+      case None => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Title not found")
       case Some(t) => {
-        val l = new LabelQueueSet(models.users.User.current.get(), t, copyRange)
-        request.pm.makePersistent(l)
+        val copyRangeBounds = copyRange.split("-")
+        if (copyRangeBounds.length == 1 || copyRangeBounds.length == 2 && copyRangeBounds(0) <= copyRangeBounds(1)) {
+          val l = new LabelQueueSet(request.visit.perspective.getOrElse(null), t, copyRange)
+          request.pm.makePersistent(l)
+          Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Labels added to print queue")
+        } else {
+          Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Invalid copy range")
+        }
       }
     }
   }
@@ -920,16 +926,36 @@ object Books extends Controller {
 
   def addTitleToPrintQueueHelper() = DbAction { implicit request =>
     implicit val pm = request.pm
-    if (req.method == "GET") {
+    if (request.method == "GET") {
       Ok(html.books.addTitleToPrintQueueHelper(Binding(AddTitleToPrintQueueForm)))
     } else {
-      Binding(AddTitleToPrintQueueForm, req) match {
+      Binding(AddTitleToPrintQueueForm, request) match {
         case ib: InvalidBinding => Ok(html.books.addTitleToPrintQueueHelper(ib))
         case vb: ValidBinding => {
           val lookupIsbn: String = vb.valueOf(AddTitleToPrintQueueForm.isbn)
           val copyRange: String = vb.valueOf(AddTitleToPrintQueueForm.copyRange)
-          Redirect(routes.Books.editTitleHelper(lookupIsbn))
+          Redirect(routes.Books.addTitleToPrintQueue(lookupIsbn, copyRange))
         }
+      }
+    }
+  }
+
+  def viewPrintQueue() = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    val labelSets = pm.query[LabelQueueSet].executeList
+    val rows: List[(String, String, String, Long)] = labelSets.map(ls => { (ls.title.name, ls.title.isbn, ls.copyRange, ls.id)})
+    Ok(html.books.viewPrintQueue(rows))
+  }
+
+  def removeFromPrintQueue(id: Long) = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    LabelQueueSet.getById(id) match {
+      case None => Redirect(routes.Books.viewPrintQueue()).flashing("message" -> "ID not found")
+      case Some(l) => {
+        pm.deletePersistent(l)
+        Redirect(routes.Books.viewPrintQueue()).flashing("message" -> "Labels removed from print queue")
       }
     }
   }
