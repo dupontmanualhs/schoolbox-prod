@@ -896,4 +896,42 @@ object Books extends Controller {
 
   val longTestBarcodes = testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes
 
+  def addTitleToPrintQueue(isbn: String, copyRange: String) = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    Title.getByIsbn(isbn) match {
+      case None => //Redirect()
+      case Some(t) => {
+        val l = new LabelQueueSet(models.users.User.current.get(), t, copyRange)
+        request.pm.makePersistent(l)
+      }
+    }
+  }
+
+  object AddTitleToPrintQueueForm extends Form {
+    val isbn = new TextField("ISBN") {
+      override val minLength = Some(10)
+      override val maxLength = Some(13)
+    }
+    val copyRange = new TextField("Copy Range")
+
+    val fields = List(isbn, copyRange)
+  }
+
+  def addTitleToPrintQueueHelper() = DbAction { implicit request =>
+    implicit val pm = request.pm
+    if (req.method == "GET") {
+      Ok(html.books.addTitleToPrintQueueHelper(Binding(AddTitleToPrintQueueForm)))
+    } else {
+      Binding(AddTitleToPrintQueueForm, req) match {
+        case ib: InvalidBinding => Ok(html.books.addTitleToPrintQueueHelper(ib))
+        case vb: ValidBinding => {
+          val lookupIsbn: String = vb.valueOf(AddTitleToPrintQueueForm.isbn)
+          val copyRange: String = vb.valueOf(AddTitleToPrintQueueForm.copyRange)
+          Redirect(routes.Books.editTitleHelper(lookupIsbn))
+        }
+      }
+    }
+  }
+
 }
