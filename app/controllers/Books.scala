@@ -162,8 +162,6 @@ object Books extends Controller {
   
   def verifyTitle(isbnNum: Long) = TODO
   
-  def addCopiesToPg(pgId: Long) = TODO
-  
   object AddPurchaseGroupForm extends Form {
     val isbn = new TextField("isbn") {
       override val minLength = Some(10)
@@ -231,10 +229,6 @@ object Books extends Controller {
   }
 }
 
-  def addLabelsToQueue() = TODO
-  
-  def printCenter() = TODO
-  
   object CheckoutForm extends Form {
     val barcode = new TextField("Barcode") {
       override val minLength = Some(21)
@@ -961,12 +955,17 @@ object Books extends Controller {
     }
   }
 
-  /*
-  def printTheQueue() = DbAction { implicit request =>
-    implicit val pm = request.pm
-
+  def print(l: List[LabelQueueSet]) {
+    var printList = List[(Barcode, String, String, String)]()
+    for (x <- l) {
+      val r = sanatizeCopyRange(x.copyRange)
+      for (y <- r) {
+        val b = makeBarcode("%s-%s-%05d".format(x.title.isbn, "200", y))
+        printList = printList :+ (b, x.title.name, x.title.author, x.title.publisher)
+      }
+    }
+    printList
   }
-  */
 
   def sanatizeCopyRange(s: String): List[Int] = {
     val newS = s.trim.split(",")
