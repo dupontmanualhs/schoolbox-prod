@@ -903,7 +903,7 @@ object Books extends Controller {
       case None => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Title not found")
       case Some(t) => {
         val copyRangeBounds = copyRange.split("-")
-        if (copyRangeBounds.length == 1 || copyRangeBounds.length == 2 && copyRangeBounds(0) <= copyRangeBounds(1)) {
+        if (true) { // change this once range sanitation is done
           val l = new LabelQueueSet(request.visit.perspective.getOrElse(null), t, copyRange)
           request.pm.makePersistent(l)
           Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Labels added to print queue")
@@ -959,5 +959,21 @@ object Books extends Controller {
       }
     }
   }
+
+/*
+  def printTheQueue() = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+  }
+
+  def sanatizeCopyRange(s: String): Array[Int] = {
+    val newS = s.trim
+    var res = new Array[Int]()
+    for (x <- newS) {
+      if (x.contains("-")) {
+
+    }
+  }
+*/
 
 }
