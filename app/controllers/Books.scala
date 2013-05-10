@@ -144,7 +144,7 @@ object Books extends Controller {
             downloadImage(url, vb.valueOf(TitleForm.isbn))
             Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
           } catch {
-            case e: Exception => Redirect(routes.Books.addTitle()).flashing("message" -> "Image not downloaded. Update the title's image to try downloading again")
+            case e: Exception => Redirect(routes.Books.addTitle()).flashing("error" -> "Image not downloaded. Update the title's image to try downloading again")
           }
           case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
         }
@@ -188,7 +188,7 @@ object Books extends Controller {
         case ib: InvalidBinding => Ok(views.html.books.addPurchaseGroup(ib))
         case vb: ValidBinding => {
         Title.getByIsbn(vb.valueOf(AddPurchaseGroupForm.isbn)) match {
-          case None => Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> "Title with the given ISBN not found")
+          case None => Redirect(routes.Books.addPurchaseGroup()).flashing("error" -> "Title with the given ISBN not found")
           // TODO - Ask if the user would like to add the title if it is not found
           case Some(t) => {
             val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
@@ -255,13 +255,13 @@ object Books extends Controller {
           val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
           val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
           student match {
-            case None => Redirect(routes.Books.checkout()).flashing("message" -> "No such student.")
+            case None => Redirect(routes.Books.checkout()).flashing("error" -> "No such student.")
             case Some(stu) => {
               copy match {
-                case None => Redirect(routes.Books.checkout()).flashing("message" -> "No copy with that barcode.")
+                case None => Redirect(routes.Books.checkout()).flashing("error" -> "No copy with that barcode.")
                 case Some(cpy) => {
                   if (cpy.isCheckedOut) {
-                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy already checked out")
+                    Redirect(routes.Books.checkout()).flashing("error" -> "Copy already checked out")
                   } else {
                     val c = new Checkout(stu, cpy, new java.sql.Date(new java.util.Date().getTime()), null)
                     request.pm.makePersistent(c)
@@ -292,7 +292,7 @@ object Books extends Controller {
         case vb: ValidBinding => {
           val checkoutStu: String = vb.valueOf(CheckoutBulkForm.student)
           Student.getByStateId(checkoutStu) match {
-            case None => Redirect(routes.Books.checkoutBulk).flashing("message" -> "Student not found.")
+            case None => Redirect(routes.Books.checkoutBulk).flashing("error" -> "Student not found.")
             case Some(s) => Redirect(routes.Books.checkoutBulkHelper(checkoutStu))
           }
         }
@@ -328,13 +328,13 @@ object Books extends Controller {
         case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, dName, zipped, stu))
         case vb: ValidBinding => {
           Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
-            case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy not found.")
+            case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy not found.")
             case Some(cpy) => {
               if (cpy.isCheckedOut) {
-                Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy already checked out.")
+                Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already checked out.")
               } else {
                 if (request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
-                  Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> "Copy already in queue.")
+                  Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
                 } else {
                   request.visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
                   Redirect(routes.Books.checkoutBulkHelper(stu))
@@ -382,7 +382,7 @@ object Books extends Controller {
       Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)
     } else {
       val mes = "Books with the following barcodes already checked out: " + checkedOutCopies.toString.substring(7, checkedOutCopies.toString.length - 1)
-      Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("message" -> mes)
+      Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> mes)
     }
   }
 
@@ -404,10 +404,10 @@ object Books extends Controller {
         case vb: ValidBinding => {
           val cand = QCheckout.candidate
           Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
-            case None => Redirect(routes.Books.checkIn()).flashing("message" -> "No copy with the given barcode")
+            case None => Redirect(routes.Books.checkIn()).flashing("error" -> "No copy with the given barcode")
             case Some(cpy) => {
               pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
-                case None => Redirect(routes.Books.checkIn()).flashing("message" -> "Copy not checked out")
+                case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
                 case Some(currentCheckout) => {
                   currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
                   request.pm.makePersistent(currentCheckout)
@@ -763,7 +763,7 @@ object Books extends Controller {
               downloadImage(url, isbn)
               Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
             } catch {
-              case e: Exception => Redirect(routes.Application.index()).flashing("message" -> "Image not downloaded. Edit the tite to try downloading again")
+              case e: Exception => Redirect(routes.Application.index()).flashing("error" -> "Image not downloaded. Edit the tite to try downloading again")
             }
             case None => Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
           }
@@ -900,15 +900,16 @@ object Books extends Controller {
     implicit val pm = request.pm
 
     Title.getByIsbn(isbn) match {
-      case None => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Title not found")
+      case None => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("error" -> "Title not found")
       case Some(t) => {
-        val copyRangeBounds = copyRange.split("-")
-        if (true) { // change this once range sanitation is done
+        try {
+          sanatizeCopyRange(copyRange)
           val l = new LabelQueueSet(request.visit.perspective.getOrElse(null), t, copyRange)
           request.pm.makePersistent(l)
           Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Labels added to print queue")
-        } else {
-          Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Invalid copy range")
+
+        } catch {
+          case e: Exception => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("error" -> "Invalid copy range")
         }
       }
     }
@@ -952,7 +953,7 @@ object Books extends Controller {
     implicit val pm = request.pm
 
     LabelQueueSet.getById(id) match {
-      case None => Redirect(routes.Books.viewPrintQueue()).flashing("message" -> "ID not found")
+      case None => Redirect(routes.Books.viewPrintQueue()).flashing("error" -> "ID not found")
       case Some(l) => {
         pm.deletePersistent(l)
         Redirect(routes.Books.viewPrintQueue()).flashing("message" -> "Labels removed from print queue")
@@ -960,20 +961,28 @@ object Books extends Controller {
     }
   }
 
-/*
+  /*
   def printTheQueue() = DbAction { implicit request =>
     implicit val pm = request.pm
 
   }
+  */
 
-  def sanatizeCopyRange(s: String): Array[Int] = {
-    val newS = s.trim
-    var res = new Array[Int]()
+  def sanatizeCopyRange(s: String): List[Int] = {
+    val newS = s.trim.split(",")
+    var res: List[Int] = List[Int]()
     for (x <- newS) {
       if (x.contains("-")) {
-
+        val newX = x.trim.split("-")
+        val startVal = newX(0).trim.toInt
+        val endVal = newX(1).trim.toInt
+        val temp = startVal.until(endVal + 1).toList
+        res = res ++ temp
+      } else {
+        res = res :+ x.trim.toInt
+      }
     }
+    res
   }
-*/
 
 }
