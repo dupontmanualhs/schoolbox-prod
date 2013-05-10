@@ -116,7 +116,7 @@ object Grades extends Controller {
         val assignments = Assignment.getAssignments(sect)
         val students = sect.students
         val topRow = topRowGradebook(assignments)
-        val grid = Html((topRow :: students.map(rowN(_, assignments))).mkString("[", ", ", "]"))
+        val grid = Html(List(topRow /*:: students.map(rowN(_, assignments))*/).mkString("[", ", ", "]"))
         Ok(views.html.grades.gradebook(grid, students, assignments, sect, id))
         
       }
@@ -125,11 +125,11 @@ object Grades extends Controller {
   
   def topRowGradebook(assignments: List[Assignment]): String = {
     val s = "[ ,"
-    ("" :: assignments.map(_.name)).mkString("[", ", ", "]")
+    ("''" :: assignments.map("'"+_.name+"'")).mkString("[", ", ", "]")
   }
   
   def rowN(student: Student, assignments: List[Assignment]): String = {
-    (student.user.displayName :: assignments.map(_.getTurnin(student))).mkString("[", ", ", "]")
+    ("'"+student.user.displayName+"'" :: assignments.map(_.getTurnin(student))).mkString("[", ", ", "]")
   }
 
 }
