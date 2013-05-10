@@ -1,5 +1,7 @@
-@(students: List[models.users.Student], assignments: List[models.grades.Assignment], section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_]) 
+@(spreadsheetData: play.api.templates.Html, students: List[models.users.Student], assignments: List[models.grades.Assignment], 
+  section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_]) 
 @import models.grades._
+
 
 @mainWithScripts("Assignments", handsOnTable()) {
 	        	<div class="span3">
@@ -28,16 +30,11 @@
     	  <div id="gradebook"></div>
     	</div>
 <script>
-  var data = [
-    ["", "Kia", "Nissan", "Toyota", "Honda"],
-    ["2008", 10, 11, 12, 13],
-    ["2009", 20, 11, 14, 13],
-    ["2010", 30, 15, 12, 13]
-  ];
+  var data = @spreadsheetData;
   $("#gradebook").handsontable({
     data: data,
-    startRows: 6,
-    startCols: 8
+    startRows: 2,
+    startCols: 4
   });
 </script>
     	

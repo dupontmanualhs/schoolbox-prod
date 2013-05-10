@@ -26,13 +26,6 @@ object TestData {
   }
   
   def loadScheduleData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
-    //createUserData(debug
-    //createYearsAndTerms(debug)
-    //makeCourses(debug)
-    //makeSections(debug)
-    //makeEnrollments(debug)
-    //makeTeacherAssignments(debug)
-    //makeBookData(debug)
     
     //create User Data
     if (debug) println("Creating sample users...")
@@ -390,6 +383,22 @@ object TestData {
     
     pm.makePersistentAll(List(ann1, ann2, ann3, ann4, ann5, ann6, ann7))
     
+    
+    if (debug) println("Creating Turnins...")
+    
+    //merry, mack, fitz, jordan
+    
+    val ti1 = new Turnin(meriadocStud, Timestamp.valueOf("2012-08-15 14:35:21"), guildedAgeQuiz, 98.0)
+    val ti2 = new Turnin(mackStud, Timestamp.valueOf("2012-08-15 14:35:22"), guildedAgeQuiz, 100)
+    val ti3 = new Turnin(fitzgeraldStud, Timestamp.valueOf("2012-08-15 14:35:23"), guildedAgeQuiz, 77)
+    val ti4 = new Turnin(jordanStud, Timestamp.valueOf("2012-08-15 14:35:23"), guildedAgeQuiz, 40)
+    
+    val ti5 = new Turnin(meriadocStud, Timestamp.valueOf("2012-08-19 14:35:21"), aLVHReview, 67)
+    val ti6 = new Turnin(mackStud, Timestamp.valueOf("2012-08-19 14:35:22"), aLVHReview, 54)
+    val ti7 = new Turnin(fitzgeraldStud, Timestamp.valueOf("2012-08-19 14:35:23"), aLVHReview, 80)
+    val ti8 = new Turnin(jordanStud, Timestamp.valueOf("2012-08-20 14:35:23"), aLVHReview, 94.33)
+    
+    pm.makePersistentAll(List(ti1, ti2, ti3, ti5, ti6, ti7, ti8))
     
     //TODO: make test data for announcements and gradebook
 

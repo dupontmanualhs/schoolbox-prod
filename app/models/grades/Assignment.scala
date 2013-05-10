@@ -8,6 +8,7 @@ import util.ScalaPersistenceManager
 import util.PersistableFile
 import util.DataStore
 import models.courses.Section
+import models.users.Student
 
 @PersistenceCapable(detachable="true")
 class Assignment {
@@ -51,6 +52,16 @@ class Assignment {
   def getDueDate: String = {
    due.toString
   }
+  
+  def getTurnin(student: Student)(implicit pm: ScalaPersistenceManager = null): Option[Turnin] = {
+    def query(epm: ScalaPersistenceManager): Option[Turnin] = {
+      val cand = QTurnin.candidate
+      epm.query[Turnin].filter(cand.assignment.eq(this).and(cand.student.eq(student))).executeOption
+    }
+    if(pm != null) query(pm)
+    else  DataStore.withTransaction( tpm => query(tpm) )
+  }
+  
 }
 
 object Assignment {

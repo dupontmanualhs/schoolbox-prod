@@ -39,15 +39,6 @@ class Student extends Perspective {
   def teamName_=(theTeamName: String) { _teamName = theTeamName }
   
   def role = "Student"
-    
-  def getScore(assignment: Assignment)(implicit pm: ScalaPersistenceManager = null): Option[Grade] = {
-    def query(epm: ScalaPersistenceManager): Option[Grade] = {
-      val cand = QGrade.candidate
-      pm.query[Grade].filter(cand.student.eq(this).and(cand.assignment.eq(assignment))).executeOption
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
-  }
 }
 
 object Student {
