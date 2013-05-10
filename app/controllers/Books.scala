@@ -961,7 +961,7 @@ object Books extends Controller {
       val r = sanatizeCopyRange(x.copyRange)
       for (y <- r) {
         val b = makeBarcode("%s-%s-%05d".format(x.title.isbn, "200", y))
-        printList = printList :+ (b, x.title.name, x.title.author, x.title.publisher)
+        printList = printList :+ (b, x.title.name, x.title.author.getOrElse(""), x.title.publisher.getOrElse(""))
       }
     }
     printList
