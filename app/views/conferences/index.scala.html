@@ -1,23 +1,21 @@
-@(student: models.users.Student, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit request: util.DbRequest[_])
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit request: util.DbRequest[_])
 
-@main("Student Conferences") {
-	<div class="page-header">
-	  <h1> Hello @student.user.first </h1>
-	  <br/>
-	  <h2>Schedule Your Class Conferences</h2>
-	</div>
-    <div>
-      @if(hasEnrollments) {
-		<table class="table table-striped table-condensed">		
-			<thead><th>Period</th><th>Course(s)</th><th>Teacher(s)</th></thead>
-  			@for(row <- table) {
-   				@row
-  			}
+@import util.Helpers._
+
+@main("Conferences") {
+	<table class="table table-striped">
+		<thead><th>Name</th></thead>
+		@for(event <- events if (event.isActive)) {
+			<tr>
+			<td>@event.name</td>
+			</tr>
+			@for(session <- sessions if session.event == event) {
+			<tr>
+			<td><a href="@routes.Conferences.classList(session.id)">@toAmericanString(session.date)</a></td>
+			<td>@toAmericanString(session.cutoff)</td>
+			<td>@{toAmericanString(session.startTime) + " - " + toAmericanString(session.endTime)}</td>
+			</tr>
+			}
+		}
 		</table>
-	  }
-	  @if(!hasEnrollments) {
-		  <p>This student is not enrolled in any courses for this term.</p>
-	  }
-    </div>
-
 }

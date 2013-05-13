@@ -53,32 +53,14 @@ object Conferences extends Controller {
 			  		if(!isStudent) {
 			  			NotFound(views.html.notFound("Must be logged-in to get a conference"))
 			  		} else {
-			  			val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
-			  			val term = Term.current
-			  			val enrollments: List[StudentEnrollment] = {
-			  				val sectVar = QSection.variable("sectVar")
-			  				val cand = QStudentEnrollment.candidate()
-			  				pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
-			  			}
-			  			val hasEnrollments = enrollments.size != 0
-			  			val sections: List[Section] = enrollments.map(_.section)
-			  			val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
-			  			val table: List[NodeSeq] = periods.map { p =>
-			  				val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-			  				val linkNode: NodeSeq = {<a class ="btn" href={ controllers.routes.Application.stub().url }>Get This Conference</a>}
-			  				<tr>
-			  				<td>{ p.name }</td>
-			  				<td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.course.name)), <br />) }</td>
-			  				<td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.teachers.map(_.user.shortName).mkString("; "))), <br />) }</td>
-			  				<td>{ linkNode }</td>
-			  				</tr>
-			  			}
-			  			Ok(views.html.conferences.index(student, table, hasEnrollments))
+			  			Ok(views.html.conferences.index(events, sessions))
 			  		} 
 			  	}
 			}
 		}
 	}
+	
+//////////////////////////////////////////////////////////////Admin View////////////////////////////////////////////////////////////////////	
 	
 	object EventForm extends Form {
 	  val name = new TextField("name"){
@@ -114,7 +96,9 @@ object Conferences extends Controller {
 	      val sessions = pm.query[models.conferences.Session].filter(QSession.candidate.event.eq(event)).executeList()
 	      for (session <- sessions) {
 	        val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList()
+	        val teacherActivations = pm.query[TeacherActivation].filter(QTeacherActivation.candidate.session.eq(session)).executeList()
 	        pm.deletePersistentAll(slots)
+	        pm.deletePersistentAll(teacherActivations)
 	      }
 	      pm.deletePersistentAll(sessions)
 	      val message = "Conference event '%s' was deleted.".format(event.name)
@@ -169,6 +153,90 @@ object Conferences extends Controller {
 	  }
 	}
 	
+	
+	
+////////////////////////////////////////////////////////Teacher View////////////////////////////////////////////////////////////////
+	
+	/* TODO: Get a list of students that a teacher has
+	def teacherView(events: List[Event], sessions: List[Session]): DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  val currUser = User.current
+	  val teacher = Teacher.getByUsername(currUser.get.username).get
+	}
+	*/
+	
+	def teacherSession(sessionId: Long) = DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+	  val slots = pm.query[Slot].executeList()
+	  val currUser = User.current
+	  val teacher = Teacher.getByUsername(currUser.get.username).get
+	  val cand = QTeacherActivation.candidate
+	  pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption match {
+	    case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, Some(teacherActivation))) 
+	    case None => Ok(views.html.conferences.teacherSession(slots, session, None))
+	  }
+	}
+	  
+	object TeacherActivationForm extends Form {
+	  val slotInterval = new NumericField[Int]("Default slot interval")
+	  val note = new TextFieldOptional("note")
+	  
+	  val fields = List(slotInterval, note)
+	}
+	
+	def activateTeacherSession(sessionId: Long) = DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  if (request.method == "GET") Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
+	  else {
+	    Binding(TeacherActivationForm, request) match {
+	      case ib: InvalidBinding => Ok(views.html.conferences.activateSession(ib, sessionId))
+	      case vb: ValidBinding => {
+	        val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+	        val currUser = User.current
+	        val teacher = Teacher.getByUsername(currUser.get.username).get
+	        val slotInterval = vb.valueOf(TeacherActivationForm.slotInterval)
+	        val note = vb.valueOf(TeacherActivationForm.note)
+	        
+	        val t = new TeacherActivation(session, teacher, slotInterval, note)
+	        pm.makePersistent(t)
+	        Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session activated")
+	      }
+	    }
+	  }
+	}
+	
+	def deactivateTeacherSession(sessionId: Long) = DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  val cand = QTeacherActivation.candidate()
+	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+	  val currUser = User.current
+	  val teacher = Teacher.getByUsername(currUser.get.username).get
+	  pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption() match {
+	    case None => NotFound("Session not activated yet")
+	    case Some(activated) => pm.deletePersistent(activated)
+	  }
+	  Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session deactivated")
+	}
+	  
+/////////////////////////////////////////////////////Student View////////////////////////////////////////////////////////////////
+	
+	def classList(sessionId: Long)= DbAction { implicit request =>
+	  implicit val pm: ScalaPersistenceManager = request.pm
+	  val currentUser = User.current
+	  val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
+	  val term = Term.current
+		val enrollments: List[StudentEnrollment] = {
+			val sectVar = QSection.variable("sectVar")
+			val cand = QStudentEnrollment.candidate()
+			pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+		}
+  			val hasEnrollments = enrollments.size != 0
+  			val sections: List[Section] = enrollments.map(_.section)
+  			val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
+  			Ok(views.html.conferences.classList(sessionId, periods, sections, hasEnrollments))
+	}
+	
 	object SlotForm extends Form {
 	  val startTime = new TimeField("StartTime")
 	  val parentName = new TextField("Parent Name")
@@ -189,9 +257,9 @@ object Conferences extends Controller {
 	      case ib: InvalidBinding => Ok(views.html.conferences.createSlot(ib, sessionId, teacherId))
 	      case vb: ValidBinding => {
 	        val theSession = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption()
-	        val theTeacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption()
 	        if (theSession == None) NotFound(views.html.notFound("Invalid session ID"))
-	        if (theTeacher == None) NotFound(views.html.notFound("Invalid teacher ID"))
+	        val theTeacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption()
+	        if (theTeacher == None) NotFound(views.html.notFound("Ivalid teacher ID"))
 	        val theStudent = Student.getByUsername(User.current.get.username)(pm)
 	        if (theStudent == None) NotFound(views.html.notFound("Invalid student"))
 	      
@@ -241,62 +309,4 @@ object Conferences extends Controller {
 	    false
 	    }
 	}
-	
-	def teacherSession(sessionId: Long) = DbAction { implicit request =>
-	  implicit val pm: ScalaPersistenceManager = request.pm
-	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
-	  val slots = pm.query[Slot].executeList()
-	  val currUser = User.current
-	  val teacher = Teacher.getByUsername(currUser.get.username).get
-	  val cand = QTeacherActivation.candidate
-	  pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption match {
-	    case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, Some(teacherActivation))) 
-	    case None => Ok(views.html.conferences.teacherSession(slots, session, None))
-	  }
-	}
-	  
-	object TeacherActivationForm extends Form {
-	  val slotInterval = new NumericField[Int]("Default slot interval")
-	  val note = new TextFieldOptional("note")
-	  
-	  val fields = List(slotInterval, note)
-	}
-	
-	def activateTeacherSession(sessionId: Long) = DbAction { implicit request =>
-	  implicit val pm: ScalaPersistenceManager = request.pm
-	  if (request.method == "GET") Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
-	  else {
-	    Binding(TeacherActivationForm, request) match {
-	      case ib: InvalidBinding => Ok(views.html.conferences.activateSession(ib, sessionId))
-	      case vb: ValidBinding => {
-	        val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
-	        val currUser = User.current
-	        val teacher = Teacher.getByUsername(currUser.get.username).get
-	        val slotInterval = vb.valueOf(TeacherActivationForm.slotInterval)
-	        val note = vb.valueOf(TeacherActivationForm.note)
-	        
-	        val t = new TeacherActivation(session, teacher, slotInterval, note)
-	        pm.makePersistent(t)
-	        Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session activated")
-	      }
-	    }
-	  }
-	}
-	
-	def deactivateTeacherSession(sessionId: Long) = DbAction { implicit request =>
-	  implicit val pm: ScalaPersistenceManager = request.pm
-	  val cand = QTeacherActivation.candidate()
-	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
-	  val currUser = User.current
-	  val teacher = Teacher.getByUsername(currUser.get.username).get
-	  //TODO: This needs to work
-	  pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption() match {
-	    case None => NotFound("Session not activated yet")
-	    case Some(activated) => pm.deletePersistent(activated)
-	  }
-	  Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session deactivated")
-	}
-	  
-	
-	
 }
