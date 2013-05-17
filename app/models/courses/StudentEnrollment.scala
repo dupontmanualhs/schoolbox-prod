@@ -13,7 +13,6 @@ class StudentEnrollment {
   private[this] var _id: Long = _
   private[this] var _student: Student = _
   private[this] var _section: Section = _
-  //private[this] var _term: Term = _
   @Persistent
   private[this] var _start: java.sql.Date = _
   @Persistent
@@ -24,7 +23,6 @@ class StudentEnrollment {
     this()
     _student = student
     _section = section
-    //_term = term
     start_=(start)
     end_=(end)
   }
@@ -36,9 +34,6 @@ class StudentEnrollment {
   
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
-
-  //def term: Term = _term
-  //def term_=(theTerm: Term) { _term = theTerm }
 
   
   def start: LocalDate = if (_start != null) new DateTime(_start).toLocalDate else section.startDate
@@ -58,9 +53,6 @@ trait QStudentEnrollment extends PersistableExpression[StudentEnrollment] {
   
   private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
   def section: ObjectExpression[Section] = _section
-  
-  //private[this] lazy val _term: ObjectExpression[Term] = new ObjectExpressionImpl[Term](this, "_term")
-  //def term: ObjectExpression[Term] = _term
   
   private[this] lazy val _start: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Date](this, "_start")
   def start: DateExpression[java.util.Date] = _start

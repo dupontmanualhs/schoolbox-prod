@@ -3,7 +3,7 @@
 @import models.grades._
 
 
-@mainWithScripts("Assignments", handsOnTable()) {
+@mainWithScripts("Gradebook", handsOnTable()) {
 	        	<div class="span3">
          			<div class="well sidebar-nav">
 					<ul class="nav nav-list">
@@ -26,9 +26,8 @@
 			</ul>
     	</div>
     	
-    	<div class="span8">
-    	  <div id="gradebook"></div>
-    	</div>
+     <div id="gradebook"></div>
+     
 <script>
   var data = @spreadsheetData;
   $("#gradebook").handsontable({

@@ -120,19 +120,13 @@ object Courses extends Controller {
     <a href={ link.url }>{ section.course.name }</a>
   }
 
-  // only the teacher of this section or an admin should be able to see the roster
-  def roster(sectionId: Long) = DbAction { implicit req =>
+  def roster(id: Long) = DbAction { implicit req =>
     implicit val pm = req.pm
     val cand = QSection.candidate
-    pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
+    pm.query[Section].filter(cand.id.eq(id)).executeOption() match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        val course = sect.course.name
-        val terms = sect.terms.toList.map(_.name).mkString(", ")
-        val periods = sect.periods.toList.map(_.name).mkString(", ")
-        val teachers = sect.teachers.toList.sortWith(_ < _).map(_.displayName).mkString(", ")
-        val enrollments = sect.enrollments.sortWith(_.student < _.student)
-        Ok(html.courses.roster(course, terms, periods, teachers, enrollments))
+        Ok(html.courses.roster(id, sect, sect.enrollments))
       }
     }
   }
