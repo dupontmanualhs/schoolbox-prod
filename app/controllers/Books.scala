@@ -964,7 +964,7 @@ object Books extends Controller {
         printList = printList :+ (b, x.title.name, x.title.author.getOrElse(""), x.title.publisher.getOrElse(""))
       }
     }
-    printList
+    makePdf(printList)
   }
 
   def sanatizeCopyRange(s: String): List[Int] = {
@@ -982,6 +982,17 @@ object Books extends Controller {
       }
     }
     res
+  }
+
+  def printEntireQueue() = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    val labelQueueSets = pm.query[LabelQueueSet].executeList
+    print(labelQueueSets)
+    for (x <- labelQueueSets) {
+      pm.deletePersistent(x)
+    }
+    Ok.sendFile(content = new java.io.File("public/printable.pdf"), inline = true)
   }
 
 }

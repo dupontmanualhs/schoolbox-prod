@@ -120,6 +120,7 @@ GET     /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrin
 POST    /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrintQueueHelper
 GET     /books/viewPrintQueue                   controllers.Books.viewPrintQueue
 GET     /books/removeFromPrintQueue/:id         controllers.Books.removeFromPrintQueue(id: Long)
+GET     /books/printEntireQueue                 controllers.Books.printEntireQueue
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
