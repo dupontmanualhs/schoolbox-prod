@@ -303,7 +303,6 @@ object TestData {
         Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:00:00"), Time.valueOf("23:59:59"), 10)
     val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher], Student.getByUsername("RASHAH01").asInstanceOf[Student], 
         Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
-        */
   }
   
 
