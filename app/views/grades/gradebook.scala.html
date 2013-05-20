@@ -1,41 +1,47 @@
-@(spreadsheetData: play.api.templates.Html, students: List[models.users.Student], assignments: List[models.grades.Assignment], 
-  section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_]) 
+@(spreadsheetData: (List[String], List[String], List[List[Double]]), students: List[models.users.Student], assignments: List[models.grades.Assignment], 
+  section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_])
+  
+@import play.api.libs.json.Json 
 @import models.grades._
 
-
-@mainWithScripts("Gradebook", handsOnTable()) {
-	        	<div class="span3">
-         			<div class="well sidebar-nav">
-					<ul class="nav nav-list">
-           		      <li class="nav-header">@section.course.name - @section.periodNames</li>
-          		      <li><a href=@controllers.routes.Grades.home(id)>Home</a></li>
-           		      <li><a href=@controllers.routes.Grades.announcements(id)>Announcements</a></li>
-	                  <li><a href="#">Files</a></li>
-    	              <li><a href=@controllers.routes.Grades.assignments(id)>Assignments</a></li>
-        	          <li class="active"><a href="#">Grades</a></li>
-                	  <li><a href=@controllers.routes.Courses.roster(id)>Roster</a></li>
-    	            </ul>
-                    </div><!--/.well -->
-                </div><!--/span-->
-    
-    	<div class="span8">
- 		  	 <ul class="breadcrumb">
-  				<li><a href="#">Courses</a> <span class="divider">/</span></li>
- 				 <li><a href="#">@section.course.name - @section.periodNames</a> <span class="divider">/</span></li>
- 				 <li class="active">Grades</li>
-			</ul>
-    	</div>
-    	
-     <div id="gradebook"></div>
-     
-<script>
-  var data = @spreadsheetData;
-  $("#gradebook").handsontable({
-    data: data,
-    startRows: 1,
-    startCols: 12
+@scripts = {
+  @handsOnTable()
+  <script>
+  $(document).ready(function() {
+    $("#gradebook").handsontable({
+      data: @Html(Json.toJson(spreadsheetData._3).toString),
+      colHeaders: @Html(Json.toJson(spreadsheetData._1).toString),
+      rowHeaders: @Html(Json.toJson(spreadsheetData._2).toString),
+      startRows: @spreadsheetData._2.length,
+      startCols: @spreadsheetData._1.length
+    });
   });
-</script>
-    	
-    	
+  </script>
+}
+
+@mainWithScripts("Gradebook")(scripts) {
+
+<div class="span3"><div class="well sidebar-nav">
+  <ul class="nav nav-list">
+    <li class="nav-header">@section.course.name - @section.periodNames</li>
+    <li><a href=@controllers.routes.Grades.home(id)>Home</a></li>
+    <li><a href=@controllers.routes.Grades.announcements(id)>Announcements</a></li>
+    <li><a href="#">Files</a></li>
+    <li><a href=@controllers.routes.Grades.assignments(id)>Assignments</a></li>
+    <li class="active"><a href="#">Grades</a></li>
+    <li><a href=@controllers.routes.Courses.roster(id)>Roster</a></li>
+  </ul>
+</div></div>
+
+<div class="span8">
+  <ul class="breadcrumb">
+    <li><a href="#">Courses</a> <span class="divider">/</span></li>
+    <li><a href="#">@section.course.name - @section.periodNames</a> <span class="divider">/</span></li>
+    <li class="active">Grades</li>
+  </ul>
+</div>
+
+<div class="span8">
+  <div id="gradebook"></div>
+</div>    	
 }

@@ -115,8 +115,12 @@ object Grades extends Controller {
       case Some(sect) => {
         val assignments = Assignment.getAssignments(sect)
         val students = sect.students
-        val topRow = topRowGradebook(assignments)
-        val grid = Html(List(topRow /*:: students.map(rowN(_, assignments))*/).mkString("[", ", ", "]"))
+        val colHeaders = assignments.map(_.name.substring(0, 5))
+        val rowHeaders = students.map(_.user.displayName)
+        val grades: List[List[Double]] = {
+          for (s <- students) yield assignments.map(_.getTurnin(s).map(_.points).getOrElse(0.0))
+        }
+        val grid = (colHeaders, rowHeaders, grades)
         Ok(views.html.grades.gradebook(grid, students, assignments, sect, id))
         
       }
