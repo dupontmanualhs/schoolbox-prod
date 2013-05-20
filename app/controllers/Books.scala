@@ -144,7 +144,7 @@ object Books extends Controller {
             downloadImage(url, vb.valueOf(TitleForm.isbn))
             Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
           } catch {
-            case e: Exception => Redirect(routes.Books.addTitle()).flashing("error" -> "Image not downloaded. Update the title's image to try downloading again")
+            case e: Exception => Redirect(routes.Books.addTitle()).flashing("warn" -> "Image not downloaded. Update the title's image to try downloading again")
           }
           case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
         }
