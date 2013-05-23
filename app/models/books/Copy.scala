@@ -15,12 +15,14 @@ class Copy /*extends StoreCallback*/ {
   private[this] var _purchaseGroup: PurchaseGroup = _
   private[this] var _number: Int = _
   private[this] var _isLost: Boolean = _
+  private[this] var _deleted: Boolean = _
 
-  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false) = {
+  def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false, deleted: Boolean = false) = {
     this()
     _purchaseGroup = purchaseGroup
     _number = number
     _isLost = isLost
+    _deleted = deleted
   }
 
   def id: Long = _id
@@ -33,6 +35,9 @@ class Copy /*extends StoreCallback*/ {
 
   def isLost: Boolean = _isLost
   def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
+
+  def deleted: Boolean = _deleted
+  def deleted_=(theDeleted: Boolean) { _deleted = theDeleted }
 
   val maxCopyNumber: Int = 99999
 
@@ -143,6 +148,9 @@ trait QCopy extends PersistableExpression[Copy] {
 
   private[this] lazy val _isLost: BooleanExpression = new BooleanExpressionImpl(this, "_isLost")
   def isLost: BooleanExpression = _isLost
+
+  private[this] lazy val _deleted: BooleanExpression = new BooleanExpressionImpl(this, "_deleted")
+  def deleted: BooleanExpression = _deleted
 
   private[this] lazy val _checkout: ObjectExpression[Checkout] = new ObjectExpressionImpl[Checkout](this, "_checkout")
   def checkout: ObjectExpression[Checkout] = _checkout

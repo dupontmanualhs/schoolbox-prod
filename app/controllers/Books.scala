@@ -136,7 +136,7 @@ object Books extends Controller {
           val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
-          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"))
+          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"), false)
         request.pm.makePersistent(t)
 
         vb.valueOf(TitleForm.imageUrl) match {
@@ -418,20 +418,21 @@ object Books extends Controller {
   def lookup() = TODO
   
   def inspect() = TODO
-  
-  def findCopyHistory() = DbAction { implicit req =>
-    object ChooseCopyForm extends Form {
-      val barcode = new TextField("Barcode") {
-        override val minLength = Some(21)
-        override val maxLength = Some(23)
-        override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
+
+  object ChooseCopyForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+      override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
           case None => ValidationError("Copy not found.")
           case Some(barcode) => ValidationError(Nil)
         }))
-      }
-
-      def fields = List(barcode)
     }
+
+    def fields = List(barcode)
+  }
+
+  def findCopyHistory() = DbAction { implicit req =>
     if (req.method == "GET") {
       Ok(html.books.findCopyHistory(Binding(ChooseCopyForm)))
     } else {
@@ -993,6 +994,62 @@ object Books extends Controller {
       pm.deletePersistent(x)
     }
     Ok.sendFile(content = new java.io.File("public/printable.pdf"), inline = true)
+  }
+
+  def deleteCopy(barcode: String) = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    Copy.getByBarcode(barcode) match {
+      case None => Redirect(routes.Books.deleteCopyHelper()).flashing("error" -> "Copy not found")
+      case Some(c) => {
+        val cand = QCheckout.candidate
+        pm.query[Checkout].filter(cand.copy.eq(c).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeOption() match {
+          case None => {
+            c.deleted = true
+            request.pm.makePersistent(c)
+          }
+          case Some(ch) => {
+            ch.endDate = new java.sql.Date(new java.util.Date().getTime())
+            request.pm.makePersistent(ch)
+            c.deleted = true
+            request.pm.makePersistent(c)
+          }
+        }
+      }
+      Redirect(routes.Books.deleteCopyHelper()).flashing("message" -> "Copy deleted")
+    }
+  }
+
+  def deleteCopyHelper() = DbAction { implicit req =>
+  implicit val pm = req.pm
+  if (req.method == "GET") {
+    Ok(html.books.editTitle(Binding(ChooseCopyForm)))
+  } else {
+    Binding(ChooseCopyForm, req) match {
+      case ib: InvalidBinding => Ok(html.books.deleteCopyHelper(ib))
+      case vb: ValidBinding => {
+        val lookupBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
+        Redirect(routes.Books.deleteCopy(lookupBarcode))
+      }
+    }
+  }
+}
+
+  def deleteTitle(isbn: String) = DbAction { implicit request =>
+    implicit val pm = request.pm
+
+    Title.getByIsbn(isbn) match {
+      case None => Redirect(routes.Books.deleteCopyHelper()).flashing("error" -> "Title not found") // TODO - Change this to the right place
+      case Some(t) => {
+        val lqCand = QLabelQueueSet.candidate
+        val labels = pm.query[LabelQueueSet].filter(lqCand.title.eq(t)).executeList()
+        for (l <- labels) {
+          request.pm.deletePersistent(l)
+        }
+        // Remove copies
+        // Remove purchase groups?
+      }
+    }
   }
 
 }

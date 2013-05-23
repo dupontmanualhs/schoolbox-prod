@@ -86,8 +86,13 @@ class Title {
   def image_=(theImage: Option[String]) {_image = theImage.getOrElse(null) }
   def image_=(theImage: String) {_image = theImage}
 
+  @Column(allowsNull="false")
+  private[this] var _deleted: Boolean = _
+  def deleted: Boolean = _deleted
+  def deleted_=(theDeleted: Boolean) { _deleted = theDeleted }
+
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
-    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None, deleted: Boolean = false) = {
     this()
     name_=(name)
     author_=(author)
@@ -99,6 +104,7 @@ class Title {
     verified_=(verified)
     lastModified_=(lastModified)
     image_=(image)
+    deleted_=(deleted)
   }
 
   def howManyCopies(implicit pm: ScalaPersistenceManager = null): Int = {
@@ -174,9 +180,6 @@ object Title {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  // def setSizeCallback
-  // I have no idea what this is suposed to do
-  //TODO - Figure out what this does and write the implementation
 }
 
 trait QTitle extends PersistableExpression[Title] {
@@ -204,8 +207,6 @@ trait QTitle extends PersistableExpression[Title] {
   private[this] lazy val _weight: NumericExpression[Double] = new NumericExpressionImpl[Double](this, "_weight")
   def weight: NumericExpression[Double] = _weight
 
-  // Add image field
-
   private[this] lazy val _verified: BooleanExpression = new BooleanExpressionImpl(this, "_verified")
   def verified: BooleanExpression = _verified
 
@@ -214,6 +215,9 @@ trait QTitle extends PersistableExpression[Title] {
 
   private[this] lazy val _image: StringExpression = new StringExpressionImpl(this, "_image")
   def image: StringExpression = _image
+
+  private[this] lazy val _deleted: BooleanExpression = new BooleanExpressionImpl(this, "_deleted")
+  def deleted: BooleanExpression = _deleted
 }
 
 object QTitle {

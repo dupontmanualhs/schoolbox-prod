@@ -121,6 +121,9 @@ POST    /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrin
 GET     /books/viewPrintQueue                   controllers.Books.viewPrintQueue
 GET     /books/removeFromPrintQueue/:id         controllers.Books.removeFromPrintQueue(id: Long)
 GET     /books/printEntireQueue                 controllers.Books.printEntireQueue
+GET     /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
+POST    /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
+GET     /books/deleteCopy/:barcode              controllers.Books.deleteCopy(barcode: String)
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
