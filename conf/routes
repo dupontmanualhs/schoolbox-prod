@@ -124,6 +124,9 @@ GET     /books/printEntireQueue                 controllers.Books.printEntireQue
 GET     /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
 POST    /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
 GET     /books/deleteCopy/:barcode              controllers.Books.deleteCopy(barcode: String)
+GET     /books/deleteTitleHelper                controllers.Books.deleteTitleHelper
+POST    /books/deleteTitleHelper                controllers.Books.deleteTitleHelper
+GET     /books/deleteTitle/:isbn                controllers.Books.deleteTitle(isbn: String)
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()

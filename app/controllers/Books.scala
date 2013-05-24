@@ -1023,7 +1023,7 @@ object Books extends Controller {
   def deleteCopyHelper() = DbAction { implicit req =>
   implicit val pm = req.pm
   if (req.method == "GET") {
-    Ok(html.books.editTitle(Binding(ChooseCopyForm)))
+    Ok(html.books.deleteCopyHelper(Binding(ChooseCopyForm)))
   } else {
     Binding(ChooseCopyForm, req) match {
       case ib: InvalidBinding => Ok(html.books.deleteCopyHelper(ib))
@@ -1041,15 +1041,31 @@ object Books extends Controller {
     Title.getByIsbn(isbn) match {
       case None => Redirect(routes.Books.deleteCopyHelper()).flashing("error" -> "Title not found") // TODO - Change this to the right place
       case Some(t) => {
-        val lqCand = QLabelQueueSet.candidate
-        val labels = pm.query[LabelQueueSet].filter(lqCand.title.eq(t)).executeList()
-        for (l <- labels) {
-          request.pm.deletePersistent(l)
+        val cand = QPurchaseGroup.candidate
+        val pg = pm.query[PurchaseGroup].filter(cand.title.eq(t)).executeList()
+        if (pg.isEmpty) {
+          request.pm.deletePersistent(t)
+          Redirect(routes.Books.deleteCopyHelper()).flashing("message" -> "Title successfully deleted.") // TODO - Change this to the right place
+        } else {
+          Redirect(routes.Books.deleteCopyHelper()).flashing("error" -> "Books of this title purchased. Contact your system administrator to remove.") // TODO -ditto
         }
-        // Remove copies
-        // Remove purchase groups?
       }
     }
   }
+
+  def deleteTitleHelper() = DbAction { implicit req =>
+  implicit val pm = req.pm
+  if (req.method == "GET") {
+    Ok(html.books.deleteTitleHelper(Binding(ChooseTitleForm)))
+  } else {
+    Binding(ChooseTitleForm, req) match {
+      case ib: InvalidBinding => Ok(html.books.deleteTitleHelper(ib))
+      case vb: ValidBinding => {
+        val lookupIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
+        Redirect(routes.Books.deleteTitle(lookupIsbn))
+      }
+    }
+  }
+}
 
 }

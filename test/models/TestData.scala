@@ -274,6 +274,7 @@ object TestData {
     val usHistoryBook = new Title("The American Pageant", Some("David M. Kennedy and Lizabeth Cohen"), 
         Some("Wadsworth Publishing"), "9781111349530", Some(1152), 
         Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
+        */
         
     //makeMasteryData
     mastery.QuizData.load(debug)
@@ -297,13 +298,13 @@ object TestData {
     }
     
     //makeConferenceData(debug)
-    if(debug) println("Creating Conferences...")
+    /*if(debug) println("Creating Conferences...")
     val springConf = new Event("Spring Conferences", true)
     val springSession = new Session(springConf, Date.valueOf("2013-04-01"), Timestamp.valueOf("2013-04-21 23:59:59"), 
         Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:00:00"), Time.valueOf("23:59:59"), 10)
     val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher], Student.getByUsername("RASHAH01").asInstanceOf[Student], 
         Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
-  }
+  */}
   
 
 }
