@@ -1034,15 +1034,15 @@ object Books extends Controller {
     implicit val pm = request.pm
 
     Title.getByIsbn(isbn) match {
-      case None => Redirect(routes.Books.deleteCopyHelper()).flashing("error" -> "Title not found") // TODO - Change this to the right place
+      case None => Redirect(routes.Books.deleteTitleHelper()).flashing("error" -> "Title not found")
       case Some(t) => {
         val cand = QPurchaseGroup.candidate
         val pg = pm.query[PurchaseGroup].filter(cand.title.eq(t)).executeList()
         if (pg.isEmpty) {
           request.pm.deletePersistent(t)
-          Redirect(routes.Books.deleteCopyHelper()).flashing("message" -> "Title successfully deleted.") // TODO - Change this to the right place
+          Redirect(routes.Books.deleteTitleHelper()).flashing("message" -> "Title successfully deleted.")
         } else {
-          Redirect(routes.Books.deleteCopyHelper()).flashing("error" -> "Books of this title purchased. Contact your system administrator to remove.") // TODO -ditto
+          Redirect(routes.Books.deleteTitleHelper()).flashing("error" -> "Books of this title purchased. Contact your system administrator to remove.")
         }
       }
     }
