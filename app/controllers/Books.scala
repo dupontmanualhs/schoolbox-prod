@@ -136,7 +136,7 @@ object Books extends Controller {
           val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
-          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"), false)
+          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"))
         request.pm.makePersistent(t)
 
         vb.valueOf(TitleForm.imageUrl) match {
@@ -466,10 +466,6 @@ object Books extends Controller {
   
   def checkInLostCopy() = TODO
   
-  def delete(id: Long) = TODO
-  
-  def confirmDelete() = TODO
-  
   def checkoutHistory(stateId: String) = DbAction { implicit req =>
   implicit val pm = req.pm
   val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
@@ -560,7 +556,6 @@ object Books extends Controller {
   def statistics() = TODO
   
   def copyStatusByTitle(isbn: String) = DbAction { implicit req =>
-    // TODO - figure out how this should handle lost copies
     implicit val pm = req.pm
 
     Title.getByIsbn(isbn) match {
@@ -571,7 +566,7 @@ object Books extends Controller {
         val currentCopies = pm.query[Copy].filter(cand.purchaseGroup.eq(pCand).and(pCand.title.eq(t))).executeList().sortWith((c1, c2) => c1.number < c2.number)
 
         val header = "Copy Status for " + t.name
-        val rows: List[(String, String)] = currentCopies.map(cp => { (cp.number.toString, cp.isCheckedOut.toString)})
+        val rows: List[(String, String, String, String)] = currentCopies.map(cp => { (cp.number.toString, cp.isCheckedOut.toString, cp.isLost.toString, cp.deleted.toString)})
         Ok(views.html.books.copyStatusByTitle(header, rows))
       }
     }

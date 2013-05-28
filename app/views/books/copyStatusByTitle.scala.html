@@ -1,4 +1,4 @@
-@(header: String, rows: List[(String, String)])(implicit req: util.DbRequest[_])
+@(header: String, rows: List[(String, String, String, String)])(implicit req: util.DbRequest[_])
 
 @main("Copy Status By Title") {
 
@@ -7,9 +7,12 @@
 </div>
 
 <table class="table table-striped table-condensed">
-   <tr><th>Copy Number</th><th>Checked Out</th></tr>
+   <tr><th>Copy Number</th><th>Status</th></tr>
    @for(row <- rows) {
-   @if(row._2.equals("true")){<tr class="error checkedOut"><td>@row._1</td><td>True</td></tr>} else {<tr class="success checkedIn"><td>@row._1</td><td>False</td></tr>}
+   @if(row._4.equals("true")){<tr class="error deleted"><td>@row._1</td><td>Deleted</td></tr>}
+   @if(row._3.equals("true") && !row._4.equals("true")){<tr class="error lost"><td>@row._1</td><td>Lost</td></tr>}
+   @if(row._2.equals("true") && !row._4.equals("true") && !row._3.equals("true")){<tr class="error checkedOut"><td>@row._1</td><td>Checked Out</td></tr>}
+   @if(!row._2.equals("true") && !row._4.equals("true") && !row._3.equals("true")){<tr class="success checkedIn"><td>@row._1</td><td>Checked In</td></tr>}
    }
 </table>
 

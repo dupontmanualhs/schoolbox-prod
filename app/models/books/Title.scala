@@ -86,13 +86,8 @@ class Title {
   def image_=(theImage: Option[String]) {_image = theImage.getOrElse(null) }
   def image_=(theImage: String) {_image = theImage}
 
-  @Column(allowsNull="false")
-  private[this] var _deleted: Boolean = _
-  def deleted: Boolean = _deleted
-  def deleted_=(theDeleted: Boolean) { _deleted = theDeleted }
-
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
-    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None, deleted: Boolean = false) = {
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
     this()
     name_=(name)
     author_=(author)
@@ -104,7 +99,6 @@ class Title {
     verified_=(verified)
     lastModified_=(lastModified)
     image_=(image)
-    deleted_=(deleted)
   }
 
   def howManyCopies(implicit pm: ScalaPersistenceManager = null): Int = {
@@ -113,7 +107,7 @@ class Title {
       val copyCand = QCopy.candidate
       epm.query[Copy].filter(copyCand.isLost.eq(false).and(
         copyCand.purchaseGroup.eq(pgVar)).and(
-        pgVar.title.eq(this))).executeList().length
+        pgVar.title.eq(this)).and(copyCand.deleted.eq(false))).executeList().length
     }
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )
@@ -125,6 +119,7 @@ class Title {
       val copyCand = QCopy.candidate
       val coVar = QCheckout.variable("co")
       epm.query[Copy].filter(copyCand.isLost.eq(false).and(
+        copyCand.deleted.eq(false)).and(
         copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this)).and(
         coVar.copy.eq(copyCand)).and(
@@ -215,9 +210,6 @@ trait QTitle extends PersistableExpression[Title] {
 
   private[this] lazy val _image: StringExpression = new StringExpressionImpl(this, "_image")
   def image: StringExpression = _image
-
-  private[this] lazy val _deleted: BooleanExpression = new BooleanExpressionImpl(this, "_deleted")
-  def deleted: BooleanExpression = _deleted
 }
 
 object QTitle {
