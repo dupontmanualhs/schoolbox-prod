@@ -695,7 +695,8 @@ object Books extends Controller {
 
     val titles = pm.query[Title].executeList.sortWith((c1, c2) => c1.name < c2.name)
 
-    val rows: List[(String, String, String, String)] = titles.map(ti => { (ti.name, ti.howManyCopies().toString, ti.howManyCheckedOut().toString, (ti.howManyCopies() - ti.howManyCheckedOut()).toString)})
+    val rows: List[(String, String, String, String, String)] = titles.map(ti => { (ti.name, ti.howManyCopies().toString, ti.howManyCheckedOut().toString,
+      ti.howManyLost().toString, (ti.howManyCopies() - (ti.howManyCheckedOut() + ti.howManyDeleted() + ti.howManyLost())).toString)})
     Ok(views.html.books.inventory(rows))
   }
 

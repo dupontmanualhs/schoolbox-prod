@@ -129,6 +129,30 @@ class Title {
     else DataStore.withTransaction( tpm => query(tpm) )
   }
 
+  def howManyDeleted(implicit pm: ScalaPersistenceManager = null): Int = {
+    def query(epm: ScalaPersistenceManager): Int = {
+      val pgVar = QPurchaseGroup.variable("pg")
+      val copyCand = QCopy.candidate
+      epm.query[Copy].filter(copyCand.deleted.eq(true).and(
+        copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this))).executeList().length
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
+
+  def howManyLost(implicit pm: ScalaPersistenceManager = null): Int = {
+    def query(epm: ScalaPersistenceManager): Int = {
+      val pgVar = QPurchaseGroup.variable("pg")
+      val copyCand = QCopy.candidate
+      epm.query[Copy].filter(copyCand.deleted.eq(false).and(
+        copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this)).and(copyCand.isLost.eq(true))).executeList().length
+    }
+    if (pm != null) query(pm)
+    else DataStore.withTransaction( tpm => query(tpm) )
+  }
+
   def hasSameValues(other: Title): Boolean = {
     this.name == other.name && this.publisher == other.publisher && 
     this.author == other.author && this.isbn == other.isbn && 
