@@ -1,6 +1,6 @@
 import sbt._
 import Keys._
-import PlayProject._
+import play.Project._
 
 import java.io.File
 
@@ -10,43 +10,37 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
-      "org.scala-lang" % "scala-compiler" % "2.9.1",            
-      "org.joda" % "joda-convert" % "1.2",
-      "org.apache.poi" % "poi" % "3.8-beta5",
-      "org.apache.poi" % "poi-ooxml" % "3.8-beta5",
-      "org.datanucleus" % "datanucleus-core" % "3.1.0-m4",
-      "org.datanucleus" % "datanucleus-api-jdo" % "3.1.0-m2",
-      "org.datanucleus" % "datanucleus-enhancer" % "3.1.0-m1",
+      "org.scala-lang" % "scala-compiler" % "2.10.1",            
+      "org.joda" % "joda-convert" % "1.3.1",
+      "org.apache.poi" % "poi" % "3.9",
+      "org.apache.poi" % "poi-ooxml" % "3.9",
+      "org.datanucleus" % "datanucleus-core" % "3.2.3",
+      "org.datanucleus" % "datanucleus-api-jdo" % "3.2.2",
+      "org.datanucleus" % "datanucleus-enhancer" % "3.1.1",
       "org.datanucleus" % "datanucleus-jdo-query" % "3.0.2",
-      "asm" % "asm" % "3.3.1",
-      "javax.jdo" % "jdo-api" % "3.0",
-      "org.datanucleus" % "datanucleus-rdbms" % "3.1.0-m4",
-      "org.datanucleus" % "datanucleus-jodatime" % "3.1.0-m2",
-      "com.h2database" % "h2" % "1.3.165",
+      "org.datanucleus" % "datanucleus-rdbms" % "3.2.2",
+      "com.h2database" % "h2" % "1.3.172",
+      "javax.jdo" % "jdo-api" % "3.0.1",
       "log4j" % "log4j" % "1.2.17",
-      "org.scalatest" %% "scalatest" % "1.7.2" % "test",
-      "jp.t2v" %% "play20.auth" % "0.2",
-      "net.sourceforge.barbecue" % "barbecue" % "1.5-beta1",
-      "com.lowagie" % "itext" % "2.1.7",
-      "org.tukaani" % "xz" % "1.0",
-      "javax.mail" % "mail" % "1.4.5",
-      "org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.24.1" % "test",
-      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.24.1" % "test",
-      "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.24.1" % "test"
+      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+      "com.itextpdf" % "itextpdf" % "5.4.2",
+      "org.tukaani" % "xz" % "1.3",
+      "javax.mail" % "mail" % "1.4.7",
+      "org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.33.0" % "test",
+      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.33.0" % "test",
+      "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.33.0" % "test"
     )
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-      ((resolvers += "t2v.jp repo" at "http://www.t2v.jp/maven-repo/") +:
-       (testOptions in Test := Nil) +: 
+    val main = play.Project(appName, appVersion, appDependencies).settings(
+      ((testOptions in Test := Nil) +:
+       (scalaVersion := "2.10.1") +:
+       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
        Nucleus.settings): _*
-    )
-    
-
+    ) dependsOn RootProject( uri("git://github.com/toddobryan/scalajdo.git") )
 }
 
 object Nucleus {
-  
   // defines our own ivy config that wont get packaged as part of your app
   // notice that it extends the Compile scope, so we inherit that classpath
   val Config = config("nucleus") extend Compile

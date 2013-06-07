@@ -5,8 +5,7 @@ import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.mastery._
-import util.ScalaPersistenceManager
-import util.DataStore
+import scalajdo.DataStore
 
 object M {
   def apply(s: String): String = "\\(\\displaystyle{" + s + "}\\)"
@@ -48,9 +47,9 @@ class Question extends Serializable {
 }
 
 object Question {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Question] = {
-    DataStore.execute { epm =>
-      epm.query[Question].filter(QQuestion.candidate.id.eq(id)).executeOption()
+  def getById(id: Long): Option[Question] = {
+    DataStore.execute { pm =>
+      pm.query[Question].filter(QQuestion.candidate.id.eq(id)).executeOption()
     }
   }
   

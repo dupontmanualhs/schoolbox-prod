@@ -4,8 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.users.Perspective
-import util.ScalaPersistenceManager
-import util.DataStore
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
 @Unique(members=Array("_owner", "_title"))
@@ -34,10 +33,9 @@ class Blog {
 
   def owner: Perspective = _owner
 
-  def createPost(title: String, content: String)(implicit pm: ScalaPersistenceManager = null) {
+  def createPost(title: String, content: String) {
     val p = new Post(title, content, this)
-    if(pm != null) pm.makePersistent(p)
-    else DataStore.withTransaction( tpm => tpm.makePersistent(p))
+    DataStore.pm.makePersistent(p)
   }
 }
 
@@ -73,28 +71,24 @@ object QBlog {
 }
 
 object Blog {
-  def listUserBlogs(perspective: Perspective)(implicit pm: ScalaPersistenceManager): List[Blog] = {
+  def listUserBlogs(perspective: Perspective): List[Blog] = {
     val realPer = Perspective.getById(perspective.id)
     realPer match {
       case None => Nil
       case Some(realPer) => {
          val cand = QBlog.candidate
-         pm.query[Blog].filter(cand.owner.eq(realPer)).executeList
+         DataStore.pm.query[Blog].filter(cand.owner.eq(realPer)).executeList()
       }
     }
   }
 
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Blog] = {
-    def query(epm: ScalaPersistenceManager) = {
-      val cand = QBlog.candidate
-      epm.query[Blog].filter(cand.id.eq(id)).executeOption
-    }
-    if (pm != null) query(pm)
-    DataStore.withTransaction( tpm => query(tpm))
+  def getById(id: Long): Option[Blog] = {
+    val cand = QBlog.candidate
+    DataStore.pm.query[Blog].filter(cand.id.eq(id)).executeOption()
   }
 
-  def getPosts(blog: Blog)(implicit pm: ScalaPersistenceManager): List[Post] = {
+  def getPosts(blog: Blog): List[Post] = {
     val cand = QPost.candidate
-    pm.query[Post].filter(cand.blog.eq(blog)).executeList
+    DataStore.pm.query[Post].filter(cand.blog.eq(blog)).executeList()
   }
 }

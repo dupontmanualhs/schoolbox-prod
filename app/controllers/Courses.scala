@@ -3,25 +3,22 @@ package controllers
 import play.api.mvc.Controller
 import models.courses._
 import models.users._
-import util.DbAction
 import util.Helpers.mkNodeSeq
 import views.html
 import scala.xml.NodeSeq
 import play.api.mvc.PlainResult
-import util.DbRequest
-import util.ScalaPersistenceManager
 import scala.xml.Text
 import play.api.mvc.Flash._
+import play.api.mvc.Action
 
 object Courses extends Controller {
-  def getMySchedule() = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def getMySchedule() = Action { implicit req =>
   	val currentUser: Option[User] = User.current
     if(currentUser.isDefined) {
-      if (Teacher.getByUsername(currentUser.get.username)(pm).isDefined) {
-        teacherSchedule(Teacher.getByUsername(currentUser.get.username)(pm), Some(Term.current(pm)))
+      if (Teacher.getByUsername(currentUser.get.username).isDefined) {
+        teacherSchedule(Teacher.getByUsername(currentUser.get.username), Some(Term.current))
       } else {
-        studentSchedule(Student.getByUsername(currentUser.get.username)(pm).get, Term.current(pm))
+        studentSchedule(Student.getByUsername(currentUser.get.username).get, Term.current)
       }
     } else {
       req.visit.redirectURL_=(routes.Courses.getMySchedule())
@@ -30,29 +27,24 @@ object Courses extends Controller {
     }
   }
   
-  def getTeacherSchedule2(username: String, termSlug: String) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def getTeacherSchedule2(username: String, termSlug: String) = Action { implicit req =>
     teacherSchedule(Teacher.getByUsername(username), Term.getBySlug(termSlug))
   }
 
-  def getTeacherSchedule1(username: String) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def getTeacherSchedule1(username: String) = Action { implicit req =>
     teacherSchedule(Teacher.getByUsername(username), Some(Term.current))
   }
 
-  def getStudentSchedule1(username: String) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def getStudentSchedule1(username: String) = Action { implicit req =>
     studentSchedule(Student.getByUsername(username), Some(Term.current))
   }
 
-  def getStudentSchedule2(username: String, termSlug: String) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def getStudentSchedule2(username: String, termSlug: String) = Action { implicit req =>
     studentSchedule(Student.getByUsername(username), Term.getBySlug(termSlug))
   }
 
-  // only this student, his/her parent, or a teacher should be able to see this schedule
-  def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term])(implicit req: DbRequest[_]): PlainResult = {
-    implicit val pm = req.pm
+  // TODO: only this student, his/her parent, or a teacher should be able to see this schedule
+  def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term]): PlainResult = {
     if (!maybeStudent.isDefined) {
       NotFound(views.html.notFound("No such student."))
     } else if (!maybeTerm.isDefined) {

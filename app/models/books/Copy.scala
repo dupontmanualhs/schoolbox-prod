@@ -3,9 +3,9 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.ScalaPersistenceManager
 import javax.jdo.listener.StoreCallback
-import util.DataStore
+
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
 class Copy /*extends StoreCallback*/ {
@@ -45,13 +45,9 @@ class Copy /*extends StoreCallback*/ {
     "%s-%s-%05d".format(purchaseGroup.title.isbn, "200", number)
   }
 
-  def isCheckedOut(implicit pm: ScalaPersistenceManager = null): Boolean = {
-    def query(epm: ScalaPersistenceManager): Boolean = {
-      val cand = QCheckout.candidate
-      !epm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().isEmpty
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def isCheckedOut: Boolean = {
+    val cand = QCheckout.candidate
+    DataStore.pm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().nonEmpty
   }
 
   //TODO Fix this so that it works
@@ -74,38 +70,28 @@ class Copy /*extends StoreCallback*/ {
 }
 
 object Copy {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Copy] = {
-    def query(epm: ScalaPersistenceManager): Option[Copy] = {
-      val cand = QCopy.candidate
-      epm.query[Copy].filter(cand.id.eq(id)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getById(id: Long): Option[Copy] = {
+    val cand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(cand.id.eq(id)).executeOption()
   }
 
-  def getByBarcode(barcode: String)(implicit pm: ScalaPersistenceManager = null): Option[Copy] = {
-    def query(epm: ScalaPersistenceManager): Option[Copy] = {
-      val isbn = barcode.substring(0, 13)
-      val copyNumber = barcode.substring(18).toInt
-      val cand = QCopy.candidate
-      val titleVar = QTitle.variable("titleVar")
-      val pgVar = QPurchaseGroup.variable("pgVar")
-      epm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
+  def getByBarcode(barcode: String): Option[Copy] = {
+    val isbn = barcode.substring(0, 13)
+    val copyNumber = barcode.substring(18).toInt
+    val cand = QCopy.candidate
+    val titleVar = QTitle.variable("titleVar")
+    val pgVar = QPurchaseGroup.variable("pgVar")
+    DataStore.pm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(titleVar)).and(titleVar.isbn.eq(isbn))).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  def makeUniqueCopies(pGroup: PurchaseGroup, quantity: Int)(implicit pm: ScalaPersistenceManager = null): (Int, Int) = {
-    def query(epm: ScalaPersistenceManager): List[Copy] = {
-      val cand = QCopy.candidate
-      val nTitle = pGroup.title
-      val pgVar = QPurchaseGroup.variable("pgVar")
-      epm.query[Copy].filter(pgVar.title.eq(nTitle)).orderBy(cand.number.desc).executeList()
-    }
+  def makeUniqueCopies(pGroup: PurchaseGroup, quantity: Int): (Int, Int) = {
+    val pm = DataStore.pm
+    val cand = QCopy.candidate
+    val nTitle = pGroup.title
+    val pgVar = QPurchaseGroup.variable("pgVar")
+    val allCopies: List[Copy] = pm.query[Copy].filter(pgVar.title.eq(nTitle)).orderBy(cand.number.desc).executeList()
 
-    val allCopies: List[Copy] = query(pm)
     val firstNum = if (!allCopies.isEmpty) {
       allCopies.apply(0).number + 1
     } else {

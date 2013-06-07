@@ -30,7 +30,7 @@ class TrueFalse extends DbQuestion {
     this.text = (q \ "text").flatMap(_.child)
     this.feedback = (q \ "feedback").flatMap(_.child)
     for (ans <- (q \ "answer")) {
-      val worth: ExactNumber = ExactNumber(ans \ "@worth" text).getOrElse(Integer(0))
+      val worth: ExactNumber = ExactNumber((ans \ "@worth").text).getOrElse(Integer(0))
       val ansFeedback = (ans \ "feedback").flatMap(_.child)
       if ((ans \ "text").text == "true") {
         this.trueAnswer = TrueAnswer(worth, ansFeedback)

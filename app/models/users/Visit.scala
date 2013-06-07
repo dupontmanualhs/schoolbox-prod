@@ -9,9 +9,11 @@ import org.datanucleus.query.typesafe._
 import scala.collection.immutable.HashSet
 import scala.collection.JavaConverters._
 import util.Helpers.{string2elem, string2nodeSeq}
-import util.{Menu, DataStore, ScalaPersistenceManager}
+import util.Menu
 import scala.xml.Elem
 import play.api.mvc.Call
+import scalajdo.DataStore
+import play.api.mvc.Request
 
 @PersistenceCapable(detachable="true")
 class Visit {
@@ -88,20 +90,20 @@ class Visit {
 }
 
 object Visit {
-  def getByUuid(uuid: String)(implicit pm: ScalaPersistenceManager = null): Option[Visit] = {
-    def query(epm: ScalaPersistenceManager): Option[Visit] = {
-      epm.query[Visit].filter(QVisit.candidate.uuid.eq(uuid)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  val visitLength = 3600000 // one hour in milliseconds
+  
+  def getByUuid(uuid: String): Option[Visit] = {
+    DataStore.pm.query[Visit].filter(QVisit.candidate.uuid.eq(uuid)).executeOption()
   }
   
-  def allExpired(implicit pm: ScalaPersistenceManager = null): List[Visit] = {
-    def query(epm: ScalaPersistenceManager): List[Visit] = {
-      epm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getFromRequest[A](implicit req: Request[A]): Visit = {
+    req.session.get("visit").flatMap(
+        Visit.getByUuid(_)).filter(!_.isExpired).getOrElse(
+            new Visit(System.currentTimeMillis + Visit.visitLength, None, None))
+  }
+  
+  def allExpired: List[Visit] = {
+    DataStore.pm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
   }
 }
 
