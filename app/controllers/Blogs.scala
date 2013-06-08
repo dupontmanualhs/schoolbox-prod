@@ -1,10 +1,7 @@
 package controllers
 
-import play.api.mvc.Controller
-import util.DbAction
+import play.api.mvc.{ Action, Controller }
 import models.blogs._
-import util.ScalaPersistenceManager
-import util.DbRequest
 import play.api.data._
 import play.api.data.Forms._
 import models.users._
@@ -14,6 +11,8 @@ import models.users.QPerspective
 import forms.fields.TinyMCEField
 import forms.fields.TextField
 import forms.{Form, ValidBinding, InvalidBinding, Binding}
+
+import scalajdo.DataStore
 
 //TODO: Actually check permissions where applicable
 
@@ -29,7 +28,7 @@ object Blogs extends Controller {
     "tinymce" -> text
   }
 
-  def editor() = DbAction { implicit req =>
+  def editor() = Action { implicit req =>
     Ok(views.html.blogs.editor(testEdit))
   }
 
@@ -38,11 +37,10 @@ object Blogs extends Controller {
   *
   *   @param perspective the user whose blogs to display
   */
-  def listUserBlogs(perspectiveOpt: Option[Perspective]) = DbAction { implicit req =>
+  def listUserBlogs(perspectiveOpt: Option[Perspective]) = Action { implicit req =>
     perspectiveOpt match {
       case None => NotFound("That user doesn't exist.")
-      case Some(perspective) => {
-        implicit val pm: ScalaPersistenceManager = req.pm
+      case Some(perspective) => DataStore.withTransaction { implicit pm =>
         val cand = QBlog.candidate
         val blogs: List[Blog] = Blog.listUserBlogs(perspective)
         Ok(views.html.blogs.blogs(blogs, perspective))
@@ -50,23 +48,23 @@ object Blogs extends Controller {
     }
   }
   
-  def listCurrentUserBlogs() = DbAction { implicit req =>
-    val currentPerspective = req.visit.perspective
-    currentPerspective match {
+  def listCurrentUserBlogs() = Action { implicit req =>
+    DataStore.withTransaction { pm => 
+    Visit.getFromRequest(req).perspective match {
       case Some(per) => {
-         implicit val pm: ScalaPersistenceManager = req.pm
          Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
       }
       case None => NotFound("You must log in to view your own blogs.")
     }
+    }
   }
 
-  def listBlogsByPerspectiveId(id: Long) = DbAction { implicit req =>
-   implicit val pm: ScalaPersistenceManager = req.pm
-   val perOpt = Perspective.getById(id)
-   perOpt match {
-      case Some(per) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
-      case None => NotFound("That perspective doesn't exist!")
+  def listBlogsByPerspectiveId(id: Long) = Action { implicit req =>
+    DataStore.withTransaction { implicit pm => 
+      Perspective.getById(id) match {
+        case Some(per) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
+        case None => NotFound("That perspective doesn't exist!")
+      }
     }
   }
 
@@ -83,12 +81,12 @@ object Blogs extends Controller {
   * If the blog id shown in the url corresponds to a blog, go for it. If not, error.
   */
 
-  def createPost(blogId: Long) = DbAction { implicit req =>
+  def createPost(blogId: Long) = Action { implicit req =>
     val blog = Blog.getById(blogId)
     blog match {
       case None => NotFound("This blog doesn't exist.")
       case Some(b) => {
-        req.visit.perspective match {
+        Visit.getFromRequest(req).perspective match {
           case Some(p) => {
             if(b.owner.id != p.id) {
                Redirect(routes.Blogs.showBlog(blogId)).flashing("message" -> "You don't have the proper permissions to create a post. Change perspectives?")
@@ -107,13 +105,11 @@ object Blogs extends Controller {
     }
   }
 
-  def checkBindingCreatePostForm(binding: Binding, b: Blog, form: CreatePostForm)(implicit req: util.DbRequest[_]) = {
-    binding match {
-      case ib: InvalidBinding => Ok(views.html.blogs.createPost(b.title, ib))
-      case vb: ValidBinding => {
-        b.createPost(vb.valueOf(form.title), vb.valueOf(form.content))
-        Redirect(routes.Blogs.showBlog(b.id)).flashing("message" -> "New post created!")
-      }
+  def checkBindingCreatePostForm(binding: Binding, b: Blog, form: CreatePostForm) = binding match {
+    case ib: InvalidBinding => Ok(views.html.blogs.createPost(b.title, ib))
+    case vb: ValidBinding => {
+      b.createPost(vb.valueOf(form.title), vb.valueOf(form.content))
+      Redirect(routes.Blogs.showBlog(b.id)).flashing("message" -> "New post created!")
     }
   }
 
@@ -121,7 +117,7 @@ object Blogs extends Controller {
   *
   *   @param blog the blog to show the control panel for
   */
-  def showControlPanel(blog: Blog) = DbAction { implicit req =>
+  def showControlPanel(blog: Blog) = Action { implicit req =>
     Ok(views.html.stub())
   }
 
@@ -129,7 +125,7 @@ object Blogs extends Controller {
   *
   *   @param post the post to be shown
   */
-  def showPost(post: Post) = DbAction { implicit req =>
+  def showPost(post: Post) = Action { implicit req =>
     Ok(views.html.stub())
   }
 
@@ -137,8 +133,7 @@ object Blogs extends Controller {
   *
   *   @param id the id of the blog to be shown
   */
-  def showBlog(id: Long) = DbAction {  implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def showBlog(id: Long) = Action {  implicit req =>
     val blogOpt = Blog.getById(id)
     blogOpt match {
       case None => NotFound("This blog is not found.")
@@ -146,7 +141,7 @@ object Blogs extends Controller {
     }
   }
 
-  def testSubmit() = DbAction { implicit req =>
+  def testSubmit() = Action { implicit req =>
     testEdit.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.blogs.editor(formWithErrors)),
       content => {

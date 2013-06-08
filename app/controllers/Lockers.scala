@@ -2,8 +2,6 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import util.{DataStore, ScalaPersistenceManager}
-import util.DbAction
 import models.lockers._
 import models.users._
 import models.courses._
@@ -15,16 +13,18 @@ import forms.validators.Validator
 import forms.validators.ValidationError
 import util.Helpers._
 
+import scalajdo.DataStore
+
 object Lockers extends Controller {
    
-  def getMyLocker() = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
-  	val currentUser: Option[User] = User.current
+  def getMyLocker() = Action { implicit req =>
+  	DataStore.withTransaction { implicit pm => 
+    val currentUser: Option[User] = User.current
   	if(currentUser.isDefined) {
-      if (Teacher.getByUsername(currentUser.get.username)(pm).isDefined) {
+      if (Teacher.getByUsername(currentUser.get.username).isDefined) {
         NotFound(views.html.notFound("Teachers do not have lockers."))
       } else {
-        val Some(maybeStudent) = Student.getByUsername(currentUser.get.username)(pm)
+        val Some(maybeStudent) = Student.getByUsername(currentUser.get.username)
         val maybeLocker: Option[Locker] = Locker.getByStudent(maybeStudent)
         maybeLocker match {
           case None => NotFound(views.html.notFound("You do not have a locker."))
@@ -32,15 +32,17 @@ object Lockers extends Controller {
         }
       }
     } else {
-      req.visit.redirectURL_=(routes.Lockers.getMyLocker())
-      pm.makePersistent(req.visit)
+      val visit: Visit = Visit.getFromRequest(req)
+      visit.redirectURL_=(routes.Lockers.getMyLocker())
+      pm.makePersistent(visit)
       Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
     }
+  	}
   }
   
-  def getLocker(num: Int) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
-    val maybeLocker = Locker.getByNumber(num)(pm)
+  def getLocker(num: Int) = Action { implicit req =>
+    DataStore.withTransaction { implicit pm => 
+    val maybeLocker = Locker.getByNumber(num)
     maybeLocker match {
       case None => NotFound(views.html.notFound("No locker exists with this ID."))
       case Some(locker) => if(req.method == "GET") {
@@ -48,15 +50,15 @@ object Lockers extends Controller {
                         } else {
       				    val currentUser: Option[User] = User.current
       				    if(currentUser.isDefined) {
-      				      if (Teacher.getByUsername(currentUser.get.username)(pm).isDefined) {
+      				      if (Teacher.getByUsername(currentUser.get.username).isDefined) {
       				    	NotFound(views.html.notFound("Teachers do not have lockers."))
       				      } else {
-      				        val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
-      				        val oldLocker = Locker.getByStudent(student)
+      				        val maybeStudent: Option[Student] = Student.getByUsername(currentUser.get.username)
+      				        val oldLocker: Option[Locker] = maybeStudent.flatMap(Locker.getByStudent(_))
       				        if(locker.taken) Ok(views.html.notFound("This locker was taken."))
       				        else {
-      				          locker.student_=(Some(student))
-      				          locker.taken_=(true)
+      				          locker.student = maybeStudent
+      				          locker.taken = true
       				          pm.makePersistent(locker)
       				          oldLocker match {
       				            case None => {}
@@ -70,15 +72,17 @@ object Lockers extends Controller {
       				          }
       				        }
       				      } else {
-      				        req.visit.redirectURL_=(routes.Lockers.getLocker(num))
-      				        pm.makePersistent(req.visit)
+      				        val visit = Visit.getFromRequest(req)
+      				        visit.redirectURL_=(routes.Lockers.getLocker(num))
+      				        pm.makePersistent(visit)
       				        Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
       				      }
       				  }
     }
+    }
   }
   
-  def lockerList(list: List[Locker]) = DbAction { implicit req =>
+  def lockerList(list: List[Locker]) = Action { implicit req =>
     Ok(views.html.lockers.lockerList(list))
   }
   

@@ -2,8 +2,6 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import util.{DataStore, ScalaPersistenceManager}
-import util.DbAction
 import models.books._
 import models.users._
 import forms._
@@ -16,11 +14,13 @@ import java.io._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 
+import scalajdo.DataStore
+
 object Books extends Controller {
   /**
    * Given a list of the first 9 digits from a ten-digit ISBN,
    * returns the expected check digit (which could also be an X in
-   * addition to the digits 0 through 9). The algorithm can be found here: 
+   * addition to the digits 0 through 9). The algorithm can be found here:
    * http://en.wikipedia.org/wiki/International_Standard_Book_Number#Check_digits
    */
   def tenDigitCheckDigit(digits: List[Int]): String = {
@@ -32,7 +32,7 @@ object Books extends Controller {
     val checkDigit = (11 - (checkSum % 11)) % 11
     if (checkDigit == 10) "X" else checkDigit.toString
   }
-  
+
   /**
    * Given a list of the first 12 digits from a 13-digit ISBN,
    * returns the expected check digit. The algorithm can be found
@@ -47,7 +47,7 @@ object Books extends Controller {
     }).sum
     ((10 - (checkSum % 10)) % 10).toString
   }
-  
+
   /**
    * Given a possible ISBN (either 10- or 13-digit) with the check
    * digit removed, calculates the check digit, if possible. If the
@@ -63,8 +63,7 @@ object Books extends Controller {
         case 12 => Some(thirteenDigitCheckDigit(digits))
         case _ => None
       }
-    }
-    catch {
+    } catch {
       case _: NumberFormatException => None
     }
     // } else None
@@ -79,9 +78,9 @@ object Books extends Controller {
     val isbn12 = "978" + isbn9
     isbn12 + checkDigit(isbn12).get
   }
-  
+
   /**
-   * Given a possible ISBN, verifies that it's valid and 
+   * Given a possible ISBN, verifies that it's valid and
    * returns the 13-digit equivalent. If the original ISBN
    * is not valid, returns None. Any dashes that the user may
    * have entered are removed.
@@ -102,17 +101,18 @@ object Books extends Controller {
       case _ => None
     }
   }
-  
+
   object TitleForm extends Form {
     val isbn = new TextField("isbn") {
       override val minLength = Some(10)
       override val maxLength = Some(13)
       override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
         case None => ValidationError("This value must be a valid 10- or 13-digit ISBN.")
-	    case Some(isbn) => ValidationError(Nil)
-    }), Validator((str: String) => Title.getByIsbn(str) match {
+        case Some(isbn) => ValidationError(Nil)
+      }), Validator((str: String) => Title.getByIsbn(str) match {
         case Some(isbn) => ValidationError("ISBN already exists in database.")
-        case None => ValidationError(Nil)}))
+        case None => ValidationError(Nil)
+      }))
     }
     val name = new TextField("name") { override val maxLength = Some(80) }
     val author = new TextFieldOptional("author(s)") { override val maxLength = Some(80) }
@@ -121,35 +121,35 @@ object Books extends Controller {
     val dimensions = new TextFieldOptional("dimensions")
     val weight = new NumericFieldOptional[Double]("weight")
     val imageUrl = new UrlFieldOptional("imageUrl")
-    
+
     val fields = List(isbn, name, author, publisher, numPages, dimensions, weight, imageUrl)
   }
-  
-  def addTitle = DbAction { implicit request =>
+
+  def addTitle = Action { implicit request =>
     if (request.method == "GET") Ok(views.html.books.addTitle(Binding(TitleForm)))
     else {
       Binding(TitleForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
-        case vb: ValidBinding => {
-          val t = new Title (vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author), 
-          vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages), 
-          vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true, 
-          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn)+ ".jpg"))
-        request.pm.makePersistent(t)
+        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+          val t = new Title(vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author),
+            vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages),
+            vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true,
+            new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn) + ".jpg"))
+          pm.makePersistent(t)
 
-        vb.valueOf(TitleForm.imageUrl) match {
-          case Some(url) => try {
-            downloadImage(url, vb.valueOf(TitleForm.isbn))
-            Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
-          } catch {
-            case e: Exception => Redirect(routes.Books.addTitle()).flashing("message" -> "Image not downloaded. Update the title's image to try downloading again")
+          vb.valueOf(TitleForm.imageUrl) match {
+            case Some(url) => try {
+              downloadImage(url, vb.valueOf(TitleForm.isbn))
+              Redirect(routes.Books.addTitle()).flashing("message" -> "Title added successfully")
+            } catch {
+              case e: Exception => Redirect(routes.Books.addTitle()).flashing("message" -> "Image not downloaded. Update the title's image to try downloading again")
+            }
+            case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
           }
-          case None => Redirect(routes.Books.addTitle()).flashing("message" -> "Title added without an image")
         }
       }
     }
   }
-}
 
   def downloadImage(url: java.net.URL, isbn: String) = {
     val pic = ImageIO.read(url)
@@ -157,19 +157,19 @@ object Books extends Controller {
   }
 
   def confirmation() = TODO
-  
+
   def verifyTitle(isbnNum: Long) = TODO
-  
+
   def addCopiesToPg(pgId: Long) = TODO
-  
+
   def addPurchaseGroup(titleId: Long) = TODO
-  
+
   def addLabelsToQueue() = TODO
-  
+
   def printCenter() = TODO
-  
+
   def bulkCheckoutHelper() = TODO
-  
+
   def bulkCheckout() = TODO
 
   object CheckoutForm extends Form {
@@ -178,17 +178,16 @@ object Books extends Controller {
       override val maxLength = Some(23)
     }
     val student = new TextField("Student")
-    
+
     val fields = List(barcode, student)
   }
 
-  def checkout = DbAction { implicit request =>
+  def checkout = Action { implicit request =>
     if (request.method == "GET") Ok(views.html.books.checkout(Binding(CheckoutForm)))
-      else {
-      implicit val pm = request.pm
+    else {
       Binding(CheckoutForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
-        case vb: ValidBinding => {
+        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
           val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
           val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
           student match {
@@ -201,17 +200,17 @@ object Books extends Controller {
                     Redirect(routes.Books.checkout()).flashing("message" -> "Copy already checked out")
                   } else {
                     val c = new Checkout(stu, cpy, new java.sql.Date(new java.util.Date().getTime()), null)
-                    request.pm.makePersistent(c)
+                    pm.makePersistent(c)
                     Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
                   }
                 }
               }
             }
           }
+        }
       }
     }
   }
-}
 
   object CheckInForm extends Form {
     val barcode = new TextField("Barcode") {
@@ -222,13 +221,12 @@ object Books extends Controller {
     val fields = List(barcode)
   }
 
-  def checkIn = DbAction { implicit request =>
+  def checkIn = Action { implicit request =>
     if (request.method == "GET") Ok(views.html.books.checkIn(Binding(CheckInForm)))
-      else {
-      implicit val pm = request.pm
+    else {
       Binding(CheckInForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
-        case vb: ValidBinding => {
+        case vb: ValidBinding => DataStore.withTransaction { pm =>
           val cand = QCheckout.candidate
           Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
             case None => Redirect(routes.Books.checkIn()).flashing("message" -> "No copy with the given barcode")
@@ -237,26 +235,26 @@ object Books extends Controller {
                 case None => Redirect(routes.Books.checkIn()).flashing("message" -> "Copy not checked out")
                 case Some(currentCheckout) => {
                   currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
-                  request.pm.makePersistent(currentCheckout)
+                  pm.makePersistent(currentCheckout)
                   Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
                 }
               }
+            }
           }
-        }
         }
       }
     }
   }
-  
+
   def lookup() = TODO
-  
+
   def inspect() = TODO
-  
+
   def findBooksOut() = TODO
-  
+
   def booksOut(stateId: String) = TODO
-  
-  def findCopyHistory() = DbAction { implicit req =>
+
+  def findCopyHistory() = Action { implicit req =>
     object ChooseCopyForm extends Form {
       val barcode = new TextField("Barcode") {
         override val minLength = Some(21)
@@ -277,13 +275,12 @@ object Books extends Controller {
       }
     }
   }
-  
-  def copyHistory(barcode: String) = DbAction { implicit req =>
-    implicit val pm = req.pm
+
+  def copyHistory(barcode: String) = Action { implicit req =>
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
     Copy.getByBarcode(barcode) match {
       case None => NotFound("no copy with the given id")
-      case Some(copy) => {
+      case Some(copy) => DataStore.withTransaction { pm =>
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
         val coCand = QCheckout.candidate
         val rows: List[(String, String, String)] = pm.query[Checkout].filter(coCand.copy.eq(copy)).executeList().map(co => {
@@ -293,34 +290,35 @@ object Books extends Controller {
       }
     }
   }
-  
-  def confirmCopyLost(copyId: Long) = TODO
-  
-  def checkInLostCopy() = TODO
-  
-  def delete(id: Long) = TODO
-  
-  def confirmDelete() = TODO
-  
-  def checkoutHistory(stateId: String) = DbAction { implicit req =>
-  implicit val pm = req.pm
-  val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
-  Student.getByStateId(stateId) match {
-    case None => NotFound("No student with the given id.")
-    case Some(currentStudent) => {
-      val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.student.eq(currentStudent)).executeList()
-      val studentName = currentStudent.displayName
-      val header = "Student: %s".format(studentName)
-      val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate),
-        if (co.endDate == null) "" else df.format(co.endDate))})
-      Ok(views.html.books.checkoutHistory(header,rows))
+  def confirmCopyLost(copyId: Long) = TODO
+
+  def checkInLostCopy() = TODO
+
+  def delete(id: Long) = TODO
+
+  def confirmDelete() = TODO
+
+  def checkoutHistory(stateId: String) = Action { implicit req =>
+    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+
+    Student.getByStateId(stateId) match {
+      case None => NotFound("No student with the given id.")
+      case Some(currentStudent) => DataStore.withTransaction { implicit pm =>
+        val checkoutCand = QCheckout.candidate
+        val currentBooks = pm.query[Checkout].filter(checkoutCand.student.eq(currentStudent)).executeList()
+        val studentName = currentStudent.displayName
+        val header = "Student: %s".format(studentName)
+        val rows: List[(String, String, String)] = currentBooks.map(co => {
+          (co.copy.purchaseGroup.title.name, df.format(co.startDate),
+            if (co.endDate == null) "" else df.format(co.endDate))
+        })
+        Ok(views.html.books.checkoutHistory(header, rows))
+      }
     }
   }
-}
 
-def findCheckoutHistory() = DbAction { implicit req =>
+  def findCheckoutHistory() = Action { implicit req =>
     object ChooseStudentForm extends Form {
       val student = new TextField("Student")
 
@@ -331,7 +329,7 @@ def findCheckoutHistory() = DbAction { implicit req =>
     } else {
       Binding(ChooseStudentForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
-        case vb: ValidBinding => {
+        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
           val lookupStudentId: String = vb.valueOf(ChooseStudentForm.student)
           Redirect(routes.Books.checkoutHistory(lookupStudentId))
         }
@@ -339,7 +337,7 @@ def findCheckoutHistory() = DbAction { implicit req =>
     }
   }
 
-  def findCurrentCheckouts() = DbAction { implicit req =>
+  def findCurrentCheckouts() = Action { implicit req =>
     object ChooseStudentForm extends Form {
       val stateId = new TextField("Student")
 
@@ -358,27 +356,26 @@ def findCheckoutHistory() = DbAction { implicit req =>
     }
   }
 
-  def currentCheckouts(stateId: String) = DbAction { implicit req =>
-  implicit val pm = req.pm
-  val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+  def currentCheckouts(stateId: String) = Action { implicit req =>
+    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
-  Student.getByStateId(stateId) match {
-    case None => NotFound("No student with the given id")
-    case Some(currentStudent) => {
-      val checkoutCand = QCheckout.candidate
-      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
-      val studentName = currentStudent.displayName
-      val header = "Student: %s".format(studentName)
-      val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate))})
-      Ok(views.html.books.currentCheckouts(header,rows))
+    Student.getByStateId(stateId) match {
+      case None => NotFound("No student with the given id")
+      case Some(currentStudent) => DataStore.withTransaction { implicit pm =>
+        val checkoutCand = QCheckout.candidate
+        val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
+        val studentName = currentStudent.displayName
+        val header = "Student: %s".format(studentName)
+        val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate)) })
+        Ok(views.html.books.currentCheckouts(header, rows))
+      }
     }
   }
-}
 
   def checkoutsByTeacherStudents() = TODO
-  
+
   def statistics() = TODO
-  
+
   def copyStatusByTitle() = TODO /* DbAction { implicit req =>
     implicit val pm = req.pm
     val form = Form(
@@ -387,19 +384,20 @@ def findCheckoutHistory() = DbAction { implicit req =>
     Ok(views.html.books.copyStatusByTitleForm())
     
   }*/
-  
-  def allBooksOut(grade: Int) = DbAction { implicit req =>
-    implicit val pm = req.pm
-    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
-    val stu = QStudent.variable("stu")
-    val cand = QCheckout.candidate
-    val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.eq(stu)).and(stu.grade.eq(grade))).executeList()
-    val header = "Current books out for grade " + grade
-    val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.student.formalName)})
-    Ok(views.html.books.allBooksOut(header, rows))
+
+  def allBooksOut(grade: Int) = Action { implicit req =>
+    DataStore.withTransaction { implicit pm =>
+      val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
+      val stu = QStudent.variable("stu")
+      val cand = QCheckout.candidate
+      val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.eq(stu)).and(stu.grade.eq(grade))).executeList()
+      val header = "Current books out for grade " + grade
+      val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.student.formalName) })
+      Ok(views.html.books.allBooksOut(header, rows))
+    }
   }
 
-  def findAllBooksOut() = DbAction { implicit req =>
+  def findAllBooksOut() = Action { implicit req =>
     object ChooseGradeForm extends Form {
       val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
 
@@ -410,7 +408,7 @@ def findCheckoutHistory() = DbAction { implicit req =>
     } else {
       Binding(ChooseGradeForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findAllBooksOut(ib))
-        case vb: ValidBinding => {
+        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
           val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
           Redirect(routes.Books.allBooksOut(lookupGrade))
         }

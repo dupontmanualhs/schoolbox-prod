@@ -1,6 +1,9 @@
 import play.api._
+import play.api.mvc.{Handler, RequestHeader}
+
 import scalajdo.DataStore
 
-object Global extends GlobalSettings {
+import models.users.Visit
 
+object Global extends GlobalSettings {
 }
