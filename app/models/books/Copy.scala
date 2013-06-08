@@ -58,7 +58,7 @@ class Copy /*extends StoreCallback*/ {
       throw new Exception("Copy number greater than 5 digits")
     }
     // Make this check to make sure that the number doesn't already exist
-    DataStore.withTransaction { tpm =>
+    DataStore.execute { tpm =>
       val cand = QCopy.candidate
       val pgVar = QPurchaseGroup.variable("pgVar")
       val others = tpm.query[Copy].filter(cand.number.eq(this.number).and(cand.purchaseGroup.eq(pgVar)).and(

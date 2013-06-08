@@ -130,7 +130,7 @@ object Books extends Controller {
     else {
       Binding(TitleForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
-        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+        case vb: ValidBinding => DataStore.execute { implicit pm =>
           val t = new Title(vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author),
             vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages),
             vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true,
@@ -187,7 +187,7 @@ object Books extends Controller {
     else {
       Binding(CheckoutForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
-        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+        case vb: ValidBinding => DataStore.execute { implicit pm =>
           val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
           val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
           student match {
@@ -226,7 +226,7 @@ object Books extends Controller {
     else {
       Binding(CheckInForm, request) match {
         case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
-        case vb: ValidBinding => DataStore.withTransaction { pm =>
+        case vb: ValidBinding => DataStore.execute { pm =>
           val cand = QCheckout.candidate
           Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
             case None => Redirect(routes.Books.checkIn()).flashing("message" -> "No copy with the given barcode")
@@ -280,7 +280,7 @@ object Books extends Controller {
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
     Copy.getByBarcode(barcode) match {
       case None => NotFound("no copy with the given id")
-      case Some(copy) => DataStore.withTransaction { pm =>
+      case Some(copy) => DataStore.execute { pm =>
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
         val coCand = QCheckout.candidate
         val rows: List[(String, String, String)] = pm.query[Checkout].filter(coCand.copy.eq(copy)).executeList().map(co => {
@@ -304,7 +304,7 @@ object Books extends Controller {
 
     Student.getByStateId(stateId) match {
       case None => NotFound("No student with the given id.")
-      case Some(currentStudent) => DataStore.withTransaction { implicit pm =>
+      case Some(currentStudent) => DataStore.execute { implicit pm =>
         val checkoutCand = QCheckout.candidate
         val currentBooks = pm.query[Checkout].filter(checkoutCand.student.eq(currentStudent)).executeList()
         val studentName = currentStudent.displayName
@@ -329,7 +329,7 @@ object Books extends Controller {
     } else {
       Binding(ChooseStudentForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
-        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+        case vb: ValidBinding => DataStore.execute { implicit pm =>
           val lookupStudentId: String = vb.valueOf(ChooseStudentForm.student)
           Redirect(routes.Books.checkoutHistory(lookupStudentId))
         }
@@ -361,7 +361,7 @@ object Books extends Controller {
 
     Student.getByStateId(stateId) match {
       case None => NotFound("No student with the given id")
-      case Some(currentStudent) => DataStore.withTransaction { implicit pm =>
+      case Some(currentStudent) => DataStore.execute { implicit pm =>
         val checkoutCand = QCheckout.candidate
         val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
         val studentName = currentStudent.displayName
@@ -386,7 +386,7 @@ object Books extends Controller {
   }*/
 
   def allBooksOut(grade: Int) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
       val stu = QStudent.variable("stu")
       val cand = QCheckout.candidate
@@ -408,7 +408,7 @@ object Books extends Controller {
     } else {
       Binding(ChooseGradeForm, req) match {
         case ib: InvalidBinding => Ok(html.books.findAllBooksOut(ib))
-        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+        case vb: ValidBinding => DataStore.execute { implicit pm =>
           val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
           Redirect(routes.Books.allBooksOut(lookupGrade))
         }

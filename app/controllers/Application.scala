@@ -51,19 +51,19 @@ object Application extends Controller {
   }
 
   def index() = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       Ok(views.html.index())
     }
   }
 
   def stub() = Action { implicit req =>
-    DataStore.withTransaction { pm =>
+    DataStore.execute { pm =>
       Ok(views.html.stub())
     }
   }
 
   def formTest() = Action { implicit req =>
-    DataStore.withTransaction { pm =>
+    DataStore.execute { pm =>
       if (req.method == "GET") Ok(views.html.formTester(Binding(formTests)))
       else Binding(formTests, req) match {
         case ib: InvalidBinding => Ok(views.html.formTester(ib))

@@ -1,4 +1,4 @@
-@(q: List[models.mastery.Quiz], s: List[models.mastery.QuizSection], qs: List[models.mastery.QuestionSet], qe: List[models.mastery.Question])(implicit req:util.DbRequest[_])
+@(q: List[models.mastery.Quiz], s: List[models.mastery.QuizSection], qs: List[models.mastery.QuestionSet], qe: List[models.mastery.Question])(implicit req: play.api.mvc.Request[_])
 @import helper._
 @main("Test Data"){
 <h1>Quizzes</h1>

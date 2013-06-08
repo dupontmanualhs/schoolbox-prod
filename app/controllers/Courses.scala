@@ -9,25 +9,16 @@ import scala.xml.NodeSeq
 import play.api.mvc.PlainResult
 import scala.xml.Text
 import play.api.mvc.Flash._
-
 import scalajdo.DataStore
+import util.Authenticated
 
 object Courses extends Controller {
-  def getMySchedule() = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
-      val visit: Visit = Visit.getFromRequest(req)
-      val currentUser: Option[User] = User.current
-      if (currentUser.isDefined) {
-        if (Teacher.getByUsername(currentUser.get.username).isDefined) {
-          teacherSchedule(Teacher.getByUsername(currentUser.get.username), Some(Term.current))(req)
-        } else {
-          studentScheduleNoOpts(Student.getByUsername(currentUser.get.username).get, Term.current)(req)
-        }
-      } else {
-        visit.redirectURL_=(routes.Courses.getMySchedule())
-        pm.makePersistent(visit)
-        Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
-      }
+  def getMySchedule() = Authenticated { implicit req =>
+    val currentUser: User = Visit.getFromRequest(req).user.get
+    if (Teacher.getByUsername(currentUser.username).isDefined) {
+      teacherSchedule(Teacher.getByUsername(currentUser.username), Some(Term.current))(req)
+    } else {
+      studentScheduleNoOpts(Student.getByUsername(currentUser.username).get, Term.current)(req)
     }
   }
 
@@ -59,7 +50,7 @@ object Courses extends Controller {
   }
 
   def studentScheduleNoOpts(student: Student, term: Term) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val enrollments: List[StudentEnrollment] = {
         val sectVar = QSection.variable("sectVar")
         val cand = QStudentEnrollment.candidate()
@@ -82,7 +73,7 @@ object Courses extends Controller {
   }
 
   def teacherSchedule(maybeTeacher: Option[Teacher], maybeTerm: Option[Term]) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       if (!maybeTeacher.isDefined) {
         NotFound(views.html.notFound("No such teacher."))
       } else if (!maybeTerm.isDefined) {
@@ -119,7 +110,7 @@ object Courses extends Controller {
 
   // only the teacher of this section or an admin should be able to see the roster
   def roster(sectionId: Long) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val cand = QSection.candidate
       pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
         case None => NotFound(views.html.notFound("No section with that id."))
@@ -136,7 +127,7 @@ object Courses extends Controller {
   }
 
   def sectionTable(courseId: Long) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val cand = QCourse.candidate
       val cand2 = QSection.candidate
       val course = pm.query[Course].filter(cand.id.eq(courseId)).executeList.head
@@ -146,7 +137,7 @@ object Courses extends Controller {
   }
 
   def classList() = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val cand = QCourse.candidate
       val courses = pm.query[Course].orderBy(cand.name.asc).executeList()
       Ok(views.html.courses.classes(courses))

@@ -1,4 +1,4 @@
-@(checkoutForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(checkoutForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Check In a Copy") {
   @checkoutForm.render()

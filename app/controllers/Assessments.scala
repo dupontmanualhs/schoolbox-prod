@@ -17,7 +17,7 @@ object Assessments extends Controller {
   var ans = first + second
 
   def menu() = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       rand = new Random
       first = rand.nextInt(9) + 1
       second = rand.nextInt(9) + 1
@@ -32,7 +32,7 @@ object Assessments extends Controller {
   }
 
   def checkAnswer(temp: Int) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       ansForm.bindFromRequest.fold(
         errors => {
           BadRequest(views.html.assessments.AssessmentsMenu("solve", errors, -1, None, first, second, ans, otherChoice))
@@ -48,7 +48,7 @@ object Assessments extends Controller {
   }
 
   def newQuestion() = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       rand = new Random
       first = rand.nextInt(9) + 1
       second = rand.nextInt(9) + 1

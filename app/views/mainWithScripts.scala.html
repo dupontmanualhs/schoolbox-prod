@@ -1,12 +1,11 @@
-@(title: String, scripts: Html)(content: Html)(implicit req: util.DbRequest[_])
-
+@(title: String, scripts: Html)(content: Html)(implicit req: play.api.mvc.Request[_])
+@import models.users.Visit
 
 <!DOCTYPE html>
-
 <html>
     <head>
         <title>@title</title>
-        @util.Theme.themePick(models.users.User.current)
+        @util.Theme.themePick(Visit.getFromRequest(req).user)
         
         <link rel="icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/jquery-ui.css")">
@@ -42,8 +41,8 @@
 		       </a>
 		       <a class="brand" href="/">ABCD eSchool</a>
 		       <div class="nav-collapse colapse" id="main-menu">
-					@req.visit.menu
-					@req.visit.updateMenu
+					@Visit.getFromRequest(req).menu
+					@Visit.getFromRequest(req).updateMenu
 					<div class="pull-right">
 			      		@users.perspectiveInfo()
 			       </div>

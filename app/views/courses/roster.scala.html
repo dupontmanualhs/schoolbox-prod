@@ -1,4 +1,4 @@
-@(course: String, terms: String, periods: String, teachers: String, enrollments: List[models.courses.StudentEnrollment])(implicit req: util.DbRequest[_]) 
+@(course: String, terms: String, periods: String, teachers: String, enrollments: List[models.courses.StudentEnrollment])(implicit req: play.api.mvc.Request[_]) 
 
 @main("%s - %s, %s (%s)".format(course, terms, periods, teachers)) {
 

@@ -34,7 +34,7 @@ object Lockers extends Controller {
       }
     } else {
       val visit: Visit = Visit.getFromRequest(req)
-      visit.redirectURL_=(routes.Lockers.getMyLocker())
+      visit.redirectUrl = controllers.routes.Lockers.getMyLocker()
       pm.makePersistent(visit)
       Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
     }
@@ -74,7 +74,7 @@ object Lockers extends Controller {
       				        }
       				      } else {
       				        val visit = Visit.getFromRequest(req)
-      				        visit.redirectURL_=(routes.Lockers.getLocker(num))
+      				        visit.redirectUrl = controllers.routes.Lockers.getLocker(num)
       				        pm.makePersistent(visit)
       				        Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
       				      }
@@ -95,7 +95,7 @@ object Lockers extends Controller {
       def fields = List(number)
       
       override def validate(vb: ValidBinding): ValidationError = {
-        DataStore.withTransaction { implicit pm =>
+        DataStore.execute { implicit pm =>
           Locker.validateLockerNumber(vb.valueOf(number)) match {
             case None => ValidationError("Invalid Locker Number")
             case Some(l) => ValidationError(Nil)

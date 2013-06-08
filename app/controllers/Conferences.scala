@@ -24,7 +24,7 @@ object Conferences extends Controller {
   }
 
   def viewAsTeacher() = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val currUser: Option[User] = User.current
       val events = pm.query[Event].executeList()
       val sessions = pm.query[models.conferences.Session].executeList()
@@ -33,14 +33,14 @@ object Conferences extends Controller {
   }
 
   def index() = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val events = pm.query[Event].executeList()
       val sessions = pm.query[models.conferences.Session].executeList()
       val currUser: Option[User] = User.current
       currUser match {
         case None => {
           val visit = Visit.getFromRequest(req)
-          visit.redirectURL_=(routes.Conferences.index())
+          visit.redirectUrl = routes.Conferences.index
           pm.makePersistent(visit)
           Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
         }
@@ -97,7 +97,7 @@ object Conferences extends Controller {
     else {
       Binding(EventForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createEvent(ib))
-        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+        case vb: ValidBinding => DataStore.execute { implicit pm =>
           val theName = vb.valueOf(EventForm.name)
           val theActivation = vb.valueOf(EventForm.isActive)
           val e = new Event(theName, theActivation)
@@ -109,7 +109,7 @@ object Conferences extends Controller {
   }
   //TODO: Make sure this works
   def deleteEvent(eventId: Long) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeOption() match {
         case None => NotFound(views.html.notFound("No event could be found"))
         case Some(event) => {
@@ -141,7 +141,7 @@ object Conferences extends Controller {
     else {
       Binding(SessionForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSession(ib, eventId))
-        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+        case vb: ValidBinding => DataStore.execute { implicit pm =>
           val theEvent = pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeList()
           val theDate = vb.valueOf(SessionForm.date)
           val theCutoff = vb.valueOf(SessionForm.cutoff)
@@ -159,7 +159,7 @@ object Conferences extends Controller {
   }
 
   def deleteSession(sessionId: Long) = Action { implicit request =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption() match {
         case None => NotFound(views.html.notFound("No session could be found"))
         case Some(session) => {
@@ -189,7 +189,7 @@ object Conferences extends Controller {
     else {
       Binding(SlotForm, request) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSlot(ib, sessionId, teacherId))
-        case vb: ValidBinding => DataStore.withTransaction { implicit pm =>
+        case vb: ValidBinding => DataStore.execute { implicit pm =>
           val theSession = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption()
           val theTeacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption()
           if (theSession == None) NotFound(views.html.notFound("Invalid session ID"))
@@ -218,7 +218,7 @@ object Conferences extends Controller {
   }
 
   def deleteSlot(slotId: Long) = Action { implicit request =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       pm.query[Slot].filter(QSlot.candidate.id.eq(slotId)).executeOption() match {
         case None => NotFound(views.html.notFound("No slot could be found"))
         case Some(slot) => {
@@ -245,7 +245,7 @@ object Conferences extends Controller {
   }
 
   def teacherSession(sessionId: Long) = Action { implicit request =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
       val slots = pm.query[Slot].executeList()
       val currUser = User.current
@@ -266,7 +266,7 @@ object Conferences extends Controller {
   }
 
   def activateTeacherSession(sessionId: Long) = Action { implicit request =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       if (request.method == "GET") Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
       else {
         Binding(TeacherActivationForm, request) match {
@@ -288,7 +288,7 @@ object Conferences extends Controller {
   }
 
   def deactivateTeacherSession(sessionId: Long) = Action { implicit request =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       val cand = QTeacherActivation.candidate()
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
       val currUser = User.current

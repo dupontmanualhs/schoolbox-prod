@@ -1,4 +1,4 @@
-@(allBooksOutLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(allBooksOutLookupForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Find All Books Out") {
   @allBooksOutLookupForm.render()

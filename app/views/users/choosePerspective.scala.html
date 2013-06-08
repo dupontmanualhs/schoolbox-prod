@@ -1,4 +1,4 @@
-@(perspForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(perspForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Choose Perspective") {
   @perspForm.render()

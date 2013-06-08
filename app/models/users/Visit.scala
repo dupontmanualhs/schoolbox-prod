@@ -14,6 +14,7 @@ import scala.xml.Elem
 import play.api.mvc.Call
 import scalajdo.DataStore
 import play.api.mvc.Request
+import scala.util.Marshal
 
 @PersistenceCapable(detachable="true")
 class Visit {
@@ -23,7 +24,7 @@ class Visit {
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
   @Persistent(defaultFetchGroup = "true")
-  private[this] var _redirectURL: Option[Call] = _
+  private[this] var _redirectUrl: Array[Byte] = _
   @Element(types=Array(classOf[Permission]))
   @Join
   private[this] var _permissions: java.util.Set[Permission] = _
@@ -42,7 +43,7 @@ class Visit {
     permissions_=(Set[Permission]())
     menu_=(Menu.buildMenu(perspective))
     _sessionItems = new java.util.HashMap[String, Object]()  
-    _redirectURL = None
+    redirectUrl_=(None)
   }
   
   def uuid: String = _uuid
@@ -56,8 +57,9 @@ class Visit {
   def perspective: Option[Perspective] = if (_perspective == null) None else Some(_perspective)
   def perspective_=(maybePerspective: Option[Perspective]) { _perspective = maybePerspective.getOrElse(null) }
   
-  def redirectURL: Option[Call] = _redirectURL
-  def redirectURL_=(url: Call) {_redirectURL = Some(url)}
+  def redirectUrl: Option[Call] = Option(Marshal.load[Call](_redirectUrl))
+  def redirectUrl_=(url: Option[Call]) { _redirectUrl = Marshal.dump[Call](url.getOrElse(null)) }
+  def redirectUrl_=(url: Call) { _redirectUrl = Marshal.dump[Call](url) }
   
   def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
   def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }

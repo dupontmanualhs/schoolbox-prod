@@ -13,7 +13,7 @@ import scalajdo.DataStore
 
 object Assignments extends Controller {
   def doTask(taskId: Long) = Action { implicit req =>
-    DataStore.withTransaction { implicit pm =>
+    DataStore.execute { implicit pm =>
       pm.query[Task].filter(QTask.candidate.id.eq(taskId)).executeOption() match {
         case None => NotFound("no task with that id")
         case Some(task) => Ok(views.html.assignments.questions(task))
