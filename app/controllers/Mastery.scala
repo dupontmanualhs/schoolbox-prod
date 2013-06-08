@@ -22,14 +22,14 @@ import models.mastery.Quiz
 import models.mastery.QuizSection
 import play.api.mvc.Controller
 import play.api.mvc.PlainResult
-import util.DbAction
-import util.DbRequest
 import util.Helpers.string2elem
-import util.ScalaPersistenceManager
 import views.html
 import forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
+import util.VisitAction
+import scalajdo.DataStore
+import models.users.Visit
 
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
@@ -136,8 +136,8 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 
 object Mastery extends Controller {
 
-  def menuOfTests() = DbAction { implicit req =>
-    val pm = req.pm
+  def menuOfTests() = VisitAction { implicit req =>
+    DataStore.execute { pm => 
     val cand = QQuiz.candidate()
     val listOfMasteries = pm.query[Quiz].orderBy(cand.name.asc).executeList()
     val hasQuizzes = listOfMasteries.size != 0
@@ -148,6 +148,7 @@ object Mastery extends Controller {
     }
 
     Ok(html.tatro.mastery.MasteryQuizMenu(table, hasQuizzes)) // this is a fake error -.-
+    }
   }
 
   def linkToQuiz(quiz: Quiz): NodeSeq = {
@@ -155,12 +156,13 @@ object Mastery extends Controller {
     <a href={ link.url }>{ quiz.toString }</a>
   }
 
-  def getDisplayQuiz(quizId: Long) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
-    displayQuiz(Quiz.getById(quizId))
+  def getDisplayQuiz(quizId: Long) = VisitAction { implicit req =>
+    DataStore.execute { pm => displayQuiz(Quiz.getById(quizId)) }
   }
 
-  def displayQuiz(maybeQuiz: Option[Quiz])(implicit request: DbRequest[_]): PlainResult = {
+  def displayQuiz(maybeQuiz: Option[Quiz]) = VisitAction { implicit request => 
+    DataStore.execute { pm => 
+      val visit = Visit.getFromRequest(request)
     maybeQuiz match {
       case None => NotFound(views.html.notFound("The quiz of which you are seeking no longer exists."))
       case Some(quiz) => {
@@ -177,9 +179,9 @@ object Mastery extends Controller {
               sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
                 (sq._1.id, sq._2.map(_.id))
               })
-            request.visit.set("quizId", quiz.id)
-            request.visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
-            request.pm.makePersistent(request.visit)
+            visit.set("quizId", quiz.id)
+            visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
+            pm.makePersistent(request.visit)
             Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
           } else {
             val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
@@ -591,8 +593,6 @@ object Mastery extends Controller {
     p2c.map { case (p, c) => (p.mapText(p2c), c) }.toMap
   }*/
 }
-
-/*class TextPart(val text: String) extends Part {}
 
 class Parens(val contents: Seq[Part]) extends Part {
   val text = "(" + contents.mkString + ")"
