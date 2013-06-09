@@ -113,27 +113,18 @@ object Grades extends Controller {
     Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        val assignments = Assignment.getAssignments(sect)
+        /*val assignments = Assignment.getAssignments(sect)
         val students = sect.students
         val colHeaders = assignments.map(_.name.substring(0, 5))
         val rowHeaders = students.map(_.user.displayName)
         val grades: List[List[Double]] = {
           for (s <- students) yield assignments.map(_.getTurnin(s).map(_.points).getOrElse(0.0))
         }
-        val grid = (colHeaders, rowHeaders, grades)
-        Ok(views.html.grades.gradebook(grid, students, assignments, sect, id))
-        
+        val grid = (colHeaders, rowHeaders, grades)*/
+        Ok(views.html.grades.gradebook(sect, id))
+        //Ok(views.html.grades.gradebook(grid, students, assignments, sect, id))
       }
     }  
-  }
-  
-  def topRowGradebook(assignments: List[Assignment]): String = {
-    val s = "[ ,"
-    ("''" :: assignments.map("'"+_.name+"'")).mkString("[", ", ", "]")
-  }
-  
-  def rowN(student: Student, assignments: List[Assignment]): String = {
-    ("'"+student.user.displayName+"'" :: assignments.map(_.getTurnin(student))).mkString("[", ", ", "]")
   }
 
 }

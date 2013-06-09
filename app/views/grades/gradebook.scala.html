@@ -1,25 +1,29 @@
-@(spreadsheetData: (List[String], List[String], List[List[Double]]), students: List[models.users.Student], assignments: List[models.grades.Assignment], 
-  section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_])
-  
-@import play.api.libs.json.Json 
+<!--@( spreadsheetData: (List[String], List[String], List[List[Double]]), students: List[models.users.Student], assignments: List[models.grades.Assignment], 
+   section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_])-->
+@(section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_])
 @import models.grades._
+<!-- 
+@import play.api.libs.json.Json 
+
 
 @scripts = {
-  @handsOnTable()
-  <script>
-  $(document).ready(function() {
-    $("#gradebook").handsontable({
-      data: @Html(Json.toJson(spreadsheetData._3).toString),
-      colHeaders: @Html(Json.toJson(spreadsheetData._1).toString),
-      rowHeaders: @Html(Json.toJson(spreadsheetData._2).toString),
-      startRows: @spreadsheetData._2.length,
-      startCols: @spreadsheetData._1.length
-    });
-  });
-  </script>
-}
+  $(document).ready = function() {
+				editableGrid = new EditableGrid("DemoGridAttach"); 
 
-@mainWithScripts("Gradebook")(scripts) {
+				// we build and load the metadata in Javascript
+				editableGrid.load({ metadata: [
+					{ name: "name", datatype: "string", editable: true },
+					@assignments.map()
+				]});
+
+				// then we attach to the HTML table and render it
+				editableGrid.attachToHTMLTable('htmlgrid');
+				editableGrid.renderGrid();
+			} 
+  
+}
+-->
+@main<!-- WithScripts-->("Gradebook")<!-- (scripts) -->{
 
 <div class="span3"><div class="well sidebar-nav">
   <ul class="nav nav-list">
@@ -42,6 +46,25 @@
 </div>
 
 <div class="span8">
-  <div id="gradebook"></div>
+<!--   <table id="htmlgrid" class="testgrid">
+ 	 <tr> 
+  		<th>Name</th>
+  		@for(a <- assignments){
+  		<th>{a.name}</th>
+  		}
+  	</tr>
+  	
+  	@for(s <- students){
+  	<tr>
+  		<td>{s.formalName}</td>
+  		{for(a <- assignments){
+  			<td>a.getTurnin(s).map(_.points).getOrElse(0.0)</td>
+  		}
+  		}
+  	</tr>
+  	}
+  
+  
+  </table>  --> 
 </div>    	
 }
