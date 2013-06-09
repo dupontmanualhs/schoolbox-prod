@@ -12,7 +12,7 @@ class MenuItem(val name: String, val id: String, val link: Option[String], val s
                          <li class="dropdown" >
                     	   <a class="dropdown-toggle" data-toggle="dropdown" href="#" >
   								{ name }
-  								<b class="caret"></b>
+  								<b class="caret"> </b>
   							</a>
   							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
   								<li>
