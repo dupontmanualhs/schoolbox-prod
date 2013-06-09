@@ -31,7 +31,7 @@ class TimestampField[T](name: String) extends BaseTimestampField[Timestamp](name
       val time = splitTime(0) + ":" + splitTime(1) + ":00"
       Right(Timestamp.valueOf(date + " " + time))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is valid"))
+      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is valid"))
     }
 }
 
@@ -61,7 +61,7 @@ class TimestampFieldOptional[T](name: String) extends BaseTimestampField[Option[
       val time = splitTime(0) + ":" + splitTime(1) + ":00"
       Right(Option(Timestamp.valueOf(date + " " + time)))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is a valid time"))
+      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is a valid time"))
     }
       
     }

@@ -66,7 +66,7 @@ object Polynomial {
 		regexSplit.split(s).toList
 	}
 	def allTermsAreValid(terms: List[String]): Boolean = {
-		terms.forall(Term(_) isDefined)
+		terms.forall(Term(_).isDefined)
 	}
 	def convertToTerms(strings: List[String]): List[Term] = {
 		(for (s <- strings) yield {

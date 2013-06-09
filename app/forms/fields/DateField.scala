@@ -13,7 +13,7 @@ abstract class BaseDateField[T](name: String)(implicit man: Manifest[T]) extends
 
 class DateField(name: String) extends BaseDateField[Date](name) {
   
-  def asValue(s: Seq[String]): Either[ValidationError, Date] =
+  def asValue(s: Seq[String]): Either[ValidationError, Date] = {
     try {
       val splitdate = s(0).split("/")
       
@@ -24,9 +24,9 @@ class DateField(name: String) extends BaseDateField[Date](name) {
       
       Right(Date.valueOf(splitdate(2)+"-"+splitdate(0)+"-"+splitdate(1)))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is in mm/dd/yyyy format."))
+      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is in mm/dd/yyyy format."))
     }
-  
+  }
 }
 
 class DateFieldOptional(name: String) extends BaseDateField[Option[Date]](name) {
@@ -43,7 +43,7 @@ class DateFieldOptional(name: String) extends BaseDateField[Option[Date]](name) 
       
       Right(Option[Date](Date.valueOf(splitdate(2)+"-"+splitdate(0)+"-"+splitdate(1))))
     } catch {
-      case _ => {
+      case e: IllegalArgumentException => {
         if(s.isEmpty) Right(None)
         else Left(ValidationError("Please make sure input is in mm/dd/yyyy format."))
       }

@@ -1,6 +1,5 @@
 package models.users
 
-
 import java.util.UUID
 import models.mastery._
 import javax.jdo.annotations._
@@ -14,7 +13,6 @@ import scala.xml.Elem
 import play.api.mvc.Call
 import scalajdo.DataStore
 import play.api.mvc.Request
-import scala.util.Marshal
 
 @PersistenceCapable(detachable="true")
 class Visit {
@@ -24,7 +22,7 @@ class Visit {
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
   @Persistent(defaultFetchGroup = "true")
-  private[this] var _redirectUrl: Array[Byte] = _
+  private[this] var _redirectUrl: String = _
   @Element(types=Array(classOf[Permission]))
   @Join
   private[this] var _permissions: java.util.Set[Permission] = _
@@ -57,9 +55,9 @@ class Visit {
   def perspective: Option[Perspective] = if (_perspective == null) None else Some(_perspective)
   def perspective_=(maybePerspective: Option[Perspective]) { _perspective = maybePerspective.getOrElse(null) }
   
-  def redirectUrl: Option[Call] = Option(Marshal.load[Call](_redirectUrl))
-  def redirectUrl_=(url: Option[Call]) { _redirectUrl = Marshal.dump[Call](url.getOrElse(null)) }
-  def redirectUrl_=(url: Call) { _redirectUrl = Marshal.dump[Call](url) }
+  def redirectUrl: Option[Call] = Visit.string2Call(_redirectUrl)
+  def redirectUrl_=(url: Option[Call]) { _redirectUrl = url.map(Visit.call2String(_)).getOrElse(null) }
+  def redirectUrl_=(url: Call) { _redirectUrl = Visit.call2String(url) }
   
   def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
   def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }
@@ -106,6 +104,20 @@ object Visit {
   
   def allExpired: List[Visit] = {
     DataStore.pm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
+  }
+  
+  private[Visit] def string2Call(str: String): Option[Call] = {
+    if (str == null) None
+    else {
+      val call: Elem = string2elem(str)
+      val method = (call \ "method")(0).text
+      val url = (call \ "url")(0).text
+      Some(new Call(method, url))
+    }
+  }
+  
+  private[Visit] def call2String(call: Call): String = {
+    <call><method>{ call.method }</method><url>{ call.url }</url></call>.toString
   }
 }
 

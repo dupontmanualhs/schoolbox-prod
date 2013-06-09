@@ -30,7 +30,7 @@ abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
       <div class="controls">  
         { asWidget(bound) }
         { helpText.map((text: NodeSeq) => <p class="help-block">{ text }</p>).getOrElse(NodeSeq.Empty) }
-        { try{bound.fieldErrors(name).render}catch {case _=> Nil} }
+        { bound.fieldErrors.get(name).map(_.render).getOrElse(NodeSeq.Empty) }
         <p/>
       </div>  
     </div>

@@ -25,7 +25,7 @@ class TimeField(name: String) extends BaseTimeField[Time](name) {
       splitTime(0) = hours.toString
       Right(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00"))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is a valid time"))
+      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is a valid time"))
     }
 }
 
@@ -46,7 +46,7 @@ class TimeFieldOptional(name: String) extends BaseTimeField[Option[Time]](name) 
       splitTime(0) = hours.toString
       Right(Option(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00")))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is a valid time"))
+      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is a valid time"))
     }
       
     }

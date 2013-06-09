@@ -9,8 +9,16 @@ object ApplicationBuild extends Build {
     val appName         = "play-eschool"
     val appVersion      = "1.0"
 
+    val jsDependencies = Seq(
+      "org.webjars" %% "webjars-play" % "2.1.0-2",
+      "org.webjars" % "jquery" % "2.0.0",
+      "org.webjars" % "bootstrap" % "2.3.2",
+      "org.webjars" % "tinymce-jquery" % "3.4.9",
+      "org.webjars" % "jquery-ui" % "1.10.2-1"
+    )
+      
     val appDependencies = Seq(
-      "org.scala-lang" % "scala-compiler" % "2.10.1",            
+      "org.scala-lang" % "scala-compiler" % "2.10.2",            
       "org.joda" % "joda-convert" % "1.3.1",
       "org.apache.poi" % "poi" % "3.9",
       "org.apache.poi" % "poi-ooxml" % "3.9",
@@ -29,12 +37,13 @@ object ApplicationBuild extends Build {
       "org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.33.0" % "test",
       "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.33.0" % "test",
       "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.33.0" % "test"
-    )
+    ) ++ jsDependencies
+    
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")
 
     val main = play.Project(appName, appVersion, appDependencies).settings(
       ((testOptions in Test := Nil) +:
-       (scalaVersion := "2.10.1") +:
+       (scalaVersion := "2.10.2") +:
        (scalacOptions ++= Seq("-deprecation", "-feature")) +:
        Nucleus.settings): _*
     ) dependsOn RootProject( uri("git://github.com/toddobryan/scalajdo.git") )
