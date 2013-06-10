@@ -13,7 +13,7 @@ import forms.InvalidBinding
 import forms.ValidBinding
 import forms.fields.Field
 import forms.fields.TextField
-import forms.widgets.{TextInput, Widget}
+import forms.widgets.{ TextInput, Widget }
 import javax.jdo.annotations.PersistenceCapable
 import models.mastery.QQuiz
 import models.mastery.Question
@@ -33,13 +33,13 @@ import models.users.Visit
 
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
-  
+
   def asValue(strs: Seq[String]): Either[ValidationError, String] = Right(strs.mkString(", "))
 }
 
 class AnswerField(question: Question) extends TextField(question.id.toString) {
   override def widget = new MathWidget(question.text)
-  
+
   override def asValue(s: Seq[String]): Either[ValidationError, String] = s match {
     case Seq(ans) => Right(ans)
     case _ => Right("")
@@ -54,17 +54,17 @@ class MathWidget(text: String, attrs: MetaData = Null) extends TextInput(false, 
 
 class MultiBlankWidget(text: String, attrs: MetaData = Null) extends Widget(false, attrs) {
   val blank = "_{3,}".r
-  
+
   lazy val numBlanks = blank.findAllIn(text).length
   lazy val qText: Node = {
     val withBlanks = blank.replaceAllIn(text, "<blank/>")
     string2elem("<span>" + withBlanks + "</span>")
   }
-  
+
   def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     def transform(n: Node, inputs: Iterator[Node]): Node = n match {
       case <blank/> => inputs.next
-      case e: Elem => e.copy(child=e.child.map(transform(_, inputs)))
+      case e: Elem => e.copy(child = e.child.map(transform(_, inputs)))
       case _ => n
     }
     val inputs = (0 until numBlanks).map((i: Int) => {
@@ -73,12 +73,11 @@ class MultiBlankWidget(text: String, attrs: MetaData = Null) extends Widget(fals
     })
     transform(qText, inputs.iterator)
   }
-  
+
   override def valueFromDatadict(data: Map[String, Seq[String]], name: String): Seq[String] = {
     (for (i <- 0 until numBlanks) yield data.get("%s[%d]".format(name, i)).map(_.mkString).getOrElse(""))
   }
 }
-
 
 class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) extends Form {
   val sectionInstructionList: List[String] =
@@ -86,21 +85,21 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 
   val instructionsAndFields: List[(String, List[forms.fields.Field[_]])] = {
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
-      (sq._1.instructions, sq._2.map( (q: Question) => {
+      (sq._1.instructions, sq._2.map((q: Question) => {
         if (q.text.contains("___")) {
           new BlanksField(q)
         } else {
           new AnswerField(q)
         }
-      })
-    )})
+      }))
+    })
   }
 
   val fields: List[forms.fields.Field[_]] = {
     instructionsAndFields.flatMap(_._2)
   }
 
-  override def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): Elem = {
+  override def render(bound: Binding, action: Option[String] = None, legend: Option[String] = None): Elem = {
     <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
       <table class="table">
         { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
@@ -114,18 +113,20 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
               <td><b>{ instructions }</b></td>
               <td></td>
             </tr> ++
-            fields.zip(1 to fields.length).flatMap { case (f, num) => {
-              val name = f.name
-              val errorList = bound.fieldErrors.get(name).map(_.render)
-              <tr>
-                <td><label>{ "%d. ".format(num) }</label></td>
-                <td>{ f.asWidget(bound) }</td>
-                {
-                  if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
-                  else NodeSeq.Empty
+              fields.zip(1 to fields.length).flatMap {
+                case (f, num) => {
+                  val name = f.name
+                  val errorList = bound.fieldErrors.get(name).map(_.render)
+                  <tr>
+                    <td><label>{ "%d. ".format(num) }</label></td>
+                    <td>{ f.asWidget(bound) }</td>
+                    {
+                      if (bound.hasErrors) <td>{ errorList.getOrElse(NodeSeq.Empty) }</td>
+                      else NodeSeq.Empty
+                    }
+                  </tr>
                 }
-              </tr>
-            }}
+              }
           }).toList
         }
       </table>
@@ -137,17 +138,17 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 object Mastery extends Controller {
 
   def menuOfTests() = VisitAction { implicit req =>
-    DataStore.execute { pm => 
-    val cand = QQuiz.candidate()
-    val listOfMasteries = pm.query[Quiz].orderBy(cand.name.asc).executeList()
-    val hasQuizzes = listOfMasteries.size != 0
-    val table: List[NodeSeq] = listOfMasteries.map { q =>
-      <tr>
-        <td>{ linkToQuiz(q) }</td>
-      </tr>
-    }
+    DataStore.execute { pm =>
+      val cand = QQuiz.candidate()
+      val listOfMasteries = pm.query[Quiz].orderBy(cand.name.asc).executeList()
+      val hasQuizzes = listOfMasteries.size != 0
+      val table: List[NodeSeq] = listOfMasteries.map { q =>
+        <tr>
+          <td>{ linkToQuiz(q) }</td>
+        </tr>
+      }
 
-    Ok(html.tatro.mastery.MasteryQuizMenu(table, hasQuizzes)) // this is a fake error -.-
+      Ok(html.tatro.mastery.MasteryQuizMenu(table, hasQuizzes)) // this is a fake error -.-
     }
   }
 
@@ -156,12 +157,10 @@ object Mastery extends Controller {
     <a href={ link.url }>{ quiz.toString }</a>
   }
 
-  def getDisplayQuiz(quizId: Long) = VisitAction { implicit req =>
-    DataStore.execute { pm => displayQuiz(Quiz.getById(quizId))(req) }
-  }
+  def getDisplayQuiz(quizId: Long) = displayQuiz(Quiz.getById(quizId))
 
-  def displayQuiz(maybeQuiz: Option[Quiz]) = VisitAction { implicit request => 
-    DataStore.execute { pm => 
+  def displayQuiz(maybeQuiz: Option[Quiz]) = VisitAction { implicit request =>
+    DataStore.execute { pm =>
       val visit = Visit.getFromRequest(request)
       maybeQuiz match {
         case None => NotFound(views.html.notFound("The quiz of which you are seeking no longer exists."))
@@ -173,45 +172,45 @@ object Mastery extends Controller {
             if (request.method == "GET") {
               val sectionsWithQuestions: List[(QuizSection, List[Question])] =
                 quiz.sections.map(s => (s, s.randomQuestions))
-            //MasteryForm uses sectionsWithQuestions
-            val form = new MasteryForm(sectionsWithQuestions)
-            val idsOfSectionsWithQuestions: List[(Long, List[Long])] =
-              sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
-                (sq._1.id, sq._2.map(_.id))
+              //MasteryForm uses sectionsWithQuestions
+              val form = new MasteryForm(sectionsWithQuestions)
+              val idsOfSectionsWithQuestions: List[(Long, List[Long])] =
+                sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
+                  (sq._1.id, sq._2.map(_.id))
+                })
+              visit.set("quizId", quiz.id)
+              visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
+              pm.makePersistent(visit)
+              Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
+            } else {
+              val idsOfSectionsWithQuestions = visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
+              val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
+                (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
               })
-            visit.set("quizId", quiz.id)
-            visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
-            pm.makePersistent(visit)
-            Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
-          } else {
-            val idsOfSectionsWithQuestions = visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
-            val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
-              (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
-            })
-            val form = new MasteryForm(sectionsWithQuestions)
-            Binding(form, request) match {
-              case ib: InvalidBinding => Ok(html.tatro.mastery.displayMastery(quiz, ib)) // there were errors
-              case vb: ValidBinding => {
-                visit.set("answers", form.fields.map(vb.valueOf(_)))
-                pm.makePersistent(visit)
-                Redirect(routes.Mastery.checkAnswers())
+              val form = new MasteryForm(sectionsWithQuestions)
+              Binding(form, request) match {
+                case ib: InvalidBinding => Ok(html.tatro.mastery.displayMastery(quiz, ib)) // there were errors
+                case vb: ValidBinding => {
+                  visit.set("answers", form.fields.map(vb.valueOf(_)))
+                  pm.makePersistent(visit)
+                  Redirect(routes.Mastery.checkAnswers())
+                }
               }
             }
           }
         }
       }
     }
-    }
   }
 
   def testDataBase() = VisitAction { implicit req =>
-    DataStore.execute { pm => 
-    val quizCand = QQuiz.candidate()
-    val listOfMasteries = pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
-    val listOfSections = pm.query[models.mastery.QuizSection].executeList()
-    val listOfQSets = pm.query[QuestionSet].executeList()
-    val listOfQuestions = pm.query[Question].executeList()
-    Ok(html.tatro.mastery.testData(listOfMasteries, listOfSections, listOfQSets, listOfQuestions))
+    DataStore.execute { pm =>
+      val quizCand = QQuiz.candidate()
+      val listOfMasteries = pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
+      val listOfSections = pm.query[models.mastery.QuizSection].executeList()
+      val listOfQSets = pm.query[QuestionSet].executeList()
+      val listOfQuestions = pm.query[Question].executeList()
+      Ok(html.tatro.mastery.testData(listOfMasteries, listOfSections, listOfQSets, listOfQuestions))
     }
   }
 
@@ -236,14 +235,14 @@ object Mastery extends Controller {
           <td>{ qa._1.text }</td>
           <td>{ qa._2 }</td>
           <td>{ "correct" }</td>
-          <td>{ qa._1.value+"/"+qa._1.value }</td>
+          <td>{ qa._1.value + "/" + qa._1.value }</td>
         </tr>
       } else {
         <tr bgcolor="#F9966B">
           <td>{ qa._1.text }</td>
           <td>{ qa._2 }</td>
           <td>{ "wrong" }</td>
-          <td>{ "0/"+qa._1.value }</td>
+          <td>{ "0/" + qa._1.value }</td>
         </tr>
       })
     Ok(html.tatro.mastery.displayScore(quiz, totalPointsPossible, numCorrect, table))
@@ -251,15 +250,15 @@ object Mastery extends Controller {
   def removeSpaces(s: String) = {
     """ """.r.replaceAllIn(s, "")
   }
-  
+
   def removeMult(s: String) = {
     """\*""".r.replaceAllIn(s, "")
   }
-  
-  def replaceMultiplicationSignsWithDots(s: String) ={
+
+  def replaceMultiplicationSignsWithDots(s: String) = {
     """\*""".r.replaceAllIn(s, "\\cdot ")
   }
-/*
+  /*
   //def radToSqrt(s: String) = """rad""".r.replaceAllIn(s, "sqrt")
 
   //def addMultiplication(s: String) = {

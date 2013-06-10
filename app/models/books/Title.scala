@@ -6,37 +6,37 @@ import org.datanucleus.query.typesafe._
 import util.PersistableFile
 import scalajdo.DataStore
 
-@PersistenceCapable(detachable="true")
+@PersistenceCapable(detachable = "true")
 class Title {
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
-  
-  @Column(allowsNull="false")
+
+  @Column(allowsNull = "false")
   private[this] var _name: String = _
   def name: String = _name
   def name_=(theName: String) { _name = theName }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _author: String = _
   def author: Option[String] = if (_author == null) None else Some(_author)
   def author_=(theAuthor: Option[String]) { _author = theAuthor.getOrElse(null) }
   def author_=(theAuthor: String) { _author = theAuthor }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _publisher: String = _
   def publisher: Option[String] = if (_publisher == null) None else Some(_publisher)
   def publisher_=(thePublisher: Option[String]) { _publisher = thePublisher.getOrElse(null) }
   def publisher_=(thePublisher: String) { _publisher = thePublisher }
-  
+
   @Unique
-  @Column(allowsNull="false")
+  @Column(allowsNull = "false")
   private[this] var _isbn: String = _
   def isbn: String = _isbn
   def isbn_=(theIsbn: String) { _isbn = theIsbn }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _numPages: java.lang.Integer = _
   def numPages: Option[Int] = if (_numPages == null) None else Some(_numPages)
   def numPages_=(theNumPages: Option[Int]) {
@@ -46,14 +46,14 @@ class Title {
     }
   }
   def numPages_=(theNumPages: Int) { _numPages = theNumPages }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _dimensions: String = _
   def dimensions: Option[String] = if (_dimensions == null) None else Some(_dimensions)
   def dimensions_=(theDimensions: Option[String]) { _dimensions = theDimensions.getOrElse(null) }
   def dimensions_=(theDimensions: String) { _dimensions = theDimensions }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _weight: java.lang.Double = _
   def weight: Option[Double] = if (_weight == null) None else Some(_weight)
   def weight_=(theWeight: Option[Double]) {
@@ -63,27 +63,27 @@ class Title {
     }
   }
   def weight_=(theWeight: Double) { _weight = theWeight }
-  
+
   // @Persistent(defaultFetchGroup="true")
   // @Embedded  
   // private[this] var _image: PersistableFile = _
-  
-  @Column(allowsNull="false")
+
+  @Column(allowsNull = "false")
   private[this] var _verified: Boolean = _
   def verified: Boolean = _verified
   def verified_=(theVerified: Boolean) { _verified = theVerified }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _lastModified: java.sql.Date = _
   def lastModified: Option[java.sql.Date] = Option(_lastModified)
   def lastModified_=(theLastModified: Option[java.sql.Date]) { _lastModified = theLastModified.getOrElse(null) }
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
 
-  @Column(allowsNull="true")
+  @Column(allowsNull = "true")
   private[this] var _image: String = _
   def image: Option[String] = if (_image == null) None else Some(_image)
-  def image_=(theImage: Option[String]) {_image = theImage.getOrElse(null) }
-  def image_=(theImage: String) {_image = theImage}
+  def image_=(theImage: Option[String]) { _image = theImage.getOrElse(null) }
+  def image_=(theImage: String) { _image = theImage }
 
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
     dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
@@ -104,7 +104,7 @@ class Title {
     val pgVar = QPurchaseGroup.variable("pg")
     val copyCand = QCopy.candidate
     DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
-        copyCand.purchaseGroup.eq(pgVar)).and(
+      copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this)).and(copyCand.deleted.eq(false))).executeList().length
   }
 
@@ -113,43 +113,35 @@ class Title {
     val copyCand = QCopy.candidate
     val coVar = QCheckout.variable("co")
     DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
-        copyCand.deleted.eq(false)).and(
+      copyCand.deleted.eq(false)).and(
         copyCand.purchaseGroup.eq(pgVar)).and(
-        pgVar.title.eq(this)).and(
-        coVar.copy.eq(copyCand)).and(
-        coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
+          pgVar.title.eq(this)).and(
+            coVar.copy.eq(copyCand)).and(
+              coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
   }
 
-  def howManyDeleted(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val pgVar = QPurchaseGroup.variable("pg")
-      val copyCand = QCopy.candidate
-      epm.query[Copy].filter(copyCand.deleted.eq(true).and(
-        copyCand.purchaseGroup.eq(pgVar)).and(
+  def howManyDeleted(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.deleted.eq(true).and(
+      copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  def howManyLost(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val pgVar = QPurchaseGroup.variable("pg")
-      val copyCand = QCopy.candidate
-      epm.query[Copy].filter(copyCand.deleted.eq(false).and(
-        copyCand.purchaseGroup.eq(pgVar)).and(
+  def howManyLost(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.deleted.eq(false).and(
+      copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this)).and(copyCand.isLost.eq(true))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
   def hasSameValues(other: Title): Boolean = {
-    this.name == other.name && this.publisher == other.publisher && 
-    this.author == other.author && this.isbn == other.isbn && 
-    this.numPages == other.numPages && this.dimensions == other.dimensions && 
-    this.weight == other.weight && this.verified == other.verified && 
-    this.lastModified == other.lastModified
+    this.name == other.name && this.publisher == other.publisher &&
+      this.author == other.author && this.isbn == other.isbn &&
+      this.numPages == other.numPages && this.dimensions == other.dimensions &&
+      this.weight == other.weight && this.verified == other.verified &&
+      this.lastModified == other.lastModified
   }
 }
 

@@ -1,4 +1,4 @@
-@(addCopyForm: forms.Binding, stu: String, bks: Vector[((String, String), Int)], stuNum: String)(implicit req: util.DbRequest[_])
+@(addCopyForm: forms.Binding, stu: String, bks: Vector[((String, String), Int)], stuNum: String)(implicit req: play.api.mvc.Request[_])
 @import models.books.Copy
 @import models.books.Title
 

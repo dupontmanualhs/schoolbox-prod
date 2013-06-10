@@ -1,4 +1,4 @@
-@(chooseTitleForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(chooseTitleForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Delete Title") {
   @chooseTitleForm.render()

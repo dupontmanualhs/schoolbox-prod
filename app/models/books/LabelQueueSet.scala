@@ -4,13 +4,13 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.Perspective
-import util.DataStore
-import util.ScalaPersistenceManager
 
-@PersistenceCapable(detachable="true")
+import scalajdo.DataStore
+
+@PersistenceCapable(detachable = "true")
 class LabelQueueSet {
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _perspective: Perspective = _
   private[this] var _title: Title = _
@@ -40,13 +40,9 @@ class LabelQueueSet {
 }
 
 object LabelQueueSet {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[LabelQueueSet] = {
-    def query(epm: ScalaPersistenceManager): Option[LabelQueueSet] = {
-      val cand = QLabelQueueSet.candidate
-      epm.query[LabelQueueSet].filter(cand.id.eq(id)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getById(id: Long): Option[LabelQueueSet] = {
+    val cand = QLabelQueueSet.candidate
+    DataStore.pm.query[LabelQueueSet].filter(cand.id.eq(id)).executeOption()
   }
 }
 
