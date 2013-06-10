@@ -7,12 +7,13 @@ import forms.Form
 import util.Helpers.camel2TitleCase
 import forms.Binding
 import play.api.templates.Html
+import scala.reflect.runtime.universe._
 
-abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
+abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
   
   def validators: List[Validator[T]] = Nil
 
-  def required: Boolean = man <:< Manifest.classType(classOf[Option[_]])
+  def required: Boolean = typeOf[T] <:< typeOf[Option[_]]
   def widget: Widget = new TextInput(required)
   
   def initial: Seq[String] = asStringSeq(initialVal)  
@@ -29,7 +30,7 @@ abstract class Field[T](val name: String)(implicit man: ClassManifest[T]) {
       <div class="controls">  
         { asWidget(bound) }
         { helpText.map((text: NodeSeq) => <p class="help-block">{ text }</p>).getOrElse(NodeSeq.Empty) }
-        { try{bound.fieldErrors(name).render}catch {case _=> Nil} }
+        { bound.fieldErrors.get(name).map(_.render).getOrElse(NodeSeq.Empty) }
         <p/>
       </div>  
     </div>

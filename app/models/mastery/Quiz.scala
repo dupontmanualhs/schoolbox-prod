@@ -4,11 +4,10 @@ import javax.jdo.annotations._
 import models.mastery._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import util.DataStore
-import util.ScalaPersistenceManager
 import play.api.mvc.{RequestHeader, Session}
-import util.DbRequest
 import scala.collection.JavaConverters._
+
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable = "true")
 class Quiz {
@@ -34,11 +33,9 @@ class Quiz {
   override def toString = { name }
 }
 object Quiz {
-  def getById(id: Long)(implicit ipm: ScalaPersistenceManager = null): Option[models.mastery.Quiz] = {
-    DataStore.execute { epm =>
-      val cand=QQuiz.candidate()
-      epm.query[Quiz].filter(cand.id.eq(id)).executeOption()
-    }
+  def getById(id: Long): Option[models.mastery.Quiz] = {
+    val cand=QQuiz.candidate()
+    DataStore.pm.query[Quiz].filter(cand.id.eq(id)).executeOption()
   }
 }
 

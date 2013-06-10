@@ -3,9 +3,8 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.ScalaPersistenceManager
 import util.PersistableFile
-import util.DataStore
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
 class Title {
@@ -101,32 +100,24 @@ class Title {
     image_=(image)
   }
 
-  def howManyCopies(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val pgVar = QPurchaseGroup.variable("pg")
-      val copyCand = QCopy.candidate
-      epm.query[Copy].filter(copyCand.isLost.eq(false).and(
+  def howManyCopies(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
         copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this)).and(copyCand.deleted.eq(false))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  def howManyCheckedOut(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val pgVar = QPurchaseGroup.variable("pg")
-      val copyCand = QCopy.candidate
-      val coVar = QCheckout.variable("co")
-      epm.query[Copy].filter(copyCand.isLost.eq(false).and(
+  def howManyCheckedOut(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    val coVar = QCheckout.variable("co")
+    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
         copyCand.deleted.eq(false)).and(
         copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this)).and(
         coVar.copy.eq(copyCand)).and(
         coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
   def howManyDeleted(implicit pm: ScalaPersistenceManager = null): Int = {
@@ -163,22 +154,14 @@ class Title {
 }
 
 object Title {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Title] = {
-    def query(epm: ScalaPersistenceManager): Option[Title] = {
-      val cand = QTitle.candidate
-      epm.query[Title].filter(cand.id.eq(id)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getById(id: Long): Option[Title] = {
+    val cand = QTitle.candidate
+    DataStore.pm.query[Title].filter(cand.id.eq(id)).executeOption()
   }
 
-  def getByIsbn(isbn: String)(implicit pm: ScalaPersistenceManager = null): Option[Title] = {
-    def query(epm: ScalaPersistenceManager): Option[Title] = {
-      val cand = QTitle.candidate
-      epm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getByIsbn(isbn: String): Option[Title] = {
+    val cand = QTitle.candidate
+    DataStore.pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
   }
 
   def convertStrToDecimal(str: String): Double = {
@@ -190,13 +173,9 @@ object Title {
     dim._1 + " x " + dim._2 + " x " + dim._3
   }
 
-  def count()(implicit pm: ScalaPersistenceManager = null): Long = {
-    def query(epm: ScalaPersistenceManager): Long = {
-      val cand = QTitle.candidate
-      epm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def count(): Long = {
+    val cand = QTitle.candidate
+    DataStore.pm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
   }
 
 }

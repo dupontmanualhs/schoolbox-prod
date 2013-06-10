@@ -1,4 +1,4 @@
-@(loginForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(loginForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Login") {
   @loginForm.render()

@@ -3,8 +3,7 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.ScalaPersistenceManager
-import util.DataStore
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable = "true")
 class Department {
@@ -26,19 +25,16 @@ class Department {
 }
 
 object Department {
-  def getOrCreate(name: String)(implicit pm: ScalaPersistenceManager = null): Department = {
-    def query(epm: ScalaPersistenceManager): Department = {
-      val cand = QDepartment.candidate
-      pm.query[Department].filter(cand.name.eq(name)).executeOption() match {
-        case Some(dept) => dept
-        case None => {
-          val dept = new Department(name)
-          pm.makePersistent(dept)
-        }
+  def getOrCreate(name: String): Department = {
+    val pm = DataStore.pm
+    val cand = QDepartment.candidate
+    pm.query[Department].filter(cand.name.eq(name)).executeOption() match {
+      case Some(dept) => dept
+      case None => {
+        val dept = new Department(name)
+        pm.makePersistent(dept)
       }
     }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction(tpm => query(tpm))
   }
 }
 

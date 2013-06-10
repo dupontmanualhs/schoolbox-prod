@@ -10,7 +10,6 @@ import org.fluentlenium.core.filter.FilterConstructor._
 import org.scalatest.FunSuite
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.interactions.Actions
-import util.DataStore
 
 // This is a conflict
 

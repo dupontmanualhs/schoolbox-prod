@@ -1,8 +1,9 @@
 import play.api._
-import util.DataStore
+import play.api.mvc.{Handler, RequestHeader}
+
+import scalajdo.DataStore
+
+import models.users.Visit
 
 object Global extends GlobalSettings {
-  override def onStop(app: Application) {
-    DataStore.close()
-  }
 }

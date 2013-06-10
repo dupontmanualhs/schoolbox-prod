@@ -1,25 +1,25 @@
 package models.users
 
-import util.ScalaPersistenceManager
+import scalajdo.DataStore
 
 object UserData {  
-  def load(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
-    val mary = new User("mary", "Mary", Some("King"), "Claire", None, Gender.FEMALE, "mary@mary.com", "cla123")
-    val christina = new User("christina", "Christina", Some("King"), "Teresa", Some("Tina"), Gender.FEMALE, "christina@christina.com", "ter123")
-    val jack = new User("jack", "Jack", Some("Oliver"), "Phillips", None, Gender.MALE, "jack@jack.com", "phi123")
-    val richard = new User("richard", "Richard", Some("King"), "Will", None, Gender.MALE, "richard@richard.com", "wil123")
-    val todd = new User("todd", "Todd", Some("Allen"), "O'Bryan", None, Gender.MALE, "todd@todd.com", "obr123")
-    val fitzgerald = new User("fitzgerald", "Fitzgerald", Some("Longfellow"), "Pennyworth", Some("Fitz of Fury"), Gender.MALE, "fitzgerald@fitzgerald.com", "pen123")
-    val tyler = new User("tyler", "Tyler", None, "Darnell", None, Gender.MALE, "tyler@tyler.com", "dar123")
-    val meriadoc = new User("meriadoc", "Meriadoc", None, "Brandybuck", Some("Merry"), Gender.MALE, "meriadoc@meradoc.com", "bra123")
-    val peregrin = new User("peregrin", "Peregrin", None, "Took", Some("Pippin"), Gender.MALE, "peregrin@peregrin.com", "too123")
-    val mack = new User("mack", "Mack", None, "House", Some("Brick"), Gender.MALE, "mack@mack.com", "hou123")
-    val andrew = new User("andrew", "Andrew", None, "Hamm", None, Gender.MALE, "andrew@andrew.com", "ham123")
-    val jordan = new User("jordan", "Jordan", None, "Jorgensen", None, Gender.MALE, "jordan@jordan.com", "jor123")
-    val emma = new User("emma", "Emma", Some("Kathryn"), "King", None, Gender.FEMALE, "emma@emma.com", "kin123")
-    val laura = new User("laura", "Laura", Some("Ann"), "King", None, Gender.FEMALE, "laura@laura.com", "kin123")
-    val john = new User("john", "John", Some("Francis"), "King", None, Gender.MALE, "john@john.com", "kin123")
-    val eric = new User("eric", "Eric", None, "McKnight", None, Gender.MALE, "eric@eric.com", "mck123")
+  def load(debug: Boolean = true) {
+    val mary = new User("mary", "Mary", Some("King"), "Claire", None, Gender.Female, "mary@mary.com", "cla123")
+    val christina = new User("christina", "Christina", Some("King"), "Teresa", Some("Tina"), Gender.Female, "christina@christina.com", "ter123")
+    val jack = new User("jack", "Jack", Some("Oliver"), "Phillips", None, Gender.Male, "jack@jack.com", "phi123")
+    val richard = new User("richard", "Richard", Some("King"), "Will", None, Gender.Male, "richard@richard.com", "wil123")
+    val todd = new User("todd", "Todd", Some("Allen"), "O'Bryan", None, Gender.Male, "todd@todd.com", "obr123")
+    val fitzgerald = new User("fitzgerald", "Fitzgerald", Some("Longfellow"), "Pennyworth", Some("Fitz of Fury"), Gender.Male, "fitzgerald@fitzgerald.com", "pen123")
+    val tyler = new User("tyler", "Tyler", None, "Darnell", None, Gender.Male, "tyler@tyler.com", "dar123")
+    val meriadoc = new User("meriadoc", "Meriadoc", None, "Brandybuck", Some("Merry"), Gender.Male, "meriadoc@meradoc.com", "bra123")
+    val peregrin = new User("peregrin", "Peregrin", None, "Took", Some("Pippin"), Gender.Male, "peregrin@peregrin.com", "too123")
+    val mack = new User("mack", "Mack", None, "House", Some("Brick"), Gender.Male, "mack@mack.com", "hou123")
+    val andrew = new User("andrew", "Andrew", None, "Hamm", None, Gender.Male, "andrew@andrew.com", "ham123")
+    val jordan = new User("jordan", "Jordan", None, "Jorgensen", None, Gender.Male, "jordan@jordan.com", "jor123")
+    val emma = new User("emma", "Emma", Some("Kathryn"), "King", None, Gender.Female, "emma@emma.com", "kin123")
+    val laura = new User("laura", "Laura", Some("Ann"), "King", None, Gender.Female, "laura@laura.com", "kin123")
+    val john = new User("john", "John", Some("Francis"), "King", None, Gender.Male, "john@john.com", "kin123")
+    val eric = new User("eric", "Eric", None, "McKnight", None, Gender.Male, "eric@eric.com", "mck123")
     val ericStud = new Student(eric, "4208935702", "384979", 6, "MST")
     val jackStud = new Student(jack, "3757202948", "425636", 0, "MST")
     val fitzgeraldStud = new Student(fitzgerald, "8340522509", "382085", 4, "VA")
@@ -37,6 +37,6 @@ object UserData {
     val richardTeacher = new Teacher(richard, "423423", "4478340832")
     val toddTeacher = new Teacher(todd, "323423", "3042093480")
     val toddGuardian = new Guardian(todd, Set(meriadocStud, peregrinStud))
-    pm.makePersistentAll(List(eric, ericStud, mary, christina, jack, richard, john, fitzgerald, emma, laura, tyler, jordan, todd, andrew, mack, meriadoc, peregrin, maryTeacher, christinaTeacher, toddTeacher, richardTeacher, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud))
+    DataStore.pm.makePersistentAll(List(eric, ericStud, mary, christina, jack, richard, john, fitzgerald, emma, laura, tyler, jordan, todd, andrew, mack, meriadoc, peregrin, maryTeacher, christinaTeacher, toddTeacher, richardTeacher, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud))
   }
 }

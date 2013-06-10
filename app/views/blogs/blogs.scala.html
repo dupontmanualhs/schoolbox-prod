@@ -1,4 +1,4 @@
-@(blogs: List[models.blogs.Blog], perspective: models.users.Perspective)(implicit req: util.DbRequest[_])
+@(blogs: List[models.blogs.Blog], perspective: models.users.Perspective)(implicit req: play.api.mvc.Request[_])
 
 @main(perspective.user.displayName + "'s blogs") {
    <ul>

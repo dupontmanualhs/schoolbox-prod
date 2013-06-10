@@ -2,7 +2,7 @@ package models.assignments
 
 import scala.math.min
 import scala.xml.Text
-import util.ScalaPersistenceManager
+import scalajdo.ScalaPersistenceManager
 
 object AssignmentData {
   val tfqs = List(
