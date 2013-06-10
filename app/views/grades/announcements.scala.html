@@ -1,4 +1,4 @@
-@(id: Long, section: models.courses.Section, announcements: List[models.grades.Announcement])(implicit req: util.DbRequest[_]) 
+@(id: Long, section: models.courses.Section, announcements: List[models.grades.Announcement])(implicit req: play.api.mvc.Request[_]) 
 @import models.grades._
 @import util.Helpers.datetime
 

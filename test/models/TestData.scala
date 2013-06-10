@@ -3,40 +3,20 @@ package models
 import java.io.File
 import java.sql._
 
+import javax.jdo.annotations._
 
+import org.joda.time.LocalDate
+
+import models.blogs._
+import models.books._
 import models.conferences._
+import models.courses._
 import models.grades._
 import models.lockers._
+import models.mastery._
 import models.users._
-import util.DataStore
-import util.ScalaPersistenceManager
 
-
-import javax.jdo.annotations.Inheritance
-import javax.jdo.annotations.PersistenceCapable
-import javax.jdo.annotations.Unique
-import models.blogs.Blog
-import models.books.Title
-import models.courses.AcademicYear
-import models.courses.Course
-import models.courses.Department
-import models.courses.Period
-import models.courses.Room
-import models.courses.Section
-import models.courses.StudentEnrollment
-import models.courses.TeacherAssignment
-import models.courses.Term
-import models.mastery.M
-import models.mastery.Question
-import models.mastery.QuestionSet
-import models.mastery.Quiz
-import models.mastery.QuizSection
-import models.users.Gender
-import models.users.Guardian
-import models.users.Student
-import models.users.Teacher
-import models.users.User
-import scalajdo.{DataStore, ScalaPersistenceManager}
+import scalajdo.{ DataStore, ScalaPersistenceManager }
 
 object TestData {
   def load(debug: Boolean = false) {
@@ -239,7 +219,7 @@ object TestData {
     }
 
     //makeBookData(debug)
-/*    if (debug) println("Creating Titles...")
+    /*    if (debug) println("Creating Titles...")
     val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", Some("Bellman, Bragg and Charles"), 
         Some("Pearson Prentice Hall"), "9780130523167", Some(842), 
         Some("10.9 x 8.8 x 1.6 inches"), Some(4.5), true, new Date(System.currentTimeMillis()), None)
@@ -271,28 +251,28 @@ object TestData {
         Some("Wadsworth Publishing"), "9781111349530", Some(1152), 
         Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
         */
-        
+
     //makeMasteryData
     mastery.QuizData.load(debug)
-    
+
     //makeLockerData(debug)
     if (debug) println("Creating Lockers...")
-    val locker1 = new Locker(15, "23-96-23", LockerLocation(1,"CW"), None, false)
-    val locker2 = new Locker(16, "31-09-42", LockerLocation(1,"CW"), None, false)
-    val locker3 = new Locker(17, "91-23-68", LockerLocation(1,"CW"), None, false)
-    val locker4 = new Locker(18, "79-45-82", LockerLocation(1,"CW"), None, false)
-    val locker5 = new Locker(19, "21-16-55", LockerLocation(1,"CW"), None, false)
-    val locker6 = new Locker(20, "50-61-36", LockerLocation(1,"CW"), None, false)
-    val locker7 = new Locker(21, "74-13-89", LockerLocation(1,"CW"), None, false)
-    val locker8 = new Locker(22, "66-66-66", LockerLocation(1,"CW"), None, false)
-    val locker9 = new Locker(23, "32-82-42", LockerLocation(1,"CW"), None, false)
-    val locker10 = new Locker(24, "03-08-16", LockerLocation(2,"SE"), None, false)
+    val locker1 = new Locker(15, "23-96-23", LockerLocation(1, "CW"), None, false)
+    val locker2 = new Locker(16, "31-09-42", LockerLocation(1, "CW"), None, false)
+    val locker3 = new Locker(17, "91-23-68", LockerLocation(1, "CW"), None, false)
+    val locker4 = new Locker(18, "79-45-82", LockerLocation(1, "CW"), None, false)
+    val locker5 = new Locker(19, "21-16-55", LockerLocation(1, "CW"), None, false)
+    val locker6 = new Locker(20, "50-61-36", LockerLocation(1, "CW"), None, false)
+    val locker7 = new Locker(21, "74-13-89", LockerLocation(1, "CW"), None, false)
+    val locker8 = new Locker(22, "66-66-66", LockerLocation(1, "CW"), None, false)
+    val locker9 = new Locker(23, "32-82-42", LockerLocation(1, "CW"), None, false)
+    val locker10 = new Locker(24, "03-08-16", LockerLocation(2, "SE"), None, false)
     val lockerList = List(locker1, locker2, locker3, locker4, locker5, locker6, locker7, locker8, locker9, locker10)
-    
-    for(locker <- lockerList) {
+
+    for (locker <- lockerList) {
       pm.makePersistent(locker)
     }
-    
+
     //makeConferenceData(debug)
     /*if(debug) println("Creating Conferences...")
     val springConf = new Event("Spring Conferences", true)
@@ -300,53 +280,51 @@ object TestData {
         Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:00:00"), Time.valueOf("23:59:59"), 10)
     val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher], Student.getByUsername("RASHAH01").asInstanceOf[Student], 
         Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
-  */}
-//makeCategories    
-    if(debug) println("Creating Conferences...")  
+    }*/
+    //makeCategories    
+    if (debug) println("Creating Categories...")
     val r1alg1AQuizzes = new Category("Quizzes", r1alg1A, .1)
     val r1alg1ATests = new Category("Tests", r1alg1A, .1)
     val r1alg1AHomework = new Category("Homework", r1alg1A, .1)
     val r1alg1AClasswork = new Category("Classwork", r1alg1A, .1)
     val r1alg1AParticipation = new Category("Participation", r1alg1A, .6)
-    
+
     val r2usHistAQuizzes = new Category("Quizzes", r2usHistA, .2)
     val r2usHistATests = new Category("Tests", r2usHistA, .35)
     val r2usHistAHomework = new Category("Homework", r2usHistA, .2)
     val r2usHistAAPPractice = new Category("AP Practice", r2usHistA, .2)
     val r2usHistAConduct = new Category("Conduct", r2usHistA, .05)
-      
+
     val w2bioAQuizzes = new Category("Quizzes", w2bioA, .25)
     val w2bioATests = new Category("Tests", w2bioA, .4)
     val w2bioAHomework = new Category("Homework", w2bioA, .2)
     val w2bioALabs = new Category("Labs", w2bioA, .15)
-    
-    pm.makePersistentAll(List(r1alg1AQuizzes, r1alg1ATests, r1alg1AHomework, r1alg1AClasswork, r1alg1AParticipation,
-                              r2usHistAQuizzes, r2usHistATests, r2usHistAHomework, r2usHistAAPPractice, 
-                              r2usHistAConduct, w2bioAQuizzes, w2bioATests,w2bioAHomework, w2bioALabs))
-    
+
+    DataStore.pm.makePersistentAll(List(r1alg1AQuizzes, r1alg1ATests, r1alg1AHomework, r1alg1AClasswork, r1alg1AParticipation,
+      r2usHistAQuizzes, r2usHistATests, r2usHistAHomework, r2usHistAAPPractice,
+      r2usHistAConduct, w2bioAQuizzes, w2bioATests, w2bioAHomework, w2bioALabs))
+
     //makeAssignments
     if (debug) println("Creating Assignments...")
-    
-    
+
     // r2usHistA Assignments
     val guildedAgeQuiz = new Assignment("Gilded Age Quiz", 25, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-13"), r2usHistAQuizzes)
     val lincolnFavoriteFooodsQuiz = new Assignment("Lincoln's Favorite Foods Quiz", 35, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-01"), r2usHistAQuizzes)
-    
+
     val civilWarTest = new Assignment("Civil War Test", 20000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
     val secondCivilWarTest = new Assignment("Second Civil War Test: East Coast vs West Coast Hip Hop", 200000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
     val thirdCivilWarTest = new Assignment("Third Civil War Test: Northeasterly Residents vs Middle Southwest Utah", 20, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
-    
+
     val aLVHReview = new Assignment("Abraham Lincoln Vampire Hunter Review", 1, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
     val theHistoryOfUSHistory = new Assignment("Worksheet: The History of US History", 2, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
     val robotsAndKoreanWar = new Assignment("Paper: Advanced Androids Behind the Korean War", 5, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
     val georgeWashingtonvsGodzilla = new Assignment("George Washington: Savior of Our Union", 8, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
-    
+
     val apPractice1 = new Assignment("AP Practice 1", 111111, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAAPPractice)
-      
+
     val conduct4 = new Assignment("4th 6 weeks Conduct", 10, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAConduct)
     val conduct5 = new Assignment("5th 6 weeks Conduct", 4, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAConduct)
-     
-      
+
     // r1alg1A Assignments
     val ass1 = new Assignment("Chaper 12.1 Quiz", 30, Date.valueOf("2012-10-31"), Date.valueOf("2012-10-31"), r1alg1AQuizzes)
     val ass2 = new Assignment("Chaper 12.2 Quiz", 30, Date.valueOf("2012-11-07"), Date.valueOf("2012-11-07"), r1alg1AQuizzes)
@@ -363,77 +341,71 @@ object TestData {
     val ass10 = new Assignment("Week 10 Participation", 10, Date.valueOf("2012-10-31"), Date.valueOf("2012-11-27"), r1alg1AParticipation)
 
     val ass11 = new Assignment("Chapter 12 Review", 15, Date.valueOf("2012-11-23"), Date.valueOf("2012-11-25"), r1alg1AClasswork)
-      
-      
+
     // w2bioA Assignments
     val carbonQuiz = new Assignment("Carbon Quiz", 40, Date.valueOf("2012-11-27"), Date.valueOf("2012-11-27"), w2bioAQuizzes)
-    val popQuiz = new Assignment("Surprise Muthatrucka", 25 , Date.valueOf("2012-11-11"), Date.valueOf("2012-11-11"), w2bioAQuizzes)
+    val popQuiz = new Assignment("Surprise Muthatrucka", 25, Date.valueOf("2012-11-11"), Date.valueOf("2012-11-11"), w2bioAQuizzes)
     val cellQuiz = new Assignment("Cell Quiz", 40, Date.valueOf("2012-11-17"), Date.valueOf("2012-11-17"), w2bioAQuizzes)
-    
-      
+
     val carbonTest = new Assignment("Carbon Test", 100, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-10"), w2bioATests)
     val cellTest = new Assignment("Cell Test", 100, Date.valueOf("2012-11-20"), Date.valueOf("2012-11-20"), w2bioATests)
-      
-    val wordSearch = new Assignment("Word Search", 10 , Date.valueOf("2012-10-31"), Date.valueOf("2012-11-23"), w2bioAHomework)
+
+    val wordSearch = new Assignment("Word Search", 10, Date.valueOf("2012-10-31"), Date.valueOf("2012-11-23"), w2bioAHomework)
     val bookReading = new Assignment("Book Reading", 5, Date.valueOf("2012-11-23"), Date.valueOf("2012-11-25"), w2bioAHomework)
     val carbonWorksheet = new Assignment("Carbon Worksheet", 20, Date.valueOf("2012-11-25"), Date.valueOf("2012-11-27"), w2bioAHomework)
     val bondWorksheet = new Assignment("Bond Worksheet", 15, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-12"), w2bioAHomework)
     val takeHomeProblems = new Assignment("Take Home Problems", 20, Date.valueOf("2012-11-12"), Date.valueOf("2012-11-14"), w2bioAHomework)
     val cellWorksheet = new Assignment("Cell Worksheet", 20, Date.valueOf("2012-11-15"), Date.valueOf("2012-11-16"), w2bioAHomework)
-      
+
     val carbonExperiment = new Assignment("Carbon Experiment", 30, Date.valueOf("2012-11-25"), Date.valueOf("2012-11-27"), w2bioALabs)
     val cellLab = new Assignment("Cell Lab", 30, Date.valueOf("2012-11-15"), Date.valueOf("2012-11-17"), w2bioALabs)
-    
-    pm.makePersistentAll(List(guildedAgeQuiz, lincolnFavoriteFooodsQuiz, civilWarTest, secondCivilWarTest, 
-                              thirdCivilWarTest, aLVHReview, theHistoryOfUSHistory, robotsAndKoreanWar, 
-                              georgeWashingtonvsGodzilla, apPractice1, conduct4, conduct5, ass1, ass2, ass3, ass4, 
-                              ass5, ass6, ass7, ass8, ass9, ass10, ass11, carbonQuiz, popQuiz, cellQuiz, carbonTest,
-                              cellTest, wordSearch, bookReading, carbonWorksheet, bondWorksheet, takeHomeProblems, 
-                              cellWorksheet, carbonExperiment, cellLab))
-                              
-                              
+
+    DataStore.pm.makePersistentAll(List(guildedAgeQuiz, lincolnFavoriteFooodsQuiz, civilWarTest, secondCivilWarTest,
+      thirdCivilWarTest, aLVHReview, theHistoryOfUSHistory, robotsAndKoreanWar,
+      georgeWashingtonvsGodzilla, apPractice1, conduct4, conduct5, ass1, ass2, ass3, ass4,
+      ass5, ass6, ass7, ass8, ass9, ass10, ass11, carbonQuiz, popQuiz, cellQuiz, carbonTest,
+      cellTest, wordSearch, bookReading, carbonWorksheet, bondWorksheet, takeHomeProblems,
+      cellWorksheet, carbonExperiment, cellLab))
+
     //makeAnnouncements
     if (debug) println("Creating Announcements...")
-    
-    
+
     //r2usHistA Announcements
     val ann1 = new Announcement("HEY KIDS! FIRST DAY OF CLASS AND I'M SOOOO EXCITED!", Timestamp.valueOf("2012-08-15 14:35:21"),
-                                r2usHistA, mary)
-    val ann2 = new Announcement("Review sheet #2 and old-school free-response. See you on Monday", 
-                                Timestamp.valueOf("2012-09-15 04:45:25"), r2usHistA, mary)
+      r2usHistA, mary)
+    val ann2 = new Announcement("Review sheet #2 and old-school free-response. See you on Monday",
+      Timestamp.valueOf("2012-09-15 04:45:25"), r2usHistA, mary)
     val ann3 = new Announcement("hksgkdnf", Timestamp.valueOf("2012-09-15 14:34:25"), r2usHistA, mary)
     val ann4 = new Announcement("I apologize to my students for showing up to class trapped in a plastic bag. I " +
-    		                    "realize it severely impaired my teaching ability.",  Timestamp.valueOf("2012-10-15 23:35:21"),
-    		                    r2usHistA, mary)
+      "realize it severely impaired my teaching ability.", Timestamp.valueOf("2012-10-15 23:35:21"),
+      r2usHistA, mary)
     val ann5 = new Announcement("All further announcements will be copied from Mr. Purvis's Edmodo", Timestamp.valueOf("2012-10-30 14:23:51"),
-    							r2usHistA, mary)
+      r2usHistA, mary)
     val ann6 = new Announcement("Hi", Timestamp.valueOf("2012-10-31 00:00:00"), r2usHistA, mary)
-    val ann7 = new Announcement("Due Wednesday: 2011 Form B Free-Response Questions. Please bring your responses and" + 
-    							"scores for each of the questions (scoring rubrics are posted below)\nDue Friday: Series" +
-    							"Exam Test corrections. Left column--what i did wrong; right column--what i should have done." +
-    							"See multiple choice questions below.", Timestamp.valueOf("2012-11-01 19:19:19"), r2usHistA, mary)
-    
+    val ann7 = new Announcement("Due Wednesday: 2011 Form B Free-Response Questions. Please bring your responses and" +
+      "scores for each of the questions (scoring rubrics are posted below)\nDue Friday: Series" +
+      "Exam Test corrections. Left column--what i did wrong; right column--what i should have done." +
+      "See multiple choice questions below.", Timestamp.valueOf("2012-11-01 19:19:19"), r2usHistA, mary)
+
     pm.makePersistentAll(List(ann1, ann2, ann3, ann4, ann5, ann6, ann7))
-    
-    
+
     if (debug) println("Creating Turnins...")
-    
+
     //merry, mack, fitz, jordan
-    
+
     val ti1 = new Turnin(meriadocStud, Timestamp.valueOf("2012-08-15 14:35:21"), guildedAgeQuiz, 98.0)
     val ti2 = new Turnin(mackStud, Timestamp.valueOf("2012-08-15 14:35:22"), guildedAgeQuiz, 100)
     val ti3 = new Turnin(fitzgeraldStud, Timestamp.valueOf("2012-08-15 14:35:23"), guildedAgeQuiz, 77)
     val ti4 = new Turnin(jordanStud, Timestamp.valueOf("2012-08-15 14:35:23"), guildedAgeQuiz, 40)
-    
+
     val ti5 = new Turnin(meriadocStud, Timestamp.valueOf("2012-08-19 14:35:21"), aLVHReview, 67)
     val ti6 = new Turnin(mackStud, Timestamp.valueOf("2012-08-19 14:35:22"), aLVHReview, 54)
     val ti7 = new Turnin(fitzgeraldStud, Timestamp.valueOf("2012-08-19 14:35:23"), aLVHReview, 80)
     val ti8 = new Turnin(jordanStud, Timestamp.valueOf("2012-08-20 14:35:23"), aLVHReview, 94.33)
-    
-    pm.makePersistentAll(List(ti1, ti2, ti3, ti5, ti6, ti7, ti8))
-    
-    //TODO: make test data for announcements and gradebook
 
-  
-  
+    DataStore.pm.makePersistentAll(List(ti1, ti2, ti3, ti5, ti6, ti7, ti8))
+
+    //TODO: make test data for announcements and gradebook
+  }
+
 }

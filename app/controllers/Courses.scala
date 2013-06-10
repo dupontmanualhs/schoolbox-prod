@@ -94,7 +94,7 @@ object Courses extends Controller {
           val sectionsThisPeriod = sections.filter(_.periods.contains(p))
           <tr>
             <td>{ p.name }</td>
-          <td>{ mkNodeSeq(sectionsThisPeriod.map(s => linkToPage(s)), <br/>) }</td>
+            <td>{ mkNodeSeq(sectionsThisPeriod.map(s => linkToPage(s)), <br/>) }</td>
             <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.room.name)), <br/>) }</td>
           </tr>
         }
@@ -103,11 +103,11 @@ object Courses extends Controller {
     }
   }
 
-  def linkToPage(section:Section): NodeSeq = {
+  def linkToPage(section: Section): NodeSeq = {
     val link = controllers.routes.Grades.home(section.id)
     <a href={ link.url }>{ section.course.name }</a>
   }
-  
+
   def linkToRoster(section: Section): NodeSeq = {
     val link = controllers.routes.Courses.roster(section.id)
     <a href={ link.url }>{ section.course.name }</a>
@@ -120,7 +120,7 @@ object Courses extends Controller {
       pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
         case None => NotFound(views.html.notFound("No section with that id."))
         case Some(sect) => {
-        Ok(html.courses.roster(id, sect, sect.enrollments))
+          Ok(html.courses.roster(sectionId, sect, sect.enrollments))
         }
       }
     }

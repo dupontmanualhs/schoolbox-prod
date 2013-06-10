@@ -1,26 +1,24 @@
 package controllers
 
-import play.api.mvc.Controller
+import play.api.mvc.{Action, Controller}
 import forms._
 import forms.fields._
 import models.grades._
 import models.courses._
 import models.users._
-import util.DbAction
 import util.Helpers.mkNodeSeq
 import views.html
 import scala.xml.NodeSeq
 import play.api.mvc.PlainResult
-import util.DbRequest
-import util.ScalaPersistenceManager
 import scala.xml.Text
 import util.Authenticated
 import play.api.mvc.Result
 import play.api.templates.Html
 import models.grades.Turnin
 
-object Grades extends Controller {
+import scalajdo.DataStore
 
+object Grades extends Controller {
   class DropMenu(catsMap: List[(String, Category)]) extends Form {
     val category = new ChoiceField("Category", catsMap)
     val title = new TextField("Title")
@@ -34,23 +32,21 @@ object Grades extends Controller {
   }
 
   def assignments(id: Long) = Authenticated { implicit req =>
-    val persp = req.visit.perspective.get
-    persp match {
-      case teacher: Teacher => assignmentsForTeachers(id, teacher)(req).asInstanceOf[PlainResult] //TODO fix this cast
+    Visit.getFromRequest(req).perspective.get match {
+      case teacher: Teacher => assignmentsForTeachers(id, teacher)(req) //TODO fix this cast
       //case _:Student => assignmentsForStudents(id)
     }
 
   }
 
-  def assignmentsForTeachers(id: Long, teacher: Teacher) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def assignmentsForTeachers(id: Long, teacher: Teacher) = Action { implicit req =>
     Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
         if (!sect.teachers.contains(teacher)) {
-          println(sect.teachers.head.toString)
-          println()
-          println(req.visit.perspective.get)
+          //println(sect.teachers.head.toString)
+          //println()
+          //println(req.visit.perspective.get)
           NotFound(views.html.notFound("You do not have permisson to view this course."))
         } else {
           val cats = Category.forSection(sect)
@@ -67,7 +63,7 @@ object Grades extends Controller {
               val TheDueDate: java.sql.Date = vb.valueOf(dropMenu.dueDate)
               val TheLocked: java.sql.Date = vb.valueOf(dropMenu.locked)
               val assignment = new Assignment(TheTitle, ThePoints, TheDueDate, TheLocked, TheCat)
-              pm.makePersistent(assignment)
+              DataStore.pm.makePersistent(assignment)
               Redirect(routes.Grades.assignments(id))
             }
           }
@@ -76,8 +72,8 @@ object Grades extends Controller {
     }
   }
 
-  def deleteAssignment(id: Long, assignmentId: Long) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def deleteAssignment(id: Long, assignmentId: Long) = Action { implicit req =>
+    DataStore.execute { pm => 
     pm.query[Assignment].filter(QAssignment.candidate.id.eq(assignmentId)).executeOption() match {
       case None => NotFound(views.html.notFound("No assignment with that id."))
       case Some(assign) => {
@@ -85,10 +81,10 @@ object Grades extends Controller {
         Redirect(routes.Grades.assignments(id))
       }
     }
+    }
   }
 
-  def home(id: Long) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def home(id: Long) = Action { implicit req =>
     Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
@@ -97,8 +93,7 @@ object Grades extends Controller {
     }
   }
 
-  def announcements(id: Long) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def announcements(id: Long) = Action { implicit req =>
     Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
@@ -108,8 +103,7 @@ object Grades extends Controller {
     }
   }
   
-  def gradebook(id: Long) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def gradebook(id: Long) = Action { implicit req =>
     Section.getById(id) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {

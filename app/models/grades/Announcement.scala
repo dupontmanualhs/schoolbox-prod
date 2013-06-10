@@ -4,9 +4,9 @@ import java.sql.Date
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.ScalaPersistenceManager
+import scalajdo.DataStore
+
 import util.PersistableFile
-import util.DataStore
 import models.courses.Section
 import models.users.User
 
@@ -70,13 +70,9 @@ trait QAnnouncement extends PersistableExpression[Announcement] {
 
 object Announcement {
 
-  def getAnnouncements(section: Section)(implicit pm: ScalaPersistenceManager = null): List[Announcement] = {
-    def query(epm: ScalaPersistenceManager): List[Announcement] = {
+  def getAnnouncements(section: Section): List[Announcement] = {
       val cand = QAnnouncement.candidate
-      epm.query[Announcement].filter(cand.section.eq(section)).executeList
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+      DataStore.pm.query[Announcement].filter(cand.section.eq(section)).executeList
   }
 }
 

@@ -1,5 +1,6 @@
-@(section: models.courses.Section, categories: List[models.grades.Category], dropForm: forms.Binding, 
-id: Long)(implicit req: util.DbRequest[_]) @import models.grades._
+@(section: models.courses.Section, categories: List[models.grades.Category], dropForm: forms.Binding, id: Long)(implicit req: play.api.mvc.Request[_])
+
+@import models.grades._
 
 @main("Assignments"){
 
@@ -40,7 +41,7 @@ id: Long)(implicit req: util.DbRequest[_]) @import models.grades._
 				aria-hidden="true">×</button>
 			<h3 id="myModalLabel">Add Assignment</h3>
 		</div>
-		<div class="modal-body">@dropForm.asHtml</div>
+		<div class="modal-body">@dropForm.render()</div>
 		<!-- modal body -->
 		<!-- modal footer -->
 	</div>
