@@ -5,6 +5,7 @@ import play.api.data._
 import javax.jdo.annotations._
 import models.assignments.DbQuestion
 import scala.xml.transform.BasicTransformer
+import forms.fields.TextField
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -32,7 +33,7 @@ class FillBlanks extends DbQuestion {
   def toXml: Elem = {
     <question kind="fill-blanks" format="html">
       <text>{ text }</text>
-      <feedback>{ feedback }</feedback>
+      { if (!feedback.isEmpty) <feedback>{ feedback }</feedback> else NodeSeq.Empty }
       { answerList.zipWithIndex.flatMap(answersWithBlankNum => {
         val answers = answersWithBlankNum._1
         val blankNum = answersWithBlankNum._2
@@ -43,6 +44,8 @@ class FillBlanks extends DbQuestion {
       }
     </question>
   }
+  
+  def toFormField(name: String) = new TextField(name)
   
   def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem = {
     val id: String = maybeId.getOrElse(name)

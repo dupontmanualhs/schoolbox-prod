@@ -3,8 +3,8 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.ScalaPersistenceManager
-import util.DataStore
+
+import scalajdo.DataStore
 import models.grades._
 
 @PersistenceCapable(detachable="true")
@@ -42,36 +42,24 @@ class Student extends Perspective {
 }
 
 object Student {
-  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager = null): Option[Student] = {
-    def query(epm: ScalaPersistenceManager): Option[Student] = {
+  def getByUsername(username: String): Option[Student] = {
     User.getByUsername(username) match {
       case Some(user) => {
         val cand = QStudent.candidate
-        pm.query[Student].filter(cand.user.eq(user)).executeOption
+        DataStore.pm.query[Student].filter(cand.user.eq(user)).executeOption
       }
       case _ => None
     }
-    }
-    if(pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
  }
   
-  def getByStudentNumber(studentNumber: String)(implicit pm: ScalaPersistenceManager = null): Option[Student] = {
-    def query(epm: ScalaPersistenceManager): Option[Student] = {
-    	val cand = QStudent.candidate
-    	pm.query[Student].filter(cand.studentNumber.eq(studentNumber)).executeOption()
-    }
-    if(pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getByStudentNumber(studentNumber: String): Option[Student] = {
+    val cand = QStudent.candidate
+    DataStore.pm.query[Student].filter(cand.studentNumber.eq(studentNumber)).executeOption()
   }
 
-  def getByStateId(stateId: String)(implicit pm: ScalaPersistenceManager = null): Option[Student] = {
-    def query(epm: ScalaPersistenceManager): Option[Student] = {
-    	val cand = QStudent.candidate
-    	pm.query[Student].filter(cand.stateId.eq(stateId)).executeOption()
-    }
-    if(pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getByStateId(stateId: String): Option[Student] = {
+    val cand = QStudent.candidate
+    DataStore.pm.query[Student].filter(cand.stateId.eq(stateId)).executeOption()
   }
   
 }

@@ -9,6 +9,7 @@ import javax.jdo.listener.{LoadCallback, StoreCallback}
 import util.Format
 import math.ExactNumber
 import scala.xml.Node
+import forms.fields.Field
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.NEW_TABLE)
@@ -41,7 +42,7 @@ abstract class DbQuestion extends LoadCallback with StoreCallback {
     _html = html.toString
   }
   
-  def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem
+  def toFormField(name: String): Field[_]
   def toXml: Elem
   def populateFields(): Unit
   

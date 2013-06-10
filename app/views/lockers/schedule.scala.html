@@ -1,4 +1,4 @@
-@(student: models.users.Student, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit request: util.DbRequest[_])
+@(student: models.users.Student, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit req: play.api.mvc.Request[_])
 
 @main("Schedule") {
 	<div class="page-header">

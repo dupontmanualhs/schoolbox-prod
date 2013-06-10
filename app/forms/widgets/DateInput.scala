@@ -2,13 +2,15 @@ package forms.widgets
 
 import scala.xml._
 import java.util.UUID
+import forms.validators.ValidationError
+import java.sql.Date
 
 class DateInput(
   required: Boolean,
   attrs: MetaData = Null,
   uuid: UUID) extends Widget(required, attrs) {
   
-  val Name:String = uuid.toString()
+  val Name:String = uuid.toString
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     <input type="text" name={ name } value={if(value.isEmpty) "" else value(0) } placeholder="mm/dd/yyyy" class={"datepicker"+Name}></input>
@@ -32,6 +34,10 @@ class DateInput(
   				buttonText: 'Chooser'
   			}});
   		}});
+  </script><script type="text/javascript">
+	jQuery(function($){{
+		$('.datepicker').mask('99/99/9999',{{placeholder:'_'}});
+  	}});
   </script>
 
 }

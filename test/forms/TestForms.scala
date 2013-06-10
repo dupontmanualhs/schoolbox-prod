@@ -80,7 +80,7 @@ object PersonForm {
 class TestForms extends FunSuite {
   test("unbound form") {
     val f = new PersonForm()
-    assert(trim(Binding(f).asHtml) === trim(PersonForm.unbound))
+    assert(trim(Binding(f).render) === trim(PersonForm.unbound))
   }
   
   test("bound form") {
@@ -99,7 +99,7 @@ class TestForms extends FunSuite {
       <input type="text" name="lastName" value="Lennon" id="id_lastName" required="required" />)
     assert(f.age.asWidget(b) === 
       <input type="text" name="age" value="72" id="id_age" required="required" />)
-    assert(trim(b.asHtml) === trim(PersonForm.bound))
+    assert(trim(b.render) === trim(PersonForm.bound))
   }
   
   test("bind with empty Map") {
@@ -111,7 +111,7 @@ class TestForms extends FunSuite {
     assert(b.fieldErrors(f.lastName) === Some(ValidationError("This field is required.")))
     assert(b.fieldErrors(f.age) === Some(ValidationError("This field is required.")))
     // if there are errors, boundFields is an empty Map
-    assert(trim(b.asHtml) === trim(PersonForm.withRequiredErrors))
+    assert(trim(b.render) === trim(PersonForm.withRequiredErrors))
   }
   
   test("cleaned data only includes defined fields") {

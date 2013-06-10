@@ -1,0 +1,28 @@
+@(q: List[models.mastery.Quiz], s: List[models.mastery.QuizSection], qs: List[models.mastery.QuestionSet], qe: List[models.mastery.Question])(implicit req: play.api.mvc.Request[_])
+@import helper._
+@main("Test Data"){
+<h1>Quizzes</h1>
+<p>
+@for(z <- q){
+  @z.toString <br/>
+}
+</p>
+<h1>Sections</h1>
+<p>
+@for(t <- s){
+  @t.toString <br/>
+}
+</p>
+<h1>QuestionSets</h1>
+<p>
+@for(y <- qs){
+  @y.toString <br/>
+}
+</p>
+<h1>Questions</h1>
+<p>
+@for(p <- qe){
+  @p.toString <br/>
+}
+</p>
+}

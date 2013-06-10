@@ -1,7 +1,6 @@
-@(loginForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(loginForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Login") {
-<div class="span7 offset1">
-		  @loginForm.asHtml("","Login")
+  @loginForm.render()
 </div>
 }

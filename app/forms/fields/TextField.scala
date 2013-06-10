@@ -6,9 +6,10 @@ import scala.xml.{Attribute, MetaData, Null, Text}
 import forms.validators._
 import forms.widgets._
 
-abstract class BaseTextField[T](name: String) extends Field[T](name) {
+abstract class BaseTextField[T](name: String)(implicit man: Manifest[T]) extends Field[T](name) {
   val minLength: Option[Int] = None
   val maxLength: Option[Int] = None
+  val autocomplete: Option[Boolean] = None
   
   override def widgetAttrs(widget: Widget): MetaData = {
     val maxLengthAttr: MetaData = if (this.maxLength.isDefined && (widget.isInstanceOf[TextInput] || widget.isInstanceOf[PasswordInput])) {
@@ -26,7 +27,7 @@ class TextField(name: String) extends BaseTextField[String](name) {
     }
   }
 
-  def validators = TextField.minAndMaxValidators(minLength, maxLength)
+  override def validators = TextField.minAndMaxValidators(minLength, maxLength)
 }
 
 class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name) {
@@ -40,7 +41,7 @@ class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name
     }
   }
   
-  def validators = OptionValidator(TextField.minAndMaxValidators(minLength, maxLength))
+  override def validators = OptionValidator(TextField.minAndMaxValidators(minLength, maxLength))
 }
 
 object TextField {

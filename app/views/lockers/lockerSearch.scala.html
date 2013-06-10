@@ -1,4 +1,4 @@
-@(lockerForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(lockerForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Locker Search") {
   <div class="page-header">
@@ -6,7 +6,7 @@
   </div>
   <div class="row">
 		<div class="span7 offset1">
-  			@lockerForm.asHtml
+  			@lockerForm.render()
   		</div>
   </div>
   

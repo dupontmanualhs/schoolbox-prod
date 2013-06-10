@@ -1,10 +1,9 @@
-@(numberForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(numberForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Locker Picker") {
   <div class="page-header">
  	 <h2>Find locker information based on number</h2>
   </div>
-  <div class="span7 offset1">
-  	@numberForm.asHtml
+  @numberForm.render()
   </div>
 }

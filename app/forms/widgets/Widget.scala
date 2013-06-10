@@ -1,8 +1,17 @@
 package forms.widgets
+
+import scala.language.implicitConversions
+
 import scala.xml._
 import scala.xml.UnprefixedAttribute
 import play.api.mvc.MultipartFormData.FilePart
 
+/**
+ * A Widget represents the Html into which the input values
+ * would be entered by the user. The method that needs to be
+ * overridden by most classes would be render, which should
+ * produce a NodeSeq with input elements
+ */
 abstract class Widget(
     val required: Boolean,
     val attrs: MetaData = Null) {

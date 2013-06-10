@@ -5,12 +5,12 @@ import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.users.{Student, Teacher}
-import util.ScalaPersistenceManager
 import scala.xml.NodeSeq
-import util.DataStore
 import org.joda.time.LocalDate
 import models.grades._
 import models.users.{Student, QStudent}
+
+import scalajdo.DataStore
 
 import util.Helpers.LocalDateOrdering
 
@@ -70,32 +70,19 @@ class Section {
   }
   
   // TODO: figure out which teachers to get in what order
-  def teachers(implicit pm: ScalaPersistenceManager = null): List[Teacher] = {
-    def query(epm: ScalaPersistenceManager): List[Teacher] = {	
-    	val cand = QTeacherAssignment.candidate
-    	val assignments = pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
-    	assignments.map(x => x.teacher)
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def teachers(): List[Teacher] = {
+    val cand = QTeacherAssignment.candidate
+    val assignments = DataStore.pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
+    assignments.map(_.teacher)
   }
   
   // TODO: figure out which students to get in what order
-  def students(implicit pm: ScalaPersistenceManager = null): List[Student] = {
-    def query(epm: ScalaPersistenceManager): List[Student] = {	
-    	enrollments.map(_.student)
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
-  }
+  def students(): List[Student] = this.enrollments().map(_.student)
   
-  def enrollments(implicit pm: ScalaPersistenceManager = null): List[StudentEnrollment] = {
-    def query(epm: ScalaPersistenceManager): List[StudentEnrollment] = {	
-    	val cand = QStudentEnrollment.candidate
-    	pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def enrollments(): List[StudentEnrollment] = {
+    val cand = QStudentEnrollment.candidate
+    DataStore.pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
+  }
   }
   
 }
@@ -118,7 +105,6 @@ object Section {
     if (pm != null) query(pm)
     else DataStore.withTransaction( tpm => query(tpm) )
   
-  }
 }
 
 trait QSection extends PersistableExpression[Section] {

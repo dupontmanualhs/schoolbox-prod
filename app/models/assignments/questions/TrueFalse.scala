@@ -6,6 +6,8 @@ import javax.jdo.annotations._
 import math.Value
 import math.ExactNumber
 import math.Integer
+import forms.fields.Field
+import forms.fields.ChoiceFieldOptional
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -28,12 +30,12 @@ class TrueFalse extends DbQuestion {
     this.text = (q \ "text").flatMap(_.child)
     this.feedback = (q \ "feedback").flatMap(_.child)
     for (ans <- (q \ "answer")) {
-      val worth: ExactNumber = ExactNumber(ans \ "@worth" text).getOrElse(Integer(0))
+      val worth: ExactNumber = ExactNumber((ans \ "@worth").text).getOrElse(Integer(0))
       val ansFeedback = (ans \ "feedback").flatMap(_.child)
       if ((ans \ "text").text == "true") {
-        this.trueAnswer = TrueAnswer(worth, feedback)
+        this.trueAnswer = TrueAnswer(worth, ansFeedback)
       } else {
-        this.falseAnswer = FalseAnswer(worth, feedback)
+        this.falseAnswer = FalseAnswer(worth, ansFeedback)
       }
     }    
   }
@@ -41,24 +43,14 @@ class TrueFalse extends DbQuestion {
   def toXml: Elem = {
     <question kind="true-false"><text>{ text }</text><feedback>{ feedback }</feedback>{ trueAnswer.toXml }{ falseAnswer.toXml }</question>
   }
-  
-  def toQuizHtml(label: NodeSeq, name: String, maybeId: Option[String] = None): Elem = {
-    val id: String = maybeId.getOrElse(name)
-    <div class="true-false">
-      <label for={ id }>{ label }</label>
-      <select name={ name } id={ id }>
-        <option value="none"></option>
-        <option value="true">True</option>
-        <option value="false">False</option>
-      </select>
-      <span class="text">{ text }</span>
-    </div>
-  }
-  
+    
   def populateFields() {
     val q: Elem = this.content
     assignFieldsFromXml(q)
   }
+
+  def toFormField(name: String) = new ChoiceFieldOptional[Boolean](name, List(("True", true), ("False", false)))
+
 }
 
 object TrueFalse {
@@ -70,3 +62,5 @@ object TrueFalse {
     }
   }
 }
+
+class TrueFalseAnswer 

@@ -1,0 +1,6 @@
+@(addTitleToPrintQueueForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+
+@main("Add to Print Queue") {
+   <h2>Add a Copy Range to the Print Queue</h2>
+  @addTitleToPrintQueueForm.render()
+}

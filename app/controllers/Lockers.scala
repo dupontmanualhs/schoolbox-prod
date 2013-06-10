@@ -2,8 +2,6 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import util.{DataStore, ScalaPersistenceManager}
-import util.DbAction
 import models.lockers._
 import models.users._
 import models.courses._
@@ -14,17 +12,20 @@ import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
 import util.Helpers._
+import util.VisitAction
+
+import scalajdo.DataStore
 
 object Lockers extends Controller {
    
-  def getMyLocker() = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
-  	val currentUser: Option[User] = User.current
+  def getMyLocker() = VisitAction { implicit req =>
+  	DataStore.execute { pm => 
+    val currentUser: Option[User] = User.current
   	if(currentUser.isDefined) {
-      if (Teacher.getByUsername(currentUser.get.username)(pm).isDefined) {
+      if (Teacher.getByUsername(currentUser.get.username).isDefined) {
         NotFound(views.html.notFound("Teachers do not have lockers."))
       } else {
-        val Some(maybeStudent) = Student.getByUsername(currentUser.get.username)(pm)
+        val Some(maybeStudent) = Student.getByUsername(currentUser.get.username)
         val maybeLocker: Option[Locker] = Locker.getByStudent(maybeStudent)
         maybeLocker match {
           case None => NotFound(views.html.notFound("You do not have a locker."))
@@ -32,13 +33,17 @@ object Lockers extends Controller {
         }
       }
     } else {
-      NotFound(views.html.notFound("You are not logged in."))
+      val visit: Visit = Visit.getFromRequest(req)
+      visit.redirectUrl = controllers.routes.Lockers.getMyLocker()
+      pm.makePersistent(visit)
+      Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
     }
+  	}
   }
   
-  def getLocker(num: Int) = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
-    val maybeLocker = Locker.getByNumber(num)(pm)
+  def getLocker(num: Int) = VisitAction { implicit req =>
+    DataStore.execute { pm => 
+    val maybeLocker = Locker.getByNumber(num)
     maybeLocker match {
       case None => NotFound(views.html.notFound("No locker exists with this ID."))
       case Some(locker) => if(req.method == "GET") {
@@ -46,15 +51,15 @@ object Lockers extends Controller {
                         } else {
       				    val currentUser: Option[User] = User.current
       				    if(currentUser.isDefined) {
-      				      if (Teacher.getByUsername(currentUser.get.username)(pm).isDefined) {
+      				      if (Teacher.getByUsername(currentUser.get.username).isDefined) {
       				    	NotFound(views.html.notFound("Teachers do not have lockers."))
       				      } else {
-      				        val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
-      				        val oldLocker = Locker.getByStudent(student)
+      				        val maybeStudent: Option[Student] = Student.getByUsername(currentUser.get.username)
+      				        val oldLocker: Option[Locker] = maybeStudent.flatMap(Locker.getByStudent(_))
       				        if(locker.taken) Ok(views.html.notFound("This locker was taken."))
       				        else {
-      				          locker.student_=(Some(student))
-      				          locker.taken_=(true)
+      				          locker.student = maybeStudent
+      				          locker.taken = true
       				          pm.makePersistent(locker)
       				          oldLocker match {
       				            case None => {}
@@ -68,25 +73,29 @@ object Lockers extends Controller {
       				          }
       				        }
       				      } else {
-      				        Ok(views.html.notFound("You are not logged in."))
+      				        val visit = Visit.getFromRequest(req)
+      				        visit.redirectUrl = controllers.routes.Lockers.getLocker(num)
+      				        pm.makePersistent(visit)
+      				        Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
       				      }
       				  }
     }
+    }
   }
   
-  def lockerList(list: List[Locker]) = DbAction { implicit req =>
+  def lockerList(list: List[Locker]) = VisitAction { implicit req =>
     Ok(views.html.lockers.lockerList(list))
   }
   
-  def lockerByNumber = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def lockerByNumber = VisitAction { implicit req =>
+    DataStore.execute { pm => 
     object NumberForm extends Form {
       val number: TextField = new TextField("number")
       
       def fields = List(number)
       
       override def validate(vb: ValidBinding): ValidationError = {
-        DataStore.withTransaction { implicit pm =>
+        DataStore.execute { implicit pm =>
           Locker.validateLockerNumber(vb.valueOf(number)) match {
             case None => ValidationError("Invalid Locker Number")
             case Some(l) => ValidationError(Nil)
@@ -100,7 +109,7 @@ object Lockers extends Controller {
       Binding(NumberForm, req) match {
         case ib: InvalidBinding => Ok(views.html.lockers.lockerByNumber(ib))
         case vb: ValidBinding => {
-          val maybeLocker = Locker.getByNumber(toInt(vb.valueOf(NumberForm.number)))(pm)
+          val maybeLocker = Locker.getByNumber(toInt(vb.valueOf(NumberForm.number)))
           maybeLocker match {
             case None => NotFound(views.html.notFound("No locker exists with this number."))
             case Some(l) => Redirect(routes.Lockers.getLocker(l.number))
@@ -108,10 +117,10 @@ object Lockers extends Controller {
         }
       }
     }
+    }
   }
   
-  def lockerSearch = DbAction { implicit req =>
-    implicit val pm: ScalaPersistenceManager = req.pm
+  def lockerSearch = VisitAction { implicit req =>
     object LockerForm extends Form {
       val floor: ChoiceField[Int] = new ChoiceField("floor",List(("1", 1), ("2", 2), ("3", 3)))
       val hall: ChoiceField[String] = new ChoiceField("hall",List(("Southeast", "SE"),("Southwest", "SW"),
@@ -122,6 +131,7 @@ object Lockers extends Controller {
       
       val fields = List(floor, hall, available)
     }
+    DataStore.execute { pm => 
     if(req.method == "GET") {
       Ok(views.html.lockers.lockerSearch(Binding(LockerForm)))
     } else {
@@ -132,31 +142,33 @@ object Lockers extends Controller {
                                                  vb.valueOf(LockerForm.hall))
           val matcher = (l: Locker) => l.matchingLocation(requestedLocation)
           
-          val availabilityList = if(vb.valueOf(LockerForm.available)) Locker.availableLockers()(pm) else Locker.allLockers()(pm)
+          val availabilityList = if(vb.valueOf(LockerForm.available)) Locker.availableLockers() else Locker.allLockers()
           val finalList = availabilityList.filter(matcher)
           Ok(views.html.lockers.lockerList(finalList))
         }
       }
     }
+    }
   }
   
-  def lockerByRoom(room: String) = DbAction {implicit req =>
-    implicit val pm = req.pm
+  def lockerByRoom(room: String) = VisitAction {implicit req =>
+    DataStore.execute { pm =>
     val roomLocation = RoomLocation.makeRoomLoc(room)
     val matchingLockerLocation = roomLocation.toLockerLocation
     val matcher: Locker => Boolean = (l: Locker) => l.matchingLocation(matchingLockerLocation)
     val resultLocker = Locker.allLockers().filter(matcher)
     Ok(views.html.lockers.lockerList(resultLocker))
+    }
   }
   
-  def schedule = DbAction {implicit req => 
-    implicit val pm = req.pm
+  def schedule = VisitAction {implicit req => 
+    DataStore.execute { pm => 
     val currentUser = User.current
-    val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username)(pm).isDefined
+    val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username).isDefined
     if(!isStudent) {
       NotFound(views.html.notFound("Must be logged-in student to select lockers."))
     } else {
-      val Some(student) = Student.getByUsername(currentUser.get.username)(pm)
+      val Some(student) = Student.getByUsername(currentUser.get.username)
       val term = Term.current
       val enrollments: List[StudentEnrollment] = {
         val sectVar = QSection.variable("sectVar")
@@ -183,5 +195,6 @@ object Lockers extends Controller {
       }
         Ok(views.html.lockers.schedule(student, table, hasEnrollments))
     }
+  }
   }
 }

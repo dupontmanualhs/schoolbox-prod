@@ -4,9 +4,10 @@ import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.users._
-import util._
 import util.Helpers._
 import scala.xml._
+
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
 class Locker {
@@ -76,42 +77,42 @@ class Locker {
 }
 
 object Locker {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Locker] = {
+  def getById(id: Long): Option[Locker] = {
     DataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.id.eq(id)).executeOption()
     }
   }
   
-  def getByStudent(stu: Student)(implicit pm: ScalaPersistenceManager = null): Option[Locker] = {
+  def getByStudent(stu: Student): Option[Locker] = {
     DataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.student.eq(stu)).executeOption()
     }
   }
   
-  def getByNumber(number: Int)(implicit pm: ScalaPersistenceManager = null): Option[Locker] = {
+  def getByNumber(number: Int): Option[Locker] = {
     DataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.number.eq(number)).executeOption()
     }
   }
   
-  def availableLockers()(implicit pm: ScalaPersistenceManager = null): List[Locker] = {
+  def availableLockers(): List[Locker] = {
     DataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.taken.eq(false)).executeList()
     }
   }
   
-  def allLockers()(implicit pm: ScalaPersistenceManager = null): List[Locker] = {
+  def allLockers(): List[Locker] = {
     DataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.taken.eq(false).or(cand.taken.eq(true))).executeList()
     }
   }
   
-  def validateLockerNumber(number: String)(implicit pm: ScalaPersistenceManager = null) : Option[Locker] = {
+  def validateLockerNumber(number: String): Option[Locker] = {
     if(isNumber(number)) getByNumber(toInt(number))
     else None
   }

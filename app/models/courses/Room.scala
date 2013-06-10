@@ -3,8 +3,7 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import util.ScalaPersistenceManager
-import util.DataStore
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable = "true")
 class Room {
@@ -26,19 +25,16 @@ class Room {
 }
 
 object Room {
-  def getOrCreate(name: String)(implicit pm: ScalaPersistenceManager = null): Room = {
-    def query(epm: ScalaPersistenceManager): Room = {
-      val cand = QRoom.candidate
-      pm.query[Room].filter(cand.name.eq(name)).executeOption() match {
-        case Some(room) => room
-        case None => {
-          val room = new Room(name)
-          pm.makePersistent(room)
-        }
+  def getOrCreate(name: String): Room = {
+    val pm = DataStore.pm
+    val cand = QRoom.candidate
+    pm.query[Room].filter(cand.name.eq(name)).executeOption() match {
+      case Some(room) => room
+      case None => {
+        val room = new Room(name)
+        pm.makePersistent(room)
       }
     }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction(tpm => query(tpm))
   }
 }
 

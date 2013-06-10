@@ -1,0 +1,14 @@
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, activated: Option[models.conferences.TeacherActivation])(implicit req: play.api.mvc.Request[_])
+
+@import util.Helpers._
+
+@main("Conferences for this session") {
+	@if(activated == None) { 
+		<p>This session has not been activated</p>
+		<a class="btn" href="@routes.Conferences.activateTeacherSession(session.id)">Click here to activate</a>
+	} else {
+	  <p>@activated.get.note</p>
+	  <p>Default Session Interval: @activated.get.slotInterval</p>
+	  <a class="btn" href="@routes.Conferences.deactivateTeacherSession(session.id)">Click here to deactivate</a> 
+	}
+}

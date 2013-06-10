@@ -1,0 +1,7 @@
+@(title: String, form: forms.Binding)(implicit req: play.api.mvc.Request[_])
+
+@mainWithScripts("Create a post: " + title, views.JavascriptLibraries.TINY_MCE) {
+
+	@form.render()
+}
+	
