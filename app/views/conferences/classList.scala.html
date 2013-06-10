@@ -1,4 +1,4 @@
-@(sessionId: Long, periods: List[models.courses.Period], sections: List[models.courses.Section], hasEnrollments: Boolean)(implicit request: util.DbRequest[_])
+@(sessionId: Long, periods: List[models.courses.Period], sections: List[models.courses.Section], hasEnrollments: Boolean)(implicit req: play.api.mvc.Request[_])
 
 @main("Student Conferences") {
 	<div class="page-header">
