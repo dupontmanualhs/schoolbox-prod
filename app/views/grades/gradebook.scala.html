@@ -1,8 +1,8 @@
-<!--@( spreadsheetData: (List[String], List[String], List[List[Double]]), students: List[models.users.Student], assignments: List[models.grades.Assignment], 
-   section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_])-->
+@* @( spreadsheetData: (List[String], List[String], List[List[Double]]), students: List[models.users.Student], assignments: List[models.grades.Assignment], 
+   section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_]) *@
 @(section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_])
 @import models.grades._
-<!-- 
+@*
 @import play.api.libs.json.Json 
 
 
@@ -22,8 +22,8 @@
 			} 
   
 }
--->
-@main<!-- WithScripts-->("Gradebook")<!-- (scripts) -->{
+*@
+@main @* WithScripts *@ ("Gradebook") @* (scripts) *@ {
 
 <div class="span3"><div class="well sidebar-nav">
   <ul class="nav nav-list">
@@ -46,7 +46,7 @@
 </div>
 
 <div class="span8">
-<!--   <table id="htmlgrid" class="testgrid">
+@*   <table id="htmlgrid" class="testgrid">
  	 <tr> 
   		<th>Name</th>
   		@for(a <- assignments){
@@ -65,6 +65,6 @@
   	}
   
   
-  </table>  --> 
+  </table>  *@ 
 </div>    	
 }
