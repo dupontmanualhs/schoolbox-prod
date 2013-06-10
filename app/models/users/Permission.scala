@@ -3,11 +3,9 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.DataStore
 import play.api.mvc.{RequestHeader, Session}
-import util.ScalaPersistenceManager
-import util.DbRequest
 
+//TODO: not nearly finished
 @PersistenceCapable(detachable="true")
 class Permission {
   @PrimaryKey

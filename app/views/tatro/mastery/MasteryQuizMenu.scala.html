@@ -1,4 +1,4 @@
-@(table: List[xml.NodeSeq], hasQuizzes: Boolean)(implicit req: util.DbRequest[_])
+@(table: List[xml.NodeSeq], hasQuizzes: Boolean)(implicit req: play.api.mvc.Request[_])
 @import helper._
 @main("Mastery Quizzes"){
 <h1>Mastery Quiz Menu</h1><br/>

@@ -2,6 +2,7 @@ package forms.fields
 
 import forms.widgets._
 import forms.validators._
+import scala.reflect.runtime.universe._
 
 // TODO: use type="number" from HTML5
 trait BaseNumericField[T] {
@@ -61,10 +62,10 @@ object NumericField {
     min ++ max
   }
   
-  def conversionFunction[T](implicit man: Manifest[T]): ((String => T), (String => String)) = {
-    if (man.erasure == classOf[Int]) {
+  def conversionFunction[T](implicit tag: TypeTag[T]): ((String => T), (String => String)) = {
+    if (typeOf[T] == typeOf[Int]) {
       ((s: String) => s.toInt.asInstanceOf[T], (s: String) => "This value must be a positive or negative whole number.")
-    } else if (man.erasure == classOf[Double]) {
+    } else if (typeOf[T] == typeOf[Double]) {
       ((s: String) => s.toDouble.asInstanceOf[T], (s: String) => "This value must be a number.")
     } else {
       throw new Exception("Numeric field only supported for Int and Double.")

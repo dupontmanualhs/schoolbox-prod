@@ -1,4 +1,7 @@
 package forms.widgets
+
+import scala.language.implicitConversions
+
 import scala.xml._
 import scala.xml.UnprefixedAttribute
 import play.api.mvc.MultipartFormData.FilePart

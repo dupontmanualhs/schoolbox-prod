@@ -8,8 +8,8 @@ import java.sql.Timestamp
 import org.scalatest.FunSuite
 
 class ConferencesData extends FunSuite {
-	var testUser1 = new User("Xx_Ben420Koby_xX", "Benjamin", Some("Scott"), "Koby", Some("Ben"), Gender.MALE, "benkoby420@gmail.com", "swagyolo")
-	var testUser2 = new User("o'bizzle", "Todd", Some(""), "O'Bryan", Some("O'Bizzle"), Gender.MALE, "obizzle@aol.com", "password")
+	var testUser1 = new User("Xx_Ben420Koby_xX", "Benjamin", Some("Scott"), "Koby", Some("Ben"), Gender.Male, "benkoby420@gmail.com", "swagyolo")
+	var testUser2 = new User("o'bizzle", "Todd", Some(""), "O'Bryan", Some("O'Bizzle"), Gender.Male, "obizzle@aol.com", "password")
 	var testStudent1 = new Student(testUser1, "Koby420", "24601", 11, "Dream Team")
 	var testTeacher1 = new Teacher(testUser2, "O'Bizzle Fo Shizzle", "666")
 	
@@ -25,13 +25,13 @@ class ConferencesData extends FunSuite {
 	
 	var testEvent = new Event("Winter Conferences", true)
 	
-	var testSession1 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2, 10)
-	var testSession2 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2, 110)
-	var testSession3 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2, 1395)
+	var testSession1 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2)
+	var testSession2 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2)
+	var testSession3 = new Session(testEvent, testDate1, timeStamp2, Some(timeStamp1), testTime1, testTime2)
 	
-	var testSlot1 = new Slot(testSession1, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null))
-	var testSlot2 = new Slot(testSession2, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null))
-	var testSlot3 = new Slot(testSession3, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null))
+	var testSlot1 = new Slot(testSession1, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null), 10)
+	var testSlot2 = new Slot(testSession2, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null), 110)
+	var testSlot3 = new Slot(testSession3, testTeacher1, testStudent1, testTime3, "Bryan Koby", "benkoby420@gmail.com", "502-144-6464", Some(null), Some(null), 1395)
 	
 	//startTime is testTime3 (05:00:00)
 	//slotinterval is 10

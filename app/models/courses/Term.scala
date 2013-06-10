@@ -5,8 +5,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import javax.jdo.JDOHelper
-import util.ScalaPersistenceManager
-import util.DataStore
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable = "true")
 class Term {
@@ -50,28 +49,26 @@ class Term {
 }
 
 object Term {
-  var _current: Option[Term] = None
+  // TODO: the "current" term should be based on the date, but each perspective
+  // might have a current term, reflecting the term that s/he is currently
+  // looking at
+  private[Term] var _current: Option[Term] = None
 
-  def current(implicit pm: ScalaPersistenceManager = null): Term = {
-    def query(epm: ScalaPersistenceManager): Term = {
-      if (!_current.isDefined) {
-        val cand = QTerm.candidate
-        val term = pm.query[Term].executeList()(0)
-        _current = Some(pm.detachCopy(term))
-      }
+  def current(): Term = _current match {
+    case Some(term) => term
+    case None => {
+      val pm = DataStore.pm
+      val cand = QTerm.candidate
+      // TODO: this only works if there's exactly one Term in the db
+      val term = pm.query[Term].executeList()(0)
+      _current = Some(pm.detachCopy(term))
       _current.get
     }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction(tpm => query(tpm))
   }
 
-  def getBySlug(slug: String)(implicit pm: ScalaPersistenceManager = null): Option[Term] = {
-    def query(epm: ScalaPersistenceManager): Option[Term] = {
-    	val cand = QTerm.candidate
-    	pm.query[Term].filter(cand.slug.eq(slug)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getBySlug(slug: String): Option[Term] = {
+    val cand = QTerm.candidate
+    DataStore.pm.query[Term].filter(cand.slug.eq(slug)).executeOption()
   }
 }
 

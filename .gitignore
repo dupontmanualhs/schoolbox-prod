@@ -17,5 +17,6 @@ chromedriver.log
 .directory
 *.swp
 .target
+.metadata
 
 public/images/books

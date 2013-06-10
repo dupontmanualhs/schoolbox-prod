@@ -1,0 +1,28 @@
+@(sessionId: Long, periods: List[models.courses.Period], sections: List[models.courses.Section], hasEnrollments: Boolean)(implicit req: play.api.mvc.Request[_])
+
+@main("Student Conferences") {
+	<div class="page-header">
+	  <h2>Schedule Your Class Conferences</h2>
+	</div>
+    <div>
+      @if(hasEnrollments) {
+		<table class="table table-striped table-condensed">		
+			<thead><th>Period</th><th>Course(s)</th><th>Teacher(s)</th></thead>
+  			@for(period <- periods) {
+  				<tr>
+  					<td>period.name</td>
+  				@for(section <- sections if section.periods.contains(period)) {
+					<td>section.course.name</td>
+					<td>section.teachers.map(t => t.user.shortName.mkString("; "))</td>
+					<td><a class="btn" href="@routes.Conferences.createSlot(sessionId, section.teachers()(0).id)">Get This Conference</a></td>
+  				}
+  				</tr>
+  			}
+		</table>
+	  }
+	  @if(!hasEnrollments) {
+		  <p>This student is not enrolled in any courses for this term.</p>
+	  }
+    </div>
+
+}

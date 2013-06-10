@@ -5147,3 +5147,8 @@ a.badge:hover {
 .affix {
   position: fixed;
 }
+.custom-modal-size {
+	width: 780px;
+    margin-left: -390px; /* - width/2 */
+    overflow-y: auto;
+}

@@ -1,11 +1,11 @@
-@(lockerForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(lockerForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Locker Search") {
   <div class="page-header">
   	<h2>Search for lockers by location and availability!</h2>
   </div>
   <div class="row">
-		<div class="span6 offset1">
+		<div class="span7 offset1">
   			@lockerForm.render()
   		</div>
   </div>

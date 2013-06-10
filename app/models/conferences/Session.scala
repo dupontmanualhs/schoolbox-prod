@@ -14,43 +14,43 @@ class Session {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
-   
+  
   @Column(allowsNull="false")
   private[this] var _event : Event = _
   def event: Event = _event
   def event_=(theEvent: Event) {_event = theEvent}
   
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _date: java.sql.Date = _
   def date: java.sql.Date = _date
   def date_=(theDate: java.sql.Date) { _date = theDate }
   
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _cutoff: java.sql.Timestamp = _
   def cutoff: java.sql.Timestamp = _cutoff
   def cutoff_=(theCutoff: java.sql.Timestamp) {_cutoff = theCutoff}
   
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="true")
   private[this] var _priority: java.sql.Timestamp = _
   def priority: Option[java.sql.Timestamp] = if (_priority == null) None else Some(_priority)
   def priority_=(thePriority: Option[java.sql.Timestamp]) {_priority = thePriority.getOrElse(null)}
   
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _startTime: java.sql.Time = _
   def startTime: java.sql.Time = _startTime
   def startTime_=(theStartTime: java.sql.Time) {_startTime = theStartTime}
   
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _endTime: java.sql.Time = _
   def endTime: java.sql.Time = _endTime
   def endTime_=(theEndTime: java.sql.Time) {_endTime = theEndTime}
   
-  @Column(allowsNull="false")
-  private[this] var _slotInterval: Int = _
-  def slotInterval: Int = _slotInterval
-  def slotInterval_=(theSlotInterval: Int) {_slotInterval = theSlotInterval}
-  
-  def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: Option[java.sql.Timestamp], startTime: java.sql.Time, endTime: java.sql.Time, slotInterval: Int) = {
+  def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: Option[java.sql.Timestamp], startTime: java.sql.Time, endTime: java.sql.Time) = {
     this()
     _event = event
     _date = date
@@ -58,8 +58,6 @@ class Session {
     _priority = priority.getOrElse(null)
     _startTime = startTime
     _endTime = endTime
-    //slotInterval is in minutes
-    _slotInterval = slotInterval
   }
 }
 
@@ -84,9 +82,6 @@ trait QSession extends PersistableExpression[Session] {
 
   private[this] lazy val _endTime: TimeExpression[java.util.Date] = new TimeExpressionImpl(this, "_endTime")
   def endTime: TimeExpression[java.util.Date] = _endTime
-
-  private[this] lazy val _slotInterval: NumericExpression[Int] = new NumericExpressionImpl(this, "_slotInterval")
-  def slotInterval: NumericExpression[Int] = _slotInterval
 }
 
 object QSession extends QueryClass[Session, QSession] {

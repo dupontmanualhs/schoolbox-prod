@@ -1,4 +1,4 @@
-@(quiz: models.mastery.Quiz, myForm: forms.Binding)(implicit req:util.DbRequest[_]) 
+@(quiz: models.mastery.Quiz, myForm: forms.Binding)(implicit req: play.api.mvc.Request[_]) 
 @import helper._ 
 @main(quiz.toString){ 
 	<h1>@quiz</h1>

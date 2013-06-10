@@ -1,45 +1,45 @@
 package models.books
 
+
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.ScalaPersistenceManager
 import util.PersistableFile
-import util.DataStore
+import scalajdo.DataStore
 
-@PersistenceCapable(detachable="true")
+@PersistenceCapable(detachable = "true")
 class Title {
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
-  
-  @Column(allowsNull="false")
+
+  @Column(allowsNull = "false")
   private[this] var _name: String = _
   def name: String = _name
   def name_=(theName: String) { _name = theName }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _author: String = _
-  def author: Option[String] = Option(_author)
+  def author: Option[String] = if (_author == null) None else Some(_author)
   def author_=(theAuthor: Option[String]) { _author = theAuthor.getOrElse(null) }
   def author_=(theAuthor: String) { _author = theAuthor }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _publisher: String = _
-  def publisher: Option[String] = Option(_publisher)
+  def publisher: Option[String] = if (_publisher == null) None else Some(_publisher)
   def publisher_=(thePublisher: Option[String]) { _publisher = thePublisher.getOrElse(null) }
   def publisher_=(thePublisher: String) { _publisher = thePublisher }
-  
+
   @Unique
-  @Column(allowsNull="false")
+  @Column(allowsNull = "false")
   private[this] var _isbn: String = _
   def isbn: String = _isbn
   def isbn_=(theIsbn: String) { _isbn = theIsbn }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _numPages: java.lang.Integer = _
-  def numPages: Option[Int] = Option(_numPages)
+  def numPages: Option[Int] = if (_numPages == null) None else Some(_numPages)
   def numPages_=(theNumPages: Option[Int]) {
     theNumPages match {
       case None => _numPages = null
@@ -47,44 +47,44 @@ class Title {
     }
   }
   def numPages_=(theNumPages: Int) { _numPages = theNumPages }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _dimensions: String = _
-  def dimensions: Option[String] = Option(_dimensions)
+  def dimensions: Option[String] = if (_dimensions == null) None else Some(_dimensions)
   def dimensions_=(theDimensions: Option[String]) { _dimensions = theDimensions.getOrElse(null) }
   def dimensions_=(theDimensions: String) { _dimensions = theDimensions }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _weight: java.lang.Double = _
-  def weight: Option[Double] = Option(_weight)
+  def weight: Option[Double] = if (_weight == null) None else Some(_weight)
   def weight_=(theWeight: Option[Double]) {
     theWeight match {
-      case None => _weight = null
       case Some(w) => _weight = w
+      case _ => _weight = null
     }
   }
   def weight_=(theWeight: Double) { _weight = theWeight }
-  
+
   // @Persistent(defaultFetchGroup="true")
   // @Embedded  
   // private[this] var _image: PersistableFile = _
-  
-  @Column(allowsNull="false")
+
+  @Column(allowsNull = "false")
   private[this] var _verified: Boolean = _
   def verified: Boolean = _verified
   def verified_=(theVerified: Boolean) { _verified = theVerified }
-  
-  @Column(allowsNull="true")
+
+  @Column(allowsNull = "true")
   private[this] var _lastModified: java.sql.Date = _
   def lastModified: Option[java.sql.Date] = Option(_lastModified)
   def lastModified_=(theLastModified: Option[java.sql.Date]) { _lastModified = theLastModified.getOrElse(null) }
   def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
 
-  @Column(allowsNull="true")
+  @Column(allowsNull = "true")
   private[this] var _image: String = _
-  def image: Option[String] = Option(_image)
-  def image_=(theImage: Option[String]) {_image = theImage.getOrElse(null) }
-  def image_=(theImage: String) {_image = theImage}
+  def image: Option[String] = if (_image == null) None else Some(_image)
+  def image_=(theImage: Option[String]) { _image = theImage.getOrElse(null) }
+  def image_=(theImage: String) { _image = theImage }
 
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
     dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
@@ -101,59 +101,60 @@ class Title {
     image_=(image)
   }
 
-  def howManyCopies(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val pgVar = QPurchaseGroup.variable("pg")
-      val copyCand = QCopy.candidate
-      epm.query[Copy].filter(copyCand.isLost.eq(false).and(
-        copyCand.purchaseGroup.eq(pgVar)).and(
-        pgVar.title.eq(this))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def howManyCopies(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+      copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this)).and(copyCand.deleted.eq(false))).executeList().length
   }
 
-  def howManyCheckedOut(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val pgVar = QPurchaseGroup.variable("pg")
-      val copyCand = QCopy.candidate
-      val coVar = QCheckout.variable("co")
-      epm.query[Copy].filter(copyCand.isLost.eq(false).and(
+  def howManyCheckedOut(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    val coVar = QCheckout.variable("co")
+    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+      copyCand.deleted.eq(false)).and(
         copyCand.purchaseGroup.eq(pgVar)).and(
-        pgVar.title.eq(this)).and(
-        coVar.copy.eq(copyCand)).and(
-        coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+          pgVar.title.eq(this)).and(
+            coVar.copy.eq(copyCand)).and(
+              coVar.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().length
+  }
+
+  def howManyDeleted(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.deleted.eq(true).and(
+      copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this))).executeList().length
+  }
+
+  def howManyLost(): Int = {
+    val pgVar = QPurchaseGroup.variable("pg")
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.deleted.eq(false).and(
+      copyCand.purchaseGroup.eq(pgVar)).and(
+        pgVar.title.eq(this)).and(copyCand.isLost.eq(true))).executeList().length
   }
 
   def hasSameValues(other: Title): Boolean = {
-    this.name == other.name && this.publisher == other.publisher && 
-    this.author == other.author && this.isbn == other.isbn && 
-    this.numPages == other.numPages && this.dimensions == other.dimensions && 
-    this.weight == other.weight && this.verified == other.verified && 
-    this.lastModified == other.lastModified
+    this.name == other.name && this.publisher == other.publisher &&
+      this.author == other.author && this.isbn == other.isbn &&
+      this.numPages == other.numPages && this.dimensions == other.dimensions &&
+      this.weight == other.weight && this.verified == other.verified &&
+      this.lastModified == other.lastModified
   }
 }
 
 object Title {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Title] = {
-    def query(epm: ScalaPersistenceManager): Option[Title] = {
-      val cand = QTitle.candidate
-      epm.query[Title].filter(cand.id.eq(id)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getById(id: Long): Option[Title] = {
+    val cand = QTitle.candidate
+    DataStore.pm.query[Title].filter(cand.id.eq(id)).executeOption()
   }
 
-  def getByIsbn(isbn: String)(implicit pm: ScalaPersistenceManager = null): Option[Title] = {
-    def query(epm: ScalaPersistenceManager): Option[Title] = {
-      val cand = QTitle.candidate
-      epm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getByIsbn(isbn: String): Option[Title] = {
+    val cand = QTitle.candidate
+    DataStore.pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
   }
 
   def convertStrToDecimal(str: String): Double = {
@@ -165,18 +166,11 @@ object Title {
     dim._1 + " x " + dim._2 + " x " + dim._3
   }
 
-  def count()(implicit pm: ScalaPersistenceManager = null): Long = {
-    def query(epm: ScalaPersistenceManager): Long = {
-      val cand = QTitle.candidate
-      epm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def count(): Long = {
+    val cand = QTitle.candidate
+    DataStore.pm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
   }
 
-  // def setSizeCallback
-  // I have no idea what this is suposed to do
-  //TODO - Figure out what this does and write the implementation
 }
 
 trait QTitle extends PersistableExpression[Title] {
@@ -203,8 +197,6 @@ trait QTitle extends PersistableExpression[Title] {
 
   private[this] lazy val _weight: NumericExpression[Double] = new NumericExpressionImpl[Double](this, "_weight")
   def weight: NumericExpression[Double] = _weight
-
-  // Add image field
 
   private[this] lazy val _verified: BooleanExpression = new BooleanExpressionImpl(this, "_verified")
   def verified: BooleanExpression = _verified
