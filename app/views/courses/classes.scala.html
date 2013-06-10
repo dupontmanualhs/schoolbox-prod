@@ -1,4 +1,4 @@
-@(courses: List[models.courses.Course])(implicit req: util.DbRequest[_])
+@(courses: List[models.courses.Course])(implicit req: play.api.mvc.Request[_])
 @import helper._
 @main("Class List") {
 	<ul>

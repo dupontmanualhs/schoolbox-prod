@@ -1,9 +1,11 @@
-@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: util.DbRequest[_])
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
 
 @import util.Helpers._
 
 @main("Admin Conferences") {
-	<h1> Hello OB </h1>
+	<div class="page-header">
+		<h2> Hello OB </h2>
+	</div>
 	<p> What would you like to do? </p>
 	<table class="table table-striped">
 		<thead><th>Name</th><th>Activated?</th></thead>

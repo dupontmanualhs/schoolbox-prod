@@ -8,8 +8,8 @@ import java.sql.Timestamp
 import org.scalatest.FunSuite
 
 class ConferencesData extends FunSuite {
-	var testUser1 = new User("Xx_Ben420Koby_xX", "Benjamin", Some("Scott"), "Koby", Some("Ben"), Gender.MALE, "benkoby420@gmail.com", "swagyolo")
-	var testUser2 = new User("o'bizzle", "Todd", Some(""), "O'Bryan", Some("O'Bizzle"), Gender.MALE, "obizzle@aol.com", "password")
+	var testUser1 = new User("Xx_Ben420Koby_xX", "Benjamin", Some("Scott"), "Koby", Some("Ben"), Gender.Male, "benkoby420@gmail.com", "swagyolo")
+	var testUser2 = new User("o'bizzle", "Todd", Some(""), "O'Bryan", Some("O'Bizzle"), Gender.Male, "obizzle@aol.com", "password")
 	var testStudent1 = new Student(testUser1, "Koby420", "24601", 11, "Dream Team")
 	var testTeacher1 = new Teacher(testUser2, "O'Bizzle Fo Shizzle", "666")
 	

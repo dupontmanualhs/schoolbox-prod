@@ -10,7 +10,6 @@ import org.fluentlenium.core.filter.FilterConstructor._
 import org.scalatest.FunSuite
 import org.openqa.selenium.firefox.FirefoxDriver
 import org.openqa.selenium.interactions.Actions
-import util.DataStore
 
 // This is a conflict
 
@@ -19,7 +18,6 @@ class TestLogins extends FunSuite {
 /*
   test("have a log in menu available when you hover over the Accounts link") {
     running(TestServer(3333), driver) { browser =>
-      val actions = new Actions(browser.webDriver)
       browser.goTo("http://localhost:3333")
       assert(browser.title === "JCPS eSchool")
       val acct = browser.$("#menu_account").first
@@ -79,7 +77,22 @@ class TestLogins extends FunSuite {
   }
   
   test("user can change his/her password") {
-    
+    running(TestServer(3333), driver) { browser =>
+      browser.goTo("http://localhost:3333/login")
+      browser.$("#id_username").text("todd")
+      browser.$("#id_password").text("obr123")
+      browser.$("#id_password").submit
+      assert(browser.title === "Choose Perspective")
+      browser.$("#id_perspective").click
+      browser.$("#id_perspective").submit
+      browser.$("#menu_account").click
+      browser.$("#menu_changePassword").click
+      assert(browser.title === "Change Your Password")
+      browser.$("#id_currentPassword").text("obr123")
+      browser.$("#id_newPassword").text("obr456")
+      browser.$("#id_verifyNewPassword").text("obr456")
+      browser.$("#id_verifyNewPassword").submit
+    }
   }
   
   test("user with permission can change others' passwords") {

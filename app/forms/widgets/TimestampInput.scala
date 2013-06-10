@@ -13,8 +13,8 @@ class TimestampInput(
 	val Name: String = uuid.toString
 	
 	def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
-	  <input type="text" name={ name } placeholder="mm/dd/yy" class={"datepicker" + Name}>{ if (value.isEmpty) "" else value(0) }</input>
-	  <input type="text" name={ name } placeholder="hh:mm AM/PM" class={"timepicker" + Name}>{ if (value.isEmpty) "" else value(1) }</input>
+	  <input type="text" name={ name } placeholder="mm/dd/yyyy" class={"datepicker" + Name+" datepicker"} value={ if (value.isEmpty) "" else value(0) }></input> % attrs % reqAttr % attrList ++
+	  <input type="text" name={ name } placeholder="hh:mm AM/PM" class="timepicker" value={ if (value.isEmpty) "" else value(1) }></input> % attrs % reqAttr % attrList
 	}
 	
 	override def scripts: NodeSeq =
@@ -34,19 +34,21 @@ class TimestampInput(
   		  buttonText: 'Chooser'
       }});
     }});
+</script><script>
 	$(function() {{
-      $('.timepicker{Name}').timepicker({{
+      $('.timepicker').timepicker({{
 		showPeriod: true,
     	showLeadingZero: true
       }});
     }});
 	</script><script type="text/javascript">
-  	jQuery(function($){{
-  		$('.datepicker{Name}').mask('99/99/9999', {{placeholder:' '}});
+	jQuery(function($){{
+		$('.datepicker').mask('99/99/9999',{{placeholder:'_'}});
   	}});
   </script><script type="text/javascript">
-  	jQuery(function($){{
-  		$('.timepicker{Name}').mask('99:99 aa', {{placeholder:' '}});
+	jQuery(function($){{
+		$.mask.definitions['`']='[apAP]';
+		$('.timepicker').mask('99:99 `M',{{placeholder:'_'}});
   	}});
   </script>
 }

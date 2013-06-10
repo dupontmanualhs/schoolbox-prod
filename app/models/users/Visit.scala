@@ -1,6 +1,5 @@
 package models.users
 
-
 import java.util.UUID
 import models.mastery._
 import javax.jdo.annotations._
@@ -9,9 +8,11 @@ import org.datanucleus.query.typesafe._
 import scala.collection.immutable.HashSet
 import scala.collection.JavaConverters._
 import util.Helpers.{string2elem, string2nodeSeq}
-import util.{Menu, DataStore, ScalaPersistenceManager}
+import util.Menu
 import scala.xml.Elem
 import play.api.mvc.Call
+import scalajdo.DataStore
+import play.api.mvc.Request
 
 @PersistenceCapable(detachable="true")
 class Visit {
@@ -21,7 +22,7 @@ class Visit {
   private[this] var _user: User = _
   private[this] var _perspective: Perspective = _
   @Persistent(defaultFetchGroup = "true")
-  private[this] var _redirectURL: Option[Call] = _
+  private[this] var _redirectUrl: String = _
   @Element(types=Array(classOf[Permission]))
   @Join
   private[this] var _permissions: java.util.Set[Permission] = _
@@ -40,7 +41,7 @@ class Visit {
     permissions_=(Set[Permission]())
     menu_=(Menu.buildMenu(perspective))
     _sessionItems = new java.util.HashMap[String, Object]()  
-    _redirectURL = None
+    redirectUrl_=(None)
   }
   
   def uuid: String = _uuid
@@ -54,8 +55,9 @@ class Visit {
   def perspective: Option[Perspective] = if (_perspective == null) None else Some(_perspective)
   def perspective_=(maybePerspective: Option[Perspective]) { _perspective = maybePerspective.getOrElse(null) }
   
-  def redirectURL: Option[Call] = _redirectURL
-  def redirectURL_=(url: Call) {_redirectURL = Some(url)}
+  def redirectUrl: Option[Call] = Visit.string2Call(_redirectUrl)
+  def redirectUrl_=(url: Option[Call]) { _redirectUrl = url.map(Visit.call2String(_)).getOrElse(null) }
+  def redirectUrl_=(url: Call) { _redirectUrl = Visit.call2String(url) }
   
   def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
   def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }
@@ -88,20 +90,34 @@ class Visit {
 }
 
 object Visit {
-  def getByUuid(uuid: String)(implicit pm: ScalaPersistenceManager = null): Option[Visit] = {
-    def query(epm: ScalaPersistenceManager): Option[Visit] = {
-      epm.query[Visit].filter(QVisit.candidate.uuid.eq(uuid)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  val visitLength = 3600000 // one hour in milliseconds
+  
+  def getByUuid(uuid: String): Option[Visit] = {
+    DataStore.pm.query[Visit].filter(QVisit.candidate.uuid.eq(uuid)).executeOption()
   }
   
-  def allExpired(implicit pm: ScalaPersistenceManager = null): List[Visit] = {
-    def query(epm: ScalaPersistenceManager): List[Visit] = {
-      epm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
+  def getFromRequest[A](implicit req: Request[A]): Visit = {
+    req.session.get("visit").flatMap(
+        Visit.getByUuid(_)).filter(!_.isExpired).getOrElse(
+            new Visit(System.currentTimeMillis + Visit.visitLength, None, None))
+  }
+  
+  def allExpired: List[Visit] = {
+    DataStore.pm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
+  }
+  
+  private[Visit] def string2Call(str: String): Option[Call] = {
+    if (str == null) None
+    else {
+      val call: Elem = string2elem(str)
+      val method = (call \ "method")(0).text
+      val url = (call \ "url")(0).text
+      Some(new Call(method, url))
     }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  }
+  
+  private[Visit] def call2String(call: Call): String = {
+    <call><method>{ call.method }</method><url>{ call.url }</url></call>.toString
   }
 }
 

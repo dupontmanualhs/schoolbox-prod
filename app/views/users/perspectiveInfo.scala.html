@@ -1,6 +1,7 @@
-@()(implicit req: util.DbRequest[_])
+@()(implicit req: play.api.mvc.Request[_])
+@import models.users.Visit
 
-@(req.visit.perspective match {
+@(Visit.getFromRequest(req).perspective match {
   case Some(persp) => <ul class="nav">
   						<li class="dropdown" >
   							<a class="dropdown-toggle" data-toggle="dropdown" href="#" >

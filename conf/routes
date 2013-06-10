@@ -2,6 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+# WebJar assets
+GET		/webjars/*file				controllers.WebJarAssets.at(file)
+
 # Home page
 GET     /                           controllers.Application.index()
 
@@ -89,6 +92,44 @@ POST    /books/checkIn                          controllers.Books.checkIn()
 GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
 GET     /books/findAllBooksOut                  controllers.Books.findAllBooksOut
 POST    /books/findAllBooksOut                  controllers.Books.findAllBooksOut
+GET     /books/addPurchaseGroup                 controllers.Books.addPurchaseGroup
+POST    /books/addPurchaseGroup                 controllers.Books.addPurchaseGroup
+GET     /books/copyInfo/:barcode                controllers.Books.copyInfo(barcode: String)
+GET     /books/findCopyInfo                     controllers.Books.findCopyInfo
+POST    /books/findCopyInfo                     controllers.Books.findCopyInfo
+GET     /books/copyStatusByTitle/:isbn          controllers.Books.copyStatusByTitle(isbn: String)
+GET     /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
+POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
+GET     /books/inventory                        controllers.Books.inventory
+GET     /books/checkoutBulk                     controllers.Books.checkoutBulk
+POST    /books/checkoutBulk                     controllers.Books.checkoutBulk
+GET     /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
+POST    /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
+GET     /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
+POST    /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
+GET     /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
+POST    /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
+GET     /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
+POST    /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
+GET     /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSubmit(stu: String)
+POST    /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSubmit(stu: String)
+GET     /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
+POST    /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
+GET     /books/editTitle                        controllers.Books.editTitle
+POST    /books/editTitle                        controllers.Books.editTitle
+GET     /books/addTitleToPrintQueue/:isbn/:cR   controllers.Books.addTitleToPrintQueue(isbn: String, cR: String)
+POST    /books/addTitleToPrintQueue/:isbn/:cR   controllers.Books.addTitleToPrintQueue(isbn: String, cR: String)
+GET     /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrintQueueHelper
+POST    /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrintQueueHelper
+GET     /books/viewPrintQueue                   controllers.Books.viewPrintQueue
+GET     /books/removeFromPrintQueue/:id         controllers.Books.removeFromPrintQueue(id: Long)
+GET     /books/printEntireQueue                 controllers.Books.printEntireQueue
+GET     /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
+POST    /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
+GET     /books/deleteCopy/:barcode              controllers.Books.deleteCopy(barcode: String)
+GET     /books/deleteTitleHelper                controllers.Books.deleteTitleHelper
+POST    /books/deleteTitleHelper                controllers.Books.deleteTitleHelper
+GET     /books/deleteTitle/:isbn                controllers.Books.deleteTitle(isbn: String)
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
@@ -100,6 +141,8 @@ GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch
 POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
 GET     /lockers/schedule                       controllers.Lockers.schedule()
 GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
+
+
 
 #Conferences
 GET		/conferences							controllers.Conferences.index()
@@ -113,6 +156,15 @@ POST	/conferences/createSlot/:sessionId/:teacherId					controllers.Conferences.c
 GET		/conferences/deleteEvent/:eventId				controllers.Conferences.deleteEvent(eventId: Long)
 GET		/conferences/deleteSession/:sessionId			controllers.Conferences.deleteSession(sessionId: Long)
 GET		/conferences/deleteSlot/:slotId					controllers.Conferences.deleteSlot(slotId: Long)
+
+
+#Grades
+GET     /grades/home/:id						controllers.Grades.home(id: Long)
+GET     /grades/announcements/:id	    	    controllers.Grades.announcements(id: Long)
+GET     /grades/assignments/:id	    	    	controllers.Grades.assignments(id: Long)
+POST	/grades/assignments/:id					controllers.Grades.assignments(id: Long)
+GET     /grades/assignments/deleteAssignment/:id/:assignmentId    controllers.Grades.deleteAssignment(id: Long, assignmentId: Long)
+GET     /grades/gradebook/:id					controllers.Grades.gradebook(id: Long)
 GET		/conferences/teacherSession/:sessionId			controllers.Conferences.teacherSession(sessionId: Long)
 GET		/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)
 POST	/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)

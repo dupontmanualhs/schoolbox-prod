@@ -6,8 +6,8 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import scala.collection.JavaConverters._
-import util.ScalaPersistenceManager
-import util.DataStore
+
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable = "true")
 class QuizSection { //a section is a part of the quiz where students would be doing one sort of problem, so you could have a "simplifing exponents" section, and a "fill in the blank" section for a quiz
@@ -46,10 +46,8 @@ class QuizSection { //a section is a part of the quiz where students would be do
 }
 
 object QuizSection {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[QuizSection] = {
-    DataStore.execute { epm =>
-      epm.query[QuizSection].filter(QQuizSection.candidate.id.eq(id)).executeOption()
-    }
+  def getById(id: Long): Option[QuizSection] = {
+    DataStore.pm.query[QuizSection].filter(QQuizSection.candidate.id.eq(id)).executeOption()
   }
 }
 

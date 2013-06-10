@@ -3,9 +3,9 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.ScalaPersistenceManager
 import util.PersistableFile
-import util.DataStore
+
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
 class PurchaseGroup {
@@ -40,38 +40,24 @@ class PurchaseGroup {
         purchaseDate, title.name, price)
   }
 
-  def numCopies(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val copyCand = QCopy.candidate
-      epm.query[Copy].filter(copyCand.isLost.eq(false).and(
+  def numCopies(): Int = {
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
         copyCand.purchaseGroup.eq(this))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
 
-  def numLost(implicit pm: ScalaPersistenceManager = null): Int = {
-    def query(epm: ScalaPersistenceManager): Int = {
-      val copyCand = QCopy.candidate
-      epm.query[Copy].filter(copyCand.isLost.eq(true).and(
+  def numLost(): Int = {
+    val copyCand = QCopy.candidate
+    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(true).and(
         copyCand.purchaseGroup.eq(this))).executeList().length
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
   }
-
 }
 
 object PurchaseGroup {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[PurchaseGroup] = {
-    def query(epm: ScalaPersistenceManager): Option[PurchaseGroup] = {
-      val cand = QPurchaseGroup.candidate
-      epm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction( tpm => query(tpm) )
+  def getById(id: Long): Option[PurchaseGroup] = {
+    val cand = QPurchaseGroup.candidate
+    DataStore.pm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
   }
-
 }
 
 trait QPurchaseGroup extends PersistableExpression[PurchaseGroup] {

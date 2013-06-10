@@ -5,10 +5,12 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.Perspective
 
-@PersistenceCapable(detachable="true")
+import scalajdo.DataStore
+
+@PersistenceCapable(detachable = "true")
 class LabelQueueSet {
   @PrimaryKey
-  @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _perspective: Perspective = _
   private[this] var _title: Title = _
@@ -38,6 +40,10 @@ class LabelQueueSet {
 }
 
 object LabelQueueSet {
+  def getById(id: Long): Option[LabelQueueSet] = {
+    val cand = QLabelQueueSet.candidate
+    DataStore.pm.query[LabelQueueSet].filter(cand.id.eq(id)).executeOption()
+  }
 }
 
 trait QLabelQueueSet extends PersistableExpression[LabelQueueSet] {

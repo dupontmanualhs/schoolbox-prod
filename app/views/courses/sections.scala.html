@@ -1,4 +1,4 @@
-@(course: String, sections: List[models.courses.Section])(implicit req: util.DbRequest[_])
+@(course: String, sections: List[models.courses.Section])(implicit req: play.api.mvc.Request[_])
 
 @main("Sections of: " + course) {
 	
@@ -10,9 +10,9 @@
 		<table class="table table-striped table-condensed">
 			<thead><th>Teacher</th><th>Block</th><th>Term</th>
 			@for(s <- sections) {
-				@for(i <- 0 to (s.teachers(req.pm).length - 1)) {
+				@for(t <- s.teachers()) {
 					<tr>
-						<td>@s.teachers(req.pm)(i).user.first @s.teachers(req.pm).head.user.last</td>
+						<td>@t.user.displayName</td>
 						<td>@s.periods.toList.map(_.name).mkString(", ")</td>
 						<td>@s.terms.toList.map(_.name).mkString(", ")</td>
 					</tr>

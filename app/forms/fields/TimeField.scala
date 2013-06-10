@@ -6,9 +6,7 @@ import forms.widgets.TimeInput
 
 abstract class BaseTimeField[T](name: String)(implicit man: Manifest[T]) extends Field[T](name) {
   
-  val uuid = java.util.UUID.randomUUID()
-  
-  override def widget = new TimeInput(required, uuid=uuid)
+  override def widget = new TimeInput(required)
 }
 
 class TimeField(name: String) extends BaseTimeField[Time](name) {
@@ -17,6 +15,7 @@ class TimeField(name: String) extends BaseTimeField[Time](name) {
     try {
       var splitString = s(0).split(" ")
       var splitTime = splitString(0).split(":")
+      splitString(1)=splitString(1).capitalize
       
       var hours = splitTime(0).toInt
       if (hours == 12 && splitString(1) == "AM") hours = 0
@@ -25,7 +24,7 @@ class TimeField(name: String) extends BaseTimeField[Time](name) {
       splitTime(0) = hours.toString
       Right(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00"))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is a valid time"))
+      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is a valid time"))
     }
 }
 
@@ -38,6 +37,7 @@ class TimeFieldOptional(name: String) extends BaseTimeField[Option[Time]](name) 
     case Seq(str) => try {
       var splitString = s(0).split(" ")
       var splitTime = splitString(0).split(":")
+      splitString(1)=splitString(1).capitalize
       
       var hours = splitTime(0).toInt
       if (hours == 12 && splitString(1) == "AM") hours = 0
@@ -46,7 +46,7 @@ class TimeFieldOptional(name: String) extends BaseTimeField[Option[Time]](name) 
       splitTime(0) = hours.toString
       Right(Option(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00")))
     } catch {
-      case _ => Left(ValidationError("Please make sure input is a valid time"))
+      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is a valid time"))
     }
       
     }

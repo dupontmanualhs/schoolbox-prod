@@ -35,8 +35,8 @@ class DateInput(
   			}});
   		}});
   </script><script type="text/javascript">
-  	jQuery(function($){{
-  		$('.datepicker{Name}').mask('99/99/9999', {{placeholder:' '}});
+	jQuery(function($){{
+		$('.datepicker').mask('99/99/9999',{{placeholder:'_'}});
   	}});
   </script>
 
