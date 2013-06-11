@@ -25,6 +25,7 @@ object TestData {
     DataStore.withTransaction { implicit pm =>
       loadScheduleData(debug)
     }
+    DataStore.close()
   }
 
   def loadScheduleData(debug: Boolean = false)(implicit pm: ScalaPersistenceManager) {
