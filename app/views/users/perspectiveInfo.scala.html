@@ -1,6 +1,7 @@
-@()(implicit req: util.DbRequest[_])
+@()(implicit req: play.api.mvc.Request[_])
+@import models.users.Visit
 
-@(req.visit.perspective match {
+@(Visit.getFromRequest(req).perspective match {
   case Some(persp) => <ul class="nav">
   						<li class="dropdown" >
   							<a class="dropdown-toggle" data-toggle="dropdown" href="#" >
@@ -9,7 +10,7 @@
   							</a>
   							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
   								<li>
-  								    <a tabindex="-1" href={ controllers.routes.Users.changePassword().toString }>Change Password</a>
+  								    <a tabindex="-1" href={ controllers.routes.Users.settings().toString }>Settings</a>
   									<a tabindex="-1" href={ controllers.routes.Users.logout().toString }>Log out</a>
   								</li>
   							</ul>

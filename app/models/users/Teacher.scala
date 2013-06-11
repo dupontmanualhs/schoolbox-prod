@@ -3,8 +3,9 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.DataStore
-import util.ScalaPersistenceManager
+import models.courses._
+
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -27,22 +28,29 @@ class Teacher extends Perspective {
   def stateId: String = _stateId
   def stateId_=(theStateId: String) { _stateId = theStateId }
   
+  def allStudents(term: Term): List[Student] = {
+    //TODO
+    Nil
+  }
   def role = "Teacher"
+    
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Teacher]
+  override def equals(other: Any): Boolean = other match {
+    case that: Teacher => that.canEqual(this) && that.id == this.id
+    case _ => false
+  }
+  override def hashCode: Int = 41 * (41 + getClass.hashCode) + id.hashCode
 }
 
 object Teacher {
-  def getByUsername(username: String)(implicit pm: ScalaPersistenceManager = null): Option[Teacher] = {
-	def query(epm: ScalaPersistenceManager): Option[Teacher] = {
-	  User.getByUsername(username) match {
-      	case Some(user) => {
-      	  val cand = QTeacher.candidate
-      	  pm.query[Teacher].filter(cand.user.eq(user)).executeOption
-      	}
-      	case _ => None
-	  }
-    }
-	if(pm != null) query(pm)
-	else DataStore.withTransaction( tpm => query(tpm) )
+  def getByUsername(username: String): Option[Teacher] = {
+	User.getByUsername(username) match {
+      case Some(user) => {
+        val cand = QTeacher.candidate
+      	DataStore.pm.query[Teacher].filter(cand.user.eq(user)).executeOption
+      }
+      case _ => None
+	}
   }
 }
 

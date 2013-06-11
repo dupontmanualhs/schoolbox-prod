@@ -1,0 +1,118 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index()
+
+# Stub 
+GET     /stub						controllers.Application.stub()
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+#Users
+GET		/login						            controllers.Users.login()
+POST    /login						          controllers.Users.login()
+GET     /choosePerspective          controllers.Users.choosePerspective()
+POST    /choosePerspective          controllers.Users.choosePerspective() 
+GET     /logout                     controllers.Users.logout()
+#GET    /settings                   controllers.Users.settings()
+#POST   /settings                   controllers.Users.updateSettings()
+GET     /changePassword             controllers.Users.changePassword()
+POST    /changePassword             controllers.Users.changePassword()
+GET     /listUsers                  controllers.Users.list()
+
+#Courses
+# current schedules
+GET	    /schedule/teacher/:username             controllers.Courses.getTeacherSchedule1(username)
+GET     /schedule/student/:username             controllers.Courses.getStudentSchedule1(username)
+GET 	/schedule/mySchedule					controllers.Courses.getMySchedule()
+# schedules for given term
+GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSchedule2(username, termSlug)
+GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSchedule2(username, termSlug)
+# section classes
+GET		/classes								controllers.Courses.classList()
+GET		/classes/:courseId						controllers.Courses.sectionTable(courseId: Long)
+# section roster
+GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
+
+
+#Assessments
+GET     /assessments                            controllers.Assessments.menu()
+POST    /assessments                            controllers.Assessments.checkAnswer(temp: Int)
+GET     /assessments/newQuestion                controllers.Assessments.newQuestion()
+
+#Assignments
+GET     /assignments/doTask/:taskId             controllers.Assignments.doTask(taskId: Long)
+POST    /assignments/check/:taskId              controllers.Assignments.check(taskId: Long)
+
+#Math
+GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
+GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
+POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
+GET     /math/random                            controllers.Math.randomProblem()
+POST    /math/random                            controllers.Math.checkAnswer(temp)
+
+#Books
+GET     /books/addTitle                         controllers.Books.addTitle()
+POST    /books/addTitle                         controllers.Books.addTitle()
+GET     /books/confirmation/                    controllers.Books.confirmation()
+POST    /books/confirmation/                    controllers.Books.confirmationSubmit()
+GET     /books/verifyTitle/:isbnNum             controllers.Books.verifyTitle(isbnNum: Long)
+POST    /books/verifyTitle/:isbnNum             controllers.Books.verifyTitleSubmit(isbnNum: Long) 
+GET     /books/addCopiesToPurchaseGroup/:pgId   controllers.Books.addCopiesToPg(pgId: Long)
+POST    /books/addCopiesToPurchaseGroup/:pgId   controllers.Books.addCopiesToPgSubmit(pgId: Long)
+GET     /books/addPurchaseGroup/title/:titleId  controllers.Books.addPurchaseGroup(titleId: Long)
+POST    /books/addPurchaseGroup/title/:titleId  controllers.Books.addPurchaseGroupSubmit(titleId: Long)
+GET     /books/addLabelsToQueue                 controllers.Books.addLabelsToQueue
+POST    /books/addLabelsToQueue                 controllers.Books.addLabelsToQueueSubmit
+GET     /books/printCenter                      controllers.Books.printCenter
+POST    /books/printCenter                      controllers.Books.printCenterSubmit
+POST    /books/bulkCheckoutHelper               controllers.Books.bulkCheckoutHelper
+GET     /books/bulkCheckout                     controllers.Books.bulkCheckout
+POST    /books/bulkCheckout                     controllers.Books.bulkCheckoutSubmit
+GET     /books/checkOut                         controllers.Books.checkout
+POST    /books/checkOut                         controllers.Books.checkoutSubmit
+GET     /books/lookup                           controllers.Books.lookup
+GET     /books/inspect                          controllers.Books.inspect
+GET     /books/findBooksOut                     controllers.Books.findBooksOut
+POST    /books/findBooksOut                     controllers.Books.findBooksOutSubmit
+GET     /books/booksOut/:perspectiveId/books    controllers.Books.booksOut(perspectiveId: Long)
+GET     /books/findCopyHistory                  controllers.Books.findCopyHistory
+POST    /books/findCopyHistory                  controllers.Books.findCopyHistory
+GET     /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
+POST    /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
+GET     /books/copyHistory/:copyId              controllers.Books.copyHistory(copyId: Long)
+#*      /books/confirmCopyLost/:copyId          controllers.Books.confirmCopyLost(copyId: Long)
+GET     /books/checkIn                          controllers.Books.checkIn
+POST    /books/checkIn                          controllers.Books.checkInSubmit
+#*      /books/checkInLostCopy/:copyId          controllers.Books.checkInLostCopy(copyId: Long)
+GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
+#GET    /books/allBooksOut                      controllers.Books.allBooksOut(13)
+GET     /books/delete/:id                       controllers.Books.delete(id: Long)
+POST    /books/delete/:id                       controllers.Books.deleteSubmit(id: Long)
+GET     /books/confirmDelete                    controllers.Books.confirmDelete
+POST    /books/confirmDelete                    controllers.Books.confirmDeleteSubmit
+POST    /books/checkoutHistory                  controllers.Books.checkoutHistorySubmit
+GET     /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudents
+POST    /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudentsSubmit
+GET     /books/copyStatusByTitle                controllers.Books.copyStatusByTitle
+POST    /books/copyStatusOutByTitle             controllers.Books.copyStatusByTitleSubmit
+GET     /books/statistics                       controllers.Books.statistics
+GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckouts(perspectiveId: Long)
+GET     /books/checkoutHistory/:perspectiveId   controllers.Books.checkoutHistory(perspectiveId: Long)
+GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
+POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
+
+#Lockers
+GET     /lockers                                controllers.Lockers.index()
+GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
+GET     /lockers/locker/:lockerId               controllers.Lockers.getLocker(lockerId: Long)
+POST    /lockers/locker/:lockerId               controllers.Lockers.getLocker(lockerId: Long)
+GET     /lockers/findLocker                     controllers.Lockers.findLocker()
+POST    /lockers/findLocker                     controllers.Lockers.findLocker()
+GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
+POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
+#GET    /lockers/lockerPicker                   controllers.Lockers.lockerPicker()
+#POST   /lockers/lockerPicker                   controllers.Lockers.lockerPickerSubmit()

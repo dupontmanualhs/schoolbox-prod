@@ -1,0 +1,15 @@
+@(list: List[String])(implicit req: play.api.mvc.Request[_])
+@import helper._
+
+@main("Form Tester Answers Strings"){
+<table>
+	<thead>
+		<th>Response</th>
+	</thead>
+	@for(item <- list) {
+	<tr>
+		<td>@item</td>
+	</tr>
+	}
+</table>
+}

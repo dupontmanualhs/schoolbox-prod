@@ -1,0 +1,33 @@
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
+
+@import util.Helpers._
+
+@main("Admin Conferences") {
+	<div class="page-header">
+		<h2> Hello OB </h2>
+	</div>
+	<p> What would you like to do? </p>
+	<table class="table table-striped">
+		<thead><th>Name</th><th>Activated?</th></thead>
+		@for(event <- events) {
+			<tr>
+			<td>@event.name</td>
+			<td>@{if (event.isActive) "Yes" else "No"}</td>
+			<td><a class="confirmLink btn" href=@routes.Conferences.deleteEvent(event.id)>Delete</a></td>
+			</tr>
+			@for(session <- sessions if session.event == event) {
+			<tr>
+			<td>@toAmericanString(session.date)</td>
+			<td>@toAmericanString(session.cutoff)</td>
+			<td>@{toAmericanString(session.startTime) + " - " + toAmericanString(session.endTime)}</td>
+			<td><a class="confirmLink btn" href=@routes.Conferences.deleteSession(session.id)>Delete</a></td>
+			</tr>
+			}
+			<tr>
+			<td><a class="btn btn-small" href=@controllers.routes.Conferences.createSession(event.id)>Add a new session</a></td>
+			</tr>
+		}
+		</table>
+	<a class ="btn" href=@controllers.routes.Conferences.createEvent() >Create An Event</a>
+	<a class ="btn" href=@controllers.routes.Conferences.viewAsTeacher() >View As Teacher</a>
+}

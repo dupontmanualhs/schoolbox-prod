@@ -1,0 +1,10 @@
+@(quiz: models.mastery.Quiz, myForm: forms.Binding)(implicit req: play.api.mvc.Request[_]) 
+
+@import helper._ 
+
+@mainWithScripts(quiz.toString, Html(myForm.form.scripts.toString)) { 
+	<h1>@quiz</h1>
+	<br />
+    @myForm.render()
+
+}

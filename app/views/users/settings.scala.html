@@ -1,0 +1,7 @@
+@(pwForm: forms.Binding, themeForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+
+@main("Change your settings") {
+	@pwForm.render(Some(controllers.routes.Users.changePassword.url), Some("Change your Password"))
+	@themeForm.render(Some(controllers.routes.Users.changeTheme.url), Some("Set your Theme"))
+	</div>
+}

@@ -1,5 +1,6 @@
-@(perspectiveHistoryLookupForm: forms.Binding)(implicit req: util.DbRequest[_])
+@(perspectiveHistoryLookupForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
 @main("Find Checkout History") {
-  @perspectiveHistoryLookupForm.asHtml
+  @perspectiveHistoryLookupForm.render()
+</div>
 }

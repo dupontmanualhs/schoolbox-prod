@@ -1,0 +1,6 @@
+@(eventForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+
+@main("Create a conferencing event") {
+  <h2>Create Event</h2>
+  @eventForm.render()
+}

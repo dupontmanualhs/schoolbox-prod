@@ -134,6 +134,8 @@ object ExactNumber {
 class Fraction(val numerator: BigInt, val denominator: BigInt) extends ExactNumber {
   def getNumerator = numerator
   def getDenominator = denominator
+  
+  def negate = Fraction(-1 * numerator, denominator)
 
   def toOperation: Quotient = Quotient(Integer(numerator), Integer(denominator))
 

@@ -3,10 +3,9 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.DataStore
 import play.api.mvc.{RequestHeader, Session}
-import util.ScalaPersistenceManager
-import util.DbRequest
+import scalajdo.DataStore
+import play.api.mvc.Request
 
 @PersistenceCapable(detachable="true")
 class User extends Ordered[User] {
@@ -28,7 +27,9 @@ class User extends Ordered[User] {
 
   private[this] var _preferred: String = _
 
-  private[this] var _gender: Gender = _
+  private[this] var _gender: Int = _
+  
+  private[this] var _theme: String = _
 
   @Persistent(defaultFetchGroup="true")
   @Embedded
@@ -39,7 +40,7 @@ class User extends Ordered[User] {
   private[this] var _password: Password = _
   
   def this(username: String, first: String, middle: Option[String], last: String,
-      preferred: Option[String], gender: Gender, email: String, password: String) = {
+      preferred: Option[String], gender: Gender.Gender, email: String, password: String) = {
     this()
     username_=(username)
     first_=(first)
@@ -49,6 +50,7 @@ class User extends Ordered[User] {
     gender_=(gender)
     email_=(new Email(email))
     password_=(new Password(password))
+    theme_=("default")
   }
 
   def id: Long = _id
@@ -68,8 +70,11 @@ class User extends Ordered[User] {
   def preferred: Option[String] = if (_preferred == null) None else Some(_preferred)
   def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
   
-  def gender: Gender = _gender
-  def gender_=(theGender: Gender) { _gender = gender }
+  def gender: Gender.Gender = Gender(_gender)
+  def gender_=(theGender: Gender.Gender) { _gender = theGender.id }
+  
+  def theme: String = _theme
+  def theme_=(theTheme: String) {_theme = theTheme}
   
   def email: Option[String] = if (_email == null) None else Some(_email.value)
   def email_=(theEmail: Email) { _email = theEmail }
@@ -99,40 +104,29 @@ class User extends Ordered[User] {
     "User(ID: %d, %s)".format(id, formalName)
   }
   
-  def perspectives(implicit pm: ScalaPersistenceManager = null): List[Perspective] = {
-    DataStore.execute { epm =>
-      val cand = QPerspective.candidate
-      epm.query[Perspective].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
-    }
+  def perspectives(): List[Perspective] = {
+    val cand = QPerspective.candidate
+    DataStore.pm.query[Perspective].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
   }
 }
 
 object User {  
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
-    DataStore.execute { epm =>
-      val cand = QUser.candidate
-      epm.query[User].filter(cand.id.eq(id)).executeOption()
-    }
+  def getById(id: Long): Option[User] = {
+    val cand = QUser.candidate
+    DataStore.pm.query[User].filter(cand.id.eq(id)).executeOption()
   }
 
-  def getByUsername(username: String)(implicit ipm: ScalaPersistenceManager = null): Option[User] = {
-    DataStore.execute { epm => 
-      val cand = QUser.candidate
-      epm.query[User].filter(cand.username.eq(username)).executeOption()
-    }
+  def getByUsername(username: String): Option[User] = {
+    val cand = QUser.candidate
+    DataStore.pm.query[User].filter(cand.username.eq(username)).executeOption()
   }
   
-  def current(implicit request: DbRequest[_]): Option[User] = {
-    request.visit.user
-    /* request.session.get("username") match {
-      case None => None
-      case Some(username) => getByUsername(username)(request.pm)
-    } 
-    */
+  def current(implicit req: Request[_]): Option[User] = {
+    Visit.getFromRequest(req).user
   }
 
   
-  def authenticate(username: String, password: String)(implicit pm: ScalaPersistenceManager = null): Option[User] = {
+  def authenticate(username: String, password: String): Option[User] = {
     getByUsername(username) match {
 	  case Some(user) => authenticate(user, password)
       case _ => None
@@ -167,8 +161,12 @@ trait QUser extends PersistableExpression[User] {
   private[this] lazy val _preferred: StringExpression = new StringExpressionImpl(this, "_preferred")
   def preferred: StringExpression = _last
   
-  private[this] lazy val _gender: ObjectExpression[Gender] = new ObjectExpressionImpl[Gender](this, "_gender")
-  def gender: ObjectExpression[Gender] = _gender
+  // TODO: need a class for EnumerationExpressions
+  //private[this] lazy val _gender: ObjectExpression[Gender] = new ObjectExpressionImpl[Gender](this, "_gender")
+  //def gender: ObjectExpression[Gender] = _gender
+  
+  private[this] lazy val _theme: StringExpression = new StringExpressionImpl(this, "_theme")
+  def theme: StringExpression = _theme
   
   private[this] lazy val _email: ObjectExpression[Email] = new ObjectExpressionImpl[Email](this, "_email")
   def email: ObjectExpression[Email] = _email

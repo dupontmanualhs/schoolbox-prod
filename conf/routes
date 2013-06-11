@@ -2,6 +2,9 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+# WebJar assets
+GET		/webjars/*file				controllers.WebJarAssets.at(file)
+
 # Home page
 GET     /                           controllers.Application.index()
 
@@ -11,32 +14,36 @@ GET     /stub						controllers.Application.stub()
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
+#form example
+GET		/this/is/spartas/formtest				controllers.Application.formTest()
+POST	/this/is/spartas/formtest				controllers.Application.formTest()
+
 #Users
 GET		/login						            controllers.Users.login()
-POST    /login						          controllers.Users.login()
-GET     /choosePerspective          controllers.Users.choosePerspective()
-POST    /choosePerspective          controllers.Users.choosePerspective() 
-GET     /logout                     controllers.Users.logout()
-#GET    /settings                   controllers.Users.settings()
-#POST   /settings                   controllers.Users.updateSettings()
-GET     /changePassword             controllers.Users.changePassword()
-POST    /changePassword             controllers.Users.changePassword()
-GET     /listUsers                  controllers.Users.list()
+POST    /login						          	controllers.Users.login()
+GET     /choosePerspective          		  	controllers.Users.choosePerspective()
+POST    /choosePerspective         				controllers.Users.choosePerspective() 
+GET     /logout                     			controllers.Users.logout()
+GET     /settings                  				controllers.Users.settings()
+POST    /changeTheme   			                controllers.Users.changeTheme()
+GET     /changePassword         			    controllers.Users.changePassword()
+POST    /changePassword             			controllers.Users.changePassword()
+GET     /listUsers                 				controllers.Users.list()
+
 
 #Courses
 # current schedules
-GET	    /schedule/teacher/:username             controllers.Courses.getTeacherSchedule1(username)
+GET         /schedule/teacher/:username             controllers.Courses.getTeacherSchedule1(username)
 GET     /schedule/student/:username             controllers.Courses.getStudentSchedule1(username)
-GET 	/schedule/mySchedule					controllers.Courses.getMySchedule()
+GET     /schedule/mySchedule                                    controllers.Courses.getMySchedule()
 # schedules for given term
-GET     /schedule/teacher/:termSlug/:username	controllers.Courses.getTeacherSchedule2(username, termSlug)
+GET     /schedule/teacher/:termSlug/:username   controllers.Courses.getTeacherSchedule2(username, termSlug)
 GET     /schedule/student/:termSlug/:username   controllers.Courses.getStudentSchedule2(username, termSlug)
 # section classes
-GET		/classes								controllers.Courses.classList()
-GET		/classes/:courseId						controllers.Courses.sectionTable(courseId: Long)
+GET             /classes                                                                controllers.Courses.classList()
+GET             /classes/:courseId                                              controllers.Courses.sectionTable(courseId: Long)
 # section roster
 GET     /roster/:sectionId                      controllers.Courses.roster(sectionId: Long)
-
 
 #Assessments
 GET     /assessments                            controllers.Assessments.menu()
@@ -49,64 +56,82 @@ POST    /assignments/check/:taskId              controllers.Assignments.check(ta
 
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
-GET 	/tatro/mastery/quiz						controllers.Mastery.displayQuiz(quizId: Long)  
-#POST   /tatro/mastery/quizReport               controllers.Mastery.checkAnswers(quizName)                  
-GET     /math/random                            controllers.Math.randomProblem()
-POST    /math/random                            controllers.Math.checkAnswer(temp)
+GET 	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
+GET		/tatro/mastery/test						controllers.Mastery.testDataBase()  
+POST	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
+GET     /tatro/mastery/scoreReport				controllers.Mastery.checkAnswers()
+#GET     /math/random                            controllers.Math.randomProblem()
+#POST    /math/random                            controllers.Math.checkAnswer(temp)
+
+#Blogs
+GET     /blog/editor                            controllers.Blogs.editor()
+POST    /blog/editor                            controllers.Blogs.testSubmit()
+GET     /blog/me                                controllers.Blogs.listCurrentUserBlogs
+GET     /blog/user/:id                          controllers.Blogs.listBlogsByPerspectiveId(id: Long)
+GET     /blog/:id                               controllers.Blogs.showBlog(id: Long)
+GET     /blog/:id/new                           controllers.Blogs.createPost(id: Long)
+POST    /blog/:id/new                           controllers.Blogs.createPost(id: Long)
 
 #Books
 GET     /books/addTitle                         controllers.Books.addTitle()
 POST    /books/addTitle                         controllers.Books.addTitle()
-GET     /books/confirmation/                    controllers.Books.confirmation()
-POST    /books/confirmation/                    controllers.Books.confirmationSubmit()
-GET     /books/verifyTitle/:isbnNum             controllers.Books.verifyTitle(isbnNum: Long)
-POST    /books/verifyTitle/:isbnNum             controllers.Books.verifyTitleSubmit(isbnNum: Long) 
-GET     /books/addCopiesToPurchaseGroup/:pgId   controllers.Books.addCopiesToPg(pgId: Long)
-POST    /books/addCopiesToPurchaseGroup/:pgId   controllers.Books.addCopiesToPgSubmit(pgId: Long)
-GET     /books/addPurchaseGroup/title/:titleId  controllers.Books.addPurchaseGroup(titleId: Long)
-POST    /books/addPurchaseGroup/title/:titleId  controllers.Books.addPurchaseGroupSubmit(titleId: Long)
-GET     /books/addLabelsToQueue                 controllers.Books.addLabelsToQueue
-POST    /books/addLabelsToQueue                 controllers.Books.addLabelsToQueueSubmit
-GET     /books/printCenter                      controllers.Books.printCenter
-POST    /books/printCenter                      controllers.Books.printCenterSubmit
-POST    /books/bulkCheckoutHelper               controllers.Books.bulkCheckoutHelper
-GET     /books/bulkCheckout                     controllers.Books.bulkCheckout
-POST    /books/bulkCheckout                     controllers.Books.bulkCheckoutSubmit
-GET     /books/checkOut                         controllers.Books.checkout
-POST    /books/checkOut                         controllers.Books.checkoutSubmit
-GET     /books/lookup                           controllers.Books.lookup
-GET     /books/inspect                          controllers.Books.inspect
-GET     /books/findBooksOut                     controllers.Books.findBooksOut
-POST    /books/findBooksOut                     controllers.Books.findBooksOutSubmit
-GET     /books/booksOut/:perspectiveId/books    controllers.Books.booksOut(perspectiveId: Long)
 GET     /books/findCopyHistory                  controllers.Books.findCopyHistory
 POST    /books/findCopyHistory                  controllers.Books.findCopyHistory
 GET     /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
 POST    /books/findCurrentCheckouts             controllers.Books.findCurrentCheckouts
-GET     /books/copyHistory/:copyId              controllers.Books.copyHistory(copyId: Long)
-#*      /books/confirmCopyLost/:copyId          controllers.Books.confirmCopyLost(copyId: Long)
-GET     /books/checkIn                          controllers.Books.checkIn
-POST    /books/checkIn                          controllers.Books.checkInSubmit
-#*      /books/checkInLostCopy/:copyId          controllers.Books.checkInLostCopy(copyId: Long)
-GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
-#GET    /books/allBooksOut                      controllers.Books.allBooksOut(13)
-GET     /books/delete/:id                       controllers.Books.delete(id: Long)
-POST    /books/delete/:id                       controllers.Books.deleteSubmit(id: Long)
-GET     /books/confirmDelete                    controllers.Books.confirmDelete
-POST    /books/confirmDelete                    controllers.Books.confirmDeleteSubmit
-POST    /books/checkoutHistory                  controllers.Books.checkoutHistorySubmit
-GET     /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudents
-POST    /books/checkoutsTeacherStudents         controllers.Books.checkoutsByTeacherStudentsSubmit
-GET     /books/copyStatusByTitle                controllers.Books.copyStatusByTitle
-POST    /books/copyStatusOutByTitle             controllers.Books.copyStatusByTitleSubmit
-GET     /books/statistics                       controllers.Books.statistics
-GET     /books/currentCheckouts/:perspectiveId  controllers.Books.currentCheckouts(perspectiveId: Long)
-GET     /books/checkoutHistory/:perspectiveId   controllers.Books.checkoutHistory(perspectiveId: Long)
+GET     /books/copyHistory/:barcode             controllers.Books.copyHistory(barcode: String)
+POST    /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
+GET     /books/currentCheckouts/:studentId      controllers.Books.currentCheckouts(studentId: String)
+GET     /books/checkoutHistory/:studentId       controllers.Books.checkoutHistory(studentId: String)
 GET     /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
 POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHistory
+GET     /books/checkout                         controllers.Books.checkout()
+POST    /books/checkout                         controllers.Books.checkout()
+GET     /books/checkIn                          controllers.Books.checkIn()
+POST    /books/checkIn                          controllers.Books.checkIn()
+GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
+GET     /books/findAllBooksOut                  controllers.Books.findAllBooksOut
+POST    /books/findAllBooksOut                  controllers.Books.findAllBooksOut
+GET     /books/addPurchaseGroup                 controllers.Books.addPurchaseGroup
+POST    /books/addPurchaseGroup                 controllers.Books.addPurchaseGroup
+GET     /books/copyInfo/:barcode                controllers.Books.copyInfo(barcode: String)
+GET     /books/findCopyInfo                     controllers.Books.findCopyInfo
+POST    /books/findCopyInfo                     controllers.Books.findCopyInfo
+GET     /books/copyStatusByTitle/:isbn          controllers.Books.copyStatusByTitle(isbn: String)
+GET     /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
+POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
+GET     /books/inventory                        controllers.Books.inventory
+GET     /books/checkoutBulk                     controllers.Books.checkoutBulk
+POST    /books/checkoutBulk                     controllers.Books.checkoutBulk
+GET     /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
+POST    /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
+GET     /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
+POST    /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
+GET     /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
+POST    /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
+GET     /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
+POST    /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
+GET     /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSubmit(stu: String)
+POST    /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSubmit(stu: String)
+GET     /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
+POST    /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
+GET     /books/editTitle                        controllers.Books.editTitle
+POST    /books/editTitle                        controllers.Books.editTitle
+GET     /books/addTitleToPrintQueue/:isbn/:cR   controllers.Books.addTitleToPrintQueue(isbn: String, cR: String)
+POST    /books/addTitleToPrintQueue/:isbn/:cR   controllers.Books.addTitleToPrintQueue(isbn: String, cR: String)
+GET     /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrintQueueHelper
+POST    /books/addTitleToPrintQueueHelper       controllers.Books.addTitleToPrintQueueHelper
+GET     /books/viewPrintQueue                   controllers.Books.viewPrintQueue
+GET     /books/removeFromPrintQueue/:id         controllers.Books.removeFromPrintQueue(id: Long)
+GET     /books/printEntireQueue                 controllers.Books.printEntireQueue
+GET     /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
+POST    /books/deleteCopyHelper                 controllers.Books.deleteCopyHelper
+GET     /books/deleteCopy/:barcode              controllers.Books.deleteCopy(barcode: String)
+GET     /books/deleteTitleHelper                controllers.Books.deleteTitleHelper
+POST    /books/deleteTitleHelper                controllers.Books.deleteTitleHelper
+GET     /books/deleteTitle/:isbn                controllers.Books.deleteTitle(isbn: String)
 
 #Lockers
-GET     /lockers                                controllers.Lockers.index()
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
 GET     /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
 POST    /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
@@ -120,3 +145,31 @@ GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom
 #Payment
 GET		/payment								controllers.Payment.payForm()
 POST	/payment								controllers.Payment.payForm()
+
+
+#Conferences
+GET		/conferences							controllers.Conferences.index()
+GET		/conferences/teacher 					controllers.Conferences.viewAsTeacher()
+GET		/conferences/createEvent				controllers.Conferences.createEvent()
+POST	/conferences/createEvent				controllers.Conferences.createEvent()
+GET		/conferences/createSession/:eventId				controllers.Conferences.createSession(eventId: Long)
+POST	/conferences/createSession/:eventId				controllers.Conferences.createSession(eventId: Long)
+GET		/conferences/createSlot/:sessionId/:teacherId		controllers.Conferences.createSlot(sessionId: Long, teacherId: Long)
+POST	/conferences/createSlot/:sessionId/:teacherId					controllers.Conferences.createSlot(sessionId: Long, teacherId: Long)
+GET		/conferences/deleteEvent/:eventId				controllers.Conferences.deleteEvent(eventId: Long)
+GET		/conferences/deleteSession/:sessionId			controllers.Conferences.deleteSession(sessionId: Long)
+GET		/conferences/deleteSlot/:slotId					controllers.Conferences.deleteSlot(slotId: Long)
+
+
+#Grades
+GET     /grades/home/:id						controllers.Grades.home(id: Long)
+GET     /grades/announcements/:id	    	    controllers.Grades.announcements(id: Long)
+GET     /grades/assignments/:id	    	    	controllers.Grades.assignments(id: Long)
+POST	/grades/assignments/:id					controllers.Grades.assignments(id: Long)
+GET     /grades/assignments/deleteAssignment/:id/:assignmentId    controllers.Grades.deleteAssignment(id: Long, assignmentId: Long)
+GET     /grades/gradebook/:id					controllers.Grades.gradebook(id: Long)
+GET		/conferences/teacherSession/:sessionId			controllers.Conferences.teacherSession(sessionId: Long)
+GET		/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)
+POST	/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)
+GET		/conferences/deactivateTeacherSession/:sessionId	controllers.Conferences.deactivateTeacherSession(sessionId: Long)
+GET		/conferences/classList/:sessionId		controllers.Conferences.classList(sessionId: Long)

@@ -4,8 +4,13 @@ import Numeric._
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.AddressException
 
-abstract class Validator[T] extends Function[T, ValidationError] {
-}
+/**
+ * A Validator is a Function from T to ValidationError
+ * If the value is valid, the function should return ValidationError[Nil],
+ * otherwise it should return a list of messages explaining why the input
+ * is invalid
+ */
+abstract class Validator[T] extends Function[T, ValidationError]
 
 object Validator {
   def apply[T](f: Function[T, ValidationError]): Validator[T] = {

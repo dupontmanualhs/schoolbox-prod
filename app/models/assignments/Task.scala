@@ -5,8 +5,8 @@ import javax.jdo.annotations._
 import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import util.ScalaPersistenceManager
-import util.DataStore
+
+import scalajdo.DataStore
 
 @PersistenceCapable(detachable = "true")
 class Task {
@@ -31,12 +31,8 @@ class Task {
 }
 
 object Task {
-  def getById(id: Long)(implicit pm: ScalaPersistenceManager = null): Option[Task] = {
-    def query(epm: ScalaPersistenceManager): Option[Task] = {
-      pm.query[Task].filter(QTask.candidate.id.eq(id)).executeOption()
-    }
-    if (pm != null) query(pm)
-    else DataStore.withTransaction(tpm => query(tpm))
+  def getById(id: Long): Option[Task] = {
+    DataStore.pm.query[Task].filter(QTask.candidate.id.eq(id)).executeOption()
   }
 }
 

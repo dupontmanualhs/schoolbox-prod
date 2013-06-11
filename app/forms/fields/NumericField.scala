@@ -2,6 +2,7 @@ package forms.fields
 
 import forms.widgets._
 import forms.validators._
+import scala.reflect.runtime.universe._
 
 // TODO: use type="number" from HTML5
 trait BaseNumericField[T] {
@@ -11,6 +12,7 @@ trait BaseNumericField[T] {
 
 class NumericField[T](name: String)(implicit n: Numeric[T], man: Manifest[T]) 
     extends Field[T](name) with BaseNumericField[T] {
+  override def widget = new TextInput(required, _inputType = "number")
   def asValue(strs: Seq[String]): Either[ValidationError, T] = {
     val (toT, errorMsg) = NumericField.conversionFunction[T]
     strs match {
@@ -23,12 +25,13 @@ class NumericField[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
     }
   }
   
-  def validators = NumericField.minAndMaxValidators(minValue, maxValue)
+  override def validators = NumericField.minAndMaxValidators(minValue, maxValue)
 }
 
 class NumericFieldOptional[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
     extends Field[Option[T]](name) with BaseNumericField[T] {
   override def required = false
+  override def widget = new TextInput(required, _inputType = "number")
   
   def asValue(strs: Seq[String]): Either[ValidationError, Option[T]] = {
     val (toT, errorMsg) = NumericField.conversionFunction[T]
@@ -43,7 +46,7 @@ class NumericFieldOptional[T](name: String)(implicit n: Numeric[T], man: Manifes
     }
   }
   
-  def validators = OptionValidator(NumericField.minAndMaxValidators(minValue, maxValue))
+  override def validators = OptionValidator(NumericField.minAndMaxValidators(minValue, maxValue))
 }
 
 object NumericField {
@@ -59,10 +62,10 @@ object NumericField {
     min ++ max
   }
   
-  def conversionFunction[T](implicit man: Manifest[T]): ((String => T), (String => String)) = {
-    if (man.erasure == classOf[Int]) {
+  def conversionFunction[T](implicit tag: TypeTag[T]): ((String => T), (String => String)) = {
+    if (typeOf[T] == typeOf[Int]) {
       ((s: String) => s.toInt.asInstanceOf[T], (s: String) => "This value must be a positive or negative whole number.")
-    } else if (man.erasure == classOf[Double]) {
+    } else if (typeOf[T] == typeOf[Double]) {
       ((s: String) => s.toDouble.asInstanceOf[T], (s: String) => "This value must be a number.")
     } else {
       throw new Exception("Numeric field only supported for Int and Double.")

@@ -17,102 +17,6 @@ body{
  	padding-top:50px;
 }
 
-/* Start hover panels
-*===================
-*/
-
-.hover-panel {
-    text-decoration: none;
-    background-color: #E6E2DF;
-    /*background-image: url(http://kwout.com/cutout/x/hh/hp/mv7_bor.jpg);
-    */
-    background-position: 292px 10px;
-    background-repeat: no-repeat;
-    color: #B2AAA4;
-    display: block;
-    float: left;
-    border: 10px solid #B2AAA4;
-    margin: 0 10px 10px 0;
-     -moz-transition: all 0.2s ease; /* FF3.7+ */
-       -o-transition: all 0.2s ease; /* Opera 10.5 */
-  -webkit-transition: all 0.2s ease; /* Saf3.2+, Chrome */
-          transition: all 0.2s ease;
-}
-
-.hover-panel h3 {
-    line-height: 1;
-    margin: 0 0 10px;
-}
-
-.hover-panel p {
-    font-size: 12px;
-    width: 65%;
-}
-
-.hover-panel:hover {
-    background-color: #C31919;
-    border: 10px solid #981212;
-    background-position: 180px 10px;
-}
-
-.hover-panel:hover h3 {
-    color: #FFF;
-    text-shadow: rgba(0, 0, 0, 0.398438) 0px 0px 4px;
-}
-
-.hover-panel:hover p {
-    color: #FFF:
-}
-
-.north-west{
-	height: 130px;
-    width: 90px;
-}
-.north-east{
-	position: relative;
-	left: 210px;
-	height: 130px;
-    width: 90px;
-}
-.center-west{
-	position: relative;
-	right: 130px;
-	top: 90px;
-	height: 90px;
-    width: 90px;
-}
-.center-east{
-	position: relative;
-	right: 20px;
-	top: -30px;
-	height: 90px;
-    width: 90px;
-}
-.south-west{
-	position: relative;
-	top: -90px;
-	height: 130px;
-    width: 90px;
-}
-.south-east{
-	position: relative;
-	top: -90px;
-	left: 210px;
-	height: 130px;
-    width: 90px;
-}
-.annex{
-	position: relative;
-	left: -240px;
-	top: 60px;
-	height:80px;
-	width:80px;
-}
-
-/* End hover panels
-*===================
-*/
-
  /*=================================================================
  lolol mack end
  */
@@ -5242,4 +5146,9 @@ a.badge:hover {
 }
 .affix {
   position: fixed;
+}
+.custom-modal-size {
+	width: 780px;
+    margin-left: -390px; /* - width/2 */
+    overflow-y: auto;
 }

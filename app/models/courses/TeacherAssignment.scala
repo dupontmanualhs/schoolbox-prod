@@ -14,6 +14,7 @@ class TeacherAssignment {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   private[this] var _teacher: Teacher = _
+  @Persistent(defaultFetchGroup="true")
   private[this] var _section: Section = _
   //private[this] var _term: Term = _
   @Persistent
