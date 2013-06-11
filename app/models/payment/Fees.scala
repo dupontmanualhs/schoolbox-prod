@@ -6,10 +6,7 @@ import javax.jdo.annotations._
 import models.courses._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import util.DataStore
 import play.api.mvc.{RequestHeader, Session}
-import util.ScalaPersistenceManager
-import util.DbRequest
 
 @PersistenceCapable(detachable="true")
 class Fees {

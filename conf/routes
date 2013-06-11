@@ -142,9 +142,10 @@ POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch
 GET     /lockers/schedule                       controllers.Lockers.schedule()
 GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
 
+# TODO
 #Payment
-GET		/payment								controllers.Payment.payForm()
-POST	/payment								controllers.Payment.payForm()
+#GET		/payment								controllers.Payment.payForm()
+#POST	/payment								controllers.Payment.payForm()
 
 
 #Conferences

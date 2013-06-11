@@ -2,14 +2,12 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import util.{DataStore, ScalaPersistenceManager}
-import util.DbAction
 import forms._
 import forms.fields._
 import forms.widgets._
 
 object Payment extends Controller {
-  
+  /*
   object PaymentForm extends Form {
     val address = new TextField("Address")
     val phone = new NumericField[Int]("Phone")
@@ -32,4 +30,5 @@ object Payment extends Controller {
   			}
   		}
 	}
+	*/
 }
