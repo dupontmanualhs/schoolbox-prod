@@ -17,6 +17,8 @@ import scalajdo.DataStore
 //TODO: Actually check permissions where applicable
 
 object Blogs extends Controller {
+  
+  
   val newPost = Form {
     tuple(
       "title" -> nonEmptyText,
@@ -31,10 +33,9 @@ object Blogs extends Controller {
     Ok(views.html.blogs.editor(testEdit))
   }
 
-  /**
-   * List the blogs for a given user. If the user passed is the current user, the user can manage their blog.
-   *
-   *   @param perspective the user whose blogs to display
+  /** No matching route (Not sure where, or even if, this is used)
+   * 
+   * Display the blogs corresponding to a user's perspective.
    */
   def listUserBlogs(perspectiveOpt: Option[Perspective]) = Action { implicit req =>
     perspectiveOpt match {
@@ -47,6 +48,10 @@ object Blogs extends Controller {
     }
   }
 
+  /** Regex: /blog/me 
+   * 
+   *  Presents a page that lists the blogs that correspond to the current user.
+   */
   def listCurrentUserBlogs() = Action { implicit req =>
     DataStore.execute { pm =>
       Visit.getFromRequest(req).perspective match {
@@ -58,6 +63,10 @@ object Blogs extends Controller {
     }
   }
 
+  /** Regex: /blog/user/:id 
+   * 
+   *  Presents a page with blogs corresponding to a persepective with given id
+   */
   def listBlogsByPerspectiveId(id: Long) = Action { implicit req =>
     DataStore.execute { implicit pm =>
       Perspective.getById(id) match {
@@ -74,9 +83,10 @@ object Blogs extends Controller {
     def fields = List(title, content)
   }
 
-  /**
-   * Create a new post.
-   * If the blog id shown in the url corresponds to a blog, go for it. If not, error.
+  /** Regex: /blog/:id/new
+   * 
+   *  Create a new post in the blog with given id.
+   *  If the blog id shown in the url corresponds to a blog, go for it. If not, error.
    */
 
   def createPost(blogId: Long) = Action { implicit req =>
@@ -113,16 +123,16 @@ object Blogs extends Controller {
     }
   }
 
-  /**
+  /**    !!!!!!!!!!!!!!!! UNIMPLEMENTED !!!!!!!!!!!!!!!!!!!
    * Show the control panel for a given blog. Checks to see if the correct user is stored in the session var first.
    *
    *   @param blog the blog to show the control panel for
    */
   def showControlPanel(blog: Blog) = Action { implicit req =>
     Ok(views.html.stub())
-  }
+  } 
 
-  /**
+  /**    !!!!!!!!!!!!!!!! UNIMPLEMENTED !!!!!!!!!!!!!!!!!!!
    * Show a post. Check to see if the currently logged-in user is allowed to see the post
    *
    *   @param post the post to be shown
@@ -131,10 +141,9 @@ object Blogs extends Controller {
     Ok(views.html.stub())
   }
 
-  /**
-   * Show a blog given only its ID.
-   *
-   *   @param id the id of the blog to be shown
+  /** Regex: /blog/:id
+   *  
+   * Show a blog with given id
    */
   def showBlog(id: Long) = Action { implicit req =>
     val blogOpt = Blog.getById(id)
@@ -144,6 +153,7 @@ object Blogs extends Controller {
     }
   }
 
+  // Tester method?
   def testSubmit() = Action { implicit req =>
     testEdit.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.blogs.editor(formWithErrors)),

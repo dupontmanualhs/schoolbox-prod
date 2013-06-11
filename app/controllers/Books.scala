@@ -20,6 +20,8 @@ import scalajdo.DataStore
 
 object Books extends Controller {
   /**
+   * Helper Method
+   * 
    * Given a list of the first 9 digits from a ten-digit ISBN,
    * returns the expected check digit (which could also be an X in
    * addition to the digits 0 through 9). The algorithm can be found here:
@@ -36,6 +38,8 @@ object Books extends Controller {
   }
 
   /**
+   * Helper Method
+   * 
    * Given a list of the first 12 digits from a 13-digit ISBN,
    * returns the expected check digit. The algorithm can be found
    * here:
@@ -51,6 +55,8 @@ object Books extends Controller {
   }
 
   /**
+   * Helper Method
+   * 
    * Given a possible ISBN (either 10- or 13-digit) with the check
    * digit removed, calculates the check digit, if possible. If the
    * given String is not the right length or has illegal characters,
@@ -72,6 +78,8 @@ object Books extends Controller {
   }
 
   /**
+   * Helper Method
+   * 
    * Converts a valid 10-digit ISBN into the equivalent 13-digit one.
    * If the original String is not valid, may cause an exception.
    */
@@ -82,6 +90,8 @@ object Books extends Controller {
   }
 
   /**
+   * Helper Method
+   * 
    * Given a possible ISBN, verifies that it's valid and
    * returns the 13-digit equivalent. If the original ISBN
    * is not valid, returns None. Any dashes that the user may
@@ -127,6 +137,11 @@ object Books extends Controller {
     val fields = List(isbn, name, author, publisher, numPages, dimensions, weight, imageUrl)
   }
 
+  /**
+   * Regex: /books/addTitle
+   * 
+   * A form that allows users to add information for a new book to the database.
+   */
   def addTitle = Action { implicit request =>
     if (request.method == "GET") Ok(views.html.books.addTitle(Binding(TitleForm)))
     else {
@@ -153,6 +168,7 @@ object Books extends Controller {
     }
   }
 
+  // Helper Method
   def downloadImage(url: java.net.URL, isbn: String) = {
     val pic = ImageIO.read(url)
     ImageIO.write(pic, "jpg", new File("public/images/books/" + isbn + ".jpg"))
@@ -178,6 +194,12 @@ object Books extends Controller {
     val fields = List(isbn, purchaseDate, price, numCopies)
     }
 
+  /**
+   * Regex: /books/addPurchaseGroup
+   * 
+   * A form that allows users to add a purchase of a certain title, and update
+   * information about the number of copies of the book.
+   */
   def addPurchaseGroup = Action { implicit request =>
     if (request.method == "GET") Ok(views.html.books.addPurchaseGroup(Binding(AddPurchaseGroupForm)))
     else DataStore.execute { pm => 
@@ -239,6 +261,11 @@ object Books extends Controller {
     val fields = List(barcode, student)
   }
 
+  /**
+   * Regex: /books/checkout
+   * 
+   * A form page that allows administrators to checkout a copy of a book to a student.
+   */
   def checkout = Action { implicit request =>
     if (request.method == "GET") Ok(views.html.books.checkout(Binding(CheckoutForm)))
     else {
@@ -275,6 +302,12 @@ object Books extends Controller {
     val fields = List(student)
   }
 
+  /**
+   * Regex: /books/checkoutBulk
+   * 
+   * Another form that allows books to be checked out in bulk.
+   * Redirects to another page.
+   */
   def checkoutBulk() = Action { implicit request =>
     if (request.method == "GET") {
       Ok(html.books.checkoutBulk(Binding(CheckoutBulkForm)))
@@ -301,6 +334,13 @@ object Books extends Controller {
     val fields = List(barcode)
   }
 
+  /**
+   * Regex: /books/checkoutBulkHelper/:stu
+   * 
+   * A form that helps /books/checkoutBulk.
+   * A form that checkouts multiple copies that are parameters of the request
+   * to a student with given id.
+   */
   def checkoutBulkHelper(stu: String) = Action { implicit request =>
     val dName = Student.getByStateId(stu) match {
         case None => "Unknown"
@@ -339,6 +379,12 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/removeCopyFromList/:stu/:bc
+   * 
+   * Removes a copy with given barcode (bc) from the student's with given id (stu)
+   * checkout list. Redirects back to the checkout helper.
+   */
   def removeCopyFromList(stu: String, barcode: String) = Action { implicit request =>
     val visit = Visit.getFromRequest(request)
     val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
@@ -346,17 +392,35 @@ object Books extends Controller {
     visit.set("checkoutList", newCopies)
     Redirect(routes.Books.checkoutBulkHelper(stu))
   }
-
+  
+  /**
+   * Regex: /books/removeCopyFromList/:stu/:bc
+   * 
+   * Removes all copies from the student's with given id (stu)
+   * checkout list. Redirects back to the checkout helper.
+   */
   def removeAllCopiesFromList(stu: String) = Action { implicit request =>
     Visit.getFromRequest(request).set("checkoutList", Vector[String]())
     Redirect(routes.Books.checkoutBulkHelper(stu))
   }
 
+  /**
+   * Regex: /books/cancelBulkCheckout
+   * 
+   * Sets the parameter of the request to empty and redirects
+   * to the initial bulk checkout form.
+   */
   def cancelBulkCheckout() = Action { implicit request =>
     Visit.getFromRequest(request).set("checkoutList", Vector[String]())
     Redirect(routes.Books.checkoutBulk())
   }
 
+   /**
+   * Regex: /books/checkoutBulkSubmit/:stu
+   * 
+   * Checks out all the books in the checkoutList request parameter to 
+   * the student with given id (stu)
+   */
   def checkoutBulkSubmit(stu: String) = Action { implicit request =>
     val visit = Visit.getFromRequest(request)
     val copies: Vector[String] = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
@@ -382,6 +446,11 @@ object Books extends Controller {
     val fields = List(barcode)
   }
 
+  /**
+   * Regex: /books/checkIn
+   * 
+   * A form that allows for a book to be checked back in.
+   */
   def checkIn = Action { implicit request =>
     if (request.method == "GET") Ok(views.html.books.checkIn(Binding(CheckInForm)))
     else {
@@ -423,7 +492,13 @@ object Books extends Controller {
     
       def fields = List(barcode)
     }
-
+  
+  /**
+   * Regex: /books/findCopyHistory
+   * 
+   * A form that allows the user to find the information on a copy with a given barcode.
+   * The post request redirects to /books/copyHistory/:barcode
+   */
   def findCopyHistory() = Action { implicit req =>
     if (req.method == "GET") {
       Ok(html.books.findCopyHistory(Binding(ChooseCopyForm)))
@@ -438,6 +513,12 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/copyHistory/:barcode
+   * 
+   * A page that displays information about the history of the copy
+   * with the given barcode.
+   */
   def copyHistory(barcode: String) = Action { implicit req =>
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
     Copy.getByBarcode(barcode) match {
@@ -457,6 +538,12 @@ object Books extends Controller {
 
   def checkInLostCopy() = TODO
 
+  /**
+   * Regex: /books/checkoutHistory/:studentId
+   * 
+   * Displays information about the books checkedout to a student
+   * with the given id (studentId).
+   */
   def checkoutHistory(stateId: String) = Action { implicit req =>
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
@@ -476,6 +563,12 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/findCheckoutHistory
+   * 
+   * A form page that allows the user to find the checkout history
+   * for a desired student.
+   */
   def findCheckoutHistory() = Action { implicit req =>
     object ChooseStudentForm extends Form {
       val student = new TextField("Student") {
@@ -500,6 +593,12 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/findCurrentCheckouts
+   * 
+   * A form page that allows users to find books currently
+   * checked out to a student they provide.
+   */
   def findCurrentCheckouts() = Action { implicit req =>
     object ChooseStudentForm extends Form {
       val stateId = new TextField("Student") {
@@ -524,6 +623,12 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/currentCheckouts/:studentId
+   * 
+   * Displays information about the books currently check out
+   * to a student with the given id (studentId).
+   */
   def currentCheckouts(stateId: String) = Action { implicit req =>
     val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
@@ -544,6 +649,11 @@ object Books extends Controller {
 
   def statistics() = TODO
 
+  /**
+   * Regex: /books/copyStatusByTitle/:isbn
+   * 
+   * Displays information about the status of a copy with given isbn.
+   */
   def copyStatusByTitle(isbn: String) = Action { implicit req =>
     Title.getByIsbn(isbn) match {
       case None => NotFound("Title not found.")
@@ -559,6 +669,11 @@ object Books extends Controller {
     }
   }
   
+  /**
+   * Regex: /books/findCopyStatusByTitle
+   * 
+   * A form page that allows a user to find a copy by its isbn.
+   */
   def findCopyStatusByTitle() = Action { implicit req =>
     object ChooseTitleForm extends Form {
       val isbn = new TextField("ISBN") {
@@ -585,6 +700,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/allBooksOut/:grade
+   * 
+   * Displays all of the books checked out for a given grade.
+   */
   def allBooksOut(grade: Int) = Action { implicit req =>
     DataStore.execute { implicit pm =>
       val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
@@ -597,6 +717,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/findAllBooksOut
+   * 
+   * A form page that allows a user to find al the books out for a page.
+   */
   def findAllBooksOut() = Action { implicit req =>
     object ChooseGradeForm extends Form {
       val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
@@ -616,6 +741,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/copyInfo/:barcode
+   * 
+   * Displays information on a copy with given barcode.
+   */
   def copyInfo(barcode: String) = Action { implicit req =>
     Copy.getByBarcode(barcode) match {
       case None => NotFound("Copy not found.")
@@ -650,6 +780,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/findCopyInfo
+   * 
+   * A form page that allows users to find info on a copy with a certain barcode.
+   */
   def findCopyInfo() = Action { implicit req =>
     object ChooseCopyForm extends Form {
       val barcode = new TextField("Barcode") {
@@ -676,6 +811,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/inventory
+   * 
+   * Displays all of the titles in stock as well as certain information about each title.
+   */
   def inventory() = Action { implicit req =>
     val titles = DataStore.pm.query[Title].executeList.sortWith((c1, c2) => c1.name < c2.name)
 
@@ -713,6 +853,11 @@ object Books extends Controller {
     def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
   }
 
+  /**
+   * Regex: /books/editTitleHelper/:isbn
+   * 
+   * A form that allows the user to alter information about a title with a certain isbn.
+   */
   def editTitleHelper(isbn: String) = Action { implicit request =>
     val title = Title.getByIsbn(isbn).get
     if (request.method == "GET") {
@@ -758,6 +903,11 @@ object Books extends Controller {
     val fields = List(isbn)
   }
 
+  /**
+   * Regex: /books/editTitle
+   * 
+   * A form that redirects a user to /books/editTitleHelper/:isbn based on the isbn they enter here.
+   */
   def editTitle() = Action { implicit req =>
     if (req.method == "GET") {
       Ok(html.books.editTitle(Binding(ChooseTitleForm)))
@@ -772,6 +922,7 @@ object Books extends Controller {
     }
   }
 
+  // Helper Method
   def makeBarcode(barcode: String): Barcode =  {
     val b: Barcode128 = new Barcode128()
     b.setCode(barcode)
@@ -779,6 +930,7 @@ object Books extends Controller {
     return b
   }
 
+  // Helper Method
   def cropText(s: String): String = {
     // This will crop strings so that they fit on a label
     val w = Utilities.inchesToPoints(2.6f) - 12
@@ -789,7 +941,8 @@ object Books extends Controller {
       cropText(s.substring(0, s.length - 1))
     }
   }
-
+  
+  // Helper Method
   def makePdf(barcodes: List[(Barcode, String, String, String)]) { //Barcode, title.name, title.author, title.publisher
     // Spacing in points
     // Bottom left: 0,0
@@ -861,13 +1014,20 @@ object Books extends Controller {
     document.close()
   }
 
+  // Helper Method
   val tempBarcode = makeBarcode("1234567890123-200-00001")
 
+  // Helper Method
   val testBarcodes = List((tempBarcode, "123456788901234567890123456789012345678901234567890", "abcdefghijklmnopqrstuvwxyz123456789012345678901234567890", "qwertyuiopasdfghjklzxcvbnm098765432112345678901234567890"),
     (tempBarcode, "Name", "Author", "Publisher"), (tempBarcode, "Herp", "Derp", "Snerp"), (tempBarcode, "Welp", "Foo", "Bar"))
 
   val longTestBarcodes = testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes
 
+  /**
+   * Regex: /books/addTitleToPrintQueue/:isbn/:cR
+   * 
+   * Adds a title to the print queue and redirects the user to a print queue helper
+   */
   def addTitleToPrintQueue(isbn: String, copyRange: String) = Action { implicit request =>
     Title.getByIsbn(isbn) match {
       case None => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("error" -> "Title not found")
@@ -894,6 +1054,11 @@ object Books extends Controller {
     val fields = List(isbn, copyRange)
   }
 
+  /**
+   * Regex: /books/addTitleToPrintQueueHelper
+   * 
+   * A form page that allows the user to add certain titles and page ranges to a printer setup.
+   */
   def addTitleToPrintQueueHelper() = Action { implicit request =>
     if (request.method == "GET") {
       Ok(html.books.addTitleToPrintQueueHelper(Binding(AddTitleToPrintQueueForm)))
@@ -909,6 +1074,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/viewPrintQueue
+   * 
+   * Displays the items in the current print queue.
+   */
   def viewPrintQueue() = Action { implicit request =>
     val labelSets = DataStore.pm.query[LabelQueueSet].executeList
     val rows: List[(String, String, String, Long)] = labelSets.map(ls => { (ls.title.name, ls.title.isbn, ls.copyRange, ls.id)})
@@ -925,6 +1095,7 @@ object Books extends Controller {
     }
   }
 
+  // Helper Method
   def print(l: List[LabelQueueSet]) {
     var printList = List[(Barcode, String, String, String)]()
     for (x <- l) {
@@ -937,6 +1108,7 @@ object Books extends Controller {
     makePdf(printList)
   }
 
+  // Helper Method
   def sanatizeCopyRange(s: String): List[Int] = {
     val newS = s.trim.split(",")
     var res: List[Int] = List[Int]()
@@ -954,6 +1126,11 @@ object Books extends Controller {
     res
   }
 
+  /**
+   * Regex: /books/printEntireQueue
+   * 
+   * Prints all of the items in the print queue.
+   */
   def printEntireQueue() = Action { implicit request =>
     DataStore.execute { pm => 
       val labelQueueSets = pm.query[LabelQueueSet].executeList
@@ -965,6 +1142,12 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/deleteCopy/:barcode
+   * 
+   * Removes the copy with given barcode from the database and redirects the user
+   * to the deleteCopyHelper
+   */
   def deleteCopy(barcode: String) = Action { implicit request =>
     Copy.getByBarcode(barcode) match {
       case None => Redirect(routes.Books.deleteCopyHelper()).flashing("error" -> "Copy not found")
@@ -987,6 +1170,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/deleteCopyHelper
+   * 
+   * A form page that allows the user to delete the current copy.
+   */
   def deleteCopyHelper() = Action { implicit req =>
     if (req.method == "GET") {
       Ok(html.books.deleteCopyHelper(Binding(ChooseCopyForm)))
@@ -1001,6 +1189,12 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/deleteTitle/:isbn
+   * 
+   * Deletes the title with given isbn from the database and redirects the user
+   * to the deleteTitleHelper controller
+   */
   def deleteTitle(isbn: String) = Action { implicit request =>
     Title.getByIsbn(isbn) match {
       case None => Redirect(routes.Books.deleteTitleHelper()).flashing("error" -> "Title not found")
@@ -1017,6 +1211,11 @@ object Books extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/deleteTitleHelper
+   * 
+   * A form page that allows the user to delete titles from the database.
+   */
   def deleteTitleHelper() = Action { implicit req =>
     if (req.method == "GET") {
       Ok(html.books.deleteTitleHelper(Binding(ChooseTitleForm)))

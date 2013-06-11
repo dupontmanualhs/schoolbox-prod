@@ -133,8 +133,8 @@ GET     /books/deleteTitle/:isbn                controllers.Books.deleteTitle(is
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
-GET     /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
-POST    /lockers/locker/:lockerNum              controllers.Lockers.getLocker(lockerNum: Int)
+GET     /lockers/locker/:num             		controllers.Lockers.getLocker(num: Int)
+POST    /lockers/locker/:num              		controllers.Lockers.getLocker(num: Int)
 GET     /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
 POST    /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
 GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch()

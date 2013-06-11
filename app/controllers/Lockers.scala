@@ -18,6 +18,11 @@ import scalajdo.DataStore
 
 object Lockers extends Controller {
    
+  /** Regex: /lockers/myLocker 
+   * 
+   *  Presents a page displaying the information for a student's current locker,
+   *  or tells them they have no locker.
+   */
   def getMyLocker() = VisitAction { implicit req =>
   	DataStore.execute { pm => 
     val currentUser: Option[User] = User.current
@@ -41,6 +46,11 @@ object Lockers extends Controller {
   	}
   }
   
+  /** Regex: /lockers/locker/:num
+   * 
+   *  Presents a page displaying the information for the locker with given number, and redirects
+   *  if none exist.
+   */
   def getLocker(num: Int) = VisitAction { implicit req =>
     DataStore.execute { pm => 
     val maybeLocker = Locker.getByNumber(num)
@@ -83,10 +93,11 @@ object Lockers extends Controller {
     }
   }
   
-  def lockerList(list: List[Locker]) = VisitAction { implicit req =>
-    Ok(views.html.lockers.lockerList(list))
-  }
-  
+  /** Regex: /lockers/lockerByNumber
+   *  
+   *  Presents a form for users to search for a locker based on it's number.
+   *  Also handles the post request for the form.
+   */
   def lockerByNumber = VisitAction { implicit req =>
     DataStore.execute { pm => 
     object NumberForm extends Form {
@@ -120,6 +131,11 @@ object Lockers extends Controller {
     }
   }
   
+  /** Regex: /lockers/lockerSearch
+   *  
+   *  Presents a form for students to look for lockers based on multiple requirements.
+   *  Handles the post request for the form as well.
+   */
   def lockerSearch = VisitAction { implicit req =>
     object LockerForm extends Form {
       val floor: ChoiceField[Int] = new ChoiceField("floor",List(("1", 1), ("2", 2), ("3", 3)))
@@ -151,6 +167,11 @@ object Lockers extends Controller {
     }
   }
   
+  /** Regex: /lockers/lockerByRoom/:room 
+   * 
+   *  Presents a list of lockers that are in the same hall as a room
+   *  with the given name.
+   */
   def lockerByRoom(room: String) = VisitAction {implicit req =>
     DataStore.execute { pm =>
     val roomLocation = RoomLocation.makeRoomLoc(room)
@@ -161,6 +182,11 @@ object Lockers extends Controller {
     }
   }
   
+  /** Regex: /lockers/schedule
+   *  
+   *  Presents a page that displays the schedule for a student, with an option
+   *  to find lockers near each class.
+   */
   def schedule = VisitAction {implicit req => 
     DataStore.execute { pm => 
     val currentUser = User.current
