@@ -1,3 +1,58 @@
-@(title: String)(content: Html)(implicit req: play.api.mvc.Request[_])
+@(title: String, scripts: Html = Html(""))(content: Html)(implicit req: play.api.mvc.Request[_])
 
-@mainWithScripts(title, Html(""))(content)
+@import models.users.Visit
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>@title</title>
+@util.Theme.themePick(Visit.getFromRequest(req).user)
+
+<link rel="icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+<link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.css"))'>
+
+<!-- HTML5 shim, for IE6-8 support of HTML5 elements. -->
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.js"))'></script>
+<script src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery-ui.js"))'></script>
+<script src='@routes.WebJarAssets.at(WebJarAssets.locate("bootstrap.js"))'></script>
+<script src='@routes.Assets.at("javascripts/maskedinput.js")'></script>
+<script src='@routes.Assets.at("javascripts/jquery.timepicker.js")'></script>
+
+
+@scripts
+
+</head>
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="btn btn-navbar" data-toggle="collapse"
+					data-target=".nav-collapse"> <span class="icon-bar"></span> <span
+					class="icon-bar"></span> <span class="icon-bar"></span>
+				</a> <a class="brand" href="/">ABCD eSchool</a>
+				<div class="nav-collapse collapse" id="main-menu">
+					@Visit.getFromRequest(req).menu
+					<div class="pull-right">@users.perspectiveInfo()</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="container">
+		<div class="content">
+			@if(req.flash.get("message").isDefined) {
+			<div class="alert alert-success">@req.flash("message")</div>
+			} @if(req.flash.get("error").isDefined) {
+			<div class="alert alert-error">@req.flash("error")</div>
+			} @if(req.flash.get("warn").isDefined) {
+			<div class="alert">@req.flash("warn")</div>
+			} @content
+		</div>
+	</div>
+</body>
+</html>
+

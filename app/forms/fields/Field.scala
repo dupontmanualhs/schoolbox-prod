@@ -31,7 +31,7 @@ abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
         { asWidget(bound) }
         { helpText.map((text: NodeSeq) => <p class="help-block">{ text }</p>).getOrElse(NodeSeq.Empty) }
         { bound.fieldErrors.get(name).map(_.render).getOrElse(NodeSeq.Empty) }
-        <p/>
+        <br />
       </div>  
     </div>
   }

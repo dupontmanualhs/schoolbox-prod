@@ -15,11 +15,9 @@ class MenuItem(val name: String, val id: String, val link: Option[String], val s
         <b class="caret"> </b>
       </a>
       <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-        <li>
           { subItems.flatMap(_.asHtml) }
-        </li>
       </ul>
-    </li>
+   </li >
   }
 }
 
