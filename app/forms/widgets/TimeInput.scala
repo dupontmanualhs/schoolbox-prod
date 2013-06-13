@@ -14,7 +14,7 @@ class TimeInput(
   }
   
   override def scripts: NodeSeq = 
-  <script>
+  <script type="text/javascript">
 	$(function() {{
       $('.timepicker').timepicker({{
 		showPeriod: true,
@@ -23,8 +23,10 @@ class TimeInput(
     }});
 	</script><script type="text/javascript">
 	jQuery(function($){{
+	  	$.mask.definitions['5']='[012345]';
+	  	$.mask.definitions['1']='[01]';
 		$.mask.definitions['`']='[apAP]';
-		$('.timepicker').mask('99:99 `M',{{placeholder:'_'}});
+		$('.timepicker').mask('19:59 `M',{{placeholder:'_'}});
   	}});
   </script>
 }
