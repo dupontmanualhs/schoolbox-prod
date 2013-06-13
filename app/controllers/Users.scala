@@ -37,8 +37,11 @@ object Users extends Controller {
   }
 
     /**
-   * Login page.
+   * Regex: /login
+   * 
+   * Displays login form in which users can enter username and password in order to login.
    */
+  
   def login() = VisitAction { implicit request =>
     DataStore.execute { pm =>
       val visit = Visit.getFromRequest(request)
@@ -71,6 +74,12 @@ object Users extends Controller {
     }
   }
 
+  /**
+   * Regex: /choosePerspective
+   * 
+   * helper method
+   */
+  
   def choosePerspective = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val visit = Visit.getFromRequest(req)
@@ -96,8 +105,11 @@ object Users extends Controller {
   }
 
   /**
-   * Logout and clean the session.
+   * regex: logout
+   * 
+   * Logs out user and displays home page with message "You have been logged out."
    */
+  
   def logout = VisitAction { implicit request =>
     DataStore.execute { pm =>
       val visit = Visit.getFromRequest(request)
@@ -135,6 +147,12 @@ object Users extends Controller {
     def fields = List(theme)
   }
 
+  /**
+   * regex: /settings
+   * 
+   * Displays page with the form to change the user's password and the form to change the user's theme.
+   */
+  
   def settings = Authenticated { implicit req =>
     val visit = Visit.getFromRequest(req)
     val user = visit.user.get
@@ -142,24 +160,32 @@ object Users extends Controller {
     Ok(html.users.settings(Binding(pwForm), Binding(ChangeTheme)))
   }
 
+  /**
+   * regex: /changePassword
+   * 
+   * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
+   */
+  
   def changePassword = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val user = Visit.getFromRequest(req).user.get // TODO: this scares me -- we shouldn't get here if the user is None, but...
       val form = new ChangePasswordForm(user)
-      if (req.method == "GET") {
-        Ok(html.users.settings(Binding(form), Binding(ChangeTheme)))
-      } else {
-        Binding(form, req) match {
-          case ib: InvalidBinding => Ok(html.users.settings(ib, Binding(ChangeTheme)))
-          case vb: ValidBinding => {
-            user.password = vb.valueOf(form.newPassword)
-            pm.makePersistent(user)
-            Redirect(routes.Application.index()).flashing("message" -> "Settings successfully changed.")
-          }
+      Binding(form, req) match {
+        case ib: InvalidBinding => Ok(html.users.settings(ib, Binding(ChangeTheme)))
+        case vb: ValidBinding => {
+          user.password = vb.valueOf(form.newPassword)
+          pm.makePersistent(user)
+          Redirect(routes.Application.index()).flashing("message" -> "Settings successfully changed.")
         }
       }
     }
   }
+  
+  /**
+   * regex: /changeTheme
+   * 
+   * User chooses from drop-down menu and this changes the theme to that selection.
+   */
 
   def changeTheme = Authenticated { implicit req =>
     DataStore.execute { pm =>
@@ -178,6 +204,12 @@ object Users extends Controller {
 
   //def settingsPage = 
 
+  /**
+   * regex: /listUsers
+   * 
+   * Helper Method
+   */
+  
   def list = VisitAction { implicit request =>
     DataStore.execute { pm =>
       val cand = QUser.candidate

@@ -26,7 +26,6 @@ POST    /choosePerspective         				controllers.Users.choosePerspective()
 GET     /logout                     			controllers.Users.logout()
 GET     /settings                  				controllers.Users.settings()
 POST    /changeTheme   			                controllers.Users.changeTheme()
-GET     /changePassword         			    controllers.Users.changePassword()
 POST    /changePassword             			controllers.Users.changePassword()
 GET     /listUsers                 				controllers.Users.list()
 
