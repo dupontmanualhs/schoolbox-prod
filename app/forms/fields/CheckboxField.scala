@@ -10,13 +10,16 @@ abstract class BaseCheckboxField[T, U](name: String, choices: List[(String, T)])
       case None => List("-1")
       case Some(t) => t match {
         case e: List[T] => {
-        	var listReturned = List[String]()
-        	for (value2 <- e) {
-        		listReturned = choices.map(_._2).indexOf(e).toString :: listReturned
+        	if(e.isEmpty) List("-1")
+        	else {
+        		var listReturned = List[String]()
+        		for (value2 <- e) {
+        			listReturned = choices.map(_._2).indexOf(e).toString :: listReturned
+        		}
+        		listReturned
         	}
-        	listReturned
         }
-        case _ => List("-1")
+        case _ => List("-2")
       }
     }
   }
@@ -25,8 +28,9 @@ abstract class BaseCheckboxField[T, U](name: String, choices: List[(String, T)])
 class CheckboxField[T](name: String, choices: List[(String, T)])(implicit man: Manifest[T]) extends BaseCheckboxField[T, List[T]](name, choices) {
   def asValue(s: Seq[String]): Either[ValidationError, List[T]] = {
     try {
-    	val LOI = s.map(str => str.toInt) //LOI = listOfIndexes
-    	if(LOI.isEmpty) Left(ValidationError("This field is required."))
+    	val LOI = s.map(str => str.toInt) //LOI = listOfIndexes but I'm too lazy to rewrite
+    	if(LOI.isEmpty || LOI.contains(-1)) Left(ValidationError("This field is required."))
+    	else if (LOI.contains(-2)) Left(ValidationError("Well, this is embarising... We're not really sure what just happened. Please try again."))
     	else {
     	  Right(LOI.map(index => choices(index)._2).toList) //returns the objects
     	}
@@ -42,8 +46,9 @@ class CheckboxFieldOptional[T](name: String, choices: List[(String, T)])(implici
   override def required = false
   def asValue(s: Seq[String]): Either[ValidationError, Option[List[T]]] = {
     try {
-    	val LOI = s.map(str => str.toInt) //LOI = listOfIndexes
-    	if(LOI.isEmpty) Right(None)
+    	val LOI = s.map(str => str.toInt) //LOI = listOfIndexes but I'm too lazy to rewrite
+    	if(LOI.isEmpty || LOI.contains(-1)) Right(None)
+    	else if (LOI.contains(-2)) Left(ValidationError("Well, this is embarising... We're not really sure what just happened. Please try again."))
     	else {
     	  Right(Some(LOI.map(index => choices(index)._2).toList))
     	}

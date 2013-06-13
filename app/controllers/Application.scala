@@ -25,7 +25,7 @@ object Application extends Controller {
     val listOfSpectopers = List("Allen", "Zach", "John", "Others")
     val ACField = new AutocompleteFieldOptional("AC", listOfSpectopers)
     val Checkboxo = new CheckboxFieldOptional("Checkboxes", List(("car", 11) , ("van", 12) , ("truck", 13)))
-    val RadioR = new RadioField("Radio", List(("cat",11),("dog",12),("mouse",13)))
+    val RadioR = new RadioField("Radio", List(("cat",11),("dog",12),("mouse",13), ("Bird", "BIRD BIRD BIRD! BIRD IS THE WORD."), ("Turtle", listOfSpectopers)))
 
     val editedTextField = new TextFieldOptional("edited") {
       override def widget = new TextInput(required)

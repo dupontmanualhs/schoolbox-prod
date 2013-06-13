@@ -10,13 +10,16 @@ abstract class BaseRadioField[T, U](name: String, choices: List[(String, T)])(im
       case None => List("-1")
       case Some(t) => t match {
         case e: List[T] => {
-        	var listReturned = List[String]()
-        	for (value2 <- e) {
-        		listReturned = choices.map(_._2).indexOf(e).toString :: listReturned
+        	if(e.isEmpty) List("-1")
+        	else {
+        		var listReturned = List[String]()
+        		for (value2 <- e) {
+        			listReturned = choices.map(_._2).indexOf(e).toString :: listReturned
+        		}
+        		listReturned
         	}
-        	listReturned
         }
-        case _ => List("-1")
+        case _ => List("-2")
       }
     }
   }
@@ -25,7 +28,8 @@ abstract class BaseRadioField[T, U](name: String, choices: List[(String, T)])(im
 class RadioField[T](name: String, choices: List[(String, T)])(implicit man: Manifest[T]) extends BaseRadioField[T, T](name, choices) {
   def asValue(s: Seq[String]): Either[ValidationError, T] = {
     try {
-    	if(s.isEmpty) Left(ValidationError("This Field Is Required."))
+    	if(s.isEmpty || s.contains("-1")) Left(ValidationError("This Field Is Required."))
+    	else if (s.contains("-2")) Left(ValidationError("Well, this is embarising... We're not really sure what just happened. Please try again."))
     	else if(s.size > 1) Left(ValidationError("Can Only Select One Value"))
     	else Right(choices(s(0).toInt)._2)
     } catch {
