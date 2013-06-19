@@ -44,7 +44,7 @@ object ApplicationBuild extends Build {
     val main = play.Project(appName, appVersion, appDependencies).settings(
       ((testOptions in Test := Nil) +:
        (scalaVersion := "2.10.2") +:
-       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6")) +:
+       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
        (scalacOptions ++= Seq("-deprecation", "-feature")) +:
        Nucleus.settings): _*
     ) dependsOn RootProject( uri("git://github.com/toddobryan/scalajdo.git") )
