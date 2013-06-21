@@ -1,35 +1,21 @@
 package app
 
-import org.junit.Test
-import org.openqa.selenium.chrome._
-import play.api.test._
-import play.api.test.Helpers._
-import org.openqa.selenium.{ WebDriver, By }
-import org.specs2.mutable.Specification
-import org.fluentlenium.core.filter.FilterConstructor._
 import org.scalatest.FunSuite
-import org.openqa.selenium.firefox.FirefoxDriver
-import org.openqa.selenium.interactions.Actions
+import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.selenium.Chrome
+import play.api.test.Helpers._
+import play.api.test.TestServer
 
-// This is a conflict
-
-class TestLogins extends FunSuite {
-  def driver = classOf[ChromeDriver]
 /*
-  test("have a log in menu available when you hover over the Accounts link") {
-    running(TestServer(3333), driver) { browser =>
-      browser.goTo("http://localhost:3333")
-      assert(browser.title === "JCPS eSchool")
-      val acct = browser.$("#menu_account").first
-      assert(acct.getTagName === "a")
-      assert(acct.getAttribute("href") === browser.url + "#")
-      acct.click()
-      browser.$("#menu_login").first.click()
-      assert(browser.title === "Login")
-      DataStore.close()
+class TestLogins extends FunSuite with ShouldMatchers with Chrome {
+
+  running(new TestServer(port=9000)) {
+    test("home page has 'Log in' link") {
+      goTo("http://localhost:9000/index.html")
+      find(linkText("Log in")) should be ('defined)
     }
   }
-
+  
   test("allow a student to log in with the correct username and password") {
     running(TestServer(3333), driver) { browser =>
       browser.goTo("http://localhost:3333")
@@ -97,6 +83,7 @@ class TestLogins extends FunSuite {
   
   test("user with permission can change others' passwords") {
     
-  }
-*/  
+  }  
 }
+*/
+

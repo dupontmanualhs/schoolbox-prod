@@ -13,7 +13,7 @@ class Textarea(
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     val tinymce = if (tinyMCE) new UnprefixedAttribute("class", Text("tinymce"), Null) else Null
-    <textarea style="width:40em; height:10em" name={ name }>{ if (value.isEmpty) "" else value(0) }</textarea> % attrs.append(attrList) % tinymce
+    <textarea name={ name }>{ if (value.isEmpty) "" else value(0) }</textarea> % attrs.append(attrList) % tinymce
   }
   
   override def scripts = if (tinyMCE) {

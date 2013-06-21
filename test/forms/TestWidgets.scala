@@ -32,11 +32,11 @@ class TestWidgets extends FunSuite {
   test("Textarea widget") {
     val ta = new Textarea(false)
     assert(ta.render("words", List("abc")) ===
-      <textarea name="words" cols="40" rows="10">abc</textarea>)
-    assert(ta.render("moreWords", Nil, Map("rows"->"4")) ===
-      <textarea name="moreWords" cols="40" rows="4"></textarea>)
-    assert(ta.render("wordsAlso", List("xyz"), Map("cols"->"80")) ===
-      <textarea name="wordsAlso" cols="80" rows="10">xyz</textarea>)
+      <textarea name="words" cols="80" rows="5">abc</textarea>)
+    assert(ta.render("moreWords", Nil, Map("rows"->"10")) ===
+      <textarea name="moreWords" cols="80" rows="10"></textarea>)
+    assert(ta.render("wordsAlso", List("xyz"), Map("cols"->"40")) ===
+      <textarea name="wordsAlso" cols="40" rows="5">xyz</textarea>)
   }
   
   test("CheckboxInput widget") {

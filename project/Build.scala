@@ -30,13 +30,13 @@ object ApplicationBuild extends Build {
       "com.h2database" % "h2" % "1.3.172",
       "javax.jdo" % "jdo-api" % "3.0.1",
       "log4j" % "log4j" % "1.2.17",
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+      "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
       "com.itextpdf" % "itextpdf" % "5.4.2",
       "org.tukaani" % "xz" % "1.3",
-      "javax.mail" % "mail" % "1.4.7",
-      "org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.33.0" % "test",
-      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.33.0" % "test",
-      "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.33.0" % "test"
+      "javax.mail" % "mail" % "1.4.7"
+      //"org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.33.0" % "test",
+      //"org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.33.0" % "test",
+      //"org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.33.0" % "test"
     ) ++ jsDependencies
     
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")
