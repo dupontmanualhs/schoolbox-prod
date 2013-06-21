@@ -21,7 +21,7 @@ class NumericField[T](name: String)(implicit n: Numeric[T], man: Manifest[T])
       } catch {
         case e: NumberFormatException => Left(ValidationError(errorMsg(s)))
       }
-      case _ => Left(ValidationError("Expected a single value, got none or many."))
+      case _ => Left(ValidationError("Expected a single value; got none or many."))
     }
   }
   
