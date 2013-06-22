@@ -36,37 +36,40 @@ object Users extends Controller {
     }
   }
 
-    /**
+  /**
    * Regex: /login
-   * 
+   *
    * Displays login form in which users can enter username and password in order to login.
    */
-  
+
   def login() = VisitAction { implicit request =>
+    Ok(html.users.login(Binding(LoginForm)))
+  }
+
+  def loginP() = VisitAction { implicit request =>
     DataStore.execute { pm =>
-      val visit = Visit.getFromRequest(request)
-      if (request.method == "GET") {
-        Ok(html.users.login(Binding(LoginForm)))
-      } else {
-        Binding(LoginForm, request) match {
-          case ib: InvalidBinding => Ok(html.users.login(ib))
-          case vb: ValidBinding => {
-            // set the session user
-            visit.user = User.getByUsername(vb.valueOf(LoginForm.username))
-            // set the session perspective
-            visit.user.map(_.perspectives).getOrElse(Nil) match {
-              // no perspectives attached to this user
-              case Nil => Redirect(controllers.routes.Application.index()).flashing("message" -> "That user has no active perspectives.")
-              // there's only one
-              case List(persp) => {
-                // set it in the session
-                visit.perspective = Some(persp)
-                visit.updateMenu
-                pm.makePersistent(visit)
-                Redirect(visit.redirectUrl.getOrElse(controllers.routes.Application.index())).flashing("message" -> "You have successfully logged in.")
+      Binding(LoginForm, request) match {
+        case ib: InvalidBinding => Ok(html.users.login(ib))
+        case vb: ValidBinding => {
+          // set the session user
+          request.visit.user = User.getByUsername(vb.valueOf(LoginForm.username))
+          // set the session perspective
+          request.visit.user.map(_.perspectives).getOrElse(Nil) match {
+            // no perspectives attached to this user
+            case Nil => Redirect(controllers.routes.Application.index()).flashing("message" -> "That user has no active perspectives.")
+            // there's at least one
+            case persp :: rest => {
+              // TODO: should we have a default perspective?
+              // set the first one
+              request.visit.perspective = Some(persp)
+              request.visit.updateMenu
+              pm.makePersistent(request.visit)
+              rest match {
+                // there was only one
+                case Nil => Redirect(request.visit.redirectUrl.getOrElse(controllers.routes.Application.index())).flashing("message" -> "You have successfully logged in.")
+                // multiple perspectives
+                case _ => Redirect(controllers.routes.Users.choosePerspective()).flashing("message" -> "Choose which perspective to use.")
               }
-              // multiple perspectives
-              case _ => Redirect(controllers.routes.Users.choosePerspective()).flashing("message" -> "Choose which perspective to use.")
             }
           }
         }
@@ -74,31 +77,33 @@ object Users extends Controller {
     }
   }
 
+  class ChoosePerspectiveForm(visit: Visit) extends Form {
+    val perspective = new ChoiceField("perspective", visit.user.get.perspectives.map(p => (p.displayNameWithRole, p)))
+
+    def fields = List(perspective)
+  }
+
   /**
    * Regex: /choosePerspective
-   * 
+   *
    * helper method
    */
-  
-  def choosePerspective = Authenticated { implicit req =>
+
+  def choosePerspective() = Authenticated { implicit req =>
+    Ok(html.users.choosePerspective(Binding(new ChoosePerspectiveForm(Visit.getFromRequest(req)))))
+  }
+
+  def choosePerspectiveP() = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val visit = Visit.getFromRequest(req)
-      object ChoosePerspectiveForm extends Form {
-        val perspective = new ChoiceField("perspective", visit.user.get.perspectives.map(p => (p.displayNameWithRole, p)))
-
-        def fields = List(perspective)
-      }
-      if (req.method == "GET") {
-        Ok(html.users.choosePerspective(Binding(ChoosePerspectiveForm)))
-      } else {
-        Binding(ChoosePerspectiveForm, req) match {
-          case ib: InvalidBinding => Ok(html.users.choosePerspective(ib))
-          case vb: ValidBinding => {
-            visit.perspective = Some(vb.valueOf(ChoosePerspectiveForm.perspective))
-            visit.updateMenu
-            pm.makePersistent(visit)
-            Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
-          }
+      val form = new ChoosePerspectiveForm(visit)
+      Binding(form, req) match {
+        case ib: InvalidBinding => Ok(html.users.choosePerspective(ib))
+        case vb: ValidBinding => {
+          visit.perspective = Some(vb.valueOf(form.perspective))
+          visit.updateMenu
+          pm.makePersistent(visit)
+          Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
         }
       }
     }
@@ -106,10 +111,10 @@ object Users extends Controller {
 
   /**
    * regex: logout
-   * 
+   *
    * Logs out user and displays home page with message "You have been logged out."
    */
-  
+
   def logout = VisitAction { implicit request =>
     DataStore.execute { pm =>
       val visit = Visit.getFromRequest(request)
@@ -149,10 +154,10 @@ object Users extends Controller {
 
   /**
    * regex: /settings
-   * 
+   *
    * Displays page with the form to change the user's password and the form to change the user's theme.
    */
-  
+
   def settings = Authenticated { implicit req =>
     val visit = Visit.getFromRequest(req)
     val user = visit.user.get
@@ -162,10 +167,10 @@ object Users extends Controller {
 
   /**
    * regex: /changePassword
-   * 
+   *
    * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
    */
-  
+
   def changePassword = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val user = Visit.getFromRequest(req).user.get // TODO: this scares me -- we shouldn't get here if the user is None, but...
@@ -180,10 +185,10 @@ object Users extends Controller {
       }
     }
   }
-  
+
   /**
    * regex: /changeTheme
-   * 
+   *
    * User chooses from drop-down menu and this changes the theme to that selection.
    */
 
@@ -206,10 +211,10 @@ object Users extends Controller {
 
   /**
    * regex: /listUsers
-   * 
+   *
    * Helper Method
    */
-  
+
   def list = VisitAction { implicit request =>
     DataStore.execute { pm =>
       val cand = QUser.candidate

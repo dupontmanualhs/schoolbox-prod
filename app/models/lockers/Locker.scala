@@ -47,9 +47,12 @@ class Locker {
   def location_=(theLocation: LockerLocation) = (_location = theLocation)
   
   def student: Option[Student] = if (_student == null) None else Some(_student)
-  def student_=(theStudent: Option[Student]) = theStudent match {
-    case None => _student = null
-    case Some(s) => _student = s
+  def student_=(theStudent: Student) { student_=(Option(theStudent)) }
+  def student_=(theStudent: Option[Student]) {
+    theStudent match {
+      case None => _student = null
+      case Some(s) => _student = s
+    }
   }
   
   def taken: Boolean = _taken
@@ -110,11 +113,6 @@ object Locker {
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.taken.eq(false).or(cand.taken.eq(true))).executeList()
     }
-  }
-  
-  def validateLockerNumber(number: String): Option[Locker] = {
-    if(isNumber(number)) getByNumber(toInt(number))
-    else None
   }
 }
 

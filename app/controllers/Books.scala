@@ -272,32 +272,32 @@ object Books extends Controller {
   def checkout = Action { implicit request =>
     Ok(views.html.books.checkout(Binding(CheckoutForm)))
   }
-  
+
   def checkoutP() = Action { implicit request =>
-      Binding(CheckoutForm, request) match {
-        case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
-        case vb: ValidBinding => DataStore.execute { implicit pm =>
-          val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
-          val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
-          student match {
-            case None => Redirect(routes.Books.checkout()).flashing("error" -> "No such student.")
-            case Some(stu) => {
-              copy match {
-                case None => Redirect(routes.Books.checkout()).flashing("error" -> "No copy with that barcode.")
-                case Some(cpy) => {
-                  if (cpy.isCheckedOut) {
-                    Redirect(routes.Books.checkout()).flashing("error" -> "Copy already checked out")
-                  } else {
-                    val c = new Checkout(stu, cpy, new java.sql.Date(new java.util.Date().getTime()), null)
-                    pm.makePersistent(c)
-                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
-                  }
+    Binding(CheckoutForm, request) match {
+      case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
+      case vb: ValidBinding => DataStore.execute { implicit pm =>
+        val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
+        val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
+        student match {
+          case None => Redirect(routes.Books.checkout()).flashing("error" -> "No such student.")
+          case Some(stu) => {
+            copy match {
+              case None => Redirect(routes.Books.checkout()).flashing("error" -> "No copy with that barcode.")
+              case Some(cpy) => {
+                if (cpy.isCheckedOut) {
+                  Redirect(routes.Books.checkout()).flashing("error" -> "Copy already checked out")
+                } else {
+                  val c = new Checkout(stu, cpy, new java.sql.Date(new java.util.Date().getTime()), null)
+                  pm.makePersistent(c)
+                  Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
                 }
               }
             }
           }
         }
       }
+    }
   }
 
   object CheckoutBulkForm extends Form {
@@ -315,18 +315,18 @@ object Books extends Controller {
   def checkoutBulk() = Action { implicit request =>
     Ok(html.books.checkoutBulk(Binding(CheckoutBulkForm)))
   }
-  
+
   def checkoutBulkP() = Action { implicit request =>
-      Binding(CheckoutBulkForm, request) match {
-        case ib: InvalidBinding => Ok(html.books.checkoutBulk(ib))
-        case vb: ValidBinding => {
-          val checkoutStu: String = vb.valueOf(CheckoutBulkForm.student)
-          Student.getByStateId(checkoutStu) match {
-            case None => Redirect(routes.Books.checkoutBulk).flashing("error" -> "Student not found.")
-            case Some(s) => Redirect(routes.Books.checkoutBulkHelper(checkoutStu))
-          }
+    Binding(CheckoutBulkForm, request) match {
+      case ib: InvalidBinding => Ok(html.books.checkoutBulk(ib))
+      case vb: ValidBinding => {
+        val checkoutStu: String = vb.valueOf(CheckoutBulkForm.student)
+        Student.getByStateId(checkoutStu) match {
+          case None => Redirect(routes.Books.checkoutBulk).flashing("error" -> "Student not found.")
+          case Some(s) => Redirect(routes.Books.checkoutBulkHelper(checkoutStu))
         }
       }
+    }
   }
 
   object CheckoutBulkHelperForm extends Form {
@@ -351,30 +351,35 @@ object Books extends Controller {
       case Some(s) => s.displayName
     }
     val visit = Visit.getFromRequest(request)
-    if (request.method == "GET") {
-      val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
-      val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
-      val zipped = ct.zipWithIndex
-      Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped, stu))
-    } else {
-      val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
-      val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
-      val zipped = ct.zipWithIndex
-      Binding(CheckoutBulkHelperForm, request) match {
-        case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, dName, zipped, stu))
-        case vb: ValidBinding => {
-          Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
-            case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy not found.")
-            case Some(cpy) => {
-              if (cpy.isCheckedOut) {
-                Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already checked out.")
+    val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+    val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
+    val zipped = ct.zipWithIndex
+    Ok(html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped, stu))
+  }
+
+  def checkoutBulkHelperP(stu: String) = Action { implicit request =>
+    val dName = Student.getByStateId(stu) match {
+      case None => "Unknown"
+      case Some(s) => s.displayName
+    }
+    val visit = Visit.getFromRequest(request)
+    val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+    val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
+    val zipped = ct.zipWithIndex
+    Binding(CheckoutBulkHelperForm, request) match {
+      case ib: InvalidBinding => Ok(html.books.checkoutBulkHelper(ib, dName, zipped, stu))
+      case vb: ValidBinding => {
+        Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
+          case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy not found.")
+          case Some(cpy) => {
+            if (cpy.isCheckedOut) {
+              Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already checked out.")
+            } else {
+              if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
+                Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
               } else {
-                if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
-                  Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
-                } else {
-                  visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
-                  Redirect(routes.Books.checkoutBulkHelper(stu))
-                }
+                visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
+                Redirect(routes.Books.checkoutBulkHelper(stu))
               }
             }
           }
@@ -455,23 +460,24 @@ object Books extends Controller {
    *
    * A form that allows for a book to be checked back in.
    */
-  def checkIn = Action { implicit request =>
-    if (request.method == "GET") Ok(views.html.books.checkIn(Binding(CheckInForm)))
-    else {
-      Binding(CheckInForm, request) match {
-        case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
-        case vb: ValidBinding => DataStore.execute { pm =>
-          val cand = QCheckout.candidate
-          Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
-            case None => Redirect(routes.Books.checkIn()).flashing("error" -> "No copy with the given barcode")
-            case Some(cpy) => {
-              pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
-                case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
-                case Some(currentCheckout) => {
-                  currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
-                  pm.makePersistent(currentCheckout)
-                  Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
-                }
+  def checkIn() = Action { implicit request =>
+    Ok(views.html.books.checkIn(Binding(CheckInForm)))
+  }
+
+  def checkInP() = Action { implicit request =>
+    Binding(CheckInForm, request) match {
+      case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
+      case vb: ValidBinding => DataStore.execute { pm =>
+        val cand = QCheckout.candidate
+        Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
+          case None => Redirect(routes.Books.checkIn()).flashing("error" -> "No copy with the given barcode")
+          case Some(cpy) => {
+            pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+              case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
+              case Some(currentCheckout) => {
+                currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
+                pm.makePersistent(currentCheckout)
+                Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
               }
             }
           }
@@ -483,19 +489,6 @@ object Books extends Controller {
   def lookup() = TODO
 
   def inspect() = TODO
-
-  object ChooseCopyForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-      override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
-        case None => ValidationError("Copy not found.")
-        case Some(barcode) => ValidationError(Nil)
-      }))
-    }
-
-    def fields = List(barcode)
-  }
 
   /**
    * Regex: /books/findCopyHistory
@@ -577,7 +570,7 @@ object Books extends Controller {
 
     def fields = List(stateId)
   }
-  
+
   /**
    * Regex: /books/findCheckoutHistory
    *
@@ -587,15 +580,15 @@ object Books extends Controller {
   def findCheckoutHistory() = Action { implicit req =>
     Ok(html.books.findCheckoutHistory(Binding(ChooseStudentForm)))
   }
-  
-  def findCheckoutHistoryP() = Action { implicit req => 
-      Binding(ChooseStudentForm, req) match {
-        case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
-        case vb: ValidBinding => DataStore.execute { implicit pm =>
-          val lookupStudentId: String = vb.valueOf(ChooseStudentForm.stateId)
-          Redirect(routes.Books.checkoutHistory(lookupStudentId))
-        }
+
+  def findCheckoutHistoryP() = Action { implicit req =>
+    Binding(ChooseStudentForm, req) match {
+      case ib: InvalidBinding => Ok(html.books.findCheckoutHistory(ib))
+      case vb: ValidBinding => DataStore.execute { implicit pm =>
+        val lookupStudentId: String = vb.valueOf(ChooseStudentForm.stateId)
+        Redirect(routes.Books.checkoutHistory(lookupStudentId))
       }
+    }
   }
 
   /**
@@ -670,27 +663,15 @@ object Books extends Controller {
    * A form page that allows a user to find a copy by its isbn.
    */
   def findCopyStatusByTitle() = Action { implicit req =>
-    object ChooseTitleForm extends Form {
-      val isbn = new TextField("ISBN") {
-        override val minLength = Some(10)
-        override val maxLength = Some(13)
-        override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
-          case None => ValidationError("Title not found.")
-          case Some(isbn) => ValidationError(Nil)
-        }))
-      }
+    Ok(html.books.findCopyStatusByTitle(Binding(ChooseTitleForm)))
+  }
 
-      def fields = List(isbn)
-    }
-    if (req.method == "GET") {
-      Ok(html.books.findCopyStatusByTitle(Binding(ChooseTitleForm)))
-    } else {
-      Binding(ChooseTitleForm, req) match {
-        case ib: InvalidBinding => Ok(html.books.findCopyStatusByTitle(ib))
-        case vb: ValidBinding => {
-          val lookupTitleIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
-          Redirect(routes.Books.copyStatusByTitle(lookupTitleIsbn))
-        }
+  def findCopyStatusByTitleP() = Action { implicit req =>
+    Binding(ChooseTitleForm, req) match {
+      case ib: InvalidBinding => Ok(html.books.findCopyStatusByTitle(ib))
+      case vb: ValidBinding => {
+        val lookupTitleIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
+        Redirect(routes.Books.copyStatusByTitle(lookupTitleIsbn))
       }
     }
   }
@@ -712,26 +693,27 @@ object Books extends Controller {
     }
   }
 
+  object ChooseGradeForm extends Form {
+    val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
+
+    def fields = List(grade)
+  }
+
   /**
    * Regex: /books/findAllBooksOut
    *
    * A form page that allows a user to find al the books out for a page.
    */
   def findAllBooksOut() = Action { implicit req =>
-    object ChooseGradeForm extends Form {
-      val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
+    Ok(html.books.findAllBooksOut(Binding(ChooseGradeForm)))
+  }
 
-      def fields = List(grade)
-    }
-    if (req.method == "GET") {
-      Ok(html.books.findAllBooksOut(Binding(ChooseGradeForm)))
-    } else {
-      Binding(ChooseGradeForm, req) match {
-        case ib: InvalidBinding => Ok(html.books.findAllBooksOut(ib))
-        case vb: ValidBinding => DataStore.execute { implicit pm =>
-          val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
-          Redirect(routes.Books.allBooksOut(lookupGrade))
-        }
+  def findAllBooksOutP() = Action { implicit req =>
+    Binding(ChooseGradeForm, req) match {
+      case ib: InvalidBinding => Ok(html.books.findAllBooksOut(ib))
+      case vb: ValidBinding => DataStore.execute { implicit pm =>
+        val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
+        Redirect(routes.Books.allBooksOut(lookupGrade))
       }
     }
   }
@@ -775,33 +757,34 @@ object Books extends Controller {
     }
   }
 
+  object ChooseCopyForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+      override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
+        case None => ValidationError("Copy not found.")
+        case Some(barcode) => ValidationError(Nil)
+      }))
+    }
+
+    def fields = List(barcode)
+  }
+
   /**
    * Regex: /books/findCopyInfo
    *
    * A form page that allows users to find info on a copy with a certain barcode.
    */
   def findCopyInfo() = Action { implicit req =>
-    object ChooseCopyForm extends Form {
-      val barcode = new TextField("Barcode") {
-        override val minLength = Some(21)
-        override val maxLength = Some(23)
-        override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
-          case None => ValidationError("Copy not found.")
-          case Some(barcode) => ValidationError(Nil)
-        }))
-      }
+    Ok(html.books.findCopyInfo(Binding(ChooseCopyForm)))
+  }
 
-      def fields = List(barcode)
-    }
-    if (req.method == "GET") {
-      Ok(html.books.findCopyInfo(Binding(ChooseCopyForm)))
-    } else {
-      Binding(ChooseCopyForm, req) match {
-        case ib: InvalidBinding => Ok(html.books.findCopyInfo(ib))
-        case vb: ValidBinding => {
-          val lookupBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
-          Redirect(routes.Books.copyInfo(lookupBarcode))
-        }
+  def findCopyInfoP() = Action { implicit req =>
+    Binding(ChooseCopyForm, req) match {
+      case ib: InvalidBinding => Ok(html.books.findCopyInfo(ib))
+      case vb: ValidBinding => {
+        val lookupBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
+        Redirect(routes.Books.copyInfo(lookupBarcode))
       }
     }
   }
@@ -861,34 +844,34 @@ object Books extends Controller {
     val title = Title.getByIsbn(isbn).get
     Ok(html.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
   }
-  
-  def editTitleHelperP(isbn: String) = Action { implicit request => 
+
+  def editTitleHelperP(isbn: String) = Action { implicit request =>
     // TODO: what if there's no title?
     val title = Title.getByIsbn(isbn).get
-      val f = new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight)
-      Binding(f, request) match {
-        case ib: InvalidBinding => Ok(html.books.editTitleHelper(ib))
-        case vb: ValidBinding => {
-          title.name = vb.valueOf(f.name)
-          title.author = vb.valueOf(f.author)
-          title.publisher = vb.valueOf(f.publisher)
-          title.numPages = vb.valueOf(f.numPages)
-          title.dimensions = vb.valueOf(f.dimensions)
-          title.weight = vb.valueOf(f.weight)
-          title.lastModified = new java.sql.Date(new java.util.Date().getTime())
-          DataStore.pm.makePersistent(title)
+    val f = new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight)
+    Binding(f, request) match {
+      case ib: InvalidBinding => Ok(html.books.editTitleHelper(ib))
+      case vb: ValidBinding => {
+        title.name = vb.valueOf(f.name)
+        title.author = vb.valueOf(f.author)
+        title.publisher = vb.valueOf(f.publisher)
+        title.numPages = vb.valueOf(f.numPages)
+        title.dimensions = vb.valueOf(f.dimensions)
+        title.weight = vb.valueOf(f.weight)
+        title.lastModified = new java.sql.Date(new java.util.Date().getTime())
+        DataStore.pm.makePersistent(title)
 
-          vb.valueOf(f.imageUrl) match {
-            case Some(url) => try {
-              downloadImage(url, isbn)
-              Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
-            } catch {
-              case e: Exception => Redirect(routes.Application.index()).flashing("error" -> "Image not downloaded. Edit the tite to try downloading again")
-            }
-            case None => Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
+        vb.valueOf(f.imageUrl) match {
+          case Some(url) => try {
+            downloadImage(url, isbn)
+            Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
+          } catch {
+            case e: Exception => Redirect(routes.Application.index()).flashing("error" -> "Image not downloaded. Edit the tite to try downloading again")
           }
+          case None => Redirect(routes.Application.index()).flashing("message" -> "Title updated successfully")
         }
       }
+    }
   }
 
   object ChooseTitleForm extends Form {
@@ -1063,16 +1046,16 @@ object Books extends Controller {
   def addTitleToPrintQueueHelper() = Action { implicit request =>
     Ok(html.books.addTitleToPrintQueueHelper(Binding(AddTitleToPrintQueueForm)))
   }
-  
-  def addTitleToPrintQueueHelperP() = Action { implicit request => 
-      Binding(AddTitleToPrintQueueForm, request) match {
-        case ib: InvalidBinding => Ok(html.books.addTitleToPrintQueueHelper(ib))
-        case vb: ValidBinding => {
-          val lookupIsbn: String = vb.valueOf(AddTitleToPrintQueueForm.isbn)
-          val copyRange: String = vb.valueOf(AddTitleToPrintQueueForm.copyRange)
-          Redirect(routes.Books.addTitleToPrintQueue(lookupIsbn, copyRange))
-        }
+
+  def addTitleToPrintQueueHelperP() = Action { implicit request =>
+    Binding(AddTitleToPrintQueueForm, request) match {
+      case ib: InvalidBinding => Ok(html.books.addTitleToPrintQueueHelper(ib))
+      case vb: ValidBinding => {
+        val lookupIsbn: String = vb.valueOf(AddTitleToPrintQueueForm.isbn)
+        val copyRange: String = vb.valueOf(AddTitleToPrintQueueForm.copyRange)
+        Redirect(routes.Books.addTitleToPrintQueue(lookupIsbn, copyRange))
       }
+    }
   }
 
   /**

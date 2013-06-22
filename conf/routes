@@ -16,13 +16,13 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 #form example
 GET		/this/is/spartas/formtest				controllers.Application.formTest()
-POST	/this/is/spartas/formtest				controllers.Application.formTest()
+POST	/this/is/spartas/formtest				controllers.Application.formTestP()
 
 #Users
 GET		/login						            controllers.Users.login()
-POST    /login						          	controllers.Users.login()
+POST    /login						          	controllers.Users.loginP()
 GET     /choosePerspective          		  	controllers.Users.choosePerspective()
-POST    /choosePerspective         				controllers.Users.choosePerspective() 
+POST    /choosePerspective         				controllers.Users.choosePerspectiveP() 
 GET     /logout                     			controllers.Users.logout()
 GET     /settings                  				controllers.Users.settings()
 POST    /changeTheme   			                controllers.Users.changeTheme()
@@ -86,31 +86,27 @@ POST    /books/findCheckoutHistory              controllers.Books.findCheckoutHi
 GET     /books/checkout                         controllers.Books.checkout()
 POST    /books/checkout                         controllers.Books.checkoutP()
 GET     /books/checkIn                          controllers.Books.checkIn()
-POST    /books/checkIn                          controllers.Books.checkIn()
+POST    /books/checkIn                          controllers.Books.checkInP()
 GET     /books/allBooksOut/:grade               controllers.Books.allBooksOut(grade: Int)
-GET     /books/findAllBooksOut                  controllers.Books.findAllBooksOut
-POST    /books/findAllBooksOut                  controllers.Books.findAllBooksOut
+GET     /books/findAllBooksOut                  controllers.Books.findAllBooksOut()
+POST    /books/findAllBooksOut                  controllers.Books.findAllBooksOutP()
 GET     /books/addPurchaseGroup                 controllers.Books.addPurchaseGroup()
 POST    /books/addPurchaseGroup                 controllers.Books.addPurchaseGroupP()
 GET     /books/copyInfo/:barcode                controllers.Books.copyInfo(barcode: String)
-GET     /books/findCopyInfo                     controllers.Books.findCopyInfo
-POST    /books/findCopyInfo                     controllers.Books.findCopyInfo
+GET     /books/findCopyInfo                     controllers.Books.findCopyInfo()
+POST    /books/findCopyInfo                     controllers.Books.findCopyInfoP()
 GET     /books/copyStatusByTitle/:isbn          controllers.Books.copyStatusByTitle(isbn: String)
-GET     /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
-POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle
+GET     /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitle()
+POST    /books/findCopyStatusByTitle            controllers.Books.findCopyStatusByTitleP()
 GET     /books/inventory                        controllers.Books.inventory
 GET     /books/checkoutBulk                     controllers.Books.checkoutBulk()
 POST    /books/checkoutBulk                     controllers.Books.checkoutBulkP()
 GET     /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
-POST    /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelper(stu: String)
+POST    /books/checkoutBulkHelper/:stu          controllers.Books.checkoutBulkHelperP(stu: String)
 GET     /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
-POST    /books/removeCopyFromList/:stu/:bc      controllers.Books.removeCopyFromList(stu: String, bc: String)
 GET     /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
-POST    /books/removeAllCopiesFromList/:stu     controllers.Books.removeAllCopiesFromList(stu: String)
-GET     /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
-POST    /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout
+GET     /books/cancelBulkCheckout               controllers.Books.cancelBulkCheckout()
 GET     /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSubmit(stu: String)
-POST    /books/checkoutBulkSubmit/:stu          controllers.Books.checkoutBulkSubmit(stu: String)
 GET     /books/editTitleHelper/:isbn            controllers.Books.editTitleHelper(isbn: String)
 POST    /books/editTitleHelper/:isbn            controllers.Books.editTitleHelperP(isbn: String)
 GET     /books/editTitle                        controllers.Books.editTitle()
@@ -131,11 +127,10 @@ GET     /books/deleteTitle/:isbn                controllers.Books.deleteTitle(is
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
 GET     /lockers/locker/:num             		controllers.Lockers.getLocker(num: Int)
-POST    /lockers/locker/:num              		controllers.Lockers.getLocker(num: Int)
 GET     /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
-POST    /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
+POST    /lockers/lockerByNumber                 controllers.Lockers.lockerByNumberP()
 GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
-POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
+POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearchP()
 GET     /lockers/schedule                       controllers.Lockers.schedule()
 GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
 
