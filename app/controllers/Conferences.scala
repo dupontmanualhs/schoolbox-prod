@@ -74,9 +74,11 @@ object Conferences extends Controller {
     val fields = List(name, isActive)
   }
 
-  def createEvent = Action { implicit req =>
-    if (req.method == "GET") Ok(views.html.conferences.createEvent(Binding(EventForm)))
-    else {
+  def createEvent() = Action { implicit req =>
+    Ok(views.html.conferences.createEvent(Binding(EventForm)))
+  }
+  
+  def createEventP() = Action { implicit req =>
       Binding(EventForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createEvent(ib))
         case vb: ValidBinding => DataStore.execute { implicit pm =>
@@ -87,9 +89,9 @@ object Conferences extends Controller {
           Redirect(routes.Conferences.index()).flashing("message" -> "Event successfully created!")
         }
       }
-    }
   }
   //TODO: Make sure this works
+  //TODO: This should be POST
   def deleteEvent(eventId: Long) = Action { implicit req =>
     DataStore.execute { implicit pm =>
       pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeOption() match {
@@ -121,8 +123,10 @@ object Conferences extends Controller {
   }
 
   def createSession(eventId: Long) = Action { implicit req =>
-    if (req.method == "GET") Ok(views.html.conferences.createSession(Binding(SessionForm), eventId))
-    else {
+    Ok(views.html.conferences.createSession(Binding(SessionForm), eventId))
+  }
+  
+  def createSessionP(eventId: Long) = Action { implicit req =>
       Binding(SessionForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSession(ib, eventId))
         case vb: ValidBinding => DataStore.execute { implicit pm =>
@@ -139,7 +143,6 @@ object Conferences extends Controller {
           Redirect(routes.Conferences.index()).flashing("message" -> "Session successfully created!")
         }
       }
-    }
   }
 
   def deleteSession(sessionId: Long) = Action { implicit request =>
@@ -188,9 +191,11 @@ object Conferences extends Controller {
   }
 
   def activateTeacherSession(sessionId: Long) = Action { implicit request =>
-    DataStore.execute { pm =>
-      if (request.method == "GET") Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
-      else {
+    Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
+  }
+  
+  def activateTeacherSessionP(sessionId: Long) = Action { implicit request =>  
+    DataStore.execute { pm => 
         Binding(TeacherActivationForm, request) match {
           case ib: InvalidBinding => Ok(views.html.conferences.activateSession(ib, sessionId))
           case vb: ValidBinding => {
@@ -205,7 +210,6 @@ object Conferences extends Controller {
             Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session activated")
           }
         }
-      }
     }
   }
 
@@ -255,8 +259,10 @@ object Conferences extends Controller {
   }
 
   def createSlot(sessionId: Long, teacherId: Long) = Action { implicit request =>
-    if (request.method == "GET") Ok(views.html.conferences.createSlot(Binding(SlotForm), sessionId, teacherId))
-    else {
+    Ok(views.html.conferences.createSlot(Binding(SlotForm), sessionId, teacherId))
+  }
+  
+  def createSlotP(sessionId: Long, teacherId: Long) = Action { implicit request =>
       Binding(SlotForm, request) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSlot(ib, sessionId, teacherId))
         case vb: ValidBinding => DataStore.execute { implicit pm =>
@@ -284,7 +290,6 @@ object Conferences extends Controller {
           Redirect(routes.Conferences.index()).flashing("message" -> "Successfully created slot!")
         }
       }
-    }
   }
 
   def deleteSlot(slotId: Long) = Action { implicit request =>

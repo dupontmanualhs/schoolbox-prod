@@ -115,10 +115,9 @@ object Users extends Controller {
    * Logs out user and displays home page with message "You have been logged out."
    */
 
-  def logout = VisitAction { implicit request =>
+  def logout = VisitAction { implicit req =>
     DataStore.execute { pm =>
-      val visit = Visit.getFromRequest(request)
-      pm.deletePersistent(visit)
+      pm.deletePersistent(req.visit)
       Redirect(controllers.routes.Application.index()).flashing("message" -> "You have been logged out.")
     }
   }
@@ -173,7 +172,7 @@ object Users extends Controller {
 
   def changePassword = Authenticated { implicit req =>
     DataStore.execute { pm =>
-      val user = Visit.getFromRequest(req).user.get // TODO: this scares me -- we shouldn't get here if the user is None, but...
+      val user = req.perspective.user
       val form = new ChangePasswordForm(user)
       Binding(form, req) match {
         case ib: InvalidBinding => Ok(html.users.settings(ib, Binding(ChangeTheme)))
@@ -194,7 +193,7 @@ object Users extends Controller {
 
   def changeTheme = Authenticated { implicit req =>
     DataStore.execute { pm =>
-      val user = Visit.getFromRequest(req).user.get
+      val user = req.perspective.user
       val pwForm = new ChangePasswordForm(user)
       Binding(ChangeTheme, req) match {
         case ib: InvalidBinding => Ok(html.users.settings(Binding(pwForm), ib))

@@ -24,7 +24,6 @@ import models.mastery.Quiz
 import models.mastery.QuizSection
 import play.api.mvc.Controller
 import play.api.mvc.PlainResult
-import util.Helpers.string2elem
 import views.html
 import forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
@@ -33,6 +32,9 @@ import util.VisitAction
 import scalajdo.DataStore
 import models.users.Visit
 
+import util.Helpers.string2elem
+import util.{ Call, FormCall, FormMethod }
+
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
 
@@ -40,8 +42,8 @@ class BlanksField(question: Question) extends Field[String](question.id.toString
 }
 
 class AnswerField(question: Question) extends TextField(question.id.toString) {
-  val uuid=java.util.UUID.randomUUID()
-  override def widget = new MathWidget(question.text, uuid=uuid)
+  val uuid = java.util.UUID.randomUUID()
+  override def widget = new MathWidget(question.text, uuid = uuid)
 
   override def asValue(s: Seq[String]): Either[ValidationError, String] = s match {
     case Seq(ans) => Right(ans)
@@ -50,29 +52,27 @@ class AnswerField(question: Question) extends TextField(question.id.toString) {
 }
 
 class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) extends TextInput(false, attrs, "text") {
-  val Name:String = uuid.toString()
+  val Name: String = uuid.toString()
   override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
-    <span>{ text } { super.render(name, value, attrList.append(new UnprefixedAttribute("onkeyup", "UpdateMath(this.value)", Null))) }
-    <div id="MathOutput">
-    	You typed: ${{}}$
-    </div>
-</span>
+    <span>
+      { text }{ super.render(name, value, attrList.append(new UnprefixedAttribute("onkeyup", "UpdateMath(this.value)", Null))) }
+      <div id="MathOutput">
+        You typed: ${{}}$
+      </div>
+    </span>
   }
-  override def scripts: NodeSeq = 
+  override def scripts: NodeSeq =
     <script type="text/x-mathjax-config">
-	  MathJax.Hub.Config({{
+      MathJax.Hub.Config({{
 		  tex2jax: {{
       inlineMath: [['$','$'],['\\(','\\)']]
 		  }}
 		  }});
-	</script>
-
-	<script type="text/javascript"
-		  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
-	</script>
-
-	<script>
-	(function () {{
+    </script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
+    </script>
+    <script>
+      (function () {{
     var QUEUE = MathJax.Hub.queue; 
     var math = null;                
     
@@ -84,7 +84,7 @@ class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) ext
       QUEUE.Push(['Text',math,'\\displaystyle{{'+TeX+'}}']);
     }}
   }})();
-</script>
+    </script>
 }
 
 class MultiBlankWidget(text: String, attrs: MetaData = Null) extends Widget(false, attrs) {
@@ -134,7 +134,8 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     instructionsAndFields.flatMap(_._2)
   }
 
-  override def render(bound: Binding, action: Option[String] = None, legend: Option[String] = None): Elem = {
+  override def render(bound: Binding, overrideSubmit: Option[FormCall] = None, legend: Option[String] = None): Elem = {
+    val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
       <table class="table">
         { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
@@ -188,50 +189,47 @@ object Mastery extends Controller {
   }
 
   def linkToQuiz(quiz: Quiz): NodeSeq = {
-    val link = controllers.routes.Mastery.getDisplayQuiz(quiz.id)
+    val link = controllers.routes.Mastery.displayQuiz(quiz.id)
     <a href={ link.url }>{ quiz.toString }</a>
   }
 
-  def getDisplayQuiz(quizId: Long) = displayQuiz(Quiz.getById(quizId))
+  def displayQuiz(quizId: Long) = VisitAction { implicit req =>
+    Quiz.getById(quizId) match {
+      case None => NotFound(views.html.notFound("The quiz of which you are seeking no longer exists."))
+      case Some(quiz) => {
+        val sections: List[QuizSection] = quiz.sections
+        if (sections == null || sections.isEmpty) {
+          NotFound(views.html.notFound("There are no sections in this quiz! :("))
+        } else {
+          val sectionsWithQuestions: List[(QuizSection, List[Question])] =
+            quiz.sections.map(s => (s, s.randomQuestions))
+          //MasteryForm uses sectionsWithQuestions
+          val form = new MasteryForm(sectionsWithQuestions)
+          val idsOfSectionsWithQuestions: List[(Long, List[Long])] =
+            sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
+              (sq._1.id, sq._2.map(_.id))
+            })
+          req.visit.set("quizId", quiz.id)
+          req.visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
+          Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
+        }
+      }
+    }
+  }
 
-  def displayQuiz(maybeQuiz: Option[Quiz]) = VisitAction { implicit request =>
-    DataStore.execute { pm =>
-      val visit = Visit.getFromRequest(request)
-      maybeQuiz match {
-        case None => NotFound(views.html.notFound("The quiz of which you are seeking no longer exists."))
-        case Some(quiz) => {
-          val sections: List[QuizSection] = quiz.sections
-          if (sections == null || sections.isEmpty) {
-            NotFound(views.html.notFound("There are no sections :("))
-          } else {
-            if (request.method == "GET") {
-              val sectionsWithQuestions: List[(QuizSection, List[Question])] =
-                quiz.sections.map(s => (s, s.randomQuestions))
-              //MasteryForm uses sectionsWithQuestions
-              val form = new MasteryForm(sectionsWithQuestions)
-              val idsOfSectionsWithQuestions: List[(Long, List[Long])] =
-                sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
-                  (sq._1.id, sq._2.map(_.id))
-                })
-              visit.set("quizId", quiz.id)
-              visit.set("sectionWithQuestionsId", idsOfSectionsWithQuestions)
-              pm.makePersistent(visit)
-              Ok(html.tatro.mastery.displayMastery(quiz, Binding(form)))
-            } else {
-              val idsOfSectionsWithQuestions = visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
-              val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
-                (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
-              })
-              val form = new MasteryForm(sectionsWithQuestions)
-              Binding(form, request) match {
-                case ib: InvalidBinding => Ok(html.tatro.mastery.displayMastery(quiz, ib)) // there were errors
-                case vb: ValidBinding => {
-                  visit.set("answers", form.fields.map(vb.valueOf(_)))
-                  pm.makePersistent(visit)
-                  Redirect(routes.Mastery.checkAnswers())
-                }
-              }
-            }
+  def gradeQuiz(quizId: Long) = VisitAction { implicit req =>
+    Quiz.getById(quizId) match {
+      case None => NotFound(views.html.notFound("You submitted a quiz that doesn't exist. That shouldn't happen."))
+      case Some(quiz) => {
+        val idsOfSectionsWithQuestions = req.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
+        val sectionsWithQuestions = idsOfSectionsWithQuestions.map(
+          (sq: (Long, List[Long])) => (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get)))
+        val form = new MasteryForm(sectionsWithQuestions)
+        Binding(form, req) match {
+          case ib: InvalidBinding => Ok(html.tatro.mastery.displayMastery(quiz, ib)) // there were errors
+          case vb: ValidBinding => {
+            req.visit.set("answers", form.fields.map(vb.valueOf(_)))
+            Redirect(routes.Mastery.checkAnswers())
           }
         }
       }

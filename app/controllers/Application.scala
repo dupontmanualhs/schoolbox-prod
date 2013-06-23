@@ -42,7 +42,6 @@ object Application extends Controller {
 
     val fields = List(ACField, ChoiceField, DateField, TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField, editedTextField)
 
-    override def cancelTo: String = "url"
     override def prefix: Option[String] = None
     override def submitText = "Submit"
     override def includeCancel = true

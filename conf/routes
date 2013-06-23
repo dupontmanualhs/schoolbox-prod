@@ -55,9 +55,9 @@ POST    /assignments/check/:taskId              controllers.Assignments.check(ta
 
 #Math
 GET     /tatro/mastery                          controllers.Mastery.menuOfTests()     
-GET 	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
+GET 	/tatro/mastery/quiz/:quizId				controllers.Mastery.displayQuiz(quizId: Long)
+POST	/tatro/mastery/quiz/:quizId				controllers.Mastery.gradeQuiz(quizId: Long)
 GET		/tatro/mastery/test						controllers.Mastery.testDataBase()  
-POST	/tatro/mastery/quiz/:quizId				controllers.Mastery.getDisplayQuiz(quizId: Long)
 GET     /tatro/mastery/scoreReport				controllers.Mastery.checkAnswers()
 #GET     /math/random                            controllers.Math.randomProblem()
 #POST    /math/random                            controllers.Math.checkAnswer(temp)
@@ -68,8 +68,8 @@ POST    /blog/editor                            controllers.Blogs.testSubmit()
 GET     /blog/me                                controllers.Blogs.listCurrentUserBlogs
 GET     /blog/user/:id                          controllers.Blogs.listBlogsByPerspectiveId(id: Long)
 GET     /blog/:id                               controllers.Blogs.showBlog(id: Long)
-GET     /blog/:id/new                           controllers.Blogs.createPost(id: Long)
-POST    /blog/:id/new                           controllers.Blogs.createPost(id: Long)
+# GET     /blog/:id/new                           controllers.Blogs.createPost(id: Long)
+# POST    /blog/:id/new                           controllers.Blogs.createPostP(id: Long)
 
 #Books
 GET     /books/addTitle                         controllers.Books.addTitle()
@@ -126,13 +126,14 @@ GET     /books/deleteTitle/:isbn                controllers.Books.deleteTitle(is
 
 #Lockers
 GET     /lockers/myLocker                       controllers.Lockers.getMyLocker()
-GET     /lockers/locker/:num             		controllers.Lockers.getLocker(num: Int)
-GET     /lockers/lockerByNumber                 controllers.Lockers.lockerByNumber()
-POST    /lockers/lockerByNumber                 controllers.Lockers.lockerByNumberP()
-GET     /lockers/lockerSearch                   controllers.Lockers.lockerSearch()
-POST    /lockers/lockerSearch                   controllers.Lockers.lockerSearchP()
+GET     /lockers/byNumber/:num             		controllers.Lockers.getLocker(num: Int)
+POST    /lockers/claim/:num						controllers.Lockers.claimLocker(num: Int)
+GET     /lockers/byNumber                 controllers.Lockers.lockerByNumber()
+POST    /lockers/byNumber                 controllers.Lockers.lockerByNumberP()
+GET     /lockers/search                   controllers.Lockers.lockerSearch()
+POST    /lockers/search                   controllers.Lockers.lockerSearchP()
 GET     /lockers/schedule                       controllers.Lockers.schedule()
-GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom(room: String)
+GET     /lockers/byRoom/:room             controllers.Lockers.lockerByRoom(room: String)
 
 # TODO
 #Payment
@@ -144,25 +145,24 @@ GET     /lockers/lockerByRoom/:room             controllers.Lockers.lockerByRoom
 GET		/conferences							controllers.Conferences.index()
 GET		/conferences/teacher 					controllers.Conferences.viewAsTeacher()
 GET		/conferences/createEvent				controllers.Conferences.createEvent()
-POST	/conferences/createEvent				controllers.Conferences.createEvent()
+POST	/conferences/createEvent				controllers.Conferences.createEventP()
 GET		/conferences/createSession/:eventId				controllers.Conferences.createSession(eventId: Long)
-POST	/conferences/createSession/:eventId				controllers.Conferences.createSession(eventId: Long)
+POST	/conferences/createSession/:eventId				controllers.Conferences.createSessionP(eventId: Long)
 GET		/conferences/createSlot/:sessionId/:teacherId		controllers.Conferences.createSlot(sessionId: Long, teacherId: Long)
-POST	/conferences/createSlot/:sessionId/:teacherId					controllers.Conferences.createSlot(sessionId: Long, teacherId: Long)
-GET		/conferences/deleteEvent/:eventId				controllers.Conferences.deleteEvent(eventId: Long)
-GET		/conferences/deleteSession/:sessionId			controllers.Conferences.deleteSession(sessionId: Long)
-GET		/conferences/deleteSlot/:slotId					controllers.Conferences.deleteSlot(slotId: Long)
+POST	/conferences/createSlot/:sessionId/:teacherId					controllers.Conferences.createSlotP(sessionId: Long, teacherId: Long)
+POST	/conferences/deleteEvent/:eventId				controllers.Conferences.deleteEvent(eventId: Long)
+POST	/conferences/deleteSession/:sessionId			controllers.Conferences.deleteSession(sessionId: Long)
+POST	/conferences/deleteSlot/:slotId					controllers.Conferences.deleteSlot(slotId: Long)
+GET		/conferences/teacherSession/:sessionId			controllers.Conferences.teacherSession(sessionId: Long)
+GET		/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)
+POST	/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSessionP(sessionId: Long)
+GET		/conferences/deactivateTeacherSession/:sessionId	controllers.Conferences.deactivateTeacherSession(sessionId: Long)
+GET		/conferences/classList/:sessionId		controllers.Conferences.classList(sessionId: Long)
 
 
 #Grades
 GET     /grades/home/:id						controllers.Grades.home(id: Long)
-GET     /grades/announcements/:id	    	    controllers.Grades.announcements(id: Long)
-GET     /grades/assignments/:id	    	    	controllers.Grades.assignments(id: Long)
-POST	/grades/assignments/:id					controllers.Grades.assignments(id: Long)
-GET     /grades/assignments/deleteAssignment/:id/:assignmentId    controllers.Grades.deleteAssignment(id: Long, assignmentId: Long)
+GET     /grades/announcements/:sectionId	    	    controllers.Grades.announcements(sectionId: Long)
+GET     /grades/assignments/:sectionId	    	    	controllers.Grades.assignments(sectionId: Long)
+# GET     /grades/assignments/deleteAssignment/:id/:assignmentId    controllers.Grades.deleteAssignment(id: Long, assignmentId: Long)
 GET     /grades/gradebook/:id					controllers.Grades.gradebook(id: Long)
-GET		/conferences/teacherSession/:sessionId			controllers.Conferences.teacherSession(sessionId: Long)
-GET		/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)
-POST	/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)
-GET		/conferences/deactivateTeacherSession/:sessionId	controllers.Conferences.deactivateTeacherSession(sessionId: Long)
-GET		/conferences/classList/:sessionId		controllers.Conferences.classList(sessionId: Long)

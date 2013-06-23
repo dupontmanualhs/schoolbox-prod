@@ -1,22 +1,27 @@
 package controllers
 
-import play.api._
-import play.api.mvc._
-import models.books._
-import models.users._
-import forms._
-import forms.fields._
-import views.html
-import forms.validators.Validator
-import forms.validators.ValidationError
-import javax.imageio._
-import java.io._
+import java.io.{ File, FileInputStream, FileOutputStream }
+import javax.imageio.ImageIO
+
+import play.api.mvc.{ Action, Controller }
+
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import com.itextpdf.text.pdf.{ Barcode128, Barcode, PdfContentByte, PdfWriter, BaseFont }
 import com.itextpdf.text.{ BaseColor, Document, DocumentException, PageSize, Paragraph, Utilities }
 
 import scalajdo.DataStore
+
+import models.books._
+import models.users._
+import views.html
+
+import forms._
+import forms.fields._
+import forms.validators.Validator
+import forms.validators.ValidationError
+
+import util.{ Call, Method }
 
 object Books extends Controller {
   /**
@@ -829,7 +834,7 @@ object Books extends Controller {
     val imageUrl = new UrlFieldOptional("New Image URL")
 
     // TODO: this should probably be a Call, not a String
-    override def cancelTo = "books/editTitle"
+    override def cancelTo = Some(Call(Method.GET, "/books/editTitle"))
 
     def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
   }

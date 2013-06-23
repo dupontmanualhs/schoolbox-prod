@@ -4,7 +4,6 @@ import play.api.mvc.{ Action, AnyContent, BodyParser, BodyParsers, Request, Resu
 import javax.jdo.JDOHelper
 import scalajdo.DataStore
 import models.users.Visit
-import play.api.mvc.Call
 import play.api.mvc.WrappedRequest
 import models.users.Perspective
 
@@ -20,12 +19,12 @@ object VisitAction {
   }
 
   def apply[A](p: BodyParser[A])(f: VisitRequest[A] => Result): Action[A] = {
-    Action(p)(request => {
+    Action(p)( request => {
       val pm = DataStore.pm
       pm.beginTransaction()
       val visitRequest = VisitRequest(Visit.getFromRequest(request), request)
       val res = f(visitRequest)
-      if (JDOHelper.isDeleted()) {
+      if (JDOHelper.isDeleted(visitRequest.visit)) {
         pm.commitTransaction()
         res.withNewSession
       } else {
@@ -55,7 +54,7 @@ object Authenticated {
     VisitAction(p) { req =>
       req.visit.perspective match {
         case None => DataStore.execute { pm =>
-          req.visit.redirectUrl = new Call(req.method, req.uri)
+          req.visit.redirectUrl = Call(Method(req.method), req.uri)
           pm.makePersistent(req.visit)
           Results.Redirect(controllers.routes.Users.login()).flashing("error" -> "You must log in to view that page.")
         }

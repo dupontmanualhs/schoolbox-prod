@@ -18,7 +18,7 @@
       Student Owner:   <span>@locker.studentName</span>
       </p>
       @if(!locker.taken){
-        <form method="post">
+        <form method="post" action=@controllers.routes.Lockers.claimLocker(locker.number)>
           <button type="submit" class="btn btn-primary">Get this locker!</button>
         </form>
       }

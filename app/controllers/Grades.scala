@@ -15,8 +15,8 @@ import util.Authenticated
 import play.api.mvc.Result
 import play.api.templates.Html
 import models.grades.Turnin
-
 import scalajdo.DataStore
+import util.AuthenticatedRequest
 
 object Grades extends Controller {
   class DropMenu(catsMap: List[(String, Category)]) extends Form {
@@ -26,35 +26,39 @@ object Grades extends Controller {
     val dueDate = new DateField("DueDate")
     val locked = new DateField("Hidden Until")
 
-    override val cancelTo = "url"
-
     val fields = List(category, title, numPoints, dueDate, locked)
   }
 
-  def assignments(id: Long) = Authenticated { implicit req =>
-    Visit.getFromRequest(req).perspective.get match {
-      case teacher: Teacher => assignmentsForTeachers(id, teacher)(req) //TODO fix this cast
+  def assignments(sectionId: Long) = Authenticated { implicit req =>
+    req.perspective match {
+      case teacher: Teacher => assignmentsForTeachers(sectionId, teacher)
       //case _:Student => assignmentsForStudents(id)
     }
 
   }
 
-  def assignmentsForTeachers(id: Long, teacher: Teacher) = Action { implicit req =>
-    Section.getById(id) match {
+  def assignmentsForTeachers(sectionId: Long, teacher: Teacher)(implicit req: AuthenticatedRequest[_]): Result = {
+    Section.getById(sectionId) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        if (!sect.teachers.contains(teacher)) {
-          //println(sect.teachers.head.toString)
-          //println()
-          //println(req.visit.perspective.get)
+        if (req.perspective.id != teacher.id || !sect.teachers.contains(teacher)) {
           NotFound(views.html.notFound("You do not have permisson to view this course."))
         } else {
           val cats = Category.forSection(sect)
           val catsMap = Category.forSection(sect).map(c => (c.name, c))
           val dropMenu = new DropMenu(catsMap)
-          if (req.method == "GET") {
-            Ok(html.grades.assignments(sect, cats, Binding(dropMenu), id))
-          } else Binding(dropMenu, req) match {
+          Ok(html.grades.assignments(sect, cats, Binding(dropMenu), sectionId))
+        }
+      }
+    }
+  }
+  
+  /*
+   * TODO: add and delete assignment should be AJAX calls that don't redraw
+   * the whole page
+   def addAssignment(else 
+    
+    Binding(dropMenu, req) match {
             case ib: InvalidBinding => Ok(views.html.grades.assignments(sect, cats, ib, id))
             case vb: ValidBinding => {
               val TheCat: Category = vb.valueOf(dropMenu.category)
@@ -83,6 +87,8 @@ object Grades extends Controller {
     }
     }
   }
+  * 
+  */
 
   def home(id: Long) = Action { implicit req =>
     Section.getById(id) match {

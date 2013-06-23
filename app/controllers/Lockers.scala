@@ -24,25 +24,12 @@ object Lockers extends Controller {
    *  Presents a page displaying the information for a student's current locker,
    *  or tells them they have no locker.
    */
-  def getMyLocker() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
-      val currentUser: Option[User] = User.current
-      if (currentUser.isDefined) {
-        if (Teacher.getByUsername(currentUser.get.username).isDefined) {
-          NotFound(views.html.notFound("Teachers do not have lockers."))
-        } else {
-          val Some(maybeStudent) = Student.getByUsername(currentUser.get.username)
-          val maybeLocker: Option[Locker] = Locker.getByStudent(maybeStudent)
-          maybeLocker match {
-            case None => NotFound(views.html.notFound("You do not have a locker."))
-            case Some(l) => Ok(views.html.lockers.getLocker(l))
-          }
-        }
-      } else {
-        val visit: Visit = Visit.getFromRequest(req)
-        visit.redirectUrl = controllers.routes.Lockers.getMyLocker()
-        pm.makePersistent(visit)
-        Redirect(routes.Users.login()).flashing("error" -> "You are not logged in.")
+  def getMyLocker() = Authenticated { implicit req =>
+    req.perspective match {
+      case teacher: Teacher => NotFound(views.html.notFound("Teachers do not have lockers."))
+      case student: Student => Locker.getByStudent(student) match {
+        case None => NotFound(views.html.notFound("You do not have a locker."))
+        case Some(l) => Ok(views.html.lockers.getLocker(l))
       }
     }
   }
@@ -53,36 +40,32 @@ object Lockers extends Controller {
    *  Presents a page displaying the information for the locker with given number, and redirects
    *  if none exist.
    */
-  def getLocker(num: Int) = VisitAction { implicit req =>
-    DataStore.execute { pm =>
-      Locker.getByNumber(num) match {
-        case None => NotFound(views.html.notFound("No locker exists with this ID."))
-        case Some(locker) => Ok(views.html.lockers.getLocker(locker))
-      }
+  def getLocker(num: Int) = Authenticated { implicit req =>
+    Locker.getByNumber(num) match {
+      case None => NotFound(views.html.notFound("No locker exists with this ID."))
+      case Some(locker) => Ok(views.html.lockers.getLocker(locker))
     }
   }
 
-  def getLockerP(num: Int) = Authenticated { implicit req =>
-    DataStore.execute { pm =>
-      Locker.getByNumber(num) match {
-        case None => Ok(views.html.notFound(s"There is no locker with number $num"))
-        case Some(locker) => req.perspective match {
-          case student: Student =>
-            val oldLocker: Option[Locker] = Locker.getByStudent(student)
-            if (locker.taken) Ok(views.html.notFound("This locker was taken."))
-            else {
-              locker.student = student
-              locker.taken = true
-              pm.makePersistent(locker)
-              oldLocker.foreach { ol =>
-                ol.student = None
-                ol.taken = false
-                pm.makePersistent(ol)
-              }
-              Redirect(routes.Application.index()).flashing("message" -> "You have successfully changed lockers.")
+  def claimLocker(num: Int) = Authenticated { implicit req =>
+    Locker.getByNumber(num) match {
+      case None => Ok(views.html.notFound(s"There is no locker with number $num"))
+      case Some(locker) => req.perspective match {
+        case student: Student =>
+          val oldLocker: Option[Locker] = Locker.getByStudent(student)
+          if (locker.taken) Ok(views.html.notFound("This locker was taken."))
+          else DataStore.execute { pm =>
+            locker.student = student
+            locker.taken = true
+            pm.makePersistent(locker)
+            oldLocker.foreach { ol =>
+              ol.student = None
+              ol.taken = false
+              pm.makePersistent(ol)
             }
-          case _ => NotFound(views.html.notFound("Only students have lockers."))
-        }
+            Redirect(routes.Lockers.getMyLocker()).flashing("message" -> "You have successfully changed lockers.")
+          }
+        case _ => NotFound(views.html.notFound("Only students have lockers."))
       }
     }
   }
@@ -117,7 +100,7 @@ object Lockers extends Controller {
     }
   }
 
-  // TODO: this form should get build by querying the db for options
+  // TODO: this form should get built by querying the db for options
   object LockerForm extends Form {
     val floor: ChoiceField[Int] = new ChoiceField("floor", List(("1", 1), ("2", 2), ("3", 3)))
     val hall: ChoiceField[String] = new ChoiceField("hall", List(("Southeast", "SE"), ("Southwest", "SW"),

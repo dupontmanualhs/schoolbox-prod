@@ -11,8 +11,8 @@ import models.users.QPerspective
 import forms.fields.TinyMCEField
 import forms.fields.TextField
 import forms.{ Form, ValidBinding, InvalidBinding, Binding }
-
 import scalajdo.DataStore
+import util.Authenticated
 
 //TODO: Actually check permissions where applicable
 
@@ -76,7 +76,7 @@ object Blogs extends Controller {
     }
   }
 
-  class CreatePostForm extends Form {
+  object CreatePostForm extends Form {
     val title = new TextField("title")
     val content = new TinyMCEField("content")
 
@@ -89,19 +89,17 @@ object Blogs extends Controller {
    *  If the blog id shown in the url corresponds to a blog, go for it. If not, error.
    */
 
-  def createPost(blogId: Long) = Action { implicit req =>
-    val blog = Blog.getById(blogId)
-    blog match {
+  // TODO: fix this using Permissions
+  /*
+  def createPost(blogId: Long) = Authenticated { implicit req =>
+    Blog.getById(blogId) match {
       case None => NotFound("This blog doesn't exist.")
-      case Some(b) => {
-        Visit.getFromRequest(req).perspective match {
+      case Some(b) => req.perspective match {
           case Some(p) => {
             if (b.owner.id != p.id) {
               Redirect(routes.Blogs.showBlog(blogId)).flashing("message" -> "You don't have the proper permissions to create a post. Change perspectives?")
             } else {
-              val form = new CreatePostForm
-              if (req.method == "GET") {
-                Ok(views.html.blogs.createPost(b.title, Binding(form)))
+              Ok(views.html.blogs.createPost(b.title, Binding(form)))
               } else {
                 checkBindingCreatePostForm(Binding(form, req), b, form)(req)
               }
@@ -112,12 +110,13 @@ object Blogs extends Controller {
       }
     }
   }
+  */
 
-  def checkBindingCreatePostForm(binding: Binding, b: Blog, form: CreatePostForm) = Action { implicit req =>
+  def checkBindingCreatePostForm(binding: Binding, b: Blog) = Action { implicit req =>
     binding match {
       case ib: InvalidBinding => Ok(views.html.blogs.createPost(b.title, ib))
       case vb: ValidBinding => {
-        b.createPost(vb.valueOf(form.title), vb.valueOf(form.content))
+        b.createPost(vb.valueOf(CreatePostForm.title), vb.valueOf(CreatePostForm.content))
         Redirect(routes.Blogs.showBlog(b.id)).flashing("message" -> "New post created!")
       }
     }
