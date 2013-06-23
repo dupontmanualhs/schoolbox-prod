@@ -1,21 +1,31 @@
 package app
 
-import org.scalatest.FunSuite
+import org.scalatest.{ BeforeAndAfter, FunSuite }
 import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.selenium.Chrome
-import play.api.test.Helpers._
+import org.scalatest.selenium.WebBrowser
 import play.api.test.TestServer
+import org.openqa.selenium.htmlunit.HtmlUnitDriver
+import com.gargoylesoftware.htmlunit.BrowserVersion
 
-/*
-class TestLogins extends FunSuite with ShouldMatchers with Chrome {
-
-  running(new TestServer(port=9000)) {
-    test("home page has 'Log in' link") {
-      goTo("http://localhost:9000/index.html")
-      find(linkText("Log in")) should be ('defined)
-    }
+class TestLogins extends FunSuite with BeforeAndAfter with ShouldMatchers with WebBrowser {
+  val server = TestServer(3333)
+  implicit val webDriver = new HtmlUnitDriver(BrowserVersion.FIREFOX_17)
+  
+  before {
+    server.start()
+    webDriver.setJavascriptEnabled(true)
   }
   
+  after {
+    server.stop()
+  }
+  
+  test("home page has 'Log in' link") {
+    goTo("http://localhost:3333/")
+    pageTitle should be === "ABCD eSchool"
+  }
+  
+  /*
   test("allow a student to log in with the correct username and password") {
     running(TestServer(3333), driver) { browser =>
       browser.goTo("http://localhost:3333")
@@ -83,7 +93,8 @@ class TestLogins extends FunSuite with ShouldMatchers with Chrome {
   
   test("user with permission can change others' passwords") {
     
-  }  
+  } 
+  */
 }
-*/
+
 

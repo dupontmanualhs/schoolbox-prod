@@ -33,10 +33,9 @@ object ApplicationBuild extends Build {
       "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
       "com.itextpdf" % "itextpdf" % "5.4.2",
       "org.tukaani" % "xz" % "1.3",
-      "javax.mail" % "mail" % "1.4.7"
-      //"org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.33.0" % "test",
-      //"org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.33.0" % "test",
-      //"org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.33.0" % "test"
+      "javax.mail" % "mail" % "1.4.7",
+      "net.sourceforge.htmlunit" % "htmlunit" % "2.12" % "test",
+      "org.seleniumhq.selenium" % "selenium-java" % "2.33.0" % "test"
     ) ++ jsDependencies
     
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")
