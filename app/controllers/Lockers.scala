@@ -49,7 +49,7 @@ object Lockers extends Controller {
 
   def claimLocker(num: Int) = Authenticated { implicit req =>
     Locker.getByNumber(num) match {
-      case None => Ok(views.html.notFound(s"There is no locker with number $num"))
+      case None => Ok(views.html.notFound("There is no locker with number $num"))
       case Some(locker) => req.perspective match {
         case student: Student =>
           val oldLocker: Option[Locker] = Locker.getByStudent(student)
@@ -158,28 +158,24 @@ object Lockers extends Controller {
    *  Presents a page that displays the schedule for a student, with an option
    *  to find lockers near each class.
    */
-  def schedule = VisitAction { implicit req =>
+  def schedule = Authenticated { implicit req =>
     DataStore.execute { pm =>
-      val currentUser = User.current
-      val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username).isDefined
-      if (!isStudent) {
-        NotFound(views.html.notFound("Must be logged-in student to select lockers."))
-      } else {
-        val Some(student) = Student.getByUsername(currentUser.get.username)
-        val term = Term.current
-        val enrollments: List[StudentEnrollment] = {
-          val sectVar = QSection.variable("sectVar")
-          val cand = QStudentEnrollment.candidate()
-          pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
-        }
-        val hasEnrollments = enrollments.size != 0
-        val sections: List[Section] = enrollments.map(_.section)
-        val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
-        val table: List[NodeSeq] = periods.map { p =>
-          val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-          val roomName = sectionsThisPeriod match {
-            case s :: list => s.room.name
-            case _ => "0"
+      req.perspective match {
+        case student: Student => {
+          val term = Term.current
+          val enrollments: List[StudentEnrollment] = {
+            val sectVar = QSection.variable("sectVar")
+            val cand = QStudentEnrollment.candidate()
+            pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+          }
+          val hasEnrollments = enrollments.size != 0
+          val sections: List[Section] = enrollments.map(_.section)
+          val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
+          val table: List[NodeSeq] = periods.map { p =>
+            val sectionsThisPeriod = sections.filter(_.periods.contains(p))
+            val roomName = sectionsThisPeriod match {
+              case s :: list => s.room.name
+              case _ => "0"
           }
           val linkNode: NodeSeq = { <a class="btn" href={ controllers.routes.Lockers.lockerByRoom(roomName).url }>Lockers Near Here</a> }
           <tr>
@@ -189,8 +185,10 @@ object Lockers extends Controller {
             <td>{ mkNodeSeq(sectionsThisPeriod.map(s => Text(s.room.name)), <br/>) }</td>
             <td>{ linkNode }</td>
           </tr>
+          }
+          Ok(views.html.lockers.schedule(student, table, hasEnrollments))
         }
-        Ok(views.html.lockers.schedule(student, table, hasEnrollments))
+        case _ => NotFound(views.html.notFound("Only students have lockers."))
       }
     }
   }
