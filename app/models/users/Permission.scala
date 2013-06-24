@@ -19,7 +19,7 @@ class Permission {
   @Column(allowsNull="false")
   private[this] var _description: String = _
   
-  private[this] var _perspectives: List[Perspective] = _
+  private[this] var _roles: List[Role] = _
  
   private[this] var _groups: List[Group] = _
 }

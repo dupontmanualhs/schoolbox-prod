@@ -104,9 +104,9 @@ class User extends Ordered[User] {
     "User(ID: %d, %s)".format(id, formalName)
   }
   
-  def perspectives(): List[Perspective] = {
-    val cand = QPerspective.candidate
-    DataStore.pm.query[Perspective].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
+  def roles(): List[Role] = {
+    val cand = QRole.candidate
+    DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
   }
 }
 

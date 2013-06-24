@@ -3,7 +3,7 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import models.users.Perspective
+import models.users.Role
 
 import scalajdo.DataStore
 
@@ -12,21 +12,21 @@ class LabelQueueSet {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  private[this] var _perspective: Perspective = _
+  private[this] var _role: Role = _
   private[this] var _title: Title = _
   private[this] var _copyRange: String = _
 
-  def this(perspective: Perspective, title: Title, copyRange: String) = {
+  def this(role: Role, title: Title, copyRange: String) = {
     this()
-    _perspective = perspective
+    _role = role
     _title = title
     _copyRange = copyRange
   }
 
   def id: Long = _id
 
-  def perspective: Perspective = _perspective
-  def perspective_=(thePerspective: Perspective) { _perspective = thePerspective }
+  def role: Role = _role
+  def role_=(theRole: Role) { _role = theRole }
 
   def title: Title = _title
   def title_=(theTitle: Title) { _title = theTitle }
@@ -50,8 +50,8 @@ trait QLabelQueueSet extends PersistableExpression[LabelQueueSet] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
 
-  private[this] lazy val _perspective: ObjectExpression[Perspective] = new ObjectExpressionImpl[Perspective](this, "_perspective")
-  def perspective: ObjectExpression[Perspective] = _perspective
+  private[this] lazy val _role: ObjectExpression[Role] = new ObjectExpressionImpl[Role](this, "_role")
+  def role: ObjectExpression[Role] = _role
 
   private[this] lazy val _title: ObjectExpression[Title] = new ObjectExpressionImpl[Title](this, "_title")
   def title: ObjectExpression[Title] = _title

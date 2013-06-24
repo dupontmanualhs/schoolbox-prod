@@ -20,7 +20,7 @@ class Visit {
   private[this] var _uuid: String = UUID.randomUUID().toString()
   private[this] var _expiration: Long = _
   private[this] var _user: User = _
-  private[this] var _perspective: Perspective = _
+  private[this] var _role: Role = _
   @Persistent(defaultFetchGroup = "true")
   private[this] var _redirectUrl: String = _
   @Element(types=Array(classOf[Permission]))
@@ -33,13 +33,13 @@ class Visit {
   @Serialized
   private[this] var _sessionItems: java.util.Map[String, Object] = _
   
-  def this(theExpiration: Long, maybeUser: Option[User], maybePerspective: Option[Perspective]) = {
+  def this(theExpiration: Long, maybeUser: Option[User], maybeRole: Option[Role]) = {
     this()
     _expiration = theExpiration
     _user = maybeUser.getOrElse(null)
-    _perspective = maybePerspective.getOrElse(null)
+    _role = maybeRole.getOrElse(null)
     permissions_=(Set[Permission]())
-    menu_=(Menu.buildMenu(perspective))
+    menu_=(Menu.buildMenu(role))
     _sessionItems = new java.util.HashMap[String, Object]()  
     redirectUrl_=(None)
   }
@@ -52,8 +52,8 @@ class Visit {
   def user: Option[User] = if (_user == null) None else Some(_user)
   def user_=(maybeUser: Option[User]) { _user = maybeUser.getOrElse(null) }
   
-  def perspective: Option[Perspective] = if (_perspective == null) None else Some(_perspective)
-  def perspective_=(maybePerspective: Option[Perspective]) { _perspective = maybePerspective.getOrElse(null) }
+  def role: Option[Role] = if (_role == null) None else Some(_role)
+  def role_=(maybeRole: Option[Role]) { _role = maybeRole.getOrElse(null) }
   
   def redirectUrl: Option[Call] = Visit.string2Call(_redirectUrl)
   def redirectUrl_=(url: Option[Call]) { _redirectUrl = url.map(Visit.call2String(_)).getOrElse(null) }
@@ -67,7 +67,7 @@ class Visit {
     
   def isExpired: Boolean = System.currentTimeMillis > expiration
   
-  def updateMenu { menu = Menu.buildMenu(perspective) }
+  def updateMenu { menu = Menu.buildMenu(role) }
   
   def set(key: String, value: Any) {
     value match {
@@ -131,8 +131,8 @@ trait QVisit extends PersistableExpression[Visit] {
   private[this] lazy val _expiration: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_expiration")
   def expiration: NumericExpression[Long] = _expiration
   
-  private[this] lazy val _perspective: ObjectExpression[Perspective] = new ObjectExpressionImpl[Perspective](this, "_perspective")
-  def perspective: ObjectExpression[Perspective] = _perspective
+  private[this] lazy val _role: ObjectExpression[Role] = new ObjectExpressionImpl[Role](this, "_role")
+  def role: ObjectExpression[Role] = _role
   
   private[this] lazy val _permissions: CollectionExpression[java.util.Set[Permission], Permission] =
       new CollectionExpressionImpl[java.util.Set[Permission], Permission](this, "_permissions")

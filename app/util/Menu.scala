@@ -1,7 +1,7 @@
 package util
 
 import scala.xml.{ Elem, NodeSeq }
-import models.users.Perspective
+import models.users.Role
 
 class MenuItem(val name: String, val id: String, val link: Option[String], val subItems: List[MenuItem]) {
   def asHtml: Elem = if (subItems.isEmpty) {
@@ -51,7 +51,7 @@ object Menu {
   val delCpy = new MenuItem("Delete Copy", "menu_delCpy", Some(controllers.routes.Books.deleteCopyHelper.toString), Nil)
   val delTitle = new MenuItem("Delete Title", "menu_delTitle", Some(controllers.routes.Books.deleteTitleHelper.toString), Nil)
 
-  def buildMenu(persp: Option[Perspective]): Elem = {
+  def buildMenu(persp: Option[Role]): Elem = {
     val acctItems = if (persp.isDefined) List(logout, settings) else List(login)
     val locItems = List(currloc, locsearch, locsched, findlocnum)
     val bookItems = List(addTitle, chkHistory, copyHistory, currentBks, addPurchaseGroup, inventory, checkout, checkIn, copyInfo, allBksOut, copyStatusByTitle,

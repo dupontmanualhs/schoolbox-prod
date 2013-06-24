@@ -16,5 +16,5 @@ class Group {
   @Column(allowsNull="false")
   private[this] var _name: String = _
 
-  private[this] var _perspectives: List[Perspective] = _
+  private[this] var _roles: List[Role] = _
 }

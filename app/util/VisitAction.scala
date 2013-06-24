@@ -5,7 +5,7 @@ import javax.jdo.JDOHelper
 import scalajdo.DataStore
 import models.users.Visit
 import play.api.mvc.WrappedRequest
-import models.users.Perspective
+import models.users.Role
 
 case class VisitRequest[A](visit: Visit, private val request: Request[A])
   extends WrappedRequest(request)
@@ -39,7 +39,7 @@ object VisitAction {
 }
 
 case class AuthenticatedRequest[A](
-    perspective: Perspective, 
+    role: Role, 
     visit: Visit, 
     private val request: Request[A]) extends WrappedRequest(request)
 
@@ -52,13 +52,13 @@ object Authenticated {
   
   def apply[A](p: BodyParser[A])(f: AuthenticatedRequest[A] => Result): Action[A] = {
     VisitAction(p) { req =>
-      req.visit.perspective match {
+      req.visit.role match {
         case None => DataStore.execute { pm =>
           req.visit.redirectUrl = Call(Method(req.method), req.uri)
           pm.makePersistent(req.visit)
           Results.Redirect(controllers.routes.Users.login()).flashing("error" -> "You must log in to view that page.")
         }
-        case Some(perspective) => f(AuthenticatedRequest(perspective, req.visit, req))
+        case Some(role) => f(AuthenticatedRequest(role, req.visit, req))
       }
     }
   }

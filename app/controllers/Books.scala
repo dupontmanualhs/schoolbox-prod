@@ -603,12 +603,12 @@ object Books extends Controller {
    * checked out to a student they provide.
    */
   def findCurrentCheckouts() = Action { implicit req =>
-    Ok(html.books.findPerspectiveHistory(Binding(ChooseStudentForm)))
+    Ok(html.books.findRoleHistory(Binding(ChooseStudentForm)))
   }
 
   def findCurrentCheckoutsP() = Action { implicit req =>
     Binding(ChooseStudentForm, req) match {
-      case ib: InvalidBinding => Ok(html.books.findPerspectiveHistory(ib))
+      case ib: InvalidBinding => Ok(html.books.findRoleHistory(ib))
       case vb: ValidBinding => {
         val lookupStudentId: String = vb.valueOf(ChooseStudentForm.stateId)
         Redirect(routes.Books.currentCheckouts(lookupStudentId))
@@ -1023,7 +1023,7 @@ object Books extends Controller {
       case Some(t) => {
         try {
           sanatizeCopyRange(copyRange)
-          val l = new LabelQueueSet(Visit.getFromRequest(request).perspective.getOrElse(null), t, copyRange)
+          val l = new LabelQueueSet(Visit.getFromRequest(request).role.getOrElse(null), t, copyRange)
           DataStore.pm.makePersistent(l)
           Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Labels added to print queue")
         } catch {

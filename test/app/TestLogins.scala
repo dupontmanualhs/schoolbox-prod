@@ -68,17 +68,17 @@ class TestLogins extends FunSuite with BeforeAndAfterAll with ShouldMatchers wit
     cssSelector("#id_password").webElement.getAttribute("value") should be === ""
   }
   /*
-  test("make a user with multiple perspectives choose one") {
+  test("make a user with multiple roles choose one") {
     running(TestServer(3333), driver) { browser =>
       browser.goTo("http://localhost:3333/login")
       browser.$("#id_username").text("todd")
       browser.$("#id_password").text("obr123")
       browser.$("#id_password").submit
-      assert(browser.title === "Choose Perspective")
-      browser.$("#id_perspective").click
-      browser.$("#id_perspective").submit
+      assert(browser.title === "Choose Role")
+      browser.$("#id_role").click
+      browser.$("#id_role").submit
       // return to same page with error
-      assert(browser.title === "Choose Perspective")
+      assert(browser.title === "Choose Role")
       assert(browser.$(".errorlist").first.getText.contains("This field is required. Please choose a value."))
       DataStore.close()
     }
@@ -90,9 +90,9 @@ class TestLogins extends FunSuite with BeforeAndAfterAll with ShouldMatchers wit
       browser.$("#id_username").text("todd")
       browser.$("#id_password").text("obr123")
       browser.$("#id_password").submit
-      assert(browser.title === "Choose Perspective")
-      browser.$("#id_perspective").click
-      browser.$("#id_perspective").submit
+      assert(browser.title === "Choose Role")
+      browser.$("#id_role").click
+      browser.$("#id_role").submit
       browser.$("#menu_account").click
       browser.$("#menu_changePassword").click
       assert(browser.title === "Change Your Password")

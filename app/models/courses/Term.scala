@@ -49,7 +49,7 @@ class Term {
 }
 
 object Term {
-  // TODO: the "current" term should be based on the date, but each perspective
+  // TODO: the "current" term should be based on the date, but each role
   // might have a current term, reflecting the term that s/he is currently
   // looking at
   private[Term] var _current: Option[Term] = None

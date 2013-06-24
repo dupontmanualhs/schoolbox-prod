@@ -30,7 +30,7 @@ object Grades extends Controller {
   }
 
   def assignments(sectionId: Long) = Authenticated { implicit req =>
-    req.perspective match {
+    req.role match {
       case teacher: Teacher => assignmentsForTeachers(sectionId, teacher)
       //case _:Student => assignmentsForStudents(id)
     }
@@ -41,7 +41,7 @@ object Grades extends Controller {
     Section.getById(sectionId) match {
       case None => NotFound(views.html.notFound("No section with that id."))
       case Some(sect) => {
-        if (req.perspective.id != teacher.id || !sect.teachers.contains(teacher)) {
+        if (req.role.id != teacher.id || !sect.teachers.contains(teacher)) {
           NotFound(views.html.notFound("You do not have permisson to view this course."))
         } else {
           val cats = Category.forSection(sect)

@@ -9,7 +9,7 @@ import models.grades._
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
-class Student extends Perspective {
+class Student extends Role {
   @Unique(name="STUDENT_STATEID")
   private[this] var _stateId: String = _
   @Unique(name="STUDENT_STUDENTNUMBER")
@@ -64,7 +64,7 @@ object Student {
   
 }
 
-trait QStudent extends QPerspective[Student] {
+trait QStudent extends QRole[Student] {
   private[this] lazy val _stateId: StringExpression = new StringExpressionImpl(this, "_stateId")
   def stateId: StringExpression = _stateId
   

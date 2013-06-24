@@ -53,22 +53,22 @@ object Users extends Controller {
         case vb: ValidBinding => {
           // set the session user
           request.visit.user = User.getByUsername(vb.valueOf(LoginForm.username))
-          // set the session perspective
-          request.visit.user.map(_.perspectives).getOrElse(Nil) match {
-            // no perspectives attached to this user
-            case Nil => Redirect(controllers.routes.Application.index()).flashing("message" -> "That user has no active perspectives.")
+          // set the session role
+          request.visit.user.map(_.roles).getOrElse(Nil) match {
+            // no roles attached to this user
+            case Nil => Redirect(controllers.routes.Application.index()).flashing("message" -> "That user has no active roles.")
             // there's at least one
             case persp :: rest => {
-              // TODO: should we have a default perspective?
+              // TODO: should we have a default role?
               // set the first one
-              request.visit.perspective = Some(persp)
+              request.visit.role = Some(persp)
               request.visit.updateMenu
               pm.makePersistent(request.visit)
               rest match {
                 // there was only one
                 case Nil => Redirect(request.visit.redirectUrl.getOrElse(controllers.routes.Application.index())).flashing("message" -> "You have successfully logged in.")
-                // multiple perspectives
-                case _ => Redirect(controllers.routes.Users.choosePerspective()).flashing("message" -> "Choose which perspective to use.")
+                // multiple roles
+                case _ => Redirect(controllers.routes.Users.chooseRole()).flashing("message" -> "Choose which role to use.")
               }
             }
           }
@@ -77,30 +77,30 @@ object Users extends Controller {
     }
   }
 
-  class ChoosePerspectiveForm(visit: Visit) extends Form {
-    val perspective = new ChoiceField("perspective", visit.user.get.perspectives.map(p => (p.displayNameWithRole, p)))
+  class ChooseRoleForm(visit: Visit) extends Form {
+    val role = new ChoiceField("role", visit.user.get.roles.map(p => (p.displayNameWithRole, p)))
 
-    def fields = List(perspective)
+    def fields = List(role)
   }
 
   /**
-   * Regex: /choosePerspective
+   * Regex: /chooseRole
    *
    * helper method
    */
 
-  def choosePerspective() = Authenticated { implicit req =>
-    Ok(html.users.choosePerspective(Binding(new ChoosePerspectiveForm(Visit.getFromRequest(req)))))
+  def chooseRole() = Authenticated { implicit req =>
+    Ok(html.users.chooseRole(Binding(new ChooseRoleForm(Visit.getFromRequest(req)))))
   }
 
-  def choosePerspectiveP() = Authenticated { implicit req =>
+  def chooseRoleP() = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val visit = Visit.getFromRequest(req)
-      val form = new ChoosePerspectiveForm(visit)
+      val form = new ChooseRoleForm(visit)
       Binding(form, req) match {
-        case ib: InvalidBinding => Ok(html.users.choosePerspective(ib))
+        case ib: InvalidBinding => Ok(html.users.chooseRole(ib))
         case vb: ValidBinding => {
-          visit.perspective = Some(vb.valueOf(form.perspective))
+          visit.role = Some(vb.valueOf(form.role))
           visit.updateMenu
           pm.makePersistent(visit)
           Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
@@ -172,7 +172,7 @@ object Users extends Controller {
 
   def changePassword = Authenticated { implicit req =>
     DataStore.execute { pm =>
-      val user = req.perspective.user
+      val user = req.role.user
       val form = new ChangePasswordForm(user)
       Binding(form, req) match {
         case ib: InvalidBinding => Ok(html.users.settings(ib, Binding(ChangeTheme)))
@@ -193,7 +193,7 @@ object Users extends Controller {
 
   def changeTheme = Authenticated { implicit req =>
     DataStore.execute { pm =>
-      val user = req.perspective.user
+      val user = req.role.user
       val pwForm = new ChangePasswordForm(user)
       Binding(ChangeTheme, req) match {
         case ib: InvalidBinding => Ok(html.users.settings(Binding(pwForm), ib))

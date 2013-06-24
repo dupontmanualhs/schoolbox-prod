@@ -25,7 +25,7 @@ object Lockers extends Controller {
    *  or tells them they have no locker.
    */
   def getMyLocker() = Authenticated { implicit req =>
-    req.perspective match {
+    req.role match {
       case teacher: Teacher => NotFound(views.html.notFound("Teachers do not have lockers."))
       case student: Student => Locker.getByStudent(student) match {
         case None => NotFound(views.html.notFound("You do not have a locker."))
@@ -50,7 +50,7 @@ object Lockers extends Controller {
   def claimLocker(num: Int) = Authenticated { implicit req =>
     Locker.getByNumber(num) match {
       case None => Ok(views.html.notFound("There is no locker with number $num"))
-      case Some(locker) => req.perspective match {
+      case Some(locker) => req.role match {
         case student: Student =>
           val oldLocker: Option[Locker] = Locker.getByStudent(student)
           if (locker.taken) Ok(views.html.notFound("This locker was taken."))
@@ -160,7 +160,7 @@ object Lockers extends Controller {
    */
   def schedule = Authenticated { implicit req =>
     DataStore.execute { pm =>
-      req.perspective match {
+      req.role match {
         case student: Student => {
           val term = Term.current
           val enrollments: List[StudentEnrollment] = {

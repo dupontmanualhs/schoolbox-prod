@@ -7,7 +7,7 @@ import play.api.data.Forms._
 import models.users._
 import models.blogs._
 import play.api.mvc.Result
-import models.users.QPerspective
+import models.users.QRole
 import forms.fields.TinyMCEField
 import forms.fields.TextField
 import forms.{ Form, ValidBinding, InvalidBinding, Binding }
@@ -35,15 +35,15 @@ object Blogs extends Controller {
 
   /** No matching route (Not sure where, or even if, this is used)
    * 
-   * Display the blogs corresponding to a user's perspective.
+   * Display the blogs corresponding to a user's role.
    */
-  def listUserBlogs(perspectiveOpt: Option[Perspective]) = Action { implicit req =>
-    perspectiveOpt match {
-      case None => NotFound("That user doesn't exist.")
-      case Some(perspective) => DataStore.execute { implicit pm =>
+  def listUserBlogs(roleOpt: Option[Role]) = Action { implicit req =>
+    roleOpt match {
+      case None => NotFound("That role doesn't exist.")
+      case Some(role) => DataStore.execute { implicit pm =>
         val cand = QBlog.candidate
-        val blogs: List[Blog] = Blog.listUserBlogs(perspective)
-        Ok(views.html.blogs.blogs(blogs, perspective))
+        val blogs: List[Blog] = Blog.listUserBlogs(role)
+        Ok(views.html.blogs.blogs(blogs, role))
       }
     }
   }
@@ -54,7 +54,7 @@ object Blogs extends Controller {
    */
   def listCurrentUserBlogs() = Action { implicit req =>
     DataStore.execute { pm =>
-      Visit.getFromRequest(req).perspective match {
+      Visit.getFromRequest(req).role match {
         case Some(per) => {
           Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
         }
@@ -67,11 +67,11 @@ object Blogs extends Controller {
    * 
    *  Presents a page with blogs corresponding to a persepective with given id
    */
-  def listBlogsByPerspectiveId(id: Long) = Action { implicit req =>
+  def listBlogsByRoleId(id: Long) = Action { implicit req =>
     DataStore.execute { implicit pm =>
-      Perspective.getById(id) match {
-        case Some(per) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
-        case None => NotFound("That perspective doesn't exist!")
+      Role.getById(id) match {
+        case Some(role) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(role), role))
+        case None => NotFound("That role doesn't exist!")
       }
     }
   }
@@ -94,10 +94,10 @@ object Blogs extends Controller {
   def createPost(blogId: Long) = Authenticated { implicit req =>
     Blog.getById(blogId) match {
       case None => NotFound("This blog doesn't exist.")
-      case Some(b) => req.perspective match {
+      case Some(b) => req.role match {
           case Some(p) => {
             if (b.owner.id != p.id) {
-              Redirect(routes.Blogs.showBlog(blogId)).flashing("message" -> "You don't have the proper permissions to create a post. Change perspectives?")
+              Redirect(routes.Blogs.showBlog(blogId)).flashing("message" -> "You don't have the proper permissions to create a post. Change roles?")
             } else {
               Ok(views.html.blogs.createPost(b.title, Binding(form)))
               } else {
