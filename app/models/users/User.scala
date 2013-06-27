@@ -27,7 +27,8 @@ class User extends Ordered[User] {
 
   private[this] var _preferred: String = _
 
-  private[this] var _gender: Int = _
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _gender: Gender.Value = _
   
   private[this] var _theme: String = _
 
@@ -70,8 +71,8 @@ class User extends Ordered[User] {
   def preferred: Option[String] = if (_preferred == null) None else Some(_preferred)
   def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
   
-  def gender: Gender.Gender = Gender(_gender)
-  def gender_=(theGender: Gender.Gender) { _gender = theGender.id }
+  def gender: Gender.Gender = _gender
+  def gender_=(theGender: Gender.Gender) { _gender = theGender }
   
   def theme: String = _theme
   def theme_=(theTheme: String) {_theme = theTheme}

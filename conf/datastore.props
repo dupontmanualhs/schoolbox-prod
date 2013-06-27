@@ -1,6 +1,7 @@
 datanucleus.ConnectionDriverName=org.h2.Driver
 datanucleus.ConnectionURL=jdbc:h2:data;AUTO_SERVER=true;MVCC=true
 
+datanucleus.implementationCreatorName=asm
 datanucleus.autoCreateSchema=true
 datanucleus.DetachAllOnCommit=true
 datanucleus.maxFetchDepth=1
