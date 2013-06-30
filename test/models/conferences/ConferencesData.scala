@@ -36,14 +36,15 @@ class ConferencesData extends FunSuite {
 	//startTime is testTime3 (05:00:00)
 	//slotinterval is 10
 	test("models.Conferences.slot.calculateEndTime 5:00 + 10 minutes") {
-		assert(testSlot1.calculateEndTime() === Time.valueOf("05:10:00"))
+		assert(testSlot1.endTime === Time.valueOf("05:10:00"))
 	}
 	
 	test("models.Conferences.slot.calculateEndTime 5:00 + 1:50 hours") {
-		assert(testSlot2.calculateEndTime() === Time.valueOf("06:50:00"))
+		assert(testSlot2.endTime === Time.valueOf("06:50:00"))
 	}
 	
 	test("models.Conferences.slot.calculateEndTime 5:00 + 23:00 hours") {
-		assert(testSlot3.calculateEndTime() === Time.valueOf("04:15:00"))
+		assert(testSlot3.endTime === Time.valueOf("04:15:00"))
 	}
+
 }

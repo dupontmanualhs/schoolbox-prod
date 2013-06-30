@@ -158,7 +158,8 @@ GET		/conferences/activateSession/:sessionId			controllers.Conferences.activateT
 POST	/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSessionP(sessionId: Long)
 GET		/conferences/deactivateTeacherSession/:sessionId	controllers.Conferences.deactivateTeacherSession(sessionId: Long)
 GET		/conferences/classList/:sessionId		controllers.Conferences.classList(sessionId: Long)
-
+GET		/conferences/multipleTeacherHandler/:sessionId/:sectionId	controllers.Conferences.multipleTeacherHandler(sessionId: Long, sectionId: Long)
+GET		/conferences/slotHandler/:sessionId/:teacherId				controllers.Conferences.slotHandler(sessionId: Long, teacherId: Long)
 
 #Grades
 GET     /grades/home/:id						controllers.Grades.home(id: Long)

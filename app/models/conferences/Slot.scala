@@ -8,6 +8,8 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import util.QueryClass
 
+import scalajdo.DataStore
+
 @PersistenceCapable(detachable="true")
 class Slot {
   @PrimaryKey
@@ -78,7 +80,7 @@ class Slot {
     _teacher = teacher
     _student = student
     _startTime = startTime
-    _endTime = calculateEndTime()
+    _endTime = calculateEndTime(startTime, slotInterval)
     _parentName = parentName
     _email = email
     _phone = phone 
@@ -87,27 +89,23 @@ class Slot {
     _slotInterval = slotInterval
   }
   
-  def calculateEndTime(): java.sql.Time = {
-    //converts startTime to "hh:mm:dd" format, if someone knows a better way that isn't deprecated tell Ken
-    var initialTime = _startTime.toString
-    //splits the sections of the time
-    var sections = initialTime.split(":")
-    var hours = sections(0)
-    var minutes = sections(1)
-    var seconds = sections(2)
-    //Adds the slot time to the beginning time, accounts for the bounds on minutes(0-59) and hours(0-23)
-    if (minutes.toInt + slotInterval > 59) {
-      hours = (hours.toInt + ((minutes.toInt + slotInterval)/60)).toString
-    }
-    hours = ((hours.toInt) % 24).toString 
-    minutes = ((minutes.toInt + slotInterval) % 60).toString
-    //Adds 0 to hours and minutes if they are a single digit
-    if (hours.length == 1) hours = 0 + hours
-    if (minutes.length == 1) minutes = 0 + minutes
-    Time.valueOf(hours + ":" + minutes + ":" + seconds)
+  def calculateEndTime(startTime: Time, slotInterval: Int): java.sql.Time = {
+    new Time(startTime.getTime() + (60000 * slotInterval))
   }
   
-  
+  def validate: Boolean = {
+    DataStore.execute  {  pm =>
+	  val startTime = this.startTime
+	  val endTime = this.endTime
+	    val cand = QSlot.candidate
+	    val slots = pm.query[Slot].filter(cand.teacher.eq(this.teacher).and(cand.session.eq(this.session))).executeList()
+	    for (slot <- slots) {
+	      if ((startTime.compareTo(slot.startTime) >= 0) && (startTime.compareTo(slot.endTime) < 0)) return true
+	      if ((endTime.compareTo(slot.startTime) > 0) && (endTime.compareTo(slot.endTime) <= 0)) return true
+	    }
+	    false
+	}
+  }
   
 }
 
