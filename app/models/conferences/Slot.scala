@@ -93,18 +93,26 @@ class Slot {
     new Time(startTime.getTime() + (60000 * slotInterval))
   }
   
-  def validate: Boolean = {
-    DataStore.execute  {  pm =>
-	  val startTime = this.startTime
-	  val endTime = this.endTime
-	    val cand = QSlot.candidate
-	    val slots = pm.query[Slot].filter(cand.teacher.eq(this.teacher).and(cand.session.eq(this.session))).executeList()
-	    for (slot <- slots) {
-	      if ((startTime.compareTo(slot.startTime) >= 0) && (startTime.compareTo(slot.endTime) < 0)) return true
-	      if ((endTime.compareTo(slot.startTime) > 0) && (endTime.compareTo(slot.endTime) <= 0)) return true
-	    }
-	    false
-	}
+  //Checks if the slot lies within the session's start and end times
+  def validateSession: Boolean = {
+    val dateOrdering = implicitly[Ordering[java.util.Date]]
+    import dateOrdering._
+    (this.startTime < this.session.startTime || this.startTime >= this.session.endTime) ||
+    (this.endTime <= this.session.startTime || this.endTime > this.session.endTime)
+  } 
+  
+  //Checks if the slot overlaps another slot's time period
+  def validateSlot: Boolean = {
+    val dateOrdering = implicitly[Ordering[java.util.Date]]
+    import dateOrdering._
+    val startTime = this.startTime
+    val endTime = this.endTime
+    DataStore.execute { implicit pm =>
+      val cand = QSlot.candidate
+	  val slots = pm.query[Slot].filter(cand.teacher.eq(this.teacher).and(cand.session.eq(this.session))).executeList()
+      slots.exists(s => (startTime >= s.startTime && startTime <
+      	s.endTime) || (endTime > s.startTime && endTime <= s.endTime))
+    }
   }
   
 }

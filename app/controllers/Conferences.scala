@@ -328,11 +328,15 @@ object Conferences extends Controller {
           val theTeacherActivation = pm.query[TeacherActivation].filter(QTeacherActivation.candidate.teacher.eq(theTeacher.get)).executeList()
           val s = new Slot(theSession.get, theTeacher.get, theStudent.get, theStartTime, theParent, theEmail, thePhone, theAlternatePhone, theComment, theTeacherActivation(0).slotInterval)
           //Slot validating has not been tested yet
-          if (s.validate) {
-            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
+          if (s.validateSession) {
+            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> ("You must choose a time between " + toAmericanString(theSession.get.startTime) + " and " + toAmericanString(theSession.get.endTime) + "."))
           }
-          pm.makePersistent(s)
-          Redirect(routes.Conferences.index()).flashing("message" -> "Successfully created slot!")
+          else if (s.validateSlot) {
+            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
+          } else {
+        	pm.makePersistent(s)
+            Redirect(routes.Conferences.slotHandler(sessionId, teacherId)).flashing("message" -> "Successfully created slot!")
+          }
         }
       }
   }
@@ -342,8 +346,9 @@ object Conferences extends Controller {
       pm.query[Slot].filter(QSlot.candidate.id.eq(slotId)).executeOption() match {
         case None => NotFound(views.html.notFound("No slot could be found"))
         case Some(slot) => {
+          val session = slot.session
           pm.deletePersistent(slot)
-          Redirect(routes.Conferences.index()).flashing("message" -> ("Slot was deleted."))
+          Redirect(routes.Conferences.classList(session.id)).flashing("message" -> ("Slot was deleted."))
         }
       }
     }
