@@ -1,6 +1,8 @@
-@(slots: List[models.conferences.Slot], session: models.conferences.Session, activated: Option[models.conferences.TeacherActivation])(implicit req: play.api.mvc.Request[_])
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, sections: List[models.courses.Section], activated: Option[models.conferences.TeacherActivation])(implicit req: play.api.mvc.Request[_])
 
 @import util.Helpers._
+@import models.users.User
+@import models.users.Teacher
 
 @main("Conferences for this session") {
 	@if(activated == None) { 
@@ -22,6 +24,23 @@
 	  		</tr>
 	  	}
 	  </table>
-	  <a class="btn" href="@routes.Conferences.deactivateTeacherSession(session.id)">Click here to deactivate</a> 
+	  <h3>Student List</h3>
+	  <table class="table table-striped">
+		@for(section <- sections){
+			<tr>@section.course.name</tr>
+			<tr><table>
+				<thead><th>Name</th><th>Grade</th><th>E-mail</th></thead>
+				@for(student <- section.students()) {
+					<tr>
+						<td>@student.user.displayName</td>
+						<td>@student.grade</td>
+						<td>@student.user.email</td>
+						<td><a href="@routes.Conferences.createSlot(session.id, Teacher.getByUsername(User.current.get.username).get.id)">Schedule a conference</a></td>
+					</tr>
+				}
+			</table></tr>
+		}
+	</table>
+	<a class="btn" href="@routes.Conferences.deactivateTeacherSession(session.id)">Click here to deactivate</a> 
 	}
 }
