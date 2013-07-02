@@ -50,19 +50,20 @@ object Menu {
   val viewQueue = new MenuItem("View Print Queue", "menu_viewQueue", Some(controllers.routes.Books.viewPrintQueue.toString), Nil)
   val delCpy = new MenuItem("Delete Copy", "menu_delCpy", Some(controllers.routes.Books.deleteCopyHelper.toString), Nil)
   val delTitle = new MenuItem("Delete Title", "menu_delTitle", Some(controllers.routes.Books.deleteTitleHelper.toString), Nil)
-
+  val del = List(delCpy, delTitle)
+  
   def buildMenu(persp: Option[Role]): Elem = {
     val acctItems = if (persp.isDefined) List(logout, settings) else List(login)
     val locItems = List(currloc, locsearch, locsched, findlocnum)
     val bookItems = List(addTitle, chkHistory, copyHistory, currentBks, addPurchaseGroup, inventory, checkout, checkIn, copyInfo, allBksOut, copyStatusByTitle,
-      blkCheckout, editTitle, addToPrintQueue, viewQueue, delCpy, delTitle)
-    val acct: MenuItem = new MenuItem("Account", "menu_account", None, acctItems)
+      blkCheckout, editTitle, addToPrintQueue, viewQueue, del)
+    val acct = new MenuItem("Account", "menu_account", None, acctItems)
     val courses = new MenuItem("Courses", "menu_courses", Some(controllers.routes.Courses.getMySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)
     val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
-    val masteries: MenuItem = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
-    val books = new MenuItem("Books", "menu_books", None, bookItems)
-    val bar = new MenuBar(List(courses, lockers, confr, books, masteries))
+    val masteries = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
+    //val books = new MenuItem("Books", "menu_books", None, bookItems)
+    val bar = new MenuBar(List(courses, lockers, confr, /*books,*/ masteries))
     bar.asHtml
   }
 }
