@@ -10,7 +10,6 @@ abstract class Input(
   def inputType: String
   
   def render(name: String, value: Seq[String], attrList: MetaData): NodeSeq = {
-    System.out.println(inputType)
     val valueAttr = value match {
       case Seq(s) => new UnprefixedAttribute("value", Text(s), Null)
       // fails silently if we get too many values for a single-valued field
