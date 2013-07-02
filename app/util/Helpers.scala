@@ -20,32 +20,6 @@ object Helpers {
   val time = new SimpleDateFormat("h:mm a")
   val datetime = new SimpleDateFormat("M/d/yyyy' at 'h:mm a")
   
-  def camel2TitleCase(camel: String): String = {
-    camel match {
-      case s: String if (s.length > 0) => {
-        val buf: StringBuilder = new StringBuilder(s.substring(0, 1).toUpperCase)
-        (1 until s.length) foreach ((index: Int) => {
-          if ((index < s.length - 2) && 
-              Character.isUpperCase(s.charAt(index - 1)) &&
-              Character.isUpperCase(s.charAt(index)) &&
-              Character.isLowerCase(s.charAt(index + 1))) {
-            buf ++= (" " + s.substring(index, index + 1))
-          } else if (Character.isUpperCase(s.charAt(index)) && 
-              !Character.isUpperCase(s.charAt(index - 1))) {
-            buf ++= (" " + s.substring(index, index + 1))
-          } else if (!Character.isLetter(s.charAt(index)) &&
-              Character.isLetter(s.charAt(index - 1))) {
-            buf ++= (" " + s.substring(index, index + 1))
-          } else {
-            buf += s.charAt(index)
-          }
-        })
-        buf.toString
-      }
-      case _ => camel
-    }
-  }
-  
   def string2nodeSeq(legalNodeSeq: String): NodeSeq = {
     // TODO: this just crashes if someone passes in malformed XML
     val node = XML.loadString("<dummy>" + legalNodeSeq + "</dummy>")

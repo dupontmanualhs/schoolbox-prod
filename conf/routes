@@ -2,33 +2,23 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+
+# Common
+GET		/									controllers.App.index()
+GET		/stub								controllers.App.stub()
+
 # WebJar assets
 GET		/webjars/*file				controllers.WebJarAssets.at(file)
-
-# Home page
-GET     /                           controllers.Application.index()
-
-# Stub 
-GET     /stub						controllers.Application.stub()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 #form example
-GET		/this/is/spartas/formtest				controllers.Application.formTest()
-POST	/this/is/spartas/formtest				controllers.Application.formTestP()
+#GET		/this/is/spartas/formtest				controllers.Application.formTest()
+#POST	/this/is/spartas/formtest				controllers.Application.formTestP()
 
 #Users
-GET		/login						            controllers.Users.login()
-POST    /login						          	controllers.Users.loginP()
-GET     /chooseRole          		  			controllers.Users.chooseRole()
-POST    /chooseRole         					controllers.Users.chooseRoleP() 
-GET     /logout                     			controllers.Users.logout()
-GET     /settings                  				controllers.Users.settings()
-POST    /changeTheme   			                controllers.Users.changeTheme()
-POST    /changePassword             			controllers.Users.changePassword()
-GET     /listUsers                 				controllers.Users.list()
-
+-> /users				users.routes
 
 #Courses
 # current schedules
@@ -166,3 +156,5 @@ GET     /grades/announcements/:sectionId	    	    controllers.Grades.announcemen
 GET     /grades/assignments/:sectionId	    	    	controllers.Grades.assignments(sectionId: Long)
 # GET     /grades/assignments/deleteAssignment/:id/:assignmentId    controllers.Grades.deleteAssignment(id: Long, assignmentId: Long)
 GET     /grades/gradebook/:id					controllers.Grades.gradebook(id: Long)
+
+

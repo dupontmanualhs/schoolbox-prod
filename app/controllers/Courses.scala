@@ -4,13 +4,12 @@ import play.api.mvc.{ Action, Controller }
 import models.courses._
 import models.users._
 import util.Helpers.mkNodeSeq
-import views.html
 import scala.xml.NodeSeq
 import play.api.mvc.PlainResult
 import scala.xml.Text
 import play.api.mvc.Flash._
 import scalajdo.DataStore
-import util.Authenticated
+import controllers.users.{ Authenticated, VisitAction }
 
 object Courses extends Controller {
   def getMySchedule() = Authenticated { implicit req =>
@@ -30,26 +29,26 @@ object Courses extends Controller {
     teacherSchedule(Teacher.getByUsername(username), Some(Term.current))
   }
 
-  def getStudentSchedule1(username: String) = Action { implicit req =>
+  def getStudentSchedule1(username: String) = VisitAction { implicit req =>
     studentSchedule(Student.getByUsername(username), Some(Term.current))(req)
   }
 
-  def getStudentSchedule2(username: String, termSlug: String) = Action { implicit req =>
+  def getStudentSchedule2(username: String, termSlug: String) = VisitAction { implicit req =>
     studentSchedule(Student.getByUsername(username), Term.getBySlug(termSlug))(req)
   }
 
   // TODO: only this student, his/her parent, or a teacher should be able to see this schedule
-  def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term]) = Action { implicit req =>
+  def studentSchedule(maybeStudent: Option[Student], maybeTerm: Option[Term]) = VisitAction { implicit req =>
     if (!maybeStudent.isDefined) {
-      NotFound(views.html.notFound("No such student."))
+      NotFound(templates.NotFound(templates.Main, "No such student."))
     } else if (!maybeTerm.isDefined) {
-      NotFound(views.html.notFound("No such term."))
+      NotFound(templates.NotFound(templates.Main, "No such term."))
     } else {
       studentScheduleNoOpts(maybeStudent.get, maybeTerm.get)(req)
     }
   }
 
-  def studentScheduleNoOpts(student: Student, term: Term) = Action { implicit req =>
+  def studentScheduleNoOpts(student: Student, term: Term) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       val enrollments: List[StudentEnrollment] = {
         val sectVar = QSection.variable("sectVar")
@@ -68,16 +67,16 @@ object Courses extends Controller {
           <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.room.name)), <br/>) }</td>
         </tr>
       }
-      Ok(html.courses.studentSchedule(student.user, term, table, hasEnrollments))
+      Ok(views.html.courses.studentSchedule(student.user, term, table, hasEnrollments))
     }
   }
 
-  def teacherSchedule(maybeTeacher: Option[Teacher], maybeTerm: Option[Term]) = Action { implicit req =>
+  def teacherSchedule(maybeTeacher: Option[Teacher], maybeTerm: Option[Term]) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       if (!maybeTeacher.isDefined) {
-        NotFound(views.html.notFound("No such teacher."))
+        NotFound(templates.NotFound(templates.Main, "No such teacher."))
       } else if (!maybeTerm.isDefined) {
-        NotFound(views.html.notFound("No such term."))
+        NotFound(templates.NotFound(templates.Main, "No such term."))
       } else {
         val teacher = maybeTeacher.get
         val term = maybeTerm.get
@@ -98,7 +97,7 @@ object Courses extends Controller {
             <td>{ mkNodeSeq(sectionsThisPeriod.map(s => scala.xml.Text(s.room.name)), <br/>) }</td>
           </tr>
         }
-        Ok(html.courses.teacherSchedule(teacher.user, term, table, hasAssignments))
+        Ok(views.html.courses.teacherSchedule(teacher.user, term, table, hasAssignments))
       }
     }
   }
@@ -114,19 +113,19 @@ object Courses extends Controller {
   }
 
   // only the teacher of this section or an admin should be able to see the roster
-  def roster(sectionId: Long) = Action { implicit req =>
+  def roster(sectionId: Long) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       val cand = QSection.candidate
       pm.query[Section].filter(cand.id.eq(sectionId)).executeOption() match {
-        case None => NotFound(views.html.notFound("No section with that id."))
+        case None => NotFound(templates.NotFound(templates.Main, "No section with that id."))
         case Some(sect) => {
-          Ok(html.courses.roster(sectionId, sect, sect.enrollments))
+          Ok(views.html.courses.roster(sectionId, sect, sect.enrollments))
         }
       }
     }
   }
 
-  def sectionTable(courseId: Long) = Action { implicit req =>
+  def sectionTable(courseId: Long) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       val cand = QCourse.candidate
       val cand2 = QSection.candidate
@@ -136,7 +135,7 @@ object Courses extends Controller {
     }
   }
 
-  def classList() = Action { implicit req =>
+  def classList() = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       val cand = QCourse.candidate
       val courses = pm.query[Course].orderBy(cand.name.asc).executeList()

@@ -1,6 +1,6 @@
-@(rows: List[(String, String, String, Long)])(implicit req: play.api.mvc.Request[_])
+@(rows: List[(String, String, String, Long)])(implicit req: controllers.users.VisitRequest[_])
 
-@main("Print Queue") {
+@views.main("Print Queue") {
 
 <div class="page-header">
 	<h2>Print Queue</h2>

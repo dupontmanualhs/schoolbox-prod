@@ -28,12 +28,13 @@ import views.html
 import forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
-import util.VisitAction
 import scalajdo.DataStore
 import models.users.Visit
 
+import controllers.users.VisitAction
+
 import util.Helpers.string2elem
-import util.{ Call, FormCall, FormMethod }
+import forms.{ Call, FormCall, FormMethod }
 
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
@@ -195,11 +196,11 @@ object Mastery extends Controller {
 
   def displayQuiz(quizId: Long) = VisitAction { implicit req =>
     Quiz.getById(quizId) match {
-      case None => NotFound(views.html.notFound("The quiz of which you are seeking no longer exists."))
+      case None => NotFound(templates.NotFound(templates.Main, "The quiz of which you are seeking no longer exists."))
       case Some(quiz) => {
         val sections: List[QuizSection] = quiz.sections
         if (sections == null || sections.isEmpty) {
-          NotFound(views.html.notFound("There are no sections in this quiz! :("))
+          NotFound(templates.NotFound(templates.Main, "There are no sections in this quiz! :("))
         } else {
           val sectionsWithQuestions: List[(QuizSection, List[Question])] =
             quiz.sections.map(s => (s, s.randomQuestions))
@@ -219,7 +220,7 @@ object Mastery extends Controller {
 
   def gradeQuiz(quizId: Long) = VisitAction { implicit req =>
     Quiz.getById(quizId) match {
-      case None => NotFound(views.html.notFound("You submitted a quiz that doesn't exist. That shouldn't happen."))
+      case None => NotFound(templates.NotFound(templates.Main, "You submitted a quiz that doesn't exist. That shouldn't happen."))
       case Some(quiz) => {
         val idsOfSectionsWithQuestions = req.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
         val sectionsWithQuestions = idsOfSectionsWithQuestions.map(

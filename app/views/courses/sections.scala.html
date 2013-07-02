@@ -1,6 +1,6 @@
-@(course: String, sections: List[models.courses.Section])(implicit req: play.api.mvc.Request[_])
+@(course: String, sections: List[models.courses.Section])(implicit req: controllers.users.VisitRequest[_])
 
-@main("Sections of: " + course) {
+@views.main("Sections of: " + course) {
 	
 	<div class="page-header">
 		<h2>@course</h2>

@@ -1,6 +1,6 @@
-@(numberForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(numberForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Locker Picker") {
+@views.main("Locker Picker") {
   <div class="page-header">
  	 <h2>Find locker information based on number</h2>
   </div>

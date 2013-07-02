@@ -1,6 +1,6 @@
-@(lockerList: List[models.lockers.Locker])(implicit req: play.api.mvc.Request[_])
+@(lockerList: List[models.lockers.Locker])(implicit req: controllers.users.VisitRequest[_])
 
-@main("Search Results") {
+@views.main("Search Results") {
   <div class="page-header">
     <h2>Locker Search Results</h2>
   </div>

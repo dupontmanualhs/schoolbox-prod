@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
-<plugin id="eschool" name="DataNucleus plug-ins" provider-name="eSchool">
+<plugin id="play_eschool" name="DataNucleus plug-ins" provider="Play-eSchool">
     <extension point="org.datanucleus.type_converter">
         <type-converter 
-          name="dn.gender"
+          name="play_eschool.gender"
           member-type="scala.Enumeration.Value"
-          datastore-type="java.lang.int"
+          datastore-type="int"
           converter-class="models.users.GenderConverter" />
     </extension>
-    <!--<extension point="org.datanucleus.java_type">
+    <extension point="org.datanucleus.java_type">
         <java-type 
           name="scala.Enumeration.Value"
-          converter-name="dn.gender" 
+          converter-name="play_eschool.gender" 
           dfg="true"
           priority="10" />
-    </extension>-->
+    </extension>
 </plugin>

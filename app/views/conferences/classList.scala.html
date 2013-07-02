@@ -1,6 +1,6 @@
-@(sessionId: Long, periods: List[models.courses.Period], sections: List[models.courses.Section], hasEnrollments: Boolean)(implicit req: play.api.mvc.Request[_])
+@(sessionId: Long, periods: List[models.courses.Period], sections: List[models.courses.Section], hasEnrollments: Boolean)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Student Conferences") {
+@views.main("Student Conferences") {
 	<div class="page-header">
 	  <h2>Schedule Your Class Conferences</h2>
 	</div>

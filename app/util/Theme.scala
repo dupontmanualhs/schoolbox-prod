@@ -2,6 +2,7 @@ package util
 
 import scala.xml._
 import models.users._
+import models.users.User
 
 object Theme {
   def themePick(user: Option[User]): NodeSeq = user match {

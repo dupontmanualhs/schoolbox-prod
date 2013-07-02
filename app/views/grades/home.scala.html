@@ -1,8 +1,8 @@
-@(id: Long, section: models.courses.Section)(implicit req: play.api.mvc.Request[_]) 
+@(id: Long, section: models.courses.Section)(implicit req: controllers.users.VisitRequest[_]) 
 
 @import models.grades._
 
-@main("Assignments"){
+@views.main("Assignments"){
 
 	        	<div class="span3">
          			<div class="well sidebar-nav">

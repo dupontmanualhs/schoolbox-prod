@@ -1,8 +1,8 @@
-@(teacher: Option[models.users.Teacher], events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
+@(teacher: Option[models.users.Teacher], events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 
-@main("Teacher Conferences") {
+@views.main("Teacher Conferences") {
 	<div class="page-header">
 	<table class="table table-striped">
 		<thead><th>Name</th><th>Activated?</th></thead>

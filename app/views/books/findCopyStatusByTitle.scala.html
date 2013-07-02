@@ -1,5 +1,5 @@
-@(copyStatusByTitleLookupForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(copyStatusByTitleLookupForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Find Copy Status By Title") {
+@views.main("Find Copy Status By Title") {
   @copyStatusByTitleLookupForm.render()
 }

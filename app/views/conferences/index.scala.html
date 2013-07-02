@@ -1,8 +1,8 @@
-@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 
-@main("Conferences") {
+@views.main("Conferences") {
 	<table class="table table-striped">
 		<thead><th>Name</th></thead>
 		@for(event <- events if (event.isActive)) {

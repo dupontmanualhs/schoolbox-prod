@@ -6,8 +6,8 @@ import forms.fields._
 import forms.validators._
 import forms.widgets._
 import play.api.mvc._
-
 import scalajdo.DataStore
+import forms.Form
 
 object Application extends Controller {
 
@@ -47,18 +47,6 @@ object Application extends Controller {
     override def includeCancel = true
     override def cancelText = "Cancel"
 
-  }
-
-  def index() = Action { implicit req =>
-    DataStore.execute { implicit pm =>
-      Ok(views.html.index())
-    }
-  }
-
-  def stub() = Action { implicit req =>
-    DataStore.execute { pm =>
-      Ok(views.html.stub())
-    }
   }
 
   def formTest() = Action { implicit req =>

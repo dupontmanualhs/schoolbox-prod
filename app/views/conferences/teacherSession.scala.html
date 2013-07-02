@@ -1,8 +1,8 @@
-@(slots: List[models.conferences.Slot], session: models.conferences.Session, activated: Option[models.conferences.TeacherActivation])(implicit req: play.api.mvc.Request[_])
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, activated: Option[models.conferences.TeacherActivation])(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 
-@main("Conferences for this session") {
+@views.main("Conferences for this session") {
 	@if(activated == None) { 
 		<p>This session has not been activated</p>
 		<a class="btn" href="@routes.Conferences.activateTeacherSession(session.id)">Click here to activate</a>

@@ -1,5 +1,5 @@
-@(copyInfoLookupForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(copyInfoLookupForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Find Copy Info") {
+@views.main("Find Copy Info") {
   @copyInfoLookupForm.render()
 }

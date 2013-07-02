@@ -4,9 +4,10 @@ import play.api.mvc.Controller
 import scala.util.Random
 import play.api.data._
 import play.api.data.Forms._
-import play.api.mvc.Action
 
 import scalajdo.DataStore
+
+import controllers.users.VisitAction
 
 object Assessments extends Controller {
 
@@ -16,7 +17,7 @@ object Assessments extends Controller {
   var otherChoice = rand.nextInt(100)
   var ans = first + second
 
-  def menu() = Action { implicit req =>
+  def menu() = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       rand = new Random
       first = rand.nextInt(9) + 1
@@ -31,7 +32,7 @@ object Assessments extends Controller {
     "answer" -> number
   }
 
-  def checkAnswer(temp: Int) = Action { implicit req =>
+  def checkAnswer(temp: Int) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       ansForm.bindFromRequest.fold(
         errors => {
@@ -47,7 +48,7 @@ object Assessments extends Controller {
     }
   }
 
-  def newQuestion() = Action { implicit req =>
+  def newQuestion() = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       rand = new Random
       first = rand.nextInt(9) + 1

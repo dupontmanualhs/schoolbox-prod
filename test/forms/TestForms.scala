@@ -6,6 +6,7 @@ import scala.xml.{Elem, NodeSeq}
 import scala.xml.Utility.trim
 import util.Helpers.xmlEquals
 import forms.validators.ValidationError
+import forms.Form
 
 class PersonForm extends Form {
   val firstName = new TextField("firstName")
@@ -13,68 +14,6 @@ class PersonForm extends Form {
   val age = new NumericField[Int]("age")
   
   def fields = List(firstName, lastName, age)
-}
-/*
-object PersonForm {
-  val unbound: Elem = 
-<form method="post">
-  <table>
-    <tr>
-      <td><label for="id_firstName">First Name:</label></td>
-      <td><input type="text" name="firstName" id="id_firstName" required="required" /></td>
-    </tr>
-    <tr>
-      <td><label for="id_lastName">Last Name:</label></td>
-      <td><input id="id_lastName" type="text" name="lastName" required="required" /></td>
-    </tr>
-    <tr>
-      <td><label for="id_age">Age:</label></td>
-      <td><input id="id_age" type="text" name="age" required="required" /></td>
-    </tr>
-  </table>
-  <input type="submit" />
-</form>
-    
-  val bound: Elem = 
-<form method="post">
-  <table>
-    <tr>
-      <td><label for="id_firstName">First Name:</label></td>
-      <td><input type="text" name="firstName" id="id_firstName" required="required" value="John" /></td>
-    </tr>
-    <tr>
-      <td><label for="id_lastName">Last Name:</label></td>
-      <td><input id="id_lastName" type="text" name="lastName" required="required" value="Lennon" /></td>
-    </tr>
-    <tr>
-      <td><label for="id_age">Age:</label></td>
-      <td><input id="id_age" type="text" name="age" required="required" value="72" /></td>
-    </tr>
-  </table>
-  <input type="submit" />
-</form>
-    
-  val withRequiredErrors: Elem =
-<form method="post">
-  <table>
-    <tr>
-      <td><label for="id_firstName">First Name:</label></td>
-      <td><input type="text" name="firstName" id="id_firstName" required="required" /></td>
-      <td><ul class="errorlist"><li>This field is required.</li></ul></td>
-    </tr>
-    <tr>
-      <td><label for="id_lastName">Last Name:</label></td>
-      <td><input id="id_lastName" type="text" name="lastName" required="required" /></td>
-      <td><ul class="errorlist"><li>This field is required.</li></ul></td>
-    </tr>
-    <tr>
-      <td><label for="id_age">Age:</label></td>
-      <td><input id="id_age" type="text" name="age" required="required" /></td>
-      <td><ul class="errorlist"><li>This field is required.</li></ul></td>
-    </tr>
-  </table>
-  <input type="submit" />
-</form>
 }
 
 class TestForms extends FunSuite {

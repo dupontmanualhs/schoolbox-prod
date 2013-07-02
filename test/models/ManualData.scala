@@ -21,8 +21,9 @@ import models.books.PurchaseGroup
 import models.books.Copy
 import models.books.Checkout
 import models.blogs.Blog
-
 import scalajdo.DataStore
+import models.users.Gender
+import models.users.User
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()

@@ -6,6 +6,8 @@ import java.sql.Date
 import java.sql.Time
 import java.sql.Timestamp
 import org.scalatest.FunSuite
+import models.users.Gender
+import models.users.User
 
 class ConferencesData extends FunSuite {
 	var testUser1 = new User("Xx_Ben420Koby_xX", "Benjamin", Some("Scott"), "Koby", Some("Ben"), Gender.Male, "benkoby420@gmail.com", "swagyolo")

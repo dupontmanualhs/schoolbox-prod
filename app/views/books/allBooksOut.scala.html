@@ -1,6 +1,6 @@
-@(header: String, rows: List[(String, String, String)])(implicit req: play.api.mvc.Request[_])
+@(header: String, rows: List[(String, String, String)])(implicit req: controllers.users.VisitRequest[_])
 
-@main("All Books Out") {
+@views.main("All Books Out") {
 
 <div class="page-header">
 	<h2>@header</h2>

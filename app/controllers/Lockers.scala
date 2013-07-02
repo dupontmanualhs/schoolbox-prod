@@ -1,20 +1,20 @@
 package controllers
 
-import play.api._
-import play.api.mvc._
+import scala.xml.{ NodeSeq, Text }
+
 import models.lockers._
 import models.users._
 import models.courses._
-import forms._
+import forms.{ Form, Binding, InvalidBinding, ValidBinding }
 import forms.fields._
-import xml._
-import views.html
 import forms.validators.Validator
 import forms.validators.ValidationError
 import util.Helpers._
-import util.VisitAction
 import scalajdo.DataStore
-import util.Authenticated
+import forms.Form
+import play.api.mvc.Controller
+
+import controllers.users.{ Authenticated, VisitAction }
 
 object Lockers extends Controller {
 
@@ -26,9 +26,9 @@ object Lockers extends Controller {
    */
   def getMyLocker() = Authenticated { implicit req =>
     req.role match {
-      case teacher: Teacher => NotFound(views.html.notFound("Teachers do not have lockers."))
+      case teacher: Teacher => NotFound(templates.NotFound(templates.Main, "Teachers do not have lockers."))
       case student: Student => Locker.getByStudent(student) match {
-        case None => NotFound(views.html.notFound("You do not have a locker."))
+        case None => NotFound(templates.NotFound(templates.Main, "You do not have a locker."))
         case Some(l) => Ok(views.html.lockers.getLocker(l))
       }
     }
@@ -42,18 +42,18 @@ object Lockers extends Controller {
    */
   def getLocker(num: Int) = Authenticated { implicit req =>
     Locker.getByNumber(num) match {
-      case None => NotFound(views.html.notFound("No locker exists with this ID."))
+      case None => NotFound(templates.NotFound(templates.Main, "No locker exists with this ID."))
       case Some(locker) => Ok(views.html.lockers.getLocker(locker))
     }
   }
 
   def claimLocker(num: Int) = Authenticated { implicit req =>
     Locker.getByNumber(num) match {
-      case None => Ok(views.html.notFound("There is no locker with number $num"))
+      case None => Ok(templates.NotFound(templates.Main, "There is no locker with number $num"))
       case Some(locker) => req.role match {
         case student: Student =>
           val oldLocker: Option[Locker] = Locker.getByStudent(student)
-          if (locker.taken) Ok(views.html.notFound("This locker was taken."))
+          if (locker.taken) Ok(templates.NotFound(templates.Main, "This locker was taken."))
           else DataStore.execute { pm =>
             locker.student = student
             locker.taken = true
@@ -65,7 +65,7 @@ object Lockers extends Controller {
             }
             Redirect(routes.Lockers.getMyLocker()).flashing("message" -> "You have successfully changed lockers.")
           }
-        case _ => NotFound(views.html.notFound("Only students have lockers."))
+        case _ => NotFound(templates.NotFound(templates.Main, "Only students have lockers."))
       }
     }
   }
@@ -188,7 +188,7 @@ object Lockers extends Controller {
           }
           Ok(views.html.lockers.schedule(student, table, hasEnrollments))
         }
-        case _ => NotFound(views.html.notFound("Only students have lockers."))
+        case _ => NotFound(templates.NotFound(templates.Main, "Only students have lockers."))
       }
     }
   }

@@ -2,11 +2,8 @@ package models
 
 import java.io.File
 import java.sql._
-
 import javax.jdo.annotations._
-
 import org.joda.time.LocalDate
-
 import models.blogs._
 import models.books._
 import models.conferences._
@@ -15,8 +12,10 @@ import models.grades._
 import models.lockers._
 import models.mastery._
 import models.users._
-
 import scalajdo.{ DataStore, ScalaPersistenceManager }
+import models.users.Gender
+import models.users.Guardian
+import models.users.User
 
 object TestData {
   def load(debug: Boolean = false) {

@@ -1,8 +1,8 @@
-@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 
-@main("Admin Conferences") {
+@views.main("Admin Conferences") {
 	<div class="page-header">
 		<h2> Hello OB </h2>
 	</div>

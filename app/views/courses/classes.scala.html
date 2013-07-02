@@ -1,6 +1,6 @@
-@(courses: List[models.courses.Course])(implicit req: play.api.mvc.Request[_])
+@(courses: List[models.courses.Course])(implicit req: controllers.users.VisitRequest[_])
 @import helper._
-@main("Class List") {
+@views.main("Class List") {
 	<ul>
 		@for(course <- courses) {
 			<li><a href= @routes.Courses.sectionTable(course.id)>@course.name - @course.masterNumber</a></li>

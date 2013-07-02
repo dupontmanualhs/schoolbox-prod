@@ -1,5 +1,5 @@
-@(checkoutBulkForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(checkoutBulkForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Check Out In Bulk") {
+@views.main("Check Out In Bulk") {
   @checkoutBulkForm.render()
 }

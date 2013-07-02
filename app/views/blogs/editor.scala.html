@@ -1,9 +1,9 @@
-@(testForm: Form[String])(implicit req: play.api.mvc.Request[_])
+@(testForm: Form[String])(implicit req: controllers.users.VisitRequest[_])
 
 @import helper._
 
 
-@main("TinyMCE", scripts = views.JavascriptLibraries.TINY_MCE){
+@views.main("TinyMCE", scripts = views.JavascriptLibraries.TINY_MCE){
    @form(action = routes.Blogs.testSubmit) {
          @input(testForm("tinymce")) { (id, name, value, args) =>
              <textarea name="@name" id="@id" rows="15" cols="30" @toHtmlArgs(args)>@value</textarea>

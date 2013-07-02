@@ -1,5 +1,5 @@
-@(id: Long, section: models.courses.Section, enrollments: List[models.courses.StudentEnrollment])(implicit req: play.api.mvc.Request[_])
-@main("Roster") {
+@(id: Long, section: models.courses.Section, enrollments: List[models.courses.StudentEnrollment])(implicit req: controllers.users.VisitRequest[_])
+@views.main("Roster") {
 	<div class="span3">
 		<div class="well sidebar-nav">
 			<ul class="nav nav-list">

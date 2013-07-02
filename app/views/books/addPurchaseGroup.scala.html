@@ -1,5 +1,5 @@
-@(addPurchaseGroupForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(addPurchaseGroupForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Add a Purchase Group") {
+@views.main("Add a Purchase Group") {
   @addPurchaseGroupForm.render()
 }

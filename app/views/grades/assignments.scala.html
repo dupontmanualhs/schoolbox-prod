@@ -1,8 +1,8 @@
-@(section: models.courses.Section, categories: List[models.grades.Category], dropForm: forms.Binding, id: Long)(implicit req: play.api.mvc.Request[_])
+@(section: models.courses.Section, categories: List[models.grades.Category], dropForm: forms.Binding, id: Long)(implicit req: controllers.users.VisitRequest[_])
 
 @import models.grades._
 
-@main("Assignments"){
+@views.main("Assignments"){
 
 <div class="span3">
 	<div class="well sidebar-nav">

@@ -1,6 +1,6 @@
-@(checkoutForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(checkoutForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Checkout a Copy") {
+@views.main("Checkout a Copy") {
   @checkoutForm.render()
   </div>
 }

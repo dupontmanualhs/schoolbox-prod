@@ -1,6 +1,6 @@
 @* @( spreadsheetData: (List[String], List[String], List[List[Double]]), students: List[models.users.Student], assignments: List[models.grades.Assignment], 
    section: models.courses.Section, id: Long)(implicit req: util.DbRequest[_]) *@
-@(section: models.courses.Section, id: Long)(implicit req: play.api.mvc.Request[_])
+@(section: models.courses.Section, id: Long)(implicit req: controllers.users.VisitRequest[_])
 @import models.grades._
 @*
 @import play.api.libs.json.Json 
@@ -23,7 +23,7 @@
   
 }
 *@
-@main @* WithScripts *@ ("Gradebook") @* (scripts) *@ {
+@views.main @* WithScripts *@ ("Gradebook") @* (scripts) *@ {
 
 <div class="span3"><div class="well sidebar-nav">
   <ul class="nav nav-list">

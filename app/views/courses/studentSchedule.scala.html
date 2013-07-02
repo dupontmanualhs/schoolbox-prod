@@ -1,6 +1,6 @@
-@(user: models.users.User, term: models.courses.Term, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit req: play.api.mvc.Request[_])
+@(user: models.users.User, term: models.courses.Term, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit req: controllers.users.VisitRequest[_])
 
-@main(user.displayName +"'s Schedule") {
+@views.main(user.displayName +"'s Schedule") {
 
 	<div class="page-header">
 		<h2>@user.displayName <small>@term.name</small></h2>

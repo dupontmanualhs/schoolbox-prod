@@ -1,8 +1,8 @@
-@(id: Long, section: models.courses.Section, announcements: List[models.grades.Announcement])(implicit req: play.api.mvc.Request[_]) 
+@(id: Long, section: models.courses.Section, announcements: List[models.grades.Announcement])(implicit req: controllers.users.VisitRequest[_]) 
 @import models.grades._
 @import util.Helpers.datetime
 
-@main("Announcements"){
+@views.main("Announcements"){
 
 	        	<div class="span3">
          			<div class="well sidebar-nav">
