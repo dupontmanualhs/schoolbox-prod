@@ -1,5 +1,0 @@
-# Home page
-GET     /                           controllers.App.index()
-
-# Stub 
-GET     /stub						controllers.App.stub()
