@@ -20,8 +20,12 @@ class Locker {
   private[this] var _number: Int = _
   
   private[this] var _combination: String = _
-  @Persistent(defaultFetchGroup = "true")
-  private[this] var _location: LockerLocation = _
+  
+  // these get combined into LockerLocation
+  // we probably need to make this more generic to work with other schools
+  private[this] var _floor: Int = _
+  private[this] var _hall: String = _
+  
   @Persistent(defaultFetchGroup = "true")
   private[this] var _student: Student = _
   private[this] var _taken: Boolean = _
@@ -30,7 +34,8 @@ class Locker {
      this()
      _number = number
      _combination = combination
-     _location = location
+     _floor = location.floor
+     _hall = location.hall
      student_=(student)
      _taken = taken
   }
@@ -43,13 +48,16 @@ class Locker {
   def combination: String = _combination
   def combination_=(theCombination: String) = (_combination = theCombination)
   
-  def location: LockerLocation = _location
-  def location_=(theLocation: LockerLocation) = (_location = theLocation)
+  def location: LockerLocation = LockerLocation(_floor, _hall)
+  def location_=(theLocation: LockerLocation) { _floor = theLocation.floor; _hall = theLocation.hall }
   
   def student: Option[Student] = if (_student == null) None else Some(_student)
-  def student_=(theStudent: Option[Student]) = theStudent match {
-    case None => _student = null
-    case Some(s) => _student = s
+  def student_=(theStudent: Student) { student_=(Option(theStudent)) }
+  def student_=(theStudent: Option[Student]) {
+    theStudent match {
+      case None => _student = null
+      case Some(s) => _student = s
+    }
   }
   
   def taken: Boolean = _taken
@@ -61,9 +69,7 @@ class Locker {
     <tr><td>@locker.number</td><td>@locker.location</td><td>@locker.available</td></tr>
   }
   
-  def matchingLocation(loc: LockerLocation): Boolean = {
-    this.location.floor == loc.floor && this.location.hall == loc.hall
-  }
+  def matchingLocation(loc: LockerLocation): Boolean = this.location == loc
   
   def studentName = student match {
     case None => "Available"
@@ -111,11 +117,6 @@ object Locker {
       epm.query[Locker].filter(cand.taken.eq(false).or(cand.taken.eq(true))).executeList()
     }
   }
-  
-  def validateLockerNumber(number: String): Option[Locker] = {
-    if(isNumber(number)) getByNumber(toInt(number))
-    else None
-  }
 }
 
 trait QLocker extends PersistableExpression[Locker] {
@@ -128,8 +129,9 @@ trait QLocker extends PersistableExpression[Locker] {
   private[this] lazy val _combination: StringExpression = new StringExpressionImpl(this, "_combination")
   def combination: StringExpression = _combination
   
-  private[this] lazy val _location: ObjectExpression[LockerLocation] = new ObjectExpressionImpl[LockerLocation](this, "_location")
-  def location: ObjectExpression[LockerLocation] = _location
+  // can't search by this, because it's not really a field
+  // private[this] lazy val _location: ObjectExpression[LockerLocation] = new ObjectExpressionImpl[LockerLocation](this, "_location")
+  // def location: ObjectExpression[LockerLocation] = _location
   
   private[this] lazy val _student: ObjectExpression[Student] = new ObjectExpressionImpl[Student](this, "_student")
   def student: ObjectExpression[Student] = _student

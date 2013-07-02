@@ -4,26 +4,36 @@ import scala.collection.immutable.ListMap
 import scala.xml._
 import forms.fields._
 import forms.widgets.Widget
-import util.Helpers.camel2TitleCase
 import forms.validators.ValidationError
 import play.api.mvc.Request
 import play.api.templates.Html
+
+import util.Helpers.camel2TitleCase
+import util.{ Call, FormCall, FormMethod, Method }
 
 abstract class Form {
   // TODO: check that all names are unique
   def fields: List[Field[_]]
   def validate(data: ValidBinding): ValidationError = new ValidationError(Nil)
-  def cancelTo: String = "url"
-  def method = "post"
+  def cancelTo: Option[Call] = None
+  def submitMethod: FormMethod = Method.POST
+  def submitUrl: Option[String] = None
   def prefix: Option[String] = None
   def autoId: Option[String] = Some("id_%s")
   def submitText = "Submit"
   def includeCancel = true
   def cancelText = "Cancel"
     
-  def render(bound: Binding, action: Option[String]=None, legend: Option[String]=None): NodeSeq = {
+  protected def methodPlusAction(overrideSubmit: Option[FormCall]): 
+      (FormMethod, Option[String]) = overrideSubmit match {
+    case Some(FormCall(meth, url)) => (meth, url)
+    case None => (submitMethod, None)
+  }
+      
+  def render(bound: Binding, overrideSubmit: Option[FormCall]=None, legend: Option[String]=None): NodeSeq = {
+    val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     this.scripts ++
-    <form method={ method } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
+    <form method={ method.forForm } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
       <fieldset>
     	{this.scripts}
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }

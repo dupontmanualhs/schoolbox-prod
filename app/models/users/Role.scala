@@ -8,7 +8,7 @@ import scalajdo.DataStore
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.NEW_TABLE)
 @Discriminator(strategy=DiscriminatorStrategy.CLASS_NAME)
-abstract class Perspective extends Ordered[Perspective] {
+abstract class Role extends Ordered[Role] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -33,19 +33,19 @@ abstract class Perspective extends Ordered[Perspective] {
   def shortName = user.shortName
   def role: String
   
-  def compare(that: Perspective) = {
+  def compare(that: Role) = {
     this.user.compare(that.user)
   }
 }
 
-object Perspective {
-  def getById(id: Long): Option[Perspective] = {
-    val cand = QPerspective.candidate
-    DataStore.pm.query[Perspective].filter(cand.id.eq(id)).executeOption()
+object Role {
+  def getById(id: Long): Option[Role] = {
+    val cand = QRole.candidate
+    DataStore.pm.query[Role].filter(cand.id.eq(id)).executeOption()
   }
 }
 
-trait QPerspective[PC <: Perspective] extends PersistableExpression[PC] {
+trait QRole[PC <: Role] extends PersistableExpression[PC] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
 
@@ -53,24 +53,24 @@ trait QPerspective[PC <: Perspective] extends PersistableExpression[PC] {
   def user: ObjectExpression[User] = _user 
 }
 
-object QPerspective {
-  def apply(parent: PersistableExpression[Perspective], name: String, depth: Int): QPerspective[Perspective] = {
-    new PersistableExpressionImpl[Perspective](parent, name) with QPerspective[Perspective]
+object QRole {
+  def apply(parent: PersistableExpression[Role], name: String, depth: Int): QRole[Role] = {
+    new PersistableExpressionImpl[Role](parent, name) with QRole[Role]
   }
   
-  def apply(cls: Class[Perspective], name: String, exprType: ExpressionType): QPerspective[Perspective] = {
-    new PersistableExpressionImpl[Perspective](cls, name, exprType) with QPerspective[Perspective]
+  def apply(cls: Class[Role], name: String, exprType: ExpressionType): QRole[Role] = {
+    new PersistableExpressionImpl[Role](cls, name, exprType) with QRole[Role]
   }
   
-  private[this] lazy val jdoCandidate: QPerspective[Perspective] = candidate("this")
+  private[this] lazy val jdoCandidate: QRole[Role] = candidate("this")
   
-  def candidate(name: String): QPerspective[Perspective] = QPerspective(null, name, 5)
+  def candidate(name: String): QRole[Role] = QRole(null, name, 5)
   
-  def candidate(): QPerspective[Perspective] = jdoCandidate
+  def candidate(): QRole[Role] = jdoCandidate
 
-  def parameter(name: String): QPerspective[Perspective] = QPerspective(classOf[Perspective], name, ExpressionType.PARAMETER)
+  def parameter(name: String): QRole[Role] = QRole(classOf[Role], name, ExpressionType.PARAMETER)
   
-  def variable(name: String): QPerspective[Perspective] = QPerspective(classOf[Perspective], name, ExpressionType.VARIABLE)
+  def variable(name: String): QRole[Role] = QRole(classOf[Role], name, ExpressionType.VARIABLE)
 
 }
 

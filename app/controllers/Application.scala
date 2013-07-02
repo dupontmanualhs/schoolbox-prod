@@ -11,7 +11,7 @@ import scalajdo.DataStore
 
 object Application extends Controller {
 
-  object formTests extends Form {
+  object FormTests extends Form {
     //val BooleanField = new BooleanField("Boolean")
     val ChoiceField = new ChoiceFieldOptional("Choice", List(("hi", "hi"), ("bye", "bye")))
     val DateField = new DateFieldOptional("Date")
@@ -42,7 +42,6 @@ object Application extends Controller {
 
     val fields = List(ACField, ChoiceField, DateField, TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField, editedTextField)
 
-    override def cancelTo: String = "url"
     override def prefix: Option[String] = None
     override def submitText = "Submit"
     override def includeCancel = true
@@ -63,26 +62,27 @@ object Application extends Controller {
   }
 
   def formTest() = Action { implicit req =>
-    DataStore.execute { pm =>
-      if (req.method == "GET") Ok(views.html.formTester(Binding(formTests)))
-      else Binding(formTests, req) match {
-        case ib: InvalidBinding => Ok(views.html.formTester(ib))
-        case vb: ValidBinding => {
-          val TheChoice = vb.valueOf(formTests.ChoiceField)
-          val TheDate = vb.valueOf(formTests.DateField)
-          val TheTime = vb.valueOf(formTests.TimeField)
-          val TheTimestamp = vb.valueOf(formTests.TimestampField)
-          val TheEmail = vb.valueOf(formTests.EmailField)
-          val TheNumeric = vb.valueOf(formTests.NumericField)
-          val ThePassword = vb.valueOf(formTests.PasswordField)
-          val TheText = vb.valueOf(formTests.TextField)
-          val TheUrl = vb.valueOf(formTests.UrlField)
-          val TheEdited = vb.valueOf(formTests.editedTextField)
-          val ThePhone = vb.valueOf(formTests.PhoneField)
-          val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Phone Field", ThePhone.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
+    Ok(views.html.formTester(Binding(FormTests)))
+  }
 
-          Ok(views.html.showResults(ListOfStuff))
-        }
+  def formTestP() = Action { implicit req =>
+    Binding(FormTests, req) match {
+      case ib: InvalidBinding => Ok(views.html.formTester(ib))
+      case vb: ValidBinding => {
+        val TheChoice = vb.valueOf(FormTests.ChoiceField)
+        val TheDate = vb.valueOf(FormTests.DateField)
+        val TheTime = vb.valueOf(FormTests.TimeField)
+        val TheTimestamp = vb.valueOf(FormTests.TimestampField)
+        val TheEmail = vb.valueOf(FormTests.EmailField)
+        val TheNumeric = vb.valueOf(FormTests.NumericField)
+        val ThePassword = vb.valueOf(FormTests.PasswordField)
+        val TheText = vb.valueOf(FormTests.TextField)
+        val TheUrl = vb.valueOf(FormTests.UrlField)
+        val TheEdited = vb.valueOf(FormTests.editedTextField)
+        val ThePhone = vb.valueOf(FormTests.PhoneField)
+        val ListOfStuff = List(("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Phone Field", ThePhone.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
+
+        Ok(views.html.showResults(ListOfStuff))
       }
     }
   }

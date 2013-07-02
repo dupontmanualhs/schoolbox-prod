@@ -7,12 +7,12 @@ import play.api.data.Forms._
 import models.users._
 import models.blogs._
 import play.api.mvc.Result
-import models.users.QPerspective
+import models.users.QRole
 import forms.fields.TinyMCEField
 import forms.fields.TextField
 import forms.{ Form, ValidBinding, InvalidBinding, Binding }
-
 import scalajdo.DataStore
+import util.Authenticated
 
 //TODO: Actually check permissions where applicable
 
@@ -35,15 +35,15 @@ object Blogs extends Controller {
 
   /** No matching route (Not sure where, or even if, this is used)
    * 
-   * Display the blogs corresponding to a user's perspective.
+   * Display the blogs corresponding to a user's role.
    */
-  def listUserBlogs(perspectiveOpt: Option[Perspective]) = Action { implicit req =>
-    perspectiveOpt match {
-      case None => NotFound("That user doesn't exist.")
-      case Some(perspective) => DataStore.execute { implicit pm =>
+  def listUserBlogs(roleOpt: Option[Role]) = Action { implicit req =>
+    roleOpt match {
+      case None => NotFound("That role doesn't exist.")
+      case Some(role) => DataStore.execute { implicit pm =>
         val cand = QBlog.candidate
-        val blogs: List[Blog] = Blog.listUserBlogs(perspective)
-        Ok(views.html.blogs.blogs(blogs, perspective))
+        val blogs: List[Blog] = Blog.listUserBlogs(role)
+        Ok(views.html.blogs.blogs(blogs, role))
       }
     }
   }
@@ -54,7 +54,7 @@ object Blogs extends Controller {
    */
   def listCurrentUserBlogs() = Action { implicit req =>
     DataStore.execute { pm =>
-      Visit.getFromRequest(req).perspective match {
+      Visit.getFromRequest(req).role match {
         case Some(per) => {
           Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
         }
@@ -67,16 +67,16 @@ object Blogs extends Controller {
    * 
    *  Presents a page with blogs corresponding to a persepective with given id
    */
-  def listBlogsByPerspectiveId(id: Long) = Action { implicit req =>
+  def listBlogsByRoleId(id: Long) = Action { implicit req =>
     DataStore.execute { implicit pm =>
-      Perspective.getById(id) match {
-        case Some(per) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
-        case None => NotFound("That perspective doesn't exist!")
+      Role.getById(id) match {
+        case Some(role) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(role), role))
+        case None => NotFound("That role doesn't exist!")
       }
     }
   }
 
-  class CreatePostForm extends Form {
+  object CreatePostForm extends Form {
     val title = new TextField("title")
     val content = new TinyMCEField("content")
 
@@ -89,19 +89,17 @@ object Blogs extends Controller {
    *  If the blog id shown in the url corresponds to a blog, go for it. If not, error.
    */
 
-  def createPost(blogId: Long) = Action { implicit req =>
-    val blog = Blog.getById(blogId)
-    blog match {
+  // TODO: fix this using Permissions
+  /*
+  def createPost(blogId: Long) = Authenticated { implicit req =>
+    Blog.getById(blogId) match {
       case None => NotFound("This blog doesn't exist.")
-      case Some(b) => {
-        Visit.getFromRequest(req).perspective match {
+      case Some(b) => req.role match {
           case Some(p) => {
             if (b.owner.id != p.id) {
-              Redirect(routes.Blogs.showBlog(blogId)).flashing("message" -> "You don't have the proper permissions to create a post. Change perspectives?")
+              Redirect(routes.Blogs.showBlog(blogId)).flashing("message" -> "You don't have the proper permissions to create a post. Change roles?")
             } else {
-              val form = new CreatePostForm
-              if (req.method == "GET") {
-                Ok(views.html.blogs.createPost(b.title, Binding(form)))
+              Ok(views.html.blogs.createPost(b.title, Binding(form)))
               } else {
                 checkBindingCreatePostForm(Binding(form, req), b, form)(req)
               }
@@ -112,12 +110,13 @@ object Blogs extends Controller {
       }
     }
   }
+  */
 
-  def checkBindingCreatePostForm(binding: Binding, b: Blog, form: CreatePostForm) = Action { implicit req =>
+  def checkBindingCreatePostForm(binding: Binding, b: Blog) = Action { implicit req =>
     binding match {
       case ib: InvalidBinding => Ok(views.html.blogs.createPost(b.title, ib))
       case vb: ValidBinding => {
-        b.createPost(vb.valueOf(form.title), vb.valueOf(form.content))
+        b.createPost(vb.valueOf(CreatePostForm.title), vb.valueOf(CreatePostForm.content))
         Redirect(routes.Blogs.showBlog(b.id)).flashing("message" -> "New post created!")
       }
     }

@@ -4,7 +4,7 @@ import org.scalatest.FunSuite
 
 class TestValues extends FunSuite {
   test("values") {
-    assert(Value("\\pi").get.toString === "\\pi")
+    assert(Value("\\pi").get.description === "ConstantPi")
     assert(Value("x/2") === None)
     assert(Value("5x") === None)
     assert(Value("x8") === None)

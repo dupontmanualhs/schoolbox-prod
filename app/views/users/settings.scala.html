@@ -1,7 +1,12 @@
 @(pwForm: forms.Binding, themeForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
 
+@import util.FormCall
+
 @main("Change your settings") {
-	@pwForm.render(Some(controllers.routes.Users.changePassword.url), Some("Change your Password"))
-	@themeForm.render(Some(controllers.routes.Users.changeTheme.url), Some("Set your Theme"))
-	</div>
+	@pwForm.render(
+	  overrideSubmit = Some(FormCall(controllers.routes.Users.changePassword)), 
+	  legend = Some("Change your Password"))
+	@themeForm.render(
+	  overrideSubmit = Some(FormCall(controllers.routes.Users.changeTheme)),
+	  legend = Some("Set your Theme"))
 }

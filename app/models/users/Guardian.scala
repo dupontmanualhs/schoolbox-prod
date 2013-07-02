@@ -7,7 +7,7 @@ import org.datanucleus.api.jdo.query._
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
-class Guardian extends Perspective {
+class Guardian extends Role {
   
   
   private[this] var _children: java.util.Set[Student] = _
@@ -24,7 +24,7 @@ class Guardian extends Perspective {
   def role = "Parent/Guardian"
 }
 
-trait QGuardian extends QPerspective[Guardian] {
+trait QGuardian extends QRole[Guardian] {
   private[this] lazy val _children: CollectionExpression[java.util.List[Student], Student] = 
       new CollectionExpressionImpl[java.util.List[Student], Student](this, "_children")
 }

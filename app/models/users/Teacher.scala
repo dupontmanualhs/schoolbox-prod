@@ -9,7 +9,7 @@ import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
-class Teacher extends Perspective {
+class Teacher extends Role {
   @Unique(name="TEACHER_PERSONID")
   private[this] var _personId: String = _
   @Unique(name="TEACHER_STATEID")
@@ -54,7 +54,7 @@ object Teacher {
   }
 }
 
-trait QTeacher extends QPerspective[Teacher] {
+trait QTeacher extends QRole[Teacher] {
   private[this] lazy val _personId: StringExpression = new StringExpressionImpl(this, "_personId")
   def personId: StringExpression = _personId
   

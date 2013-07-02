@@ -1,10 +1,12 @@
 package forms
 
-import fields.Field
 import validators.ValidationError
 import scala.xml.Elem
 import scala.xml.NodeSeq
 import scala.xml.Node
+
+import fields.Field
+import util.FormCall
 
 object Binding {
   def apply(form: Form): InitialBinding = {
@@ -46,7 +48,7 @@ abstract class Binding(val form: Form, val rawData: Map[String, Seq[String]]) {
   def fieldErrors: Map[String, ValidationError] = Map()
   def fieldErrors(field: Field[_]): Option[ValidationError] = fieldErrors.get(field.name)
   def hasErrors: Boolean = !(formErrors.isEmpty && fieldErrors.isEmpty)
-  def render(action: Option[String]=None, legend: Option[String]=None): NodeSeq = form.render(this, action, legend)
+  def render(overrideSubmit: Option[FormCall]=None, legend: Option[String]=None): NodeSeq = form.render(this, overrideSubmit, legend)
   
   def asStringSeq(field: Field[_]): Seq[String] = {
     rawData.getOrElse(field.name, Nil)

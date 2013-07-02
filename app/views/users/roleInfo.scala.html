@@ -1,11 +1,11 @@
 @()(implicit req: play.api.mvc.Request[_])
 @import models.users.Visit
 
-@(Visit.getFromRequest(req).perspective match {
-  case Some(persp) => <ul class="nav">
+@(Visit.getFromRequest(req).role match {
+  case Some(role) => <ul class="nav">
   						<li class="dropdown" >
   							<a class="dropdown-toggle" data-toggle="dropdown" href="#" >
-  								{ persp.displayNameWithRole }
+  								{ role.displayNameWithRole }
   								<b class="caret"></b>
   							</a>
   							<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">

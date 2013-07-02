@@ -23,7 +23,7 @@ class TextField(name: String) extends BaseTextField[String](name) {
   def asValue(strs: Seq[String]): Either[ValidationError, String] = {
     strs match {
       case Seq(s) => Right(s)
-      case _ => Left(ValidationError("Expected a single value, got none or many."))
+      case _ => Left(ValidationError("Expected a single value; got none or many."))
     }
   }
 
@@ -37,7 +37,7 @@ class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name
     strs match {
       case Seq() => Right(None)
       case Seq(s) => Right(Some(s))
-      case _ => Left(ValidationError("Expected a single value, got multiples."))
+      case _ => Left(ValidationError("Expected a single value; got multiples."))
     }
   }
   

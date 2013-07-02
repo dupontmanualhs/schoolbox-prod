@@ -22,21 +22,19 @@ object ApplicationBuild extends Build {
       "org.joda" % "joda-convert" % "1.3.1",
       "org.apache.poi" % "poi" % "3.9",
       "org.apache.poi" % "poi-ooxml" % "3.9",
-      "org.datanucleus" % "datanucleus-core" % "3.2.3",
-      "org.datanucleus" % "datanucleus-api-jdo" % "3.2.2",
-      "org.datanucleus" % "datanucleus-enhancer" % "3.1.1",
+      "org.datanucleus" % "datanucleus-core" % "3.2.4",
+      "org.datanucleus" % "datanucleus-api-jdo" % "3.2.3",
       "org.datanucleus" % "datanucleus-jdo-query" % "3.0.2",
-      "org.datanucleus" % "datanucleus-rdbms" % "3.2.2",
+      "org.datanucleus" % "datanucleus-rdbms" % "3.2.3",
       "com.h2database" % "h2" % "1.3.172",
       "javax.jdo" % "jdo-api" % "3.0.1",
       "log4j" % "log4j" % "1.2.17",
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+      "org.scalatest" % "scalatest_2.10" % "2.0.M5b" % "test",
       "com.itextpdf" % "itextpdf" % "5.4.2",
       "org.tukaani" % "xz" % "1.3",
       "javax.mail" % "mail" % "1.4.7",
-      "org.seleniumhq.selenium" % "selenium-firefox-driver" % "2.33.0" % "test",
-      "org.seleniumhq.selenium" % "selenium-chrome-driver" % "2.33.0" % "test",
-      "org.seleniumhq.selenium" % "selenium-htmlunit-driver" % "2.33.0" % "test"
+      "net.sourceforge.htmlunit" % "htmlunit" % "2.12" % "test",
+      "org.seleniumhq.selenium" % "selenium-java" % "2.33.0" % "test"
     ) ++ jsDependencies
     
     System.setProperty("log4j.configuration", "file:conf/log4j.properties")
@@ -44,6 +42,7 @@ object ApplicationBuild extends Build {
     val main = play.Project(appName, appVersion, appDependencies).settings(
       ((testOptions in Test := Nil) +:
        (scalaVersion := "2.10.2") +:
+       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
        (scalacOptions ++= Seq("-deprecation", "-feature")) +:
        Nucleus.settings): _*
     ) dependsOn RootProject( uri("git://github.com/toddobryan/scalajdo.git") )

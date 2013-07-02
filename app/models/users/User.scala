@@ -27,6 +27,7 @@ class User extends Ordered[User] {
 
   private[this] var _preferred: String = _
 
+  @Persistent(defaultFetchGroup="true")
   private[this] var _gender: Int = _
   
   private[this] var _theme: String = _
@@ -104,9 +105,9 @@ class User extends Ordered[User] {
     "User(ID: %d, %s)".format(id, formalName)
   }
   
-  def perspectives(): List[Perspective] = {
-    val cand = QPerspective.candidate
-    DataStore.pm.query[Perspective].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
+  def roles(): List[Role] = {
+    val cand = QRole.candidate
+    DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
   }
 }
 

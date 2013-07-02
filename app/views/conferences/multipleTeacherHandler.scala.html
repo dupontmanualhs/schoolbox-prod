@@ -1,0 +1,15 @@
+@(sessionId: Long, teachers: List[(models.users.Teacher, Option[models.conferences.TeacherActivation])])(implicit req: play.api.mvc.Request[_])
+
+@main("Choose a teacher") {
+	<h2>Choose a teacher to schedule</h2>
+	<ul>
+	@for(teacher <- teachers)	{
+		<li>@if(teacher._2 == None) {
+				@teacher._1.user.shortName - This teacher has not activated his or her session
+			} else {
+				<a href="@routes.Conferences.slotHandler(sessionId, teacher._1.id)">@teacher._1.user.shortName</a>
+			}
+		</li>
+	}
+	</ul>
+}

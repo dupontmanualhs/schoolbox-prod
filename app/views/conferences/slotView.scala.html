@@ -1,0 +1,18 @@
+@(slots: List[models.conferences.Slot], sessionId: Long, teacherId: Long)(implicit req: play.api.mvc.Request[_])
+
+@import util.Helpers._
+
+@main("Scheduled conference"){
+	<h2>Your Scheduled Conference</h2>
+	
+	@for(slot <- slots){
+	<p>Time: @toAmericanString(slot.startTime) - @toAmericanString(slot.endTime)</p>
+	<p>E-mail: @slot.email</p>
+	<p>Phone: @slot.phone</p>
+	@if(slot.alternatePhone != None) { <p>Alternate Phone: @slot.alternatePhone.get</p> }
+	@if(slot.comment != None)  {  <p>Comment: @slot.comment.get</p>  }
+	<a href="@routes.Conferences.deleteSlot(slot.id)" class="btn">Delete Conference</a>
+	}
+	<br/>
+	<a href="@routes.Conferences.createSlot(sessionId, teacherId)" class="btn">Schedule Another</a>
+}

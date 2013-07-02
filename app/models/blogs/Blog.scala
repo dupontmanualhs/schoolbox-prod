@@ -3,7 +3,7 @@ package models.blogs
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import models.users.Perspective
+import models.users.Role
 import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
@@ -18,9 +18,9 @@ class Blog {
 
   @Column(allowsNull="false")
   @Persistent(defaultFetchGroup="true")
-  private[this] var _owner: Perspective = _
+  private[this] var _owner: Role = _
 
-  def this(title: String, owner: Perspective) = {
+  def this(title: String, owner: Role) = {
     this()
     _title = title
     _owner = owner
@@ -31,7 +31,7 @@ class Blog {
   def title: String = _title
   def title_=(theTitle: String) { _title = theTitle }
 
-  def owner: Perspective = _owner
+  def owner: Role = _owner
 
   def createPost(title: String, content: String) {
     val p = new Post(title, content, this)
@@ -46,8 +46,8 @@ trait QBlog extends PersistableExpression[Blog] {
   private[this] lazy val _title: StringExpression = new StringExpressionImpl(this, "_title")
   def title: StringExpression = _title
   
-  private[this] lazy val _owner: ObjectExpression[Perspective] = new ObjectExpressionImpl[Perspective](this, "_owner")
-  def owner: ObjectExpression[Perspective] = _owner
+  private[this] lazy val _owner: ObjectExpression[Role] = new ObjectExpressionImpl[Role](this, "_owner")
+  def owner: ObjectExpression[Role] = _owner
 }
 
 object QBlog {
@@ -71,13 +71,12 @@ object QBlog {
 }
 
 object Blog {
-  def listUserBlogs(perspective: Perspective): List[Blog] = {
-    val realPer = Perspective.getById(perspective.id)
-    realPer match {
+  def listUserBlogs(role: Role): List[Blog] = {
+    Role.getById(role.id) match {
       case None => Nil
-      case Some(realPer) => {
+      case Some(realRole) => {
          val cand = QBlog.candidate
-         DataStore.pm.query[Blog].filter(cand.owner.eq(realPer)).executeList()
+         DataStore.pm.query[Blog].filter(cand.owner.eq(realRole)).executeList()
       }
     }
   }

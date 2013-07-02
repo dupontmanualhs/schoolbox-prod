@@ -25,10 +25,10 @@ object Location {
   val abbMap = {for((name, abbreviation) <- hallMap) yield (abbreviation, name)}.toMap
 }
 
-
 case class LockerLocation(val floor: Int, val hall: String) extends Location {
   override def toString = "Floor " + floor + "- " + Location.abbMap(hall)
 }
+
 case class RoomLocation(val floor: Int, val hall: String, val name: String) extends Location {
   override def toString = "Room " + name + "- " + Location.abbMap(hall)
   def toLockerLocation = LockerLocation(floor, hall)

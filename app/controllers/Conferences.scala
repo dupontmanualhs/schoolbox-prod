@@ -74,9 +74,11 @@ object Conferences extends Controller {
     val fields = List(name, isActive)
   }
 
-  def createEvent = Action { implicit req =>
-    if (req.method == "GET") Ok(views.html.conferences.createEvent(Binding(EventForm)))
-    else {
+  def createEvent() = Action { implicit req =>
+    Ok(views.html.conferences.createEvent(Binding(EventForm)))
+  }
+  
+  def createEventP() = Action { implicit req =>
       Binding(EventForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createEvent(ib))
         case vb: ValidBinding => DataStore.execute { implicit pm =>
@@ -87,9 +89,9 @@ object Conferences extends Controller {
           Redirect(routes.Conferences.index()).flashing("message" -> "Event successfully created!")
         }
       }
-    }
   }
   //TODO: Make sure this works
+  //TODO: This should be POST
   def deleteEvent(eventId: Long) = Action { implicit req =>
     DataStore.execute { implicit pm =>
       pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeOption() match {
@@ -121,8 +123,10 @@ object Conferences extends Controller {
   }
 
   def createSession(eventId: Long) = Action { implicit req =>
-    if (req.method == "GET") Ok(views.html.conferences.createSession(Binding(SessionForm), eventId))
-    else {
+    Ok(views.html.conferences.createSession(Binding(SessionForm), eventId))
+  }
+  
+  def createSessionP(eventId: Long) = Action { implicit req =>
       Binding(SessionForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSession(ib, eventId))
         case vb: ValidBinding => DataStore.execute { implicit pm =>
@@ -139,7 +143,6 @@ object Conferences extends Controller {
           Redirect(routes.Conferences.index()).flashing("message" -> "Session successfully created!")
         }
       }
-    }
   }
 
   def deleteSession(sessionId: Long) = Action { implicit request =>
@@ -148,7 +151,9 @@ object Conferences extends Controller {
         case None => NotFound(views.html.notFound("No session could be found"))
         case Some(session) => {
           val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList()
-          for (slot <- slots) pm.deletePersistent(slot)
+          val teacherActivations = pm.query[TeacherActivation].filter(QTeacherActivation.candidate.session.eq(session)).executeList()
+          pm.deletePersistentAll(slots)
+          pm.deletePersistentAll(teacherActivations)
           pm.deletePersistent(session)
           Redirect(routes.Conferences.index()).flashing("message" -> ("Session was deleted."))
         }
@@ -173,6 +178,7 @@ object Conferences extends Controller {
       val currUser = User.current
       val teacher = Teacher.getByUsername(currUser.get.username).get
       val cand = QTeacherActivation.candidate
+      //TODO: sort slots by time
       pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption match {
         case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, Some(teacherActivation)))
         case None => Ok(views.html.conferences.teacherSession(slots, session, None))
@@ -188,9 +194,11 @@ object Conferences extends Controller {
   }
 
   def activateTeacherSession(sessionId: Long) = Action { implicit request =>
-    DataStore.execute { pm =>
-      if (request.method == "GET") Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
-      else {
+    Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
+  }
+  
+  def activateTeacherSessionP(sessionId: Long) = Action { implicit request =>  
+    DataStore.execute { pm => 
         Binding(TeacherActivationForm, request) match {
           case ib: InvalidBinding => Ok(views.html.conferences.activateSession(ib, sessionId))
           case vb: ValidBinding => {
@@ -205,7 +213,6 @@ object Conferences extends Controller {
             Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session activated")
           }
         }
-      }
     }
   }
 
@@ -227,19 +234,61 @@ object Conferences extends Controller {
 
   def classList(sessionId: Long) = Action { implicit request =>
     DataStore.execute { pm =>
-      val currentUser = User.current
-      val Some(student) = Student.getByUsername(currentUser.get.username)
-      val term = Term.current
-      val enrollments: List[StudentEnrollment] = {
-        val sectVar = QSection.variable("sectVar")
-        val cand = QStudentEnrollment.candidate()
-        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
-      }
-      val hasEnrollments = enrollments.size != 0
-      val sections: List[Section] = enrollments.map(_.section)
-      val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
-      Ok(views.html.conferences.classList(sessionId, periods, sections, hasEnrollments))
+	  val currentUser = User.current
+	  val student = Student.getByUsername(currentUser.get.username).get
+	  val term = Term.current
+		val enrollments: List[StudentEnrollment] = {
+			val sectVar = QSection.variable("sectVar")
+			val cand = QStudentEnrollment.candidate()
+			pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+		}
+  			val hasEnrollments = enrollments.size != 0
+  			val sections: List[Section] = enrollments.map(_.section)
+  			val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
+  			val table: List[NodeSeq] = periods.map { p =>
+                              val sectionThisPeriod = sections.filter(_.periods.contains(p))(0)
+                              val linkNode: NodeSeq = {<a class ="btn" href={routes.Conferences.multipleTeacherHandler(sessionId, sectionThisPeriod.id).url }>Get This Conference</a>}
+                              <tr>
+                              <td>{ p.name }</td>
+                              <td>{ Text(sectionThisPeriod.course.name) }</td>
+                              <td>{ Text(sectionThisPeriod.teachers.map(_.user.shortName).mkString("; ")) }</td>
+                              <td>{ linkNode }</td>
+                              </tr>
+                          }
+  			Ok(views.html.conferences.classList(sessionId, table, hasEnrollments))
     }
+  }
+  
+  def multipleTeacherHandler(sessionId: Long, sectionId: Long)= Action { implicit request =>
+	DataStore.execute { pm =>
+		val section = pm.query[Section].filter(QSection.candidate.id.eq(sectionId)).executeOption()
+		section match {
+		  case None => NotFound("Incorrect Section Id")
+		  case Some(section) =>
+		    val teachers = section.teachers
+		    val teacherList = teachers map { teacher =>
+		      						(teacher, 
+		      						pm.query[TeacherActivation].filter(QTeacherActivation.candidate.teacher.eq(teacher)).executeOption())
+		    }
+		    if (teacherList.length == 1 && teacherList(0)._2 != None) Redirect(routes.Conferences.slotHandler(sessionId, teacherList(0)._1.id))
+		    else Ok(views.html.conferences.multipleTeacherHandler(sessionId, teacherList))
+		}
+	}
+  }
+  
+  def slotHandler(sessionId: Long, teacherId: Long)= Action { implicit request =>
+	DataStore.execute  {  pm =>
+		val currentUser = User.current
+		val student = Student.getByUsername(currentUser.get.username).get
+		val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+		val teacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption().get
+		val cand = QSlot.candidate
+		val slots = pm.query[Slot].filter(cand.student.eq(student).and(cand.session.eq(session)).and(cand.teacher.eq(teacher))).executeList()
+		slots match {
+		  case Nil => Redirect(routes.Conferences.createSlot(sessionId, teacherId))
+		  case x :: xs => Ok(views.html.conferences.slotView(slots, sessionId, teacherId))
+		}
+	}
   }
 
   object SlotForm extends Form {
@@ -255,8 +304,10 @@ object Conferences extends Controller {
   }
 
   def createSlot(sessionId: Long, teacherId: Long) = Action { implicit request =>
-    if (request.method == "GET") Ok(views.html.conferences.createSlot(Binding(SlotForm), sessionId, teacherId))
-    else {
+    Ok(views.html.conferences.createSlot(Binding(SlotForm), sessionId, teacherId))
+  }
+  
+  def createSlotP(sessionId: Long, teacherId: Long) = Action { implicit request =>
       Binding(SlotForm, request) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSlot(ib, sessionId, teacherId))
         case vb: ValidBinding => DataStore.execute { implicit pm =>
@@ -277,14 +328,17 @@ object Conferences extends Controller {
           val theTeacherActivation = pm.query[TeacherActivation].filter(QTeacherActivation.candidate.teacher.eq(theTeacher.get)).executeList()
           val s = new Slot(theSession.get, theTeacher.get, theStudent.get, theStartTime, theParent, theEmail, thePhone, theAlternatePhone, theComment, theTeacherActivation(0).slotInterval)
           //Slot validating has not been tested yet
-          if (validateSlot(s)) {
-            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
+          if (s.validateSession) {
+            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> ("You must choose a time between " + toAmericanString(theSession.get.startTime) + " and " + toAmericanString(theSession.get.endTime) + "."))
           }
-          pm.makePersistent(s)
-          Redirect(routes.Conferences.index()).flashing("message" -> "Successfully created slot!")
+          else if (s.validateSlot) {
+            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
+          } else {
+        	pm.makePersistent(s)
+            Redirect(routes.Conferences.slotHandler(sessionId, teacherId)).flashing("message" -> "Successfully created slot!")
+          }
         }
       }
-    }
   }
 
   def deleteSlot(slotId: Long) = Action { implicit request =>
@@ -292,25 +346,12 @@ object Conferences extends Controller {
       pm.query[Slot].filter(QSlot.candidate.id.eq(slotId)).executeOption() match {
         case None => NotFound(views.html.notFound("No slot could be found"))
         case Some(slot) => {
+          val session = slot.session
           pm.deletePersistent(slot)
-          Redirect(routes.Conferences.index()).flashing("message" -> ("Slot was deleted."))
+          Redirect(routes.Conferences.classList(session.id)).flashing("message" -> ("Slot was deleted."))
         }
       }
     }
   }
-
-  //TODO: Write a method that checks if there already exists a slot within the same time-period
-  //Not tested yet
-  def validateSlot(slot: Slot): Boolean = {
-    val startTime = slot.startTime
-    val endTime = slot.endTime
-    DataStore.execute { implicit pm =>
-      val slots = pm.query[Slot].executeList()
-      for (slot <- slots) {
-        if ((startTime.compareTo(slot.startTime) >= 0) && (startTime.compareTo(slot.endTime) < 0)) true
-        if ((endTime.compareTo(slot.startTime) > 0) && (endTime.compareTo(slot.endTime) <= 0)) true
-      }
-      false
-    }
-  }
+  
 }

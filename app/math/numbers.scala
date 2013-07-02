@@ -253,19 +253,12 @@ class Decimal(val value: BigDecimal) extends ExactNumber {
     val potentialCoef: String = scientificNum.group("coefficient")
     val potentialPower: String = scientificNum.group("power")
     val coefficient: String = getCoefficientFromString(potentialCoef)
-    val power = getPowerFromString(potentialPower)
-    "%s*10^{%s}".format(coefficient, power)
+    val power = Integer(potentialPower)
+    "%s*10^{%s}".format(coefficient, power.map(_.toLaTeX).getOrElse(""))
   }
 
   def getCoefficientFromString(s: String): String = {
     (Number.stringToInt(s) orElse Number.stringToDecimal(s)).getOrElse("1").toString
-  }
-
-  def getPowerFromString(s: String): String = {
-    Integer(s) match {
-      case Some(aInt) => aInt.toString
-      case _ => ""
-    }
   }
 
   def description: String = "Decimal(\"%s\")".format(this.getValue.toString())
