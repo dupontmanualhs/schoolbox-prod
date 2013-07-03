@@ -7,35 +7,28 @@ import java.io.File
 object ApplicationBuild extends Build {
   val appName = "play-eschool"
   val appVersion = "1.0"
-  
-  val scalaJdo = RootProject(uri("git://github.com/toddobryan/scalajdo.git"))
-  
-  val forms = Project("forms", file("modules/forms")
-    ).settings(
-      scalaVersion := "2.10.2",
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-      scalacOptions ++= Seq("-deprecation", "-feature"),
-      libraryDependencies ++= Seq(
-        "play" % "play_2.10" % "2.1.1",
-        "javax.mail" % "mail" % "1.4.7",
-        "org.scalatest" % "scalatest_2.10" % "2.0.M5b"
-      )
-    )
 
-  val users = play.Project("users", appVersion, path=file("modules/users")
-    ).settings(
-      scalaVersion := "2.10.2",
-      javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-      scalacOptions ++= Seq("-deprecation", "-feature"),
-      libraryDependencies ++= Seq(
-        "com.google.inject" % "guice" % "3.0",
-        "com.tzavellas" % "sse-guice" % "0.7.1",
-        "com.scalatags" % "scalatags_2.10" % "0.1.2"
-      )
-    ).dependsOn(
-      forms, scalaJdo
-    )
-      
+  val scalaJdo = RootProject(uri("git://github.com/toddobryan/scalajdo.git"))
+
+  val forms = Project("forms", file("modules/forms")).settings(
+    scalaVersion := "2.10.2",
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
+    scalacOptions ++= Seq("-deprecation", "-feature"),
+    libraryDependencies ++= Seq(
+      "play" % "play_2.10" % "2.1.1",
+      "javax.mail" % "mail" % "1.4.7",
+      "org.scalatest" % "scalatest_2.10" % "2.0.M5b"))
+
+  val users = play.Project("users", appVersion, path = file("modules/users")).settings(
+    scalaVersion := "2.10.2",
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
+    scalacOptions ++= Seq("-deprecation", "-feature"),
+    libraryDependencies ++= Seq(
+      "com.google.inject" % "guice" % "3.0",
+      "com.tzavellas" % "sse-guice" % "0.7.1",
+      "com.scalatags" % "scalatags_2.10" % "0.1.2")).dependsOn(
+      forms, scalaJdo)
+
   val jsDependencies = Seq(
     "org.webjars" %% "webjars-play" % "2.1.0-2",
     "org.webjars" % "jquery" % "2.0.0",
@@ -68,7 +61,7 @@ object ApplicationBuild extends Build {
       (scalaVersion := "2.10.2") +:
       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
-      Nucleus.settings): _*) dependsOn(forms, scalaJdo, users)
+      Nucleus.settings): _*) dependsOn (forms, scalaJdo, users) aggregate (forms, scalaJdo, users)
 }
 
 object Nucleus {
@@ -79,6 +72,18 @@ object Nucleus {
   // our task
   val enhance = TaskKey[Unit]("enhance")
 
+  val settings: Seq[Project.Setting[_]] = Seq(
+    ivyConfigurations += Config,
+    enhance in Config <<= (fullClasspath, runner, streams) map {
+      (classpath, runner, strs) =>
+        Build.default.projects.foreach { p =>
+          val classes = (classDirectory in (p, Compile)) map { (cls) => cls }
+          val options = findAllClassesRecursively(classes).map(_.getAbsolutePath)
+          val result = runner.run("org.datanucleus.enhance.DataNucleusEnhancer", classpath.map(_.data), options, strs.log)
+          result.foreach(sys.error)
+        }
+      })
+  /*
   // implementation
   val settings: Seq[Project.Setting[_]] = Seq(
     // let ivy know about our "nucleus" config
@@ -93,7 +98,7 @@ object Nucleus {
     // add more parameters as your see fit
     //enhance in Config <<= (fullClasspath in Config, runner, streams).map{(cp, run, s) =>
     enhance <<= Seq(compile in Compile).dependOn,
-    enhance in Config <<= (dependencyClasspath in Compile, classDirectory in Compile, runner, streams)
+    enhance in Config <<= (fullClasspath in Compile, classDirectory in Compile, runner, streams)
       map { (deps, classes, run, s) =>
 
         // Properties
@@ -103,14 +108,13 @@ object Nucleus {
         //val classpath = cp.files
         // the options passed to the Enhancer... 
         val options = Seq("-v") ++ findAllClassesRecursively(classes).map(_.getAbsolutePath)
-        Thread.sleep(1000)
 
         // run returns an option of errormessage
         val result = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, options, s.log)
         // if there is an errormessage, throw an exception
         result.foreach(sys.error)
       })
-
+  */
   def findAllClassesRecursively(dir: File): Seq[File] = {
     if (dir.isDirectory) {
       val files = dir.listFiles

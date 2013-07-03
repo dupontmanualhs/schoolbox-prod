@@ -5,9 +5,7 @@ import config.users.MainTemplate
 import templates.Main
 import config.users.Config
 
-trait CommonConfig extends config.users.Config
-
-class ConfigImpl extends CommonConfig {
+class ConfigImpl extends config.users.Config {
   def defaultCall = controllers.routes.App.index()
   def mainTemplate = templates.Main
 }

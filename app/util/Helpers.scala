@@ -10,8 +10,6 @@ import java.sql.Time
 import java.sql.Timestamp
 
 object Helpers {
-  implicit val tableFields = FieldConstructor(views.html.templates.fieldAsTableRow(_))
-  
   implicit object LocalDateOrdering extends Ordering[LocalDate] {
     def compare(ld1: LocalDate, ld2: LocalDate) = ld1.compareTo(ld2)
   }

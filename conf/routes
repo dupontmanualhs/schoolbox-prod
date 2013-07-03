@@ -18,7 +18,7 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 #POST	/this/is/spartas/formtest				controllers.Application.formTestP()
 
 #Users
--> /users				users.routes
+-> /users				users.Routes
 
 #Courses
 # current schedules

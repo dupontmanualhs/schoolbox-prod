@@ -1,7 +1,6 @@
 @(title: String, form: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Create a post: " + title, scripts = views.JavascriptLibraries.TINY_MCE) {
-
+@views.main("Create a post: " + title) {
 	@form.render()
 }
 	
