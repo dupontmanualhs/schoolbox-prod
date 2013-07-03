@@ -1,10 +1,12 @@
 datanucleus.ConnectionDriverName=org.h2.Driver
 datanucleus.ConnectionURL=jdbc:h2:data;AUTO_SERVER=true;MVCC=true
 
-datanucleus.implementationCreatorName=asm
 datanucleus.autoCreateSchema=true
 datanucleus.DetachAllOnCommit=true
 datanucleus.maxFetchDepth=1
 
 datanucleus.autoStartMechanism=Classes
-datanucleus.autoStartClassNames=models.users.Role,models.users.Student,models.users.Teacher,models.users.Guardian
+datanucleus.autoStartClassNames=models.users.Role,models.users.Student,models.users.Teacher,models.users.Guardian,models.users.Permission
+
+datanucleus.plugin.allowUserBundles=true
+datanucleus.plugin.validatePlugins=true

@@ -18,8 +18,11 @@ import util.VisitAction
 import scalajdo.DataStore
 import models.users.Visit
 import util.Authenticated
+import util.PermissionRequired
 
 object Users extends Controller {
+  
+  
   object LoginForm extends Form {
     val username = new TextField("username")
     val password = new PasswordField("password")
@@ -58,10 +61,11 @@ object Users extends Controller {
             // no roles attached to this user
             case Nil => Redirect(controllers.routes.Application.index()).flashing("message" -> "That user has no active roles.")
             // there's at least one
-            case persp :: rest => {
+            case role :: rest => {
               // TODO: should we have a default role?
               // set the first one
-              request.visit.role = Some(persp)
+              request.visit.role = Some(role)
+              request.visit.permissions = role.permissions
               request.visit.updateMenu
               pm.makePersistent(request.visit)
               rest match {
@@ -101,6 +105,7 @@ object Users extends Controller {
         case ib: InvalidBinding => Ok(html.users.chooseRole(ib))
         case vb: ValidBinding => {
           visit.role = Some(vb.valueOf(form.role))
+          visit.permissions = visit.role.map(_.permissions).getOrElse(Set())
           visit.updateMenu
           pm.makePersistent(visit)
           Redirect(routes.Application.index()).flashing("message" -> "You have successfully logged in.")
@@ -158,9 +163,7 @@ object Users extends Controller {
    */
 
   def settings = Authenticated { implicit req =>
-    val visit = Visit.getFromRequest(req)
-    val user = visit.user.get
-    val pwForm = new ChangePasswordForm(user)
+    val pwForm = new ChangePasswordForm(req.role.user)
     Ok(html.users.settings(Binding(pwForm), Binding(ChangeTheme)))
   }
 
@@ -169,7 +172,6 @@ object Users extends Controller {
    *
    * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
    */
-
   def changePassword = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val user = req.role.user
@@ -190,7 +192,6 @@ object Users extends Controller {
    *
    * User chooses from drop-down menu and this changes the theme to that selection.
    */
-
   def changeTheme = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val user = req.role.user
@@ -205,19 +206,14 @@ object Users extends Controller {
       }
     }
   }
-
-  //def settingsPage = 
-
+  
   /**
    * regex: /listUsers
    *
    * Helper Method
    */
-
-  def list = VisitAction { implicit request =>
-    DataStore.execute { pm =>
-      val cand = QUser.candidate
-      Ok(html.users.list(pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
-    }
+  def list = PermissionRequired(User.Permissions.ListAll) { implicit request =>
+    val cand = QUser.candidate
+    Ok(html.users.list(DataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
   }
 }

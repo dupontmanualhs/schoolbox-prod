@@ -28,7 +28,7 @@ class User extends Ordered[User] {
   private[this] var _preferred: String = _
 
   @Persistent(defaultFetchGroup="true")
-  private[this] var _gender: Gender.Value = _
+  private[this] var _gender: Int = _
   
   private[this] var _theme: String = _
 
@@ -71,8 +71,8 @@ class User extends Ordered[User] {
   def preferred: Option[String] = if (_preferred == null) None else Some(_preferred)
   def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
   
-  def gender: Gender.Gender = _gender
-  def gender_=(theGender: Gender.Gender) { _gender = theGender }
+  def gender: Gender.Gender = Gender(_gender)
+  def gender_=(theGender: Gender.Gender) { _gender = theGender.id }
   
   def theme: String = _theme
   def theme_=(theTheme: String) {_theme = theTheme}
@@ -89,6 +89,8 @@ class User extends Ordered[User] {
   def password_=(thePassword: Password) { _password = thePassword }
   def password_=(thePassword: String) { _password = new Password(thePassword) }
 
+  override def toString: String = s"User(ID: ${id}, ${formalName})"
+  
   def displayName: String = "%s %s".format(preferred.getOrElse(first), last)
   
   def formalName: String = "%s, %s%s".format(last, first, middle.map(" " + _).getOrElse(""))
@@ -101,17 +103,30 @@ class User extends Ordered[User] {
       (that.last, that.first, that.middle.getOrElse("")))
   }
   
-  override def toString: String = {
-    "User(ID: %d, %s)".format(id, formalName)
-  }
-  
   def roles(): List[Role] = {
     val cand = QRole.candidate
     DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
   }
+  
+  def canEqual(that: Any): Boolean = that.isInstanceOf[User]
+  
+  override def equals(that: Any): Boolean = that match {
+    case that: User => this.canEqual(that) && this.id == that.id
+    case _ => false
+  }
+  
+  override def hashCode: Int = this.id.hashCode
 }
 
-object User {  
+object User {
+  object Permissions {
+    val Add = Permission(classOf[User], 0, "Add", "can add new users")
+    val Delete = Permission(classOf[User], 1, "Delete", "can delete users")
+    val Change = Permission(classOf[User], 2, "Change", "can modify anything about users")
+    val ListAll = Permission(classOf[User], 3, "ListAll", "can view the list of all users")
+    val ChangePassword = Permission(classOf[User], 4, "ChangePassword", "can change other users' passwords")
+  }
+  
   def getById(id: Long): Option[User] = {
     val cand = QUser.candidate
     DataStore.pm.query[User].filter(cand.id.eq(id)).executeOption()
@@ -126,7 +141,6 @@ object User {
     Visit.getFromRequest(req).user
   }
 
-  
   def authenticate(username: String, password: String): Option[User] = {
     getByUsername(username) match {
 	  case Some(user) => authenticate(user, password)

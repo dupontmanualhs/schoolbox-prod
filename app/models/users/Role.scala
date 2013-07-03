@@ -12,18 +12,40 @@ abstract class Role extends Ordered[Role] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
   @Persistent(defaultFetchGroup="true")
   private[this] var _user: User = _
-  
+  def user: User = _user
+  def user_=(theUser: User) { _user = theUser }
+    
+  def role: String
+
   protected def this(user: User) = {
     this()
     user_=(user)
   }
   
-  def id: Long = _id
-
-  def user: User = _user
-  def user_=(theUser: User) { _user = theUser }
+  override def toString: String = formalNameWithRole
+  
+  def groups(): Set[Group] = {
+    val cand = QGroup.candidate
+    DataStore.pm.query[Group].filter(cand.roles.contains(this)).executeList().toSet
+  }
+  
+  def rolePermissions(): Set[Permission] = {
+    val cand = QPermission.candidate
+    DataStore.pm.query[Permission].filter(cand.roles.contains(this)).executeList().toSet
+  }
+  
+  def permissions(): Set[Permission] = {
+    (this.groups().map(_.permissions()) + this.rolePermissions()).flatten
+  }
+  
+  def addPermission(permission: Permission) {
+    permission.roles_=(permission.roles + this)
+    DataStore.pm.makePersistent(permission)
+  }
   
   def displayNameWithRole = "%s (%s)".format(user.displayName, role)
   def formalNameWithRole = "%s (%s)".format(user.formalName, role)
@@ -31,11 +53,20 @@ abstract class Role extends Ordered[Role] {
   def displayName = user.displayName
   def formalName = user.formalName
   def shortName = user.shortName
-  def role: String
   
   def compare(that: Role) = {
-    this.user.compare(that.user)
+    val comp = this.user.compare(that.user)
+    if (comp == 0) this.role.compare(that.role) else comp
   }
+  
+  def canEqual(that: Any): Boolean = that.isInstanceOf[Role]
+  
+  override def equals(that: Any): Boolean = that match {
+    case that: Role => this.canEqual(that) && this.id == that.id
+    case _ => false
+  }
+  
+  override def hashCode: Int = this.id.hashCode
 }
 
 object Role {

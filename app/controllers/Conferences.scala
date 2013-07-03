@@ -307,15 +307,13 @@ object Conferences extends Controller {
   //TODO: Write a method that checks if there already exists a slot within the same time-period
   //Not tested yet
   def validateSlot(slot: Slot): Boolean = {
+    val dateOrdering = implicitly[Ordering[java.util.Date]]
+    import dateOrdering._
     val startTime = slot.startTime
     val endTime = slot.endTime
     DataStore.execute { implicit pm =>
       val slots = pm.query[Slot].executeList()
-      for (slot <- slots) {
-        if ((startTime.compareTo(slot.startTime) >= 0) && (startTime.compareTo(slot.endTime) < 0)) true
-        if ((endTime.compareTo(slot.startTime) > 0) && (endTime.compareTo(slot.endTime) <= 0)) true
-      }
-      false
+      slots.exists(s => (startTime >= s.startTime && startTime < s.endTime) || (endTime > s.startTime && endTime <= s.endTime))
     }
   }
 }

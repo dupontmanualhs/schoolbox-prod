@@ -1,6 +1,5 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: eschool
-Bundle-SymbolicName: eschool
+Bundle-SymbolicName: org.datanucleus.eschool
 Bundle-Version: 1.0.0
-Bundle-Vendor: ScalaJDO

@@ -18,56 +18,43 @@ import play.api.mvc.Request
 class Visit {
   @PrimaryKey
   private[this] var _uuid: String = UUID.randomUUID().toString()
-  private[this] var _expiration: Long = _
-  private[this] var _user: User = _
-  private[this] var _role: Role = _
-  @Persistent(defaultFetchGroup = "true")
-  private[this] var _redirectUrl: String = _
-  @Element(types=Array(classOf[Permission]))
-  @Join
-  private[this] var _permissions: java.util.Set[Permission] = _
-  @Column(jdbcType="CLOB")
-  private[this] var _menu: String = _
-  @Key(types=Array(classOf[String]))
-  @Value(types=Array(classOf[Object]))
-  @Serialized
-  private[this] var _sessionItems: java.util.Map[String, Object] = _
-  
-  def this(theExpiration: Long, maybeUser: Option[User], maybeRole: Option[Role]) = {
-    this()
-    _expiration = theExpiration
-    _user = maybeUser.getOrElse(null)
-    _role = maybeRole.getOrElse(null)
-    permissions_=(Set[Permission]())
-    menu_=(Menu.buildMenu(role))
-    _sessionItems = new java.util.HashMap[String, Object]()  
-    redirectUrl_=(None)
-  }
-  
   def uuid: String = _uuid
-  
+
+  private[this] var _expiration: Long = _
   def expiration: Long = _expiration
   def expiration_=(theExpiration: Long) { _expiration = theExpiration }
-  
+  def isExpired: Boolean = System.currentTimeMillis > expiration
+    
+  private[this] var _user: User = _
   def user: Option[User] = if (_user == null) None else Some(_user)
   def user_=(maybeUser: Option[User]) { _user = maybeUser.getOrElse(null) }
   
+  private[this] var _role: Role = _
   def role: Option[Role] = if (_role == null) None else Some(_role)
   def role_=(maybeRole: Option[Role]) { _role = maybeRole.getOrElse(null) }
   
+  @Persistent(defaultFetchGroup = "true")
+  private[this] var _redirectUrl: String = _
   def redirectUrl: Option[Call] = Visit.string2Call(_redirectUrl)
   def redirectUrl_=(url: Option[Call]) { _redirectUrl = url.map(Visit.call2String(_)).getOrElse(null) }
   def redirectUrl_=(url: Call) { _redirectUrl = Visit.call2String(url) }
   
+  @Element(types=Array(classOf[Permission]))
+  @Join
+  private[this] var _permissions: java.util.Set[Permission] = _
   def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
   def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }
-  
+    
+  @Column(jdbcType="CLOB")
+  private[this] var _menu: String = _
   def menu: Elem = string2elem(_menu)
   def menu_=(theMenu: Elem) { _menu = theMenu.toString }
-    
-  def isExpired: Boolean = System.currentTimeMillis > expiration
-  
   def updateMenu { menu = Menu.buildMenu(role) }
+      
+  @Key(types=Array(classOf[String]))
+  @Value(types=Array(classOf[Object]))
+  @Serialized
+  private[this] var _sessionItems: java.util.Map[String, Object] = _
   
   def set(key: String, value: Any) {
     value match {
@@ -86,6 +73,17 @@ class Visit {
   def getAs[T](key: String): Option[T] = {
     if (_sessionItems.containsKey(key)) Some(_sessionItems.get(key).asInstanceOf[T])
     else None
+  }
+  
+  def this(theExpiration: Long, maybeUser: Option[User], maybeRole: Option[Role]) = {
+    this()
+    _expiration = theExpiration
+    _user = maybeUser.getOrElse(null)
+    _role = maybeRole.getOrElse(null)
+    permissions_=(maybeRole.map(_.permissions()).getOrElse(Set[Permission]()))
+    menu_=(Menu.buildMenu(role))
+    _sessionItems = new java.util.HashMap[String, Object]()  
+    redirectUrl_=(None)
   }
 }
 
