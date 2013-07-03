@@ -10,18 +10,16 @@ class Department {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
 
   private[this] var _name: String = _
+  def name: String = _name
+  def name_=(theName: String) { _name = theName }
 
   def this(name: String) = {
     this()
     _name = name
   }
-
-  def id: Long = _id
-
-  def name: String = _name
-  def name_=(theName: String) { _name = theName }
 }
 
 object Department {

@@ -9,10 +9,21 @@ class Course {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
   private[this] var _name: String = _
+  def name: String = _name
+  def name_=(theName: String) { _name = theName }
+  
   @Unique
   private[this] var _masterNumber: String = _
+  def masterNumber: String = _masterNumber
+  def masterNumber_=(theMasterNumber: String) { _masterNumber = theMasterNumber }
+  
+  @Persistent
   private[this] var _department: Department = _
+  def department: Department = _department
+  def department_=(theDepartment: Department) { _department = theDepartment }
   
   def this(name: String, masterNumber: String, department: Department) = {
     this()
@@ -20,17 +31,6 @@ class Course {
     _masterNumber = masterNumber
     _department = department
   }
-  
-  def id: Long = _id
-
-  def name: String = _name
-  def name_=(theName: String) { _name = theName }
-  
-  def masterNumber: String = _masterNumber
-  def masterNumber_=(theMasterNumber: String) { _masterNumber = theMasterNumber }
-  
-  def department: Department = _department
-  def department_=(theDepartment: Department) { _department = theDepartment }
   
   override def toString = "%s (%s)".format(name, masterNumber)
 }

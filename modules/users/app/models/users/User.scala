@@ -11,33 +11,58 @@ class User extends Ordered[User] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
 
   @Unique
   @Column(allowsNull="false")
   private[this] var _username: String = _
-
+  def username: String = _username
+  def username_=(theUsername: String) { _username = theUsername }
+  
   @Column(allowsNull="false")
   private[this] var _first: String = _
-
+  def first: String = _first
+  def first_=(theFirst: String) { _first = theFirst }
+  
   private[this] var _middle: String = _
-
+  def middle: Option[String] = if (_middle == null) None else Some(_middle)
+  def middle_=(theMiddle: String) { _middle = theMiddle }
+  
   @Column(allowsNull="false")
   private[this] var _last: String = _
-
+  def last: String = _last
+  def last_=(theLast: String) { _last = theLast }
+  
   private[this] var _preferred: String = _
-
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _gender: Gender.Value = _
+  def preferred: Option[String] = if (_preferred == null) None else Some(_preferred)
+  def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
+  
+  private[this] var _gender: Int = _
+  def gender: Gender.Gender = Gender(_gender)
+  def gender_=(theGender: Gender.Gender) { _gender = theGender.id }
   
   private[this] var _theme: String = _
+  def theme: String = _theme
+  def theme_=(theTheme: String) {_theme = theTheme}
 
   @Persistent(defaultFetchGroup="true")
   @Embedded
   @Unique
   private[this] var _email: Email = _
+  def email: Option[String] = if (_email == null) None else Some(_email.value)
+  def email_=(theEmail: Email) { _email = theEmail }
+  def email_=(theEmail: Option[String]) {
+    if (theEmail.isDefined) email = new Email(theEmail.get)
+    else _email = null
+  }
+  def email_=(theEmail: String) { email = Some(theEmail) }
+
   @Persistent(defaultFetchGroup="true")
   @Embedded
   private[this] var _password: Password = _
+  def password: Password = _password
+  def password_=(thePassword: Password) { _password = thePassword }
+  def password_=(thePassword: String) { _password = new Password(thePassword) }
   
   def this(username: String, first: String, middle: Option[String], last: String,
       preferred: Option[String], gender: Gender.Gender, email: String, password: String) = {
@@ -52,42 +77,7 @@ class User extends Ordered[User] {
     password_=(new Password(password))
     theme_=("default")
   }
-
-  def id: Long = _id
-
-  def username: String = _username
-  def username_=(theUsername: String) { _username = theUsername }
   
-  def first: String = _first
-  def first_=(theFirst: String) { _first = theFirst }
-  
-  def middle: Option[String] = if (_middle == null) None else Some(_middle)
-  def middle_=(theMiddle: String) { _middle = theMiddle }
-  
-  def last: String = _last
-  def last_=(theLast: String) { _last = theLast }
-  
-  def preferred: Option[String] = if (_preferred == null) None else Some(_preferred)
-  def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
-  
-  def gender: Gender.Gender = _gender
-  def gender_=(theGender: Gender.Gender) { _gender = theGender }
-  
-  def theme: String = _theme
-  def theme_=(theTheme: String) {_theme = theTheme}
-  
-  def email: Option[String] = if (_email == null) None else Some(_email.value)
-  def email_=(theEmail: Email) { _email = theEmail }
-  def email_=(theEmail: Option[String]) {
-    if (theEmail.isDefined) email = new Email(theEmail.get)
-    else _email = null
-  }
-  def email_=(theEmail: String) { email = Some(theEmail) }
-  
-  def password: Password = _password
-  def password_=(thePassword: Password) { _password = thePassword }
-  def password_=(thePassword: String) { _password = new Password(thePassword) }
-
   def displayName: String = "%s %s".format(preferred.getOrElse(first), last)
   
   def formalName: String = "%s, %s%s".format(last, first, middle.map(" " + _).getOrElse(""))
@@ -104,9 +94,9 @@ class User extends Ordered[User] {
     "User(ID: %d, %s)".format(id, formalName)
   }
   
-  def roles(): List[Role] = {
+  def roles(): Set[Role] = {
     val cand = QRole.candidate
-    DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList().sortWith(_.role < _.role)
+    DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList().toSet
   }
 }
 

@@ -14,21 +14,41 @@ import play.api.mvc.Request
 class Visit {
   @PrimaryKey
   private[this] var _uuid: String = UUID.randomUUID().toString()
+  def uuid: String = _uuid
+  
   private[this] var _expiration: Long = _
-  @Persistent
+  def expiration: Long = _expiration
+  def expiration_=(theExpiration: Long) { _expiration = theExpiration }
+  
+  @Persistent(defaultFetchGroup="true")
   private[this] var _user: User = _
-  @Persistent
+  def user: Option[User] = if (_user == null) None else Some(_user)
+  def user_=(maybeUser: Option[User]) { _user = maybeUser.getOrElse(null) }
+  
+  @Persistent(defaultFetchGroup="true")
   private[this] var _role: Role = _
+  def role: Option[Role] = if (_role == null) None else Some(_role)
+  def role_=(maybeRole: Option[Role]) { _role = maybeRole.getOrElse(null) }
+  
   @Column(jdbcType="CLOB")
   private[this] var _menu: String = _
-  
+  def menu: Elem = XML.loadString(_menu)
+  def menu_=(theMenu: Elem) { _menu = theMenu.toString }
+      
+  @Persistent
   @Element(types=Array(classOf[Permission]))
   @Join
   private[this] var _permissions: java.util.Set[Permission] = _
-
+  def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
+  def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }
+  
   @Persistent(defaultFetchGroup = "true")
   private[this] var _redirectUrl: String = _
-  
+  def redirectUrl: Option[Call] = Visit.string2Call(_redirectUrl)
+  def redirectUrl_=(url: Option[Call]) { _redirectUrl = url.map(Visit.call2String(_)).getOrElse(null) }
+  def redirectUrl_=(url: Call) { _redirectUrl = Visit.call2String(url) }
+    
+  @Persistent
   @Key(types=Array(classOf[String]))
   @Value(types=Array(classOf[Object]))
   @Serialized
@@ -45,27 +65,6 @@ class Visit {
     redirectUrl_=(None)
   }
   
-  def uuid: String = _uuid
-  
-  def expiration: Long = _expiration
-  def expiration_=(theExpiration: Long) { _expiration = theExpiration }
-  
-  def user: Option[User] = if (_user == null) None else Some(_user)
-  def user_=(maybeUser: Option[User]) { _user = maybeUser.getOrElse(null) }
-  
-  def role: Option[Role] = if (_role == null) None else Some(_role)
-  def role_=(maybeRole: Option[Role]) { _role = maybeRole.getOrElse(null) }
-  
-  def redirectUrl: Option[Call] = Visit.string2Call(_redirectUrl)
-  def redirectUrl_=(url: Option[Call]) { _redirectUrl = url.map(Visit.call2String(_)).getOrElse(null) }
-  def redirectUrl_=(url: Call) { _redirectUrl = Visit.call2String(url) }
-  
-  def permissions: Set[Permission] = _permissions.asScala.toSet[Permission]
-  def permissions_=(thePermissions: Set[Permission]) { _permissions = thePermissions.asJava }
-  
-  def menu: Elem = XML.loadString(_menu)
-  def menu_=(theMenu: Elem) { _menu = theMenu.toString }
-    
   def isExpired: Boolean = System.currentTimeMillis > expiration
   
   //def updateMenu { menu = Menu.buildMenu(role) }

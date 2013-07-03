@@ -15,6 +15,7 @@ class Session {
   private[this] var _id: Long = _
   def id: Long = _id
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _event : Event = _
   def event: Event = _event

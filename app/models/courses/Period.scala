@@ -9,22 +9,21 @@ class Period {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
   private[this] var _name: String = _
+  def name: String = _name
+  def name_=(theName: String) { _name = theName }
+  
   private[this] var _order: Int = _
+  def order: Int = _order
+  def order_=(theOrder: Int) { _order = theOrder }
   
   def this(name: String, order: Int) = {
     this()
     _name = name
     _order = order
   }
-
-  def id: Long = _id
-
-  def name: String = _name
-  def name_=(theName: String) { _name = theName }
-  
-  def order: Int = _order
-  def order_=(theOrder: Int) { _order = theOrder }
 }
 
 trait QPeriod extends PersistableExpression[Period] {

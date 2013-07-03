@@ -12,10 +12,21 @@ class PurchaseGroup {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
+  @Persistent
   private[this] var _title: Title = _
+  def title: Title = _title
+  def title_=(theTitle: Title) { _title = theTitle }
+
   @Persistent
   private[this] var _purchaseDate: java.sql.Date = _
+  def purchaseDate: java.sql.Date = _purchaseDate
+  def purchaseDate_=(thePurchaseDate: java.sql.Date) { _purchaseDate = thePurchaseDate }
+
   private[this] var _price: Double = _
+  def price: Double = _price
+  def price_=(thePrice: Double) { _price = thePrice }
 
   def this(title: Title, purchaseDate: java.sql.Date, price: Double) = {
     this()
@@ -23,17 +34,6 @@ class PurchaseGroup {
     _purchaseDate = purchaseDate
     _price = price
   }
-
-  def id: Long = _id
-
-  def title: Title = _title
-  def title_=(theTitle: Title) { _title = theTitle }
-
-  def purchaseDate: java.sql.Date = _purchaseDate
-  def purchaseDate_=(thePurchaseDate: java.sql.Date) { _purchaseDate = thePurchaseDate }
-
-  def price: Double = _price
-  def price_=(thePrice: Double) { _price = thePrice }
 
   override def toString: String = {
     "Purchased %s: copies of %s at $%.2f each".format(

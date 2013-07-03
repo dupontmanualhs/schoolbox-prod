@@ -10,13 +10,28 @@ class Checkout {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
+  @Persistent
   private[this] var _student: Student = _
+  def student: Student = _student
+  def student_=(theStudent: Student) { _student = theStudent }
+
+  @Persistent
   private[this] var _copy: Copy = _
+  def copy: Copy = _copy
+  def copy_=(theCopy: Copy) { _copy = theCopy }
+
   @Persistent
   private[this] var _startDate: java.sql.Date = _
+  def startDate: java.sql.Date = _startDate
+  def startDate_=(theStartDate: java.sql.Date) { _startDate = theStartDate }
+
   @Persistent
   private[this] var _endDate: java.sql.Date = _
-
+  def endDate: java.sql.Date = _endDate
+  def endDate_=(theEndDate: java.sql.Date) { _endDate = theEndDate }
+  
   def this(student: Student, copy: Copy, startDate: java.sql.Date, endDate: java.sql.Date) = {
     this()
     _student = student
@@ -25,20 +40,6 @@ class Checkout {
     _endDate = endDate
   }
 
-  def id: Long = _id
-
-  def student: Student = _student
-  def student_=(theStudent: Student) { _student = theStudent }
-
-  def copy: Copy = _copy
-  def copy_=(theCopy: Copy) { _copy = theCopy }
-
-  def startDate: java.sql.Date = _startDate
-  def startDate_=(theStartDate: java.sql.Date) { _startDate = theStartDate }
-
-  def endDate: java.sql.Date = _endDate
-  def endDate_=(theEndDate: java.sql.Date) { _endDate = theEndDate }
-  
   override def toString: String = {
     "Checkout: Copy %s to %s from %s to %s".format(copy, student.displayName, startDate, endDate)
   }

@@ -74,6 +74,7 @@ class Title {
   def verified: Boolean = _verified
   def verified_=(theVerified: Boolean) { _verified = theVerified }
 
+  @Persistent
   @Column(allowsNull = "true")
   private[this] var _lastModified: java.sql.Date = _
   def lastModified: Option[java.sql.Date] = Option(_lastModified)

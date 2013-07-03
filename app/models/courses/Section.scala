@@ -19,16 +19,35 @@ class Section {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
+  @Persistent
   private[this] var _course: Course = _
+  def course: Course = _course
+  def course_=(theCourse: Course) { _course = theCourse }
+
   @Unique
   private[this] var _sectionId: String = _
+  def sectionId: String = _sectionId
+  def sectionId_=(theSectionId: String) { _sectionId = theSectionId }
+
+  @Persistent
   @Element(types = Array(classOf[Term]))
   @Join
   private[this] var _terms: java.util.Set[Term] = _
+  def terms: Set[Term] = _terms.asScala.toSet
+  def terms_=(theTerms: Set[Term]) { _terms = theTerms.asJava }
+
+  @Persistent
   @Element(types = Array(classOf[Period]))
   @Join
   private[this] var _periods: java.util.Set[Period] = _
+  def periods: Set[Period] = _periods.asScala.toSet
+  def periods_=(thePeriods: Set[Period]) { _periods = thePeriods.asJava }
+
   private[this] var _room: Room = _
+  def room: Room = _room
+  def room_=(theRoom: Room) { _room = theRoom }
 
   def this(course: Course, sectionId: String, terms: Set[Term], periods: Set[Period], room: Room) = {
     this()
@@ -38,23 +57,6 @@ class Section {
     periods_=(periods)
     _room = room
   }
-
-  def id: Long = _id
-
-  def course: Course = _course
-  def course_=(theCourse: Course) { _course = theCourse }
-
-  def sectionId: String = _sectionId
-  def sectionId_=(theSectionId: String) { _sectionId = theSectionId }
-
-  def terms: Set[Term] = _terms.asScala.toSet
-  def terms_=(theTerms: Set[Term]) { _terms = theTerms.asJava }
-
-  def room: Room = _room
-  def room_=(theRoom: Room) { _room = theRoom }
-
-  def periods: Set[Period] = _periods.asScala.toSet
-  def periods_=(thePeriods: Set[Period]) { _periods = thePeriods.asJava }
 
   def periodNames: String = {
     periods.map(_.name).mkString(", ")

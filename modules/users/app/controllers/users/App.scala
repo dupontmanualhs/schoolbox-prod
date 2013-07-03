@@ -79,7 +79,7 @@ class App @Inject()(config: Config) extends Controller {
   }
 
   class ChooseRoleForm(visit: Visit) extends Form {
-    val role = new ChoiceField("role", visit.user.get.roles.map(p => (p.displayNameWithRole, p)))
+    val role = new ChoiceField("role", visit.user.get.roles.toList.map(p => (p.displayNameWithRole, p)))
 
     def fields = List(role)
   }

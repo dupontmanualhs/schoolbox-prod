@@ -12,19 +12,18 @@ abstract class Role extends Ordered[Role] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
   @Persistent(defaultFetchGroup="true")
   private[this] var _user: User = _
+  def user: User = _user
+  def user_=(theUser: User) { _user = theUser }
   
   protected def this(user: User) = {
     this()
     user_=(user)
   }
-  
-  def id: Long = _id
-
-  def user: User = _user
-  def user_=(theUser: User) { _user = theUser }
-  
+   
   def displayNameWithRole = "%s (%s)".format(user.displayName, role)
   def formalNameWithRole = "%s (%s)".format(user.formalName, role)
   def shortNameWithRole = "%s (%s)".format(user.shortName, role)

@@ -10,11 +10,22 @@ import scalajdo.DataStore
 class Student extends Role {
   @Unique(name="STUDENT_STATEID")
   private[this] var _stateId: String = _
+  def stateId: String = _stateId
+  def stateId_=(theStateId: String) { _stateId = theStateId }
+  
   @Unique(name="STUDENT_STUDENTNUMBER")
   private[this] var _studentNumber: String = _
-  private[this] var _grade: Int = _
-  private[this] var _teamName: String = _
+  def studentNumber: String = _studentNumber
+  def studentNumber_=(theStudentNumber: String) { _studentNumber = theStudentNumber }
   
+  private[this] var _grade: Int = _
+  def grade: Int = _grade
+  def grade_=(theGrade: Int) { _grade = theGrade }
+  
+  private[this] var _teamName: String = _
+  def teamName: String = _teamName
+  def teamName_=(theTeamName: String) { _teamName = theTeamName }
+    
   def this(user: User, stateId: String, studentNumber: String, grade: Int, teamName: String) = {
     this()
     user_=(user)
@@ -23,18 +34,6 @@ class Student extends Role {
     _grade = grade
     _teamName = teamName 
   }
-  
-  def stateId: String = _stateId
-  def stateId_=(theStateId: String) { _stateId = theStateId }
-  
-  def studentNumber: String = _studentNumber
-  def studentNumber_=(theStudentNumber: String) { _studentNumber = theStudentNumber }
-  
-  def grade: Int = _grade
-  def grade_=(theGrade: Int) { _grade = theGrade }
-  
-  def teamName: String = _teamName
-  def teamName_=(theTeamName: String) { _teamName = theTeamName }
   
   def role = "Student"
 }

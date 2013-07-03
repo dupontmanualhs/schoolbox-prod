@@ -12,26 +12,23 @@ class Blog {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
 
   @Column(allowsNull="false")
   private[this] var _title: String = _
+  def title: String = _title
+  def title_=(theTitle: String) { _title = theTitle }
 
-  @Column(allowsNull="false")
   @Persistent(defaultFetchGroup="true")
+  @Column(allowsNull="false")
   private[this] var _owner: Role = _
+  def owner: Role = _owner
 
   def this(title: String, owner: Role) = {
     this()
     _title = title
     _owner = owner
   }
-
-  def id: Long = _id
-
-  def title: String = _title
-  def title_=(theTitle: String) { _title = theTitle }
-
-  def owner: Role = _owner
 
   def createPost(title: String, content: String) {
     val p = new Post(title, content, this)

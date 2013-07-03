@@ -9,20 +9,18 @@ class AcademicYear {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
 
   @Unique
   @Column(allowsNull="false")
   private[this] var _name: String = _
+  def name: String = _name
+  def name_=(theName: String) { _name = theName }
   
   def this(name: String) = {
     this()
     _name = name
-  }
-  
-  def id: Long = _id
-
-  def name: String = _name
-  def name_=(theName: String) { _name = theName }
+  }  
 }
 
 trait QAcademicYear extends PersistableExpression[AcademicYear] {

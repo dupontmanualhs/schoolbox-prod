@@ -12,9 +12,21 @@ class LabelQueueSet {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
+  @Persistent
   private[this] var _role: Role = _
+  def role: Role = _role
+  def role_=(theRole: Role) { _role = theRole }
+
+  @Persistent
   private[this] var _title: Title = _
+  def title: Title = _title
+  def title_=(theTitle: Title) { _title = theTitle }
+
   private[this] var _copyRange: String = _
+  def copyRange: String = _copyRange
+  def copyRange_=(theCopyRange: String) { _copyRange = copyRange }
 
   def this(role: Role, title: Title, copyRange: String) = {
     this()
@@ -22,17 +34,6 @@ class LabelQueueSet {
     _title = title
     _copyRange = copyRange
   }
-
-  def id: Long = _id
-
-  def role: Role = _role
-  def role_=(theRole: Role) { _role = theRole }
-
-  def title: Title = _title
-  def title_=(theTitle: Title) { _title = theTitle }
-
-  def copyRange: String = _copyRange
-  def copyRange_=(theCopyRange: String) { _copyRange = copyRange }
 
   override def toString: String = {
     "Copies " + copyRange + " of " + title.name

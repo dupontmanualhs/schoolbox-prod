@@ -13,47 +13,37 @@ class Post extends StoreCallback {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
 
   private[this] var _content: String = _
-
-  @Persistent
-  private[this] var _published: java.sql.Timestamp = _
-
-  @Persistent
-  private[this] var _edited: java.sql.Timestamp = _
-
-  @Column(allowsNull="false")
-  private[this] var _title: String = _
-
-  private[this] var _blog: Blog = _
-  
-  def id: Long = _id
-  
   def content: NodeSeq = string2nodeSeq(_content)
   def content_=(theContent: String) { _content = theContent }
   
+  @Persistent
+  private[this] var _published: java.sql.Timestamp = _
   def published: LocalDateTime = new LocalDateTime(_published.getTime)
   def published_=(thePublished: LocalDateTime) { _published = new java.sql.Timestamp(thePublished.toDate.getTime()) }
 
+  @Persistent
+  private[this] var _edited: java.sql.Timestamp = _
   def edited: LocalDateTime = new LocalDateTime(_edited.getTime)
   def edited_=(theEdited: LocalDateTime) { _edited = new java.sql.Timestamp(theEdited.toDate.getTime) }
   
+  @Column(allowsNull="false")
+  private[this] var _title: String = _
   def title: String = _title
   def title_=(theTitle: String) { _title = theTitle }
   
+  @Persistent
+  private[this] var _blog: Blog = _
   def blog: Blog = _blog
-  def blog_=(theBlog: Blog) { _blog = theBlog }
+  def blog_=(theBlog: Blog) { _blog = theBlog }  
   
-  def this(title: String, content: String, blog: Blog) = {
+  def this(theTitle: String, theContent: String, theBlog: Blog) = {
     this()
-    _title = title
-    _content = content
-    _blog = blog
-  }
-  
-  def jdoPreStore() {
-    // TODO: if it's not in the db yet, set published to now
-    // TODO: if it's dirty, set edited to now
+    title_=(theTitle)
+    content_=(theContent)
+    blog_=(theBlog)
   }
 }
 

@@ -14,17 +14,20 @@ class Slot {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
-    
+   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _session : Session = _
   def session: Session = _session
   def session_=(theSession: Session) { _session = theSession }
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _teacher : Teacher = _
   def teacher: Teacher = _teacher
   def teacher_=(theTeacher: Teacher) {_teacher = theTeacher}
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _student : Student = _
   def student: Student = _student
@@ -35,6 +38,7 @@ class Slot {
   def parentName: String = _parentName
   def parentName_=(theParentName: String) {_parentName = theParentName}
   
+  // TODO: should we use models.users.Email?
   @Column(allowsNull="true")
   private[this] var _email : String = _
   def email: String = _email
