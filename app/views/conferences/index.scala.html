@@ -1,4 +1,4 @@
-@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session], slots: List[models.conferences.Slot])(implicit req: play.api.mvc.Request[_])
 
 @import util.Helpers._
 
@@ -17,5 +17,20 @@
 			</tr>
 			}
 		}
-		</table>
+	</table>
+	<h3>All scheduled conferences</h3>
+		<table>
+	  		<thead><th>Date</th><th>Teacher</th><th>Time</th><th>Email</th><th>Phone</th><th>Alternate Phone</th><th>Comments</th></thead>
+		  	@for(slot <- slots)	{
+		  		<tr>
+		  			<td>@toAmericanString(slot.session.date)</td>
+		  			<td>@slot.teacher.user.shortName</td>
+		  			<td>@toAmericanString(slot.startTime) - @toAmericanString(slot.endTime)</td>
+		  			<td>@slot.email</td>
+		  			<td>@slot.phone</td>
+		  			@if(slot.alternatePhone != None)  { <td>@slot.alternatePhone.get</td> }
+		  			@if(slot.comment != None)  { <td>@slot.comment.get</td> }
+		  		</tr>
+	  		}
+	  	</table>
 }

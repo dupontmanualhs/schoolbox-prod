@@ -150,15 +150,17 @@ GET		/conferences/createSession/:eventId				controllers.Conferences.createSessio
 POST	/conferences/createSession/:eventId				controllers.Conferences.createSessionP(eventId: Long)
 GET		/conferences/createSlot/:sessionId/:teacherId		controllers.Conferences.createSlot(sessionId: Long, teacherId: Long)
 POST	/conferences/createSlot/:sessionId/:teacherId					controllers.Conferences.createSlotP(sessionId: Long, teacherId: Long)
-POST	/conferences/deleteEvent/:eventId				controllers.Conferences.deleteEvent(eventId: Long)
-POST	/conferences/deleteSession/:sessionId			controllers.Conferences.deleteSession(sessionId: Long)
-POST	/conferences/deleteSlot/:slotId					controllers.Conferences.deleteSlot(slotId: Long)
+GET		/conferences/deleteEvent/:eventId				controllers.Conferences.deleteEvent(eventId: Long)
+GET		/conferences/deleteSession/:sessionId			controllers.Conferences.deleteSession(sessionId: Long)
+GET		/conferences/deleteSlot/:slotId					controllers.Conferences.deleteSlot(slotId: Long)
+GET		/conferences/teacherView						controllers.Conferences.teacherView()
 GET		/conferences/teacherSession/:sessionId			controllers.Conferences.teacherSession(sessionId: Long)
 GET		/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSession(sessionId: Long)
 POST	/conferences/activateSession/:sessionId			controllers.Conferences.activateTeacherSessionP(sessionId: Long)
 GET		/conferences/deactivateTeacherSession/:sessionId	controllers.Conferences.deactivateTeacherSession(sessionId: Long)
 GET		/conferences/classList/:sessionId		controllers.Conferences.classList(sessionId: Long)
-
+GET		/conferences/multipleTeacherHandler/:sessionId/:sectionId	controllers.Conferences.multipleTeacherHandler(sessionId: Long, sectionId: Long)
+GET		/conferences/slotHandler/:sessionId/:teacherId				controllers.Conferences.slotHandler(sessionId: Long, teacherId: Long)
 
 #Grades
 GET     /grades/home/:id						controllers.Grades.home(id: Long)
