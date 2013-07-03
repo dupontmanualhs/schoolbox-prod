@@ -22,11 +22,11 @@ object Application extends Controller {
     val TextField = new TextFieldOptional("Text")
     val UrlField = new UrlFieldOptional("Url")
     val PhoneField = new PhoneFieldOptional("Phone")
-    val listOfSpectopers = List("Allen", "Zach", "John", "Others")
+    val listOfSpectopers = List("Allen", "Quadralateral", "Blagoshpere", "Wisconsin", "Zach", "John", "Mack", "Ava", "Sam Fu", "Jim", "Mr. O'Bryan", "Eliza", "Xavier", "Zander Smith", "Others")
     val ACField = new AutocompleteFieldOptional("AC", listOfSpectopers)
     val Checkboxo = new CheckboxFieldOptional("Checkboxes", List(("car", 11) , ("van", 12) , ("truck", 13)))
     val RadioR = new RadioField("Radio", List(("cat",11),("dog",12),("mouse",13), ("Bird", "BIRD BIRD BIRD! BIRD IS THE WORD."), ("Turtle", listOfSpectopers)))
-    val MultChoiceField = new CheckboxFieldOptional("Mult Choice", List(("UofK", "Kentucky"),("UofI", "Illinois"),("Wash U", "Missouri"),("MIT", "Massachucets")), useSelectInputMult = true)
+    val MultChoiceField = new CheckboxFieldOptional("Mult Choice", List(("UK", "Kentucky"),("University of Illinois", "Illinois"),("Wash U", "Missouri"),("MIT", "Massachucets")), useSelectInputMult = true)
 
     val editedTextField = new TextFieldOptional("edited") {
       override def widget = new TextInput(required)

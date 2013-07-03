@@ -32,8 +32,7 @@ abstract class Form {
       
   def render(bound: Binding, overrideSubmit: Option[FormCall]=None, legend: Option[String]=None): NodeSeq = {
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
-    this.scripts ++
-    <form method={ method.forForm } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
+    <form method={ method.forForm } action={ action.map(Text(_)) } class="form-horizontal well offset1 span7" >
       <fieldset>
     	{this.scripts}
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
