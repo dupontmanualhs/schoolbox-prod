@@ -15,6 +15,7 @@ object Binding {
   }
   
   def apply(form: Form, rawData: Map[String, Seq[String]], files: Seq[FilePart[_]]): Binding = {
+    System.out.println(files)
     val valuesOrErrors: List[(String, Either[ValidationError, Any])] = form.fields.map(f => (f.name, 
       f match{ 
       	case t: BaseFileField[_] => t.cleanFiles(files)
