@@ -15,7 +15,6 @@ object Binding {
   }
   
   def apply(form: Form, rawData: Map[String, Seq[String]], files: Seq[FilePart[_]]): Binding = {
-    System.out.println(files)
     val valuesOrErrors: List[(String, Either[ValidationError, Any])] = form.fields.map(f => (f.name, 
       f match{ 
       	case t: BaseFileField[_] => t.cleanFiles(files)
@@ -37,10 +36,12 @@ object Binding {
   }
   
   def apply(form: Form, request: play.api.mvc.Request[_]): Binding = {
-    val files: Seq[FilePart[_]] = request match {
-      case req: play.api.mvc.MultipartFormData[_] => req.files
-      case _ => Nil
-    }
+    val files: Seq[FilePart[_]] = request.body match {
+    	case body: play.api.mvc.AnyContent if body.asMultipartFormData.isDefined => body.asMultipartFormData.get.files
+    	case body: play.api.mvc.MultipartFormData[_] => body.files
+    	case _ => Seq()
+  	}
+
     apply(form, 
       (request.body match {
         case body: play.api.mvc.AnyContent if body.asFormUrlEncoded.isDefined => body.asFormUrlEncoded.get
