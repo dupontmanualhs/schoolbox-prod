@@ -11,39 +11,37 @@ class StudentEnrollment {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  @Persistent
-  private[this] var _student: Student = _
-  @Persistent
-  private[this] var _section: Section = _
-  @Persistent
-  private[this] var _start: java.sql.Date = _
-  @Persistent
-  private[this] var _end: java.sql.Date = _
-  
-  def this(student: Student, section: Section, //term: Term,
-      start: LocalDate, end: LocalDate) = {
-    this()
-    _student = student
-    _section = section
-    start_=(start)
-    end_=(end)
-  }
-  
   def id: Long = _id
   
+  @Persistent
+  private[this] var _student: Student = _
   def student: Student = _student
   def student_=(theStudent: Student) { _student = theStudent }
   
+  @Persistent
+  private[this] var _section: Section = _
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
 
-  
+  @Persistent
+  private[this] var _start: java.sql.Date = _
   def start: LocalDate = if (_start != null) new DateTime(_start).toLocalDate else section.startDate
   def start_=(theStart: LocalDate) { _start = if (theStart != null) new java.sql.Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) else null }
   
+  @Persistent
+  private[this] var _end: java.sql.Date = _
   def end: LocalDate = if (_end != null) new DateTime(_end).toLocalDate else section.endDate
   def end_=(theEnd: LocalDate) { _end = if (theEnd != null) new java.sql.Date(theEnd.toDateTimeAtStartOfDay.toDate.getTime) else null }
-
+  
+  def this(theStudent: Student, theSection: Section, theStart: LocalDate, theEnd: LocalDate) = {
+    this()
+    student_=(theStudent)
+    section_=(theSection)
+    start_=(theStart)
+    end_=(theEnd)
+  }
+  
+  
 }
 
 trait QStudentEnrollment extends PersistableExpression[StudentEnrollment] {
