@@ -74,15 +74,6 @@ object Nucleus {
 
   val settings: Seq[Project.Setting[_]] = Seq(
     ivyConfigurations += Config,
-    enhance in Config <<= (fullClasspath, runner, streams) map {
-      (classpath, runner, strs) =>
-        Build.default.projects.foreach { p =>
-          val classes = (classDirectory in (p, Compile)) map { (cls) => cls }
-          val options = findAllClassesRecursively(classes).map(_.getAbsolutePath)
-          val result = runner.run("org.datanucleus.enhance.DataNucleusEnhancer", classpath.map(_.data), options, strs.log)
-          result.foreach(sys.error)
-        }
-      })
   /*
   // implementation
   val settings: Seq[Project.Setting[_]] = Seq(
@@ -97,24 +88,31 @@ object Nucleus {
     //},
     // add more parameters as your see fit
     //enhance in Config <<= (fullClasspath in Config, runner, streams).map{(cp, run, s) =>
+     */
     enhance <<= Seq(compile in Compile).dependOn,
-    enhance in Config <<= (fullClasspath in Compile, classDirectory in Compile, runner, streams)
-      map { (deps, classes, run, s) =>
+    enhance in Config <<= (fullClasspath in Compile, classDirectory in Compile, classDirectory in (ApplicationBuild.users, Compile), runner, streams)
+      map { (cp, mainClasses, userClasses, run, s) =>
 
         // Properties
-        val classpath = (deps.files :+ classes)
+        val classpath = cp.files
 
         // the classpath is attributed, we only want the files
         //val classpath = cp.files
         // the options passed to the Enhancer... 
-        val options = Seq("-v") ++ findAllClassesRecursively(classes).map(_.getAbsolutePath)
+        val mainOptions = Seq("-v") ++ findAllClassesRecursively(mainClasses).map(_.getAbsolutePath)
 
         // run returns an option of errormessage
-        val result = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, options, s.log)
+        val mainResult = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, mainOptions, s.log)
         // if there is an errormessage, throw an exception
-        result.foreach(sys.error)
+        mainResult.foreach(sys.error)
+        
+        val userOptions = Seq("-v") ++ findAllClassesRecursively(userClasses).map(_.getAbsolutePath)
+        
+        val usersResult = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, userOptions, s.log)
+        usersResult.foreach(sys.error)    
       })
-  */
+
+      
   def findAllClassesRecursively(dir: File): Seq[File] = {
     if (dir.isDirectory) {
       val files = dir.listFiles

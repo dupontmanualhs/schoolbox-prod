@@ -7,7 +7,6 @@ import org.datanucleus.api.jdo.query._
 @PersistenceCapable(detachable="true")
 class Email {
     private[this] var _value: String = _
-
     def value = _value
     def value_=(theValue: String) { _value = theValue }
 

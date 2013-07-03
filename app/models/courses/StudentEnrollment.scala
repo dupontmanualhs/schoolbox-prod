@@ -11,7 +11,9 @@ class StudentEnrollment {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  @Persistent
   private[this] var _student: Student = _
+  @Persistent
   private[this] var _section: Section = _
   @Persistent
   private[this] var _start: java.sql.Date = _

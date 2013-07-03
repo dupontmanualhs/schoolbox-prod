@@ -15,8 +15,9 @@ class Visit {
   @PrimaryKey
   private[this] var _uuid: String = UUID.randomUUID().toString()
   private[this] var _expiration: Long = _
-
+  @Persistent
   private[this] var _user: User = _
+  @Persistent
   private[this] var _role: Role = _
   @Column(jdbcType="CLOB")
   private[this] var _menu: String = _

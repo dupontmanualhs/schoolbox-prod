@@ -18,7 +18,11 @@ class Permission {
   @Column(allowsNull="false")
   private[this] var _description: String = _
   
+  @Persistent
+  @Element(types=Array(classOf[Role]))
   private[this] var _roles: List[Role] = _
  
+  @Persistent
+  @Element(types=Array(classOf[Group]))
   private[this] var _groups: List[Group] = _
 }

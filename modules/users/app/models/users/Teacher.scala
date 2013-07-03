@@ -10,8 +10,13 @@ import scalajdo.DataStore
 class Teacher extends Role {
   @Unique(name="TEACHER_PERSONID")
   private[this] var _personId: String = _
+  def personId: String = _personId
+  def personId_=(thePersonId: String) { _personId = thePersonId }
+  
   @Unique(name="TEACHER_STATEID")
   private[this] var _stateId: String = _
+  def stateId: String = _stateId
+  def stateId_=(theStateId: String) { _stateId = theStateId }
   
   def this(user: User, personId: String, stateId: String) = {
     this()
@@ -20,11 +25,6 @@ class Teacher extends Role {
     _stateId = stateId
   }
   
-  def personId: String = _personId
-  def personId_=(thePersonId: String) { _personId = thePersonId }
-  
-  def stateId: String = _stateId
-  def stateId_=(theStateId: String) { _stateId = theStateId }
   
   def role = "Teacher"
     
