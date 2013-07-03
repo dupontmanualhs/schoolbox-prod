@@ -16,6 +16,8 @@ abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
   def required: Boolean = typeOf[T] <:< typeOf[Option[_]]
   def widget: Widget = new TextInput(required)
   
+  def requiresMultipartData: Boolean = widget.needsMultipartForm
+  
   def initial: Seq[String] = asStringSeq(initialVal)  
   def initialVal: Option[T] = None
   

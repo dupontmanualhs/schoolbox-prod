@@ -59,7 +59,9 @@ abstract class Form {
         else NodeSeq.Empty }
     </div>
   }
-        
+  
+  def requiresMultipartData: Boolean = fields.exists(_.requiresMultipartData)
+  
   def addPrefix(fieldName: String): String = {
     prefix.map(p => "%s-%s".format(p, fieldName)).getOrElse(fieldName)
   }
