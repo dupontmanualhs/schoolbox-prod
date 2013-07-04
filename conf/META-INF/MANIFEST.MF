@@ -1,6 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: play_eschool
-Bundle-SymbolicName: org.datanucleus.play_eschool
-Bundle-Version: 1.0.0
-Bundle-Vendor: Play eSchool

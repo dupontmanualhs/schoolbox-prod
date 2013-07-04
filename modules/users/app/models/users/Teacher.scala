@@ -25,15 +25,12 @@ class Teacher extends Role {
     _stateId = stateId
   }
   
-  
-  def role = "Teacher"
-    
-  def canEqual(other: Any): Boolean = other.isInstanceOf[Teacher]
-  override def equals(other: Any): Boolean = other match {
-    case that: Teacher => that.canEqual(this) && that.id == this.id
-    case _ => false
+  def allStudents(term: Term): List[Student] = {
+    //TODO
+    Nil
   }
-  override def hashCode: Int = 41 * (41 + getClass.hashCode) + id.hashCode
+
+  def role = "Teacher"    
 }
 
 object Teacher {

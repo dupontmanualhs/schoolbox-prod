@@ -17,11 +17,12 @@ class Visit {
   @PrimaryKey
   private[this] var _uuid: String = UUID.randomUUID().toString()
   def uuid: String = _uuid
-  
+
   private[this] var _expiration: Long = _
   def expiration: Long = _expiration
   def expiration_=(theExpiration: Long) { _expiration = theExpiration }
-  
+  def isExpired: Boolean = System.currentTimeMillis > expiration
+    
   @Persistent(defaultFetchGroup="true")
   private[this] var _user: User = _
   def user: Option[User] = if (_user == null) None else Some(_user)
@@ -37,7 +38,7 @@ class Visit {
   def menu: NodeSeq = Visit.string2nodeSeq(_menu)
   def menu_=(theMenu: NodeSeq) { _menu = theMenu.toString }
       
-  @Persistent
+  @Persistent(defaultFetchGroup = "true")
   @Element(types=Array(classOf[Permission]))
   @Join
   private[this] var _permissions: java.util.Set[Permission] = _
@@ -51,6 +52,12 @@ class Visit {
   def redirectUrl_=(call: Call) { _redirectUrl = call.toXml.toString }
     
   @Persistent
+  @Column(jdbcType="CLOB")
+  private[this] var _menu: String = _
+  def menu: Elem = string2elem(_menu)
+  def menu_=(theMenu: Elem) { _menu = theMenu.toString }
+  def updateMenu { menu = Menu.buildMenu(role) }
+      
   @Key(types=Array(classOf[String]))
   @Value(types=Array(classOf[Object]))
   @Serialized
@@ -67,12 +74,6 @@ class Visit {
     redirectUrl_=(None)
   }
   
-  def isExpired: Boolean = System.currentTimeMillis > expiration
-  
-  def updateMenu()(implicit config: Config) {
-    menu_=(config.menuBuilder(role))
-  }
-    
   def set(key: String, value: Any) {
     value match {
       case obj: AnyRef => _sessionItems.put(key, obj)
@@ -90,6 +91,17 @@ class Visit {
   def getAs[T](key: String): Option[T] = {
     if (_sessionItems.containsKey(key)) Some(_sessionItems.get(key).asInstanceOf[T])
     else None
+  }
+  
+  def this(theExpiration: Long, maybeUser: Option[User], maybeRole: Option[Role]) = {
+    this()
+    _expiration = theExpiration
+    _user = maybeUser.getOrElse(null)
+    _role = maybeRole.getOrElse(null)
+    permissions_=(maybeRole.map(_.permissions()).getOrElse(Set[Permission]()))
+    menu_=(Menu.buildMenu(role))
+    _sessionItems = new java.util.HashMap[String, Object]()  
+    redirectUrl_=(None)
   }
 }
 

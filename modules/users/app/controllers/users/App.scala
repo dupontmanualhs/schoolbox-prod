@@ -58,10 +58,11 @@ class App @Inject()(implicit config: Config) extends Controller {
             // no roles attached to this user
             case Nil => Redirect(controllers.users.routes.App.login()).flashing("message" -> "That user has no active roles.")
             // there's at least one
-            case persp :: rest => {
+            case role :: rest => {
               // TODO: should we have a default role?
               // set the first one
-              request.visit.role = Some(persp)
+              request.visit.role = Some(role)
+              request.visit.permissions = role.permissions
               request.visit.updateMenu()
               pm.makePersistent(request.visit)
               rest match {
@@ -97,14 +98,16 @@ class App @Inject()(implicit config: Config) extends Controller {
   }
 
   def chooseRoleP() = Authenticated { implicit req =>
-    val form = new ChooseRoleForm(req.visit)
-    Binding(form, req) match {
-      case ib: InvalidBinding => Ok(templates.users.ChooseRole(config.mainTemplate, ib))
-      case vb: ValidBinding => {
-        req.visit.role = Some(vb.valueOf(form.role))
-        //visit.updateMenu
-        DataStore.pm.makePersistent(req.visit)
+      val form = new ChooseRoleForm(req.visit)
+      Binding(form, req) match {
+        case ib: InvalidBinding => Ok(html.users.chooseRole(ib))
+        case vb: ValidBinding => {
+          req.visit.role = Some(vb.valueOf(form.role))
+          req.visit.permissions = visit.role.map(_.permissions).getOrElse(Set())
+          req.visit.updateMenu
+          pm.makePersistent(req.visit)
         Redirect(req.visit.redirectUrl.getOrElse(config.defaultCall)).flashing("message" -> "You have successfully logged in.")
+        }
       }
     }
   }
@@ -167,7 +170,6 @@ class App @Inject()(implicit config: Config) extends Controller {
    *
    * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
    */
-
   def changePassword = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val user = req.role.user
@@ -188,7 +190,6 @@ class App @Inject()(implicit config: Config) extends Controller {
    *
    * User chooses from drop-down menu and this changes the theme to that selection.
    */
-
   def changeTheme = Authenticated { implicit req =>
     DataStore.execute { pm =>
       val user = req.role.user
@@ -203,19 +204,14 @@ class App @Inject()(implicit config: Config) extends Controller {
       }
     }
   }
-
-  //def settingsPage = 
-
+  
   /**
    * regex: /listUsers
    *
    * Helper Method
    */
-
-  def list = VisitAction { implicit request =>
-    DataStore.execute { pm =>
-      val cand = QUser.candidate
-      Ok(templates.users.ListUsers(config.mainTemplate, pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
-    }
+  def list = PermissionRequired(User.Permissions.ListAll) { implicit request =>
+    val cand = QUser.candidate
+    Ok(html.users.list(DataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
   }
 }

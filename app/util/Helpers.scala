@@ -235,7 +235,6 @@ object Helpers {
 	  	  if (hours == 0) hours = 12
 	  	  else if (hours > 12) hours = hours - 12
 	  	  hours.toString + ":" + splitString(1) + " " + ender
-	  	  
 	  	}
 	  	case date: java.sql.Date => {
 	  	  val dateString = date.toString

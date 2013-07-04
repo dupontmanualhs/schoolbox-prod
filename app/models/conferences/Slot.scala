@@ -8,6 +8,8 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import util.QueryClass
 
+import scalajdo.DataStore
+
 @PersistenceCapable(detachable="true")
 class Slot {
   @PrimaryKey

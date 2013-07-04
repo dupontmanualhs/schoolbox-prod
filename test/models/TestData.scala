@@ -76,6 +76,15 @@ object TestData {
     val regGuardian = new Guardian(reg, Set(fitzgeraldStud))
     val hankGuardian = new Guardian(hank, Set(bobbyStud))
 
+    pm.makePersistentAll(List(
+      mary, christina, richard, todd,
+      maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
+      jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
+      ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
+      reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian))
+    toddTeacher.addPermission(User.Permissions.ListAll)
+
+
     if (debug) println("Creating the blagosphere")
     // blogs
     val toddTeacherBlog = new Blog("Todd's Blag", toddTeacher)
@@ -83,12 +92,7 @@ object TestData {
     val tylerBlog = new Blog("Tydar's s'radyT", tylerStud)
     val jordanBlog = new Blog("Jordan doesn't 'Get It(R)'", jordanStud)
 
-    pm.makePersistentAll(List(
-      mary, christina, richard, todd,
-      maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
-      jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
-      ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
-      reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian, toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
+    pm.makePersistentAll(List(toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
 
     //createYearsAndTerms(debug)
     if (debug) println("Creating AcademicYear, Terms, and Periods...")

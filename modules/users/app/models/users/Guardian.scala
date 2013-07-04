@@ -24,8 +24,8 @@ class Guardian extends Role {
 }
 
 trait QGuardian extends QRole[Guardian] {
-  private[this] lazy val _children: CollectionExpression[java.util.List[Student], Student] = 
-      new CollectionExpressionImpl[java.util.List[Student], Student](this, "_children")
+  private[this] lazy val _children: CollectionExpression[java.util.Set[Student], Student] = 
+      new CollectionExpressionImpl[java.util.Set[Student], Student](this, "_children")
 }
 
 object QGuardian {
