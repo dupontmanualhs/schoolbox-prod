@@ -14,22 +14,35 @@ class Locker {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  
+  def id: Long = _id
+    
   @Unique
   @Column(allowsNull="false")
   private[this] var _number: Int = _
-  
+  def number: Int = _number
+  def number_=(theNumber: Int) = (_number = theNumber)
+    
   private[this] var _combination: String = _
-  
+  def combination: String = _combination
+  def combination_=(theCombination: String) = (_combination = theCombination)
+    
   // these get combined into LockerLocation
   // we probably need to make this more generic to work with other schools
   private[this] var _floor: Int = _
   private[this] var _hall: String = _
-  
+  def location: LockerLocation = LockerLocation(_floor, _hall)
+  def location_=(theLocation: LockerLocation) { _floor = theLocation.floor; _hall = theLocation.hall }
+    
   @Persistent(defaultFetchGroup = "true")
   private[this] var _student: Student = _
+  def student: Option[Student] = if (_student == null) None else Some(_student)
+  def student_=(theStudent: Student) { student_=(Option(theStudent)) }
+  def student_=(maybeStudent: Option[Student]) { _student = maybeStudent.getOrElse(null) }
+
   private[this] var _taken: Boolean = _
-  
+  def taken: Boolean = _taken
+  def taken_=(theStatus: Boolean) = (_taken = theStatus)
+    
   def this(number: Int, combination: String, location: LockerLocation, student: Option[Student], taken: Boolean) {
      this()
      _number = number
@@ -39,29 +52,6 @@ class Locker {
      student_=(student)
      _taken = taken
   }
-  
-  def id: Long = _id
-  
-  def number: Int = _number
-  def number_=(theNumber: Int) = (_number = theNumber)
-  
-  def combination: String = _combination
-  def combination_=(theCombination: String) = (_combination = theCombination)
-  
-  def location: LockerLocation = LockerLocation(_floor, _hall)
-  def location_=(theLocation: LockerLocation) { _floor = theLocation.floor; _hall = theLocation.hall }
-  
-  def student: Option[Student] = if (_student == null) None else Some(_student)
-  def student_=(theStudent: Student) { student_=(Option(theStudent)) }
-  def student_=(theStudent: Option[Student]) {
-    theStudent match {
-      case None => _student = null
-      case Some(s) => _student = s
-    }
-  }
-  
-  def taken: Boolean = _taken
-  def taken_=(theStatus: Boolean) = (_taken = theStatus)
   
   def available = if(taken) "No" else "Yes"
   

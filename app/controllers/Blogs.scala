@@ -1,6 +1,7 @@
 package controllers
 
 import play.api.mvc.{ Action, Controller }
+import com.google.inject.{ Inject, Singleton }
 import models.blogs._
 import play.api.data._
 import play.api.data.Forms._
@@ -13,10 +14,12 @@ import forms.{ Form, ValidBinding, InvalidBinding, Binding }
 import scalajdo.DataStore
 import models.users.Visit
 import controllers.users.{ Authenticated, VisitAction }
+import config.Config
 
 //TODO: Actually check permissions where applicable
 
-object Blogs extends Controller {
+@Singleton
+class Blogs @Inject()(implicit config: Config) extends Controller {
   
   
   val newPost = Form {
@@ -52,15 +55,8 @@ object Blogs extends Controller {
    * 
    *  Presents a page that lists the blogs that correspond to the current user.
    */
-  def listCurrentUserBlogs() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
-      Visit.getFromRequest(req).role match {
-        case Some(per) => {
-          Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
-        }
-        case None => NotFound("You must log in to view your own blogs.")
-      }
-    }
+  def listCurrentUserBlogs() = Authenticated { implicit req =>
+    Ok(views.html.blogs.blogs(Blog.listUserBlogs(req.role), req.role))
   }
 
   /** Regex: /blog/user/:id 

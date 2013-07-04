@@ -12,40 +12,40 @@ class Term {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  private[this] var _name: String = _
-  private[this] var _year: AcademicYear = _
-  @Unique
-  private[this] var _slug: String = _
-  @Persistent
-  private[this] var _start: java.sql.Date = _
-  @Persistent
-  private[this] var _end: java.sql.Date = _
-
-  def this(name: String, year: AcademicYear, slug: String, start: LocalDate, end: LocalDate) = {
-    this()
-    _name = name
-    _year = year
-    _slug = slug
-    start_=(start)
-    end_=(end)
-  }
-
   def id: Long = _id
 
+  private[this] var _name: String = _
   def name: String = _name
   def name_=(theName: String) { _name = theName }
 
+  @Persistent
+  private[this] var _year: AcademicYear = _
   def year: AcademicYear = _year
   def year_=(theYear: AcademicYear) { _year = theYear }
 
+  @Unique
+  private[this] var _slug: String = _
   def slug: String = _slug
   def slug_=(theSlug: String) { _slug = theSlug }
 
+  @Persistent
+  private[this] var _start: java.sql.Date = _
   def start: LocalDate = new DateTime(_start).toLocalDate
   def start_=(theStart: LocalDate) { _start = new java.sql.Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) }
 
+  @Persistent
+  private[this] var _end: java.sql.Date = _
   def end: LocalDate = new DateTime(_end).toLocalDate
   def end_=(theEnd: LocalDate) { _end = new java.sql.Date(theEnd.toDateTimeAtStartOfDay.toDate.getTime) }
+
+  def this(theName: String, theYear: AcademicYear, theSlug: String, theStart: LocalDate, theEnd: LocalDate) = {
+    this()
+    name_=(theName)
+    year_=(theYear)
+    slug_=(theSlug)
+    start_=(theStart)
+    end_=(theEnd)
+  }
 }
 
 object Term {

@@ -1,6 +1,7 @@
 package forms
 
 import scala.language.implicitConversions
+import scala.xml.Elem
 
 import play.api.mvc.{ Call => PlayCall }
 
@@ -45,11 +46,19 @@ object Method {
   }
 }
 
-sealed class Call(val method: Method, val url: String)
+sealed class Call(val method: Method, val url: String) {
+  def toXml: Elem = <call><method>{ method.forRequest }</method><url>{ url }</url></call>
+}
 case class FormCall(formMethod: FormMethod, formUrl: Option[String]) extends Call(formMethod, formUrl.getOrElse(""))
 
 object Call {
   def apply(method: Method, url: String): Call = new Call(method, url)
+  
+  def fromXml(call: Elem): Call = {
+    val method: Method = Method((call \ "method")(0).text)
+    val url: String = (call \ "url")(0).text
+    Call(method, url)
+  } 
   
   implicit def call2playCall(call: Call): PlayCall = PlayCall(call.method.forRequest, call.url)
   implicit def playCall2call(playCall: PlayCall): Call = Call(Method(playCall.method), playCall.url)

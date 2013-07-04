@@ -5,10 +5,12 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import scala.collection.JavaConverters._
-import scala.xml.{ Elem, XML }
-import play.api.mvc.Call
+import scala.xml.{ Elem, NodeSeq, XML }
 import scalajdo.DataStore
 import play.api.mvc.Request
+import config.users.Config
+import com.google.inject.Inject
+import forms.Call
 
 @PersistenceCapable(detachable="true")
 class Visit {
@@ -32,8 +34,8 @@ class Visit {
   
   @Column(jdbcType="CLOB")
   private[this] var _menu: String = _
-  def menu: Elem = XML.loadString(_menu)
-  def menu_=(theMenu: Elem) { _menu = theMenu.toString }
+  def menu: NodeSeq = Visit.string2nodeSeq(_menu)
+  def menu_=(theMenu: NodeSeq) { _menu = theMenu.toString }
       
   @Persistent
   @Element(types=Array(classOf[Permission]))
@@ -44,9 +46,9 @@ class Visit {
   
   @Persistent(defaultFetchGroup = "true")
   private[this] var _redirectUrl: String = _
-  def redirectUrl: Option[Call] = Visit.string2Call(_redirectUrl)
-  def redirectUrl_=(url: Option[Call]) { _redirectUrl = url.map(Visit.call2String(_)).getOrElse(null) }
-  def redirectUrl_=(url: Call) { _redirectUrl = Visit.call2String(url) }
+  def redirectUrl: Option[Call] = if (_redirectUrl == "" || _redirectUrl == null) None else Some(Call.fromXml(XML.loadString(_redirectUrl)))
+  def redirectUrl_=(call: Option[Call]) { _redirectUrl = call.map(_.toXml.toString).getOrElse(null) }
+  def redirectUrl_=(call: Call) { _redirectUrl = call.toXml.toString }
     
   @Persistent
   @Key(types=Array(classOf[String]))
@@ -54,21 +56,23 @@ class Visit {
   @Serialized
   private[this] var _sessionItems: java.util.Map[String, Object] = _
   
-  def this(theExpiration: Long, maybeUser: Option[User], maybeRole: Option[Role]) = {
+  def this(theExpiration: Long, maybeUser: Option[User], maybeRole: Option[Role])(implicit config: Config) = {
     this()
-    _expiration = theExpiration
-    _user = maybeUser.getOrElse(null)
-    _role = maybeRole.getOrElse(null)
+    expiration_=(theExpiration)
+    user_=(maybeUser)
+    role_=(maybeRole)
     permissions_=(Set[Permission]())
-    //menu_=(Menu.buildMenu(role))
+    menu_=(config.menuBuilder(role))
     _sessionItems = new java.util.HashMap[String, Object]()  
     redirectUrl_=(None)
   }
   
   def isExpired: Boolean = System.currentTimeMillis > expiration
   
-  //def updateMenu { menu = Menu.buildMenu(role) }
-  
+  def updateMenu()(implicit config: Config) {
+    menu_=(config.menuBuilder(role))
+  }
+    
   def set(key: String, value: Any) {
     value match {
       case obj: AnyRef => _sessionItems.put(key, obj)
@@ -96,7 +100,7 @@ object Visit {
     DataStore.pm.query[Visit].filter(QVisit.candidate.uuid.eq(uuid)).executeOption()
   }
   
-  def getFromRequest[A](implicit req: Request[A]): Visit = {
+  def getFromRequest[A](implicit req: Request[A], config: Config): Visit = {
     req.session.get("visit").flatMap(
         Visit.getByUuid(_)).filter(!_.isExpired).getOrElse(
             new Visit(System.currentTimeMillis + Visit.visitLength, None, None))
@@ -106,19 +110,12 @@ object Visit {
     DataStore.pm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
   }
   
-  private[Visit] def string2Call(str: String): Option[Call] = {
-    if (str == null) None
-    else {
-      val call: Elem = XML.loadString(str)
-      val method = (call \ "method")(0).text
-      val url = (call \ "url")(0).text
-      Some(new Call(method, url))
-    }
+  def string2nodeSeq(legalNodeSeq: String): NodeSeq = {
+    // TODO: this just crashes if someone passes in malformed XML
+    val node = XML.loadString("<dummy>" + legalNodeSeq + "</dummy>")
+    NodeSeq.fromSeq(node.child);
   }
-  
-  private[Visit] def call2String(call: Call): String = {
-    <call><method>{ call.method }</method><url>{ call.url }</url></call>.toString
-  }
+
 }
 
 trait QVisit extends PersistableExpression[Visit] {

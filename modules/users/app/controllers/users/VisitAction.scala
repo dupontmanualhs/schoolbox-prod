@@ -1,13 +1,11 @@
 package controllers.users
 
 import javax.jdo.JDOHelper
-
 import play.api.mvc._
-
 import scalajdo.DataStore
-
 import forms.Method
 import models.users.{ Role, Visit }
+import config.users.Config
 
 class VisitRequest[A](val visit: Visit, private val request: Request[A]) extends WrappedRequest(request)
 
@@ -17,17 +15,17 @@ object VisitRequest {
 
 // TODO: we need a cache system
 object VisitAction {
-  def apply(block: => Result): Action[AnyContent] = apply(_ => block)
+  def apply(block: => Result)(implicit config: Config): Action[AnyContent] = apply(_ => block)
 
-  def apply(block: VisitRequest[AnyContent] => Result): Action[AnyContent] = {
+  def apply(block: VisitRequest[AnyContent] => Result)(implicit config: Config): Action[AnyContent] = {
     apply[AnyContent](BodyParsers.parse.anyContent)(block)
   }
 
-  def apply[A](p: BodyParser[A])(f: VisitRequest[A] => Result): Action[A] = {
+  def apply[A](p: BodyParser[A])(f: VisitRequest[A] => Result)(implicit config: Config): Action[A] = {
     Action(p)( request => {
       val pm = DataStore.pm
       pm.beginTransaction()
-      val visitRequest = VisitRequest(Visit.getFromRequest(request), request)
+      val visitRequest = VisitRequest(Visit.getFromRequest(request, config), request)
       val res = f(visitRequest)
       if (JDOHelper.isDeleted(visitRequest.visit)) {
         pm.commitTransaction()
@@ -53,13 +51,13 @@ object AuthenticatedRequest {
 }
 
 object Authenticated {
-  def apply(block: => Result): Action[AnyContent] = apply(_ => block)
+  def apply(block: => Result)(implicit config: Config): Action[AnyContent] = apply(_ => block)
   
-  def apply(block: AuthenticatedRequest[AnyContent] => Result): Action[AnyContent] = {
+  def apply(block: AuthenticatedRequest[AnyContent] => Result)(implicit config: Config): Action[AnyContent] = {
     apply[AnyContent](BodyParsers.parse.anyContent)(block)
   }
   
-  def apply[A](p: BodyParser[A])(f: AuthenticatedRequest[A] => Result): Action[A] = {
+  def apply[A](p: BodyParser[A])(f: AuthenticatedRequest[A] => Result)(implicit config: Config): Action[A] = {
     VisitAction(p) { req =>
       req.visit.role match {
         case None => DataStore.execute { pm =>

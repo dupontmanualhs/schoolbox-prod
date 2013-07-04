@@ -7,8 +7,11 @@ import forms.fields._
 import forms.widgets._
 import forms.validators.ValidationError
 import controllers.users.VisitAction
+import com.google.inject.{ Inject, Singleton }
+import config.Config
 
-object App extends Controller {
+@Singleton
+class App @Inject()(implicit config: Config) extends Controller {
   def index() = VisitAction { implicit req =>
       Ok(templates.Index(templates.Main))
   }

@@ -10,10 +10,13 @@ import scala.xml.Text
 import play.api.mvc.Flash._
 import scalajdo.DataStore
 import controllers.users.{ Authenticated, VisitAction }
+import com.google.inject.{ Inject, Singleton }
+import config.Config
 
-object Courses extends Controller {
+@Singleton
+class Courses @Inject()(implicit config: Config) extends Controller {
   def getMySchedule() = Authenticated { implicit req =>
-    val currentUser: User = Visit.getFromRequest(req).user.get
+    val currentUser: User = req.role.user
     if (Teacher.getByUsername(currentUser.username).isDefined) {
       teacherSchedule(Teacher.getByUsername(currentUser.username), Some(Term.current))(req)
     } else {

@@ -15,8 +15,11 @@ import forms.Form
 import play.api.mvc.Controller
 
 import controllers.users.{ Authenticated, VisitAction }
+import config.Config
+import com.google.inject.{ Inject, Singleton }
 
-object Lockers extends Controller {
+@Singleton
+class Lockers @Inject()(implicit config: Config) extends Controller {
 
   /**
    * Regex: /lockers/myLocker

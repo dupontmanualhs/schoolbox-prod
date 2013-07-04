@@ -5,11 +5,15 @@ import scala.util.Random
 import play.api.data._
 import play.api.data.Forms._
 
+import com.google.inject.{ Inject, Singleton }
+
 import scalajdo.DataStore
 
 import controllers.users.VisitAction
+import config.Config
 
-object Assessments extends Controller {
+@Singleton
+class Assessments @Inject()(implicit config: Config) extends Controller {
 
   var rand = new Random
   var first = rand.nextInt(9) + 1

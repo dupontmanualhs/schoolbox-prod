@@ -94,9 +94,9 @@ class User extends Ordered[User] {
     "User(ID: %d, %s)".format(id, formalName)
   }
   
-  def roles(): Set[Role] = {
+  def roles(): List[Role] = {
     val cand = QRole.candidate
-    DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList().toSet
+    DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList()
   }
 }
 
@@ -110,11 +110,6 @@ object User {
     val cand = QUser.candidate
     DataStore.pm.query[User].filter(cand.username.eq(username)).executeOption()
   }
-  
-  def current(implicit req: Request[_]): Option[User] = {
-    Visit.getFromRequest(req).user
-  }
-
   
   def authenticate(username: String, password: String): Option[User] = {
     getByUsername(username) match {

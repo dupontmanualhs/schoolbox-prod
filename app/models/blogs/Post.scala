@@ -9,7 +9,7 @@ import util.Helpers.string2nodeSeq
 import scala.xml.NodeSeq
 
 @PersistenceCapable(detachable="true")
-class Post extends StoreCallback {
+class Post {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _

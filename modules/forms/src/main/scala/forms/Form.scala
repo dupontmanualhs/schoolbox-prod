@@ -46,12 +46,13 @@ abstract class Form {
   def actions: NodeSeq = {
     <div class="form-actions">
       <button type="submit" class="btn btn-primary">{ submitText }</button>
-      { if (includeCancel && cancelTo=="url") <button type="button" class="btn" onclick="window.location.href=document.URL">{ cancelText }</button>
-        else if (includeCancel){ 
-          val newLink = "window.location.href='"+cancelTo+"'"
-          <button type="button" class="btn" onclick={newLink}>{cancelText}</button>
+      { 
+        if (!includeCancel) NodeSeq.Empty
+        else {
+          val onClick = cancelTo.map(call => s"window.location.href=${call.url}").getOrElse("window.history.back()")
+          <button type="button" class="btn" onclick={ onClick }>{ cancelText }</button>
         }
-        else NodeSeq.Empty }
+      }
     </div>
   }
         

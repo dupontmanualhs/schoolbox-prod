@@ -13,44 +13,42 @@ class Turnin {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  @Persistent(defaultFetchGroup = "true")
-  private[this] var _date: java.sql.Timestamp = _
-  @Persistent(defaultFetchGroup = "true")
-  private[this] var _assignment: Assignment = _
-  @Persistent(defaultFetchGroup = "true")
-  private[this] var _student: Student = _
-  private[this] var _points: Double = _
-
-  def this(student: Student, date: java.sql.Timestamp, assignment: Assignment, points: Double) {
-    this()
-    _date = date
-    _assignment = assignment
-    _student = student
-    _points = points
-  }
-
   def id: Long = _id
 
-  def date: java.sql.Timestamp = _date
-  def date_=(theDate: java.sql.Timestamp) { _date = theDate }
+  @Persistent(defaultFetchGroup = "true")
+  private[this] var _timestamp: java.sql.Timestamp = _
+  def date: java.sql.Timestamp = _timestamp
+  def date_=(theTimestamp: java.sql.Timestamp) { _timestamp = theTimestamp }
 
+  @Persistent(defaultFetchGroup = "true")
+  private[this] var _assignment: Assignment = _
   def assignment: Assignment = _assignment
   def assignment_=(theAssignment: Assignment) { _assignment = theAssignment }
 
+  @Persistent(defaultFetchGroup = "true")
+  private[this] var _student: Student = _
   def student: Student = _student
   def student_=(theStudent: Student) { _student = theStudent }
 
+  private[this] var _points: Double = _
   def points: Double = _points
   def points_=(thePoints: Double) { _points = thePoints }
 
+  def this(theStudent: Student, theTimestamp: java.sql.Timestamp, theAssignment: Assignment, thePoints: Double) {
+    this()
+    student_=(theStudent)
+    assignment_=(theAssignment)
+    student_=(theStudent)
+    points_=(thePoints)
+  }
 }
 
 trait QTurnin extends PersistableExpression[Turnin] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
 
-  private[this] lazy val _date: ObjectExpression[java.sql.Timestamp] = new ObjectExpressionImpl[java.sql.Timestamp](this, "_date")
-  def date: ObjectExpression[java.sql.Timestamp] = _date
+  private[this] lazy val _timestamp: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Timestamp](this, "_timestamp")
+  def date: DateExpression[java.util.Date] = _timestamp
 
   private[this] lazy val _assignment: ObjectExpression[Assignment] = new ObjectExpressionImpl[Assignment](this, "_assignment")
   def assignment: ObjectExpression[Assignment] = _assignment
@@ -58,8 +56,8 @@ trait QTurnin extends PersistableExpression[Turnin] {
   private[this] lazy val _student: ObjectExpression[Student] = new ObjectExpressionImpl[Student](this, "_student")
   def student: ObjectExpression[Student] = _student
 
-  private[this] lazy val _points: ObjectExpression[Double] = new ObjectExpressionImpl[Double](this, "_points")
-  def points: ObjectExpression[Double] = _points
+  private[this] lazy val _points: NumericExpression[Double] = new NumericExpressionImpl[Double](this, "_points")
+  def points: NumericExpression[Double] = _points
 
 }
 

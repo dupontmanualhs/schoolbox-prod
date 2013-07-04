@@ -6,49 +6,43 @@ import org.joda.time._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 
-import java.sql.Date
-
 @PersistenceCapable(detachable="true")
 class TeacherAssignment {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  @Persistent
-  private[this] var _teacher: Teacher = _
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _section: Section = _
-  //private[this] var _term: Term = _
-  @Persistent
-  private[this] var _start: Date = _
-  @Persistent
-  private[this] var _end: Date = _
-  
-  def this(teacher: Teacher, section: Section, //term: Term, 
-      start: LocalDate, end: LocalDate) = {
-    this()
-    _teacher = teacher
-    _section = section
-    //_term = term
-    start_=(start)
-    end_=(end)
-  }
-
   def id: Long = _id
   
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _teacher: Teacher = _
   def teacher: Teacher = _teacher
   def teacher_=(theTeacher: Teacher) { _teacher = theTeacher }
 
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _section: Section = _
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
   
-  //def term: Term = _term
-  //def term_=(theTerm: Term) { _term = theTerm }
-  
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _start: java.sql.Date = _
   def start: LocalDate = if (_start != null) new DateTime(_start).toLocalDate else section.startDate
-  def start_=(theStart: LocalDate) { _start = if (theStart != null) new Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) else null }
+  def start_=(theStart: LocalDate) { _start = if (theStart != null) new java.sql.Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) else null }
   
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _end: java.sql.Date = _
   def end: LocalDate = if (_end != null) new DateTime(_end).toLocalDate else section.endDate
-  def end_=(theEnd: LocalDate) { _end = if (theEnd != null) new Date(theEnd.toDateTimeAtStartOfDay.toDate.getTime) else null }
+  def end_=(theEnd: LocalDate) { _end = if (theEnd != null) new java.sql.Date(theEnd.toDateTimeAtStartOfDay.toDate.getTime) else null }
+  
+  def this(theTeacher: Teacher, theSection: Section, theStart: LocalDate, theEnd: LocalDate) = {
+    this()
+    teacher_=(theTeacher)
+    section_=(theSection)
+    start_=(theStart)
+    end_=(theEnd)
+  }
+  
+  def term: Set[Term] = this.section.terms
+  
 }
 
 trait QTeacherAssignment extends PersistableExpression[TeacherAssignment] {
@@ -57,14 +51,11 @@ trait QTeacherAssignment extends PersistableExpression[TeacherAssignment] {
   
   private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
   def section: ObjectExpression[Section] = _section
-  
-  //private[this] lazy val _term: ObjectExpression[Term] = new ObjectExpressionImpl[Term](this, "_term")
-  //def term: ObjectExpression[Term] = _term
-  
-  private[this] lazy val _start: DateExpression[java.util.Date] = new DateExpressionImpl[Date](this, "_start")
+    
+  private[this] lazy val _start: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Date](this, "_start")
   def start: DateExpression[java.util.Date] = _start
 
-  private[this] lazy val _end: DateExpression[java.util.Date] = new DateExpressionImpl[Date](this, "_end")
+  private[this] lazy val _end: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Date](this, "_end")
   def end: DateExpression[java.util.Date] = _end
 }
 

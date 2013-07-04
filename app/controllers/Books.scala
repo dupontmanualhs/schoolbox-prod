@@ -16,108 +16,16 @@ import forms.validators.ValidationError
 import forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
 
 import controllers.users.VisitAction
+import config.Config
+import com.google.inject.{ Inject, Singleton }
 
-object Books extends Controller {
-  /**
-   * Helper Method
-   *
-   * Given a list of the first 9 digits from a ten-digit ISBN,
-   * returns the expected check digit (which could also be an X in
-   * addition to the digits 0 through 9). The algorithm can be found here:
-   * http://en.wikipedia.org/wiki/International_Standard_Book_Number#Check_digits
-   */
-  def tenDigitCheckDigit(digits: List[Int]): String = {
-    val checkSum = digits.zipWithIndex.map(digitWithIndex => {
-      val digit = digitWithIndex._1
-      val index = digitWithIndex._2
-      (10 - index) * digit
-    }).sum
-    val checkDigit = (11 - (checkSum % 11)) % 11
-    if (checkDigit == 10) "X" else checkDigit.toString
-  }
-
-  /**
-   * Helper Method
-   *
-   * Given a list of the first 12 digits from a 13-digit ISBN,
-   * returns the expected check digit. The algorithm can be found
-   * here:
-   * http://en.wikipedia.org/wiki/International_Standard_Book_Number#Check_digits
-   */
-  def thirteenDigitCheckDigit(digits: List[Int]): String = {
-    val checkSum = digits.zipWithIndex.map(digitWithIndex => {
-      val digit = digitWithIndex._1
-      val index = digitWithIndex._2
-      digit * (if ((index % 2) == 0) 1 else 3)
-    }).sum
-    ((10 - (checkSum % 10)) % 10).toString
-  }
-
-  /**
-   * Helper Method
-   *
-   * Given a possible ISBN (either 10- or 13-digit) with the check
-   * digit removed, calculates the check digit, if possible. If the
-   * given String is not the right length or has illegal characters,
-   * returns None.
-   */
-  def checkDigit(isbn: String): Option[String] = {
-    // if (isbn.matches("^\\d+$")) {
-    try {
-      val digits = isbn.toList.map(_.toString.toInt)
-      digits.length match {
-        case 9 => Some(tenDigitCheckDigit(digits))
-        case 12 => Some(thirteenDigitCheckDigit(digits))
-        case _ => None
-      }
-    } catch {
-      case _: NumberFormatException => None
-    }
-    // } else None
-  }
-
-  /**
-   * Helper Method
-   *
-   * Converts a valid 10-digit ISBN into the equivalent 13-digit one.
-   * If the original String is not valid, may cause an exception.
-   */
-  def makeIsbn13(isbn10: String): String = {
-    val isbn9 = isbn10.substring(0, 9)
-    val isbn12 = "978" + isbn9
-    isbn12 + checkDigit(isbn12).get
-  }
-
-  /**
-   * Helper Method
-   *
-   * Given a possible ISBN, verifies that it's valid and
-   * returns the 13-digit equivalent. If the original ISBN
-   * is not valid, returns None. Any dashes that the user may
-   * have entered are removed.
-   */
-  def asValidIsbn13(text: String): Option[String] = {
-    def verify(possIsbn: String): Option[String] = {
-      val noCheck = possIsbn.substring(0, possIsbn.length - 1)
-      val check = checkDigit(noCheck)
-      check match {
-        case Some(cd) => if (possIsbn == noCheck + cd) Some(possIsbn) else None
-        case _ => None
-      }
-    }
-    val isbn = "-".r.replaceAllIn(text, "")
-    isbn.length match {
-      case 10 => verify(isbn).map(makeIsbn13(_))
-      case 13 => verify(isbn)
-      case _ => None
-    }
-  }
-
+@Singleton
+class Books @Inject()(implicit config: Config) extends Controller {
   object TitleForm extends Form {
     val isbn = new TextField("ISBN") {
       override val minLength = Some(10)
       override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
+      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
         case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
         case Some(isbn) => ValidationError(Nil)
       }), Validator((str: String) => Title.getByIsbn(str) match {
@@ -182,7 +90,7 @@ object Books extends Controller {
     val isbn = new TextField("isbn") {
       override val minLength = Some(10)
       override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => asValidIsbn13(str) match {
+      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
         case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
         case Some(isbn) => ValidationError(Nil)
       }))
@@ -349,7 +257,7 @@ object Books extends Controller {
       case None => "Unknown"
       case Some(s) => s.displayName
     }
-    val visit = Visit.getFromRequest(request)
+    val visit = request.visit
     val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
     val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
     val zipped = ct.zipWithIndex
@@ -361,7 +269,7 @@ object Books extends Controller {
       case None => "Unknown"
       case Some(s) => s.displayName
     }
-    val visit = Visit.getFromRequest(request)
+    val visit = request.visit
     val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
     val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
     val zipped = ct.zipWithIndex
@@ -394,10 +302,9 @@ object Books extends Controller {
    * checkout list. Redirects back to the checkout helper.
    */
   def removeCopyFromList(stu: String, barcode: String) = VisitAction { implicit request =>
-    val visit = Visit.getFromRequest(request)
-    val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+    val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
     val newCopies = copies.filter(_ != barcode)
-    visit.set("checkoutList", newCopies)
+    request.visit.set("checkoutList", newCopies)
     Redirect(routes.Books.checkoutBulkHelper(stu))
   }
 
@@ -408,7 +315,7 @@ object Books extends Controller {
    * checkout list. Redirects back to the checkout helper.
    */
   def removeAllCopiesFromList(stu: String) = VisitAction { implicit request =>
-    Visit.getFromRequest(request).set("checkoutList", Vector[String]())
+    request.visit.set("checkoutList", Vector[String]())
     Redirect(routes.Books.checkoutBulkHelper(stu))
   }
 
@@ -419,7 +326,7 @@ object Books extends Controller {
    * to the initial bulk checkout form.
    */
   def cancelBulkCheckout() = VisitAction { implicit request =>
-    Visit.getFromRequest(request).set("checkoutList", Vector[String]())
+    request.visit.set("checkoutList", Vector[String]())
     Redirect(routes.Books.checkoutBulk())
   }
 
@@ -430,14 +337,13 @@ object Books extends Controller {
    * the student with given id (stu)
    */
   def checkoutBulkSubmit(stu: String) = VisitAction { implicit request =>
-    val visit = Visit.getFromRequest(request)
-    val copies: Vector[String] = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
+    val copies: Vector[String] = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
     val checkedOutCopies: Vector[String] = copies.filter(c => Copy.getByBarcode(c).get.isCheckedOut)
 
     if (checkedOutCopies.isEmpty) {
       copies.foreach(c => DataStore.pm.makePersistent(new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, new java.sql.Date(new java.util.Date().getTime()), null)))
       val mes = copies.length + " copie(s) successfully checked out to " + Student.getByStateId(stu).get.displayName
-      visit.set("checkoutList", Vector[String]())
+      request.visit.set("checkoutList", Vector[String]())
       Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)
     } else {
       val mes = "Books with the following barcodes already checked out: " + checkedOutCopies.toString.substring(7, checkedOutCopies.toString.length - 1)
@@ -1017,7 +923,7 @@ object Books extends Controller {
       case Some(t) => {
         try {
           sanatizeCopyRange(copyRange)
-          val l = new LabelQueueSet(Visit.getFromRequest(request).role.getOrElse(null), t, copyRange)
+          val l = new LabelQueueSet(request.visit.role.getOrElse(null), t, copyRange)
           DataStore.pm.makePersistent(l)
           Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Labels added to print queue")
         } catch {

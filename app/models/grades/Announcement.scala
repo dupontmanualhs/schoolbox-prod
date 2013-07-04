@@ -8,68 +8,65 @@ import scalajdo.DataStore
 
 import util.PersistableFile
 import models.courses.Section
-import models.users.User
+import models.users.Role
 
 @PersistenceCapable(detachable="true")
 class Announcement {
-
+  @PrimaryKey
+  @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _section: Section = _
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _date: java.sql.Timestamp = _
-  @Column(jdbcType="CLOB")
-  private[this] var _text: String = _
-  @Persistent(defaultFetchGroup="true")
-  private[this] var _author: User = _
-  //TODO: private[this] var _attachments: java.util.List[String] = _
-  //TODO: make this be scala and convert correctly
-  
-  def this(text: String, date: java.sql.Timestamp, section: Section, author: User/*, attachments: Option[java.util.List[String]]*/) {
-    this()
-    _text = text
-    _section = section
-    _date = date
-    _author = author
-//  _attachments = TODO
-  }
-  
   def id: Long = _id
   
-  def date: java.sql.Timestamp = _date
-  def date_=(theDate: java.sql.Timestamp) { _date = theDate }
-  
-  def text: String = _text
-  def text_=(theText: String) { _text = theText }
-  
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _author: Role = _
+  def author: Role = _author
+  def author_=(theAuthor: Role) { _author = theAuthor}
+    
+  // TODO: should this be a Set[Section]
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _section: Section = _
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
   
-  def author: User = _author
-  def author_=(theAuthor: User) { _author = theAuthor}
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _timestamp: java.sql.Timestamp = _
+  def timestamp: java.sql.Timestamp = _timestamp
+  def timestamp_=(theTimestamp: java.sql.Timestamp) { _timestamp = theTimestamp }
   
+  @Column(jdbcType="CLOB")
+  private[this] var _text: String = _
+  def text: String = _text
+  def text_=(theText: String) { _text = theText }
+  
+  // TODO: attachments?
+    
+  def this(theAuthor: Role, theSection: Section, theTimestamp: java.sql.Timestamp, theText: String) {
+    this()
+    author_=(theAuthor)
+    section_=(theSection)
+    timestamp_=(theTimestamp)
+    text_=(theText)    
+  }  
 }
 
 trait QAnnouncement extends PersistableExpression[Announcement] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
+  private[this] lazy val _author: ObjectExpression[Role] = new ObjectExpressionImpl[Role](this, "_author")
+  def author: ObjectExpression[Role] = _author
+
+  private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
+  def section: ObjectExpression[Section] = _section  
+
+  private[this] lazy val _timestamp: DateExpression[java.util.Date] = new DateExpressionImpl[java.sql.Timestamp](this, "_timestamp")
+  def date: DateExpression[java.util.Date] = _timestamp
+  
   private[this] lazy val _text: StringExpression = new StringExpressionImpl(this, "_text")
   def text: StringExpression = _text
-  
-  private[this] lazy val _date: ObjectExpression[java.sql.Timestamp] = new ObjectExpressionImpl[java.sql.Timestamp](this, "_date")
-  def date: ObjectExpression[java.sql.Timestamp] = _date
-  
-  private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
-  def section: ObjectExpression[Section] = _section
-  
-  private[this] lazy val _author: ObjectExpression[User] = new ObjectExpressionImpl[User](this, "_author")
-  def author: ObjectExpression[User] = _author
-  
 }
 
 object Announcement {
-
   def getAnnouncements(section: Section): List[Announcement] = {
       val cand = QAnnouncement.candidate
       DataStore.pm.query[Announcement].filter(cand.section.eq(section)).executeList

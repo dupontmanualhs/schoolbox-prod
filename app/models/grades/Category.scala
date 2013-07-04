@@ -14,27 +14,27 @@ class Category {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  private[this] var _name: String = _
-  private[this] var _weight: Double = _
-  private[this] var _section: Section = _
-
-  def this(name: String, section: Section, weight: Double) {
-    this()
-    _name = name
-    _weight = weight
-    _section = section
-  }
-
   def id: Long = _id
 
+  private[this] var _name: String = _
   def name: String = _name
   def name_=(theName: String) { _name = theName }
 
+  private[this] var _weight: Double = _
+  def weight: Double = _weight
+  def weight_=(theWeight: Double) { _weight = theWeight }
+
+  @Persistent(defaultFetchGroup="true")
+  private[this] var _section: Section = _
   def section: Section = _section
   def section_=(theSection: Section) { _section = theSection }
 
-  def weight: Double = _weight
-  def weight_=(theWeight: Double) { _weight = theWeight }
+  def this(theName: String, theSection: Section, theWeight: Double) {
+    this()
+    name_=(theName)
+    weight_=(theWeight)
+    section_=(theSection)
+  }
 }
 
 object Category {
@@ -55,8 +55,8 @@ trait QCategory extends PersistableExpression[Category] {
   private[this] lazy val _section: ObjectExpression[Section] = new ObjectExpressionImpl[Section](this, "_section")
   def section: ObjectExpression[Section] = _section
 
-  private[this] lazy val _weight: ObjectExpression[Double] = new ObjectExpressionImpl[Double](this, "_weight")
-  def weight: ObjectExpression[Double] = _weight
+  private[this] lazy val _weight: NumericExpression[Double] = new NumericExpressionImpl[Double](this, "_weight")
+  def weight: NumericExpression[Double] = _weight
 }
 
 object QCategory {

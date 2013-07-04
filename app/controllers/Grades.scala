@@ -17,8 +17,11 @@ import scalajdo.DataStore
 import forms.Form
 
 import controllers.users.{ Authenticated, AuthenticatedRequest, VisitAction, VisitRequest }
+import config.Config
+import com.google.inject.{ Inject, Singleton }
 
-object Grades extends Controller {
+@Singleton
+class Grades @Inject()(implicit config: Config) extends Controller {
   class DropMenu(catsMap: List[(String, Category)]) extends Form {
     val category = new ChoiceField("Category", catsMap)
     val title = new TextField("Title")

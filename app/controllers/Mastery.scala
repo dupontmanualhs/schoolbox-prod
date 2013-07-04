@@ -31,6 +31,9 @@ import scala.xml.Text
 import scalajdo.DataStore
 import models.users.Visit
 
+import config.Config
+import com.google.inject.{ Inject, Singleton }
+
 import controllers.users.VisitAction
 
 import util.Helpers.string2elem
@@ -172,7 +175,8 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
   }
 }
 
-object Mastery extends Controller {
+@Singleton
+class Mastery @Inject()(implicit config: Config) extends Controller {
 
   def menuOfTests() = VisitAction { implicit req =>
     DataStore.execute { pm =>
@@ -249,13 +253,12 @@ object Mastery extends Controller {
   }
 
   def checkAnswers() = VisitAction { implicit request =>
-    val visit = Visit.getFromRequest(request)
-    val quiz = Quiz.getById(visit.getAs[Long]("quizId").get).get
-    val idsOfSectionsWithQuestions = visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
+    val quiz = Quiz.getById(request.visit.getAs[Long]("quizId").get).get
+    val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
     val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
       (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
     })
-    val answerList = visit.getAs[List[String]]("answers").get
+    val answerList = request.visit.getAs[List[String]]("answers").get
     val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
     val totalPointsPossible: Int = qsAndAs.map(qa => qa._1.value).reduce((x, y) => x + y)
     val numCorrect = totalPointsPossible - (0 + qsAndAs.map(qa => if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) qa._1.value else 0).reduce((x, y) => x + y))

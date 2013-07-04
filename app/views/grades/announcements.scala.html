@@ -30,7 +30,7 @@
     		<h2>Announcements</h2>
     		@for(a <- announcements){
   		  		<div class="well well-small">
-  		  			<h4>@a.author.displayName<small>@datetime.format(a.date)</small></h4>
+  		  			<h4>@a.author.displayName<small>@datetime.format(a.timestamp)</small></h4>
   		  			<p>@a.text</p>
   		  		    <button class="btn btn-primary pull-right btn-small">Comment</button><br />
   		  		</div>

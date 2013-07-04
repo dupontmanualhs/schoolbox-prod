@@ -12,15 +12,19 @@ import java.sql.Time
 import scalajdo.DataStore
 import forms.{ Form, Binding, ValidBinding, InvalidBinding }
 import play.api.mvc.Controller
+import config.Config
+import com.google.inject.{ Inject, Singleton }
 
-object Conferences extends Controller {
+
+@Singleton
+class Conferences @Inject()(implicit config: Config) extends Controller {
   def displayStub() = VisitAction { implicit req =>
     Ok(templates.Stub(templates.Main))
   }
 
   def viewAsTeacher() = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
-      val currUser: Option[User] = User.current
+      val currUser: Option[User] = req.visit.user
       val events = pm.query[Event].executeList()
       val sessions = pm.query[models.conferences.Session].executeList()
       Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username), events, sessions))
@@ -31,12 +35,11 @@ object Conferences extends Controller {
     DataStore.execute { implicit pm =>
       val events = pm.query[Event].executeList()
       val sessions = pm.query[models.conferences.Session].executeList()
-      val currUser: Option[User] = User.current
+      val currUser: Option[User] = req.visit.user
       currUser match {
         case None => {
-          val visit = Visit.getFromRequest(req)
-          visit.redirectUrl = routes.Conferences.index
-          pm.makePersistent(visit)
+          req.visit.redirectUrl = routes.Conferences.index
+          pm.makePersistent(req.visit)
           Redirect(controllers.users.routes.App.login()).flashing("error" -> "You are not logged in.")
         }
         case Some(x) => {
@@ -45,7 +48,7 @@ object Conferences extends Controller {
           } else if (Teacher.getByUsername(currUser.get.username).isDefined) {
             Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username), events, sessions))
           } else {
-            val currentUser = User.current
+            val currentUser = req.visit.user
             val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username).isDefined
             if (!isStudent) {
               NotFound(templates.NotFound(templates.Main, "Must be logged-in to get a conference"))
@@ -168,7 +171,7 @@ object Conferences extends Controller {
     DataStore.execute { pm =>
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
       val slots = pm.query[Slot].executeList()
-      val currUser = User.current
+      val currUser = request.visit.user
       val teacher = Teacher.getByUsername(currUser.get.username).get
       val cand = QTeacherActivation.candidate
       pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption match {
@@ -195,7 +198,7 @@ object Conferences extends Controller {
           case ib: InvalidBinding => Ok(views.html.conferences.activateSession(ib, sessionId))
           case vb: ValidBinding => {
             val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
-            val currUser = User.current
+            val currUser = request.visit.user
             val teacher = Teacher.getByUsername(currUser.get.username).get
             val slotInterval = vb.valueOf(TeacherActivationForm.slotInterval)
             val note = vb.valueOf(TeacherActivationForm.note)
@@ -212,7 +215,7 @@ object Conferences extends Controller {
     DataStore.execute { pm =>
       val cand = QTeacherActivation.candidate()
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
-      val currUser = User.current
+      val currUser = request.visit.user
       val teacher = Teacher.getByUsername(currUser.get.username).get
       pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption() match {
         case None => NotFound("Session not activated yet")
@@ -226,7 +229,7 @@ object Conferences extends Controller {
 
   def classList(sessionId: Long) = VisitAction { implicit request =>
     DataStore.execute { pm =>
-      val currentUser = User.current
+      val currentUser = request.visit.user
       val Some(student) = Student.getByUsername(currentUser.get.username)
       val term = Term.current
       val enrollments: List[StudentEnrollment] = {
@@ -265,7 +268,7 @@ object Conferences extends Controller {
           val theTeacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption()
           if (theSession == None) NotFound(templates.NotFound(templates.Main, "Invalid session ID"))
           if (theTeacher == None) NotFound(templates.NotFound(templates.Main, "Invalid teacher ID"))
-          val theStudent = Student.getByUsername(User.current.get.username)
+          val theStudent: Option[Student] = request.visit.user.flatMap((u: User) => Student.getByUsername(u.username))
           if (theStudent == None) NotFound(templates.NotFound(templates.Main, "Invalid student"))
 
           val theStartTime = vb.valueOf(SlotForm.startTime)

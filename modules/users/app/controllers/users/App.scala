@@ -19,8 +19,7 @@ import scala.xml.NodeSeq
 import scalatags._
 
 @Singleton
-class App @Inject()(config: Config) extends Controller {
-  
+class App @Inject()(implicit config: Config) extends Controller { 
   object LoginForm extends Form {
     val username = new TextField("username")
     val password = new PasswordField("password")
@@ -63,11 +62,14 @@ class App @Inject()(config: Config) extends Controller {
               // TODO: should we have a default role?
               // set the first one
               request.visit.role = Some(persp)
-              //request.visit.updateMenu
+              request.visit.updateMenu()
               pm.makePersistent(request.visit)
               rest match {
                 // there was only one
-                case Nil => Redirect(request.visit.redirectUrl.getOrElse(controllers.users.routes.App.settings())).flashing("message" -> "You have successfully logged in.")
+                case Nil => {
+                  if (request.visit.redirectUrl.isDefined) Redirect(request.visit.redirectUrl.get)
+                  else Redirect(config.defaultCall).flashing("message" -> "You have successfully logged in.")
+                }
                 // multiple roles
                 case _ => Redirect(controllers.users.routes.App.chooseRole()).flashing("message" -> "Choose which role to use.")
               }
@@ -95,17 +97,14 @@ class App @Inject()(config: Config) extends Controller {
   }
 
   def chooseRoleP() = Authenticated { implicit req =>
-    DataStore.execute { pm =>
-      val visit = Visit.getFromRequest(req)
-      val form = new ChooseRoleForm(visit)
-      Binding(form, req) match {
-        case ib: InvalidBinding => Ok(templates.users.ChooseRole(config.mainTemplate, ib))
-        case vb: ValidBinding => {
-          visit.role = Some(vb.valueOf(form.role))
-          //visit.updateMenu
-          pm.makePersistent(visit)
-          Redirect(config.defaultCall).flashing("message" -> "You have successfully logged in.")
-        }
+    val form = new ChooseRoleForm(req.visit)
+    Binding(form, req) match {
+      case ib: InvalidBinding => Ok(templates.users.ChooseRole(config.mainTemplate, ib))
+      case vb: ValidBinding => {
+        req.visit.role = Some(vb.valueOf(form.role))
+        //visit.updateMenu
+        DataStore.pm.makePersistent(req.visit)
+        Redirect(req.visit.redirectUrl.getOrElse(config.defaultCall)).flashing("message" -> "You have successfully logged in.")
       }
     }
   }
@@ -159,9 +158,7 @@ class App @Inject()(config: Config) extends Controller {
    */
 
   def settings = Authenticated { implicit req =>
-    val visit = Visit.getFromRequest(req)
-    val user = visit.user.get
-    val pwForm = new ChangePasswordForm(user)
+    val pwForm = new ChangePasswordForm(req.role.user)
     Ok(templates.users.ChangeSettings(config.mainTemplate, Binding(pwForm), Binding(ChangeTheme)))
   }
 
