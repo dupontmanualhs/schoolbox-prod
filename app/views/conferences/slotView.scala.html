@@ -1,4 +1,4 @@
-@(slots: List[models.conferences.Slot], session: models.conferences.Session, teacherId: Long, currentTime: java.sql.Timestamp)(implicit req: play.api.mvc.Request[_])
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, studentId: Long, teacherId: Long, currentTime: java.sql.Timestamp)(implicit req: play.api.mvc.Request[_])
 
 @import util.Helpers._
 
@@ -15,5 +15,5 @@
 	<a href="@routes.Conferences.deleteSlot(slot.id)" class="btn">Delete Conference</a>
 	}
 	<br/>
-	@if(currentTime.compareTo(session.cutoff) <= 0){<a href="@routes.Conferences.createSlot(session.id, teacherId)" class="btn">Schedule Another</a>}
+	@if(currentTime.compareTo(session.cutoff) <= 0){<a href="@routes.Conferences.createSlot(session.id, studentId, teacherId)" class="btn">Schedule Another</a>}
 }

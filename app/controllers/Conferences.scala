@@ -57,8 +57,12 @@ object Conferences extends Controller {
             if (!isStudent) {
               NotFound(views.html.notFound("Must be logged-in to get a conference"))
             } else {
-              val slots = pm.query[Slot].filter(QSlot.candidate.student.eq(Student.getByUsername(currentUser.get.username).get)).executeList()
-              Ok(views.html.conferences.index(events, sessions, slots))
+              val student = Student.getByUsername(currentUser.get.username).get
+              val slots = pm.query[Slot].filter(QSlot.candidate.student.eq(student)).executeList()
+              val priority = pm.query[PriorityScheduling].filter(QPriorityScheduling.candidate.student.eq(student)).executeOption()
+              val today = new java.util.Date()
+              val currentTime = new Timestamp(today.getTime())
+              Ok(views.html.conferences.index(events, sessions, slots, priority, currentTime))
             }
           }
         }
@@ -119,7 +123,7 @@ object Conferences extends Controller {
   object SessionForm extends Form {
     val date = new DateField("date")
     val cutoff = new TimestampField("cutoff")
-    //val priority = new TimestampFieldOptional("priority")
+    val priority = new TimestampFieldOptional("priority")
     val startTime = new TimeField("start time")
     val endTime = new TimeField("end time")
     val fields = List(date, cutoff, /*priority,*/ startTime, endTime)
@@ -136,8 +140,7 @@ object Conferences extends Controller {
           val theEvent = pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeList()
           val theDate = vb.valueOf(SessionForm.date)
           val theCutoff = vb.valueOf(SessionForm.cutoff)
-          val thePriority = None
-          //val thePriority = vb.valueOf(SessionForm.priority)
+          val thePriority = vb.valueOf(SessionForm.priority)
           val theStartTime = vb.valueOf(SessionForm.startTime)
           val theEndTime = vb.valueOf(SessionForm.endTime)
           println(theDate + " " + theStartTime + " " + theEndTime)
@@ -169,12 +172,13 @@ object Conferences extends Controller {
 	def teacherView() = Action { implicit request =>
 	  DataStore.execute { pm =>
 	  	val currUser = User.current
-	  	val teacher = Teacher.getByUsername(currUser.get.username)
-	  	val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher.get)).executeList()
+	  	val teacher = Teacher.getByUsername(currUser.get.username).get
+	  	val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher)).executeList()
 	  	val sections = teacherAssignments.map(tA => tA.section)
 	  	val events = pm.query[Event].executeList()
 	  	val sessions = pm.query[models.conferences.Session].executeList()
-	  	Ok(views.html.conferences.teachers(teacher, events, sessions, sections))
+	  	val priorities = pm.query[PriorityScheduling].filter(QPriorityScheduling.candidate.teacher.eq(teacher)).executeList()
+	  	Ok(views.html.conferences.teachers(teacher, events, sessions, sections, priorities))
 	  }
 	}
 	
@@ -239,6 +243,32 @@ object Conferences extends Controller {
       Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session deactivated")
     }
   }
+  
+  def enablePriority(studentId: Long) = Action { implicit request =>
+  	DataStore.execute { pm =>
+      val currUser = User.current
+      val teacher = Teacher.getByUsername(currUser.get.username).get
+      val student = pm.query[Student].filter(QStudent.candidate.id.eq(studentId)).executeOption().get
+      val priority = new PriorityScheduling(student, teacher)
+  	  pm.makePersistent(priority)
+  	  Redirect(routes.Conferences.teacherView()).flashing("message" -> ("You have enabled priority scheduling"))
+  	}
+  }
+  
+  def disablePriority(studentId: Long) = Action { implicit request =>
+    DataStore.execute { pm =>
+      val currUser = User.current
+      val teacher = Teacher.getByUsername(currUser.get.username).get
+      val student = pm.query[Student].filter(QStudent.candidate.id.eq(studentId)).executeOption().get
+      val cand = QPriorityScheduling.candidate
+      val priority = pm.query[PriorityScheduling].filter(cand.student.eq(student).and(cand.teacher.eq(teacher))).executeOption()
+      priority match {
+        case None => NotFound("This student does not have priority scheduling enabled")
+        case Some(priority) => pm.deletePersistent(priority)
+      }
+      Redirect(routes.Conferences.teacherView()).flashing("message" -> ("You have disabled priority scheduling"))
+    }
+  }
 
   /////////////////////////////////////////////////////Student View////////////////////////////////////////////////////////////////
 
@@ -300,9 +330,9 @@ object Conferences extends Controller {
 		val teacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption().get
 		val cand = QSlot.candidate
 		val slots = pm.query[Slot].filter(cand.student.eq(student).and(cand.session.eq(session)).and(cand.teacher.eq(teacher))).executeList()
-		if (currentTime > session.cutoff) Ok(views.html.conferences.slotView(slots, session, teacherId, currentTime))
-		else if (slots.isEmpty) Redirect(routes.Conferences.createSlot(sessionId, teacherId))
-		else Ok(views.html.conferences.slotView(slots, session, teacherId, currentTime))
+		if (currentTime > session.cutoff) Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
+		else if (slots.isEmpty) Redirect(routes.Conferences.createSlot(sessionId, student.id, teacherId))
+		else Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
 		
 	}
   }
@@ -319,19 +349,19 @@ object Conferences extends Controller {
     val fields = List(startTime, parentName, email, phone, alternatePhone, comment)
   }
 
-  def createSlot(sessionId: Long, teacherId: Long) = Action { implicit request =>
-    Ok(views.html.conferences.createSlot(Binding(SlotForm), sessionId, teacherId))
+  def createSlot(sessionId: Long, studentId: Long, teacherId: Long) = Action { implicit request =>
+    Ok(views.html.conferences.createSlot(Binding(SlotForm), sessionId, studentId, teacherId))
   }
   
-  def createSlotP(sessionId: Long, teacherId: Long) = Action { implicit request =>
+  def createSlotP(sessionId: Long, studentId: Long, teacherId: Long) = Action { implicit request =>
       Binding(SlotForm, request) match {
-        case ib: InvalidBinding => Ok(views.html.conferences.createSlot(ib, sessionId, teacherId))
+        case ib: InvalidBinding => Ok(views.html.conferences.createSlot(ib, sessionId, studentId, teacherId))
         case vb: ValidBinding => DataStore.execute { implicit pm =>
           val theSession = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption()
           val theTeacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption()
           if (theSession == None) NotFound(views.html.notFound("Invalid session ID"))
           if (theTeacher == None) NotFound(views.html.notFound("Invalid teacher ID"))
-          val theStudent = Student.getByUsername(User.current.get.username)
+          val theStudent = pm.query[Student].filter(QStudent.candidate.id.eq(studentId)).executeOption()
           if (theStudent == None) NotFound(views.html.notFound("Invalid student"))
 
           val theStartTime = vb.valueOf(SlotForm.startTime)
@@ -344,14 +374,15 @@ object Conferences extends Controller {
           val theTeacherActivation = pm.query[TeacherActivation].filter(QTeacherActivation.candidate.teacher.eq(theTeacher.get)).executeList()
           val s = new Slot(theSession.get, theTeacher.get, theStudent.get, theStartTime, theParent, theEmail, thePhone, theAlternatePhone, theComment, theTeacherActivation(0).slotInterval)
           //Slot validating has not been tested yet
-          if (s.validateSession) {
-            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> ("You must choose a time between " + toAmericanString(theSession.get.startTime) + " and " + toAmericanString(theSession.get.endTime) + "."))
+          if (s.validateSession && User.current == theStudent.get.user) {
+            Redirect(routes.Conferences.createSlot(sessionId, studentId, teacherId)).flashing("message" -> ("You must choose a time between " + toAmericanString(theSession.get.startTime) + " and " + toAmericanString(theSession.get.endTime) + "."))
           }
           else if (s.validateSlot) {
-            Redirect(routes.Conferences.createSlot(sessionId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
+            Redirect(routes.Conferences.createSlot(sessionId, studentId, teacherId)).flashing("message" -> "Time slot not available. Please choose another time.")
           } else {
         	pm.makePersistent(s)
-            Redirect(routes.Conferences.slotHandler(sessionId, teacherId)).flashing("message" -> "Successfully created slot!")
+        	if (User.current == theStudent.get.user) Redirect(routes.Conferences.slotHandler(sessionId, teacherId)).flashing("message" -> "Successfully created slot!")
+        	else Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Successfully created slot!")
           }
         }
       }
