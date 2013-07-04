@@ -44,7 +44,6 @@ class CheckboxField[T](name: String, choices: List[(String, T)], useSelectInputM
 }
 
 class CheckboxFieldOptional[T](name: String, choices: List[(String, T)], useSelectInputMult: Boolean = false)(implicit man: Manifest[T]) extends BaseCheckboxField[T, Option[List[T]]](name, choices, useSelectInputMult) {
-  override def required = false
   def asValue(s: Seq[String]): Either[ValidationError, Option[List[T]]] = {
     try {
     	val LOI = s.map(str => str.toInt) //LOI = listOfIndexes but I'm too lazy to rewrite

@@ -13,7 +13,7 @@ abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
   
   def validators: List[Validator[T]] = Nil
 
-  def required: Boolean = typeOf[T] <:< typeOf[Option[_]]
+  def required: Boolean = !(typeOf[T] <:< typeOf[Option[_]])
   def widget: Widget = new TextInput(required)
   
   def requiresMultipartData: Boolean = widget.needsMultipartForm

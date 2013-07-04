@@ -17,8 +17,6 @@ class UrlField(name: String) extends Field[URL](name) with BaseUrlField[URL] {
 } 
 
 class UrlFieldOptional(name: String) extends Field[Option[URL]](name) with BaseUrlField[Option[URL]] {
-  override def required = false
-
   override def asValue(strs: Seq[String]) = strs match {
     case Seq() => Right(None)
     case Seq(str) => Right(Some(new URL(str)))

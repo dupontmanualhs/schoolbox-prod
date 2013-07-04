@@ -28,7 +28,7 @@ object Application extends Controller {
     val Checkboxo = new CheckboxFieldOptional("Checkboxes", List(("car", 11) , ("van", 12) , ("truck", 13)))
     val RadioR = new RadioField("Radio", List(("cat",11),("dog",12),("mouse",13), ("Bird", "BIRD BIRD BIRD! BIRD IS THE WORD."), ("Turtle", listOfSpectopers)))
     val MultChoiceField = new CheckboxFieldOptional("Mult Choice", List(("UK", "Kentucky"),("University of Illinois", "Illinois"),("Wash U", "Missouri"),("MIT", "Massachucets")), useSelectInputMult = true)
-    val FileField = new FileField("File")
+    val FileField = new FileFieldOptional("File")
 
     val editedTextField = new TextFieldOptional("edited") {
       override def widget = new TextInput(required)

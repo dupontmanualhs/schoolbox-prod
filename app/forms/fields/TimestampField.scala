@@ -47,8 +47,6 @@ class TimestampField[T](name: String) extends BaseTimestampField[Timestamp](name
 }
 
 class TimestampFieldOptional[T](name: String) extends BaseTimestampField[Option[Timestamp]](name) {
-  override def required = false
-  
   def asValue(s: Seq[String]): Either[ValidationError, Option[Timestamp]] =
     s match {
     case Seq() => Right(None)
