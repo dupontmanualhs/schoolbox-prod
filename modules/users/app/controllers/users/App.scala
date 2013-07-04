@@ -27,12 +27,10 @@ class App @Inject()(implicit config: Config) extends Controller {
     def fields = List(username, password)
 
     override def validate(vb: ValidBinding): ValidationError = {
-      DataStore.execute { pm =>
         User.authenticate(vb.valueOf(username), vb.valueOf(password)) match {
           case None => ValidationError("Incorrect username or password.")
           case Some(user) => ValidationError(Nil)
         }
-      }
     }
   }
 
@@ -82,7 +80,7 @@ class App @Inject()(implicit config: Config) extends Controller {
   }
 
   class ChooseRoleForm(visit: Visit) extends Form {
-    val role = new ChoiceField("role", visit.user.get.roles.toList.map(p => (p.displayNameWithRole, p)))
+    val role = new ChoiceField("role", visit.user.get.roles.map(p => (p.displayNameWithRole, p)))
 
     def fields = List(role)
   }
@@ -100,17 +98,16 @@ class App @Inject()(implicit config: Config) extends Controller {
   def chooseRoleP() = Authenticated { implicit req =>
       val form = new ChooseRoleForm(req.visit)
       Binding(form, req) match {
-        case ib: InvalidBinding => Ok(html.users.chooseRole(ib))
+        case ib: InvalidBinding => Ok(templates.users.ChooseRole(config.mainTemplate, ib))
         case vb: ValidBinding => {
           req.visit.role = Some(vb.valueOf(form.role))
-          req.visit.permissions = visit.role.map(_.permissions).getOrElse(Set())
+          req.visit.permissions = req.visit.role.map(_.permissions).getOrElse(Set())
           req.visit.updateMenu
-          pm.makePersistent(req.visit)
+          DataStore.pm.makePersistent(req.visit)
         Redirect(req.visit.redirectUrl.getOrElse(config.defaultCall)).flashing("message" -> "You have successfully logged in.")
         }
       }
     }
-  }
 
   /**
    * regex: logout
@@ -212,6 +209,6 @@ class App @Inject()(implicit config: Config) extends Controller {
    */
   def list = PermissionRequired(User.Permissions.ListAll) { implicit request =>
     val cand = QUser.candidate
-    Ok(html.users.list(DataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
+    Ok(templates.users.ListUsers(config.mainTemplate, DataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
   }
 }

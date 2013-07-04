@@ -1,17 +1,18 @@
 package controllers.users
 
+import play.api.mvc.{ Action, AnyContent, BodyParser, BodyParsers, Request, Result, Results }
 import javax.jdo.JDOHelper
-import play.api.mvc._
 import scalajdo.DataStore
-import forms.Method
-import models.users.{ Role, Visit }
+import models.users.Visit
+import play.api.mvc.WrappedRequest
+import models.users.Role
+import models.users.Permission
+import scala.reflect.ClassTag
 import config.users.Config
+import forms.{ Call, Method }
 
-class VisitRequest[A](val visit: Visit, private val request: Request[A]) extends WrappedRequest(request)
-
-object VisitRequest {
-  def apply[A](visit: Visit, request: Request[A]) = new VisitRequest(visit, request)
-}
+case class VisitRequest[A](visit: Visit, private val request: Request[A])
+  extends WrappedRequest(request)
 
 // TODO: we need a cache system
 object VisitAction {
@@ -70,3 +71,79 @@ object Authenticated {
     }
   }
 }
+
+object PermissionRequired {
+  import MustPassTest.Test
+  
+  private[this] def permission2Test[A](permission: Permission): Test[A] = {
+    (req: AuthenticatedRequest[A]) => req.visit.permissions.contains(permission)
+  }
+  
+  def apply(permission: Permission)(block: AuthenticatedRequest[AnyContent] => Result)(implicit config: Config): Action[AnyContent] = {
+    TestAction.apply(permission2Test[AnyContent](permission), block)
+  }
+  
+  def apply[A](permission: Permission, p: BodyParser[A])(block: AuthenticatedRequest[A] => Result)(implicit config: Config): Action[A] = {
+    TestAction.apply[A](permission2Test[A](permission), p, block)
+  }
+}
+  
+object RoleMustPass {
+  import MustPassTest.Test
+  type RoleTest = (Role => Boolean)
+  
+  private[this] def roleTest2Test[A](roleTest: RoleTest): Test[A] = {
+    (req: AuthenticatedRequest[A]) => roleTest(req.role)
+  }
+  
+  def apply(roleTest: RoleTest, block: => Result)(implicit config: Config): Action[AnyContent] = {
+    TestAction.apply(roleTest2Test[AnyContent](roleTest), block)
+  }
+  
+  def apply(roleTest: RoleTest, block: AuthenticatedRequest[AnyContent] => Result)(implicit config: Config): Action[AnyContent] = {
+    TestAction.apply(roleTest2Test[AnyContent](roleTest), block)
+  }
+  
+  def apply[A](roleTest: RoleTest, p: BodyParser[A], block: AuthenticatedRequest[A] => Result)(implicit config: Config): Action[A] = {
+    TestAction.apply[A](roleTest2Test[A](roleTest), p, block)
+  }
+}
+  
+object MustPassTest {
+  type Test[A] = (AuthenticatedRequest[A] => Boolean)
+
+  def apply(test: Test[AnyContent])(block: => Result)(implicit config: Config): Action[AnyContent] = {
+    TestAction.apply(test, block)
+  }
+  
+  def apply(test: Test[AnyContent])(block: AuthenticatedRequest[AnyContent] => Result)(implicit config: Config): Action[AnyContent] = {
+    TestAction.apply(test, block)   
+  }
+  
+  def apply[A](test: Test[A])(p: BodyParser[A])(f: AuthenticatedRequest[A] => Result)(implicit config: Config): Action[A] = {
+    TestAction.apply[A](test, p, f)
+  }
+}
+
+private[users] object TestAction {
+  import MustPassTest.Test
+  
+  def apply(test: Test[AnyContent], block: => Result)(implicit config: Config): Action[AnyContent] = {
+    apply[AnyContent](test, BodyParsers.parse.anyContent, (_: AuthenticatedRequest[AnyContent]) => block)
+  }
+  
+  def apply(test: Test[AnyContent], block: AuthenticatedRequest[AnyContent] => Result)(implicit config: Config): Action[AnyContent] = {
+    apply[AnyContent](test, BodyParsers.parse.anyContent, block)    
+  }
+  
+  def apply[A](test: Test[A], p: BodyParser[A], f: AuthenticatedRequest[A] => Result)(implicit config: Config): Action[A] = {
+    Authenticated(p) { req => 
+      if (test(req)) f(req)
+      else Results.Forbidden("You are not authorized to view this page.")
+    }
+  }
+  
+}
+
+
+

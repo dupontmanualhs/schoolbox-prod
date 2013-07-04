@@ -25,10 +25,10 @@ class Teacher extends Role {
     _stateId = stateId
   }
   
-  def allStudents(term: Term): List[Student] = {
+  /*def allStudents(term: Term): List[Student] = {
     //TODO
     Nil
-  }
+  }*/
 
   def role = "Teacher"    
 }
