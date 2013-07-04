@@ -9,7 +9,7 @@ abstract class BaseFileField[T](name: String)(implicit man: Manifest[T]) extends
   
   def asValue(s: Seq[String]): Either[ValidationError, T] = Left(ValidationError("How did you even???"))
   
-  def validate(files: Seq[FilePart[_]]): Either[ValidationError, Seq[FilePart[_]]] = Right(files)
+  def validate(files: Seq[FilePart[_]]): Either[ValidationError, Seq[FilePart[_]]] = if(required && files.isEmpty) Left(ValidationError("This field is required.")) else Right(files)
   
   def cleanFiles(files: Seq[FilePart[_]]): Either[ValidationError, T]
   
