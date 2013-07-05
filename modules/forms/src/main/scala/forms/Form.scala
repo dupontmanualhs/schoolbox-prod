@@ -1,7 +1,12 @@
 package forms
 
 import scala.xml._
-import scala.xml.NodeSeq.seqToNodeSeq
+import forms.fields._
+import forms.widgets.Widget
+import forms.validators.ValidationError
+import play.api.mvc.Request
+import play.api.templates.Html
+import scala.reflect.runtime.universe._
 
 import fields._
 import validators.ValidationError
@@ -27,9 +32,8 @@ abstract class Form {
       
   def render(bound: Binding, overrideSubmit: Option[FormCall]=None, legend: Option[String]=None): NodeSeq = {
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
-    this.scripts ++
-    <form method={ method.forForm } action={ action.map(Text(_)) } class="form-horizontal well span7 offset1" >
-      <fieldset>
+    <form method={ method.forForm } action={ action.map(Text(_)) } enctype={if(fields.map(x => x match{ case f:BaseFileField[_] => true; case _ => false }).contains(true)) "multipart/form-data" else "application/x-www-form-urlencoded"} class="form-horizontal well offset1 span7" >
+    	<fieldset>
     	{this.scripts}
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
         { bound.formErrors.render }
@@ -55,7 +59,9 @@ abstract class Form {
       }
     </div>
   }
-        
+  
+  def requiresMultipartData: Boolean = fields.exists(_.requiresMultipartData)
+  
   def addPrefix(fieldName: String): String = {
     prefix.map(p => "%s-%s".format(p, fieldName)).getOrElse(fieldName)
   }

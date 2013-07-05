@@ -21,6 +21,7 @@
 	  			<td>@slot.phone</td>
 	  			@if(slot.alternatePhone != None)  { <td>@slot.alternatePhone.get</td> }
 	  			@if(slot.comment != None)  { <td>@slot.comment.get</td> }
+	  			<td><a href="@routes.Conferences.deleteSlot(slot.id)">Delete</a></td>
 	  		</tr>
 	  	}
 	  </table>
@@ -35,7 +36,7 @@
 						<td>@student.user.displayName</td>
 						<td>@student.grade</td>
 						<td>@student.user.email</td>
-						<td><a href="@routes.Conferences.createSlot(session.id, req.role.id)">Schedule a conference</a></td>
+						<td><a href="@routes.Conferences.createSlot(session.id, student.id, req.role.id)">Schedule a conference</a></td>
 					</tr>
 				}
 			</table></tr>
