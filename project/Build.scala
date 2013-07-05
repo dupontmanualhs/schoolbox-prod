@@ -28,6 +28,11 @@ object ApplicationBuild extends Build {
       "com.google.inject" % "guice" % "3.0",
       "com.tzavellas" % "sse-guice" % "0.7.1")).dependsOn(
       forms, scalaJdo)
+      
+  val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
+    scalaVersion := "2.10.2",
+    javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
+    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo, users)
 
   val jsDependencies = Seq(
     "org.webjars" %% "webjars-play" % "2.1.0-2",
@@ -61,7 +66,7 @@ object ApplicationBuild extends Build {
       (scalaVersion := "2.10.2") +:
       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
-      Nucleus.settings): _*) dependsOn (scalaJdo, forms, users)
+      Nucleus.settings): _*) dependsOn (scalaJdo, forms, users, courses)
 }
 
 object Nucleus {
@@ -90,13 +95,21 @@ object Nucleus {
     //enhance in Config <<= (fullClasspath in Config, runner, streams).map{(cp, run, s) =>
      */
     enhance <<= Seq(compile in Compile).dependOn,
-    enhance in Config <<= (fullClasspath in Compile, classDirectory in Compile, classDirectory in (ApplicationBuild.users, Compile), runner, streams)
-      map { (cp, mainClasses, userClasses, run, s) =>
+    enhance in Config <<= 
+      (fullClasspath in Compile, 
+       classDirectory in Compile, 
+       classDirectory in (ApplicationBuild.users, Compile), 
+       classDirectory in (ApplicationBuild.courses, Compile),
+       runner, streams)
+      map { (cp, mainClasses, userClasses, courseClasses, run, s) =>
 
         // Properties
         val classpath = cp.files
+        enhanceClasses(run, classpath, userClasses, s)
+        enhanceClasses(run, classpath, courseClasses, s)
+        enhanceClasses(run, classpath, mainClasses, s)
 
-        // the classpath is attributed, we only want the files
+        /*// the classpath is attributed, we only want the files
         //val classpath = cp.files
         // the options passed to the Enhancer... 
         val mainOptions = Seq("-v") ++ findAllClassesRecursively(mainClasses).map(_.getAbsolutePath)
@@ -109,8 +122,14 @@ object Nucleus {
         val userOptions = Seq("-v") ++ findAllClassesRecursively(userClasses).map(_.getAbsolutePath)
         
         val usersResult = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, userOptions, s.log)
-        usersResult.foreach(sys.error)    
+        usersResult.foreach(sys.error) */   
       })
+      
+  def enhanceClasses(runner: ScalaRun, classpath: Seq[File], classes: File, streams: TaskStreams) = {
+    val options = Seq("-v") ++ findAllClassesRecursively(classes).map(_.getAbsolutePath)
+    val result = runner.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, options, streams.log)
+    result.foreach(sys.error)
+  }
 
       
   def findAllClassesRecursively(dir: File): Seq[File] = {

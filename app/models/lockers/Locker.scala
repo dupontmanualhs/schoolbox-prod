@@ -3,7 +3,7 @@ package models.lockers
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import models.users._
+import models.courses.Student
 import util.Helpers._
 import scala.xml._
 

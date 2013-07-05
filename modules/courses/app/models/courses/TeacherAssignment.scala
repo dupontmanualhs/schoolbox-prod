@@ -1,7 +1,6 @@
 package models.courses
 
 import javax.jdo.annotations._
-import models.users.Teacher
 import org.joda.time._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._

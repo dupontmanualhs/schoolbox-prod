@@ -5,8 +5,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.PersistableFile
-import models.courses.Section
-import models.users.Student
+import models.courses.{ Section, Student }
 import scalajdo.DataStore
 import org.joda.time.{ LocalDate, LocalDateTime }
 

@@ -1,7 +1,7 @@
 package models.conferences
 
 import models.conferences._
-import models.users._
+import models.courses._
 import org.joda.time.{ LocalDate, LocalDateTime, LocalTime }
 import org.scalatest.FunSuite
 import models.users.Gender

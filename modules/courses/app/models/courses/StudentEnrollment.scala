@@ -2,7 +2,6 @@ package models.courses
 
 import javax.jdo.annotations._
 import org.joda.time.{LocalDate, DateTime}
-import models.users.Student
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 

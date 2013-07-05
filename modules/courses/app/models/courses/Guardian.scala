@@ -1,9 +1,12 @@
-package models.users
+package models.courses
 
 import scala.collection.JavaConverters._
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import models.users.QRole
+import models.users.Role
+import models.users.User
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)

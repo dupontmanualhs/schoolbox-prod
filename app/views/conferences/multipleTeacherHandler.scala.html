@@ -1,4 +1,4 @@
-@(sessionId: Long, teachers: List[(models.users.Teacher, Option[models.conferences.TeacherActivation])])(implicit req: controllers.users.VisitRequest[_])
+@(sessionId: Long, teachers: List[(models.courses.Teacher, Option[models.conferences.TeacherActivation])])(implicit req: controllers.users.VisitRequest[_])
 
 @views.main("Choose a teacher") {
 	<h2>Choose a teacher to schedule</h2>

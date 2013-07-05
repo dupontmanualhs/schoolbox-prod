@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import models.users.Student
+import models.courses.Student
 import util.PersistableFile
 import org.joda.time.LocalDateTime
 

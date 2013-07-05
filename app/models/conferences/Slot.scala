@@ -1,7 +1,7 @@
 package models.conferences
 
 import javax.jdo.annotations._
-import models.users._
+import models.courses.{ Student, QStudent, Teacher, QTeacher}
 import java.sql.{ Date, Time }
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._

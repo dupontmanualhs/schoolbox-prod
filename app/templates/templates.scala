@@ -7,8 +7,7 @@ import config.users.MainTemplate
 
 object Main extends MainTemplate {
   def apply(pageTitle: String, extraScripts: STag*)(content: STag*)(implicit req: VisitRequest[_]): Html =
-    Html(
-      html(
+    Html(html(
         head(
           title(pageTitle),
           Theme.themePick(req.visit.user),

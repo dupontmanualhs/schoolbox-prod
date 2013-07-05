@@ -4,8 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.QueryClass
-import models.users.Student
-import models.users.Teacher
+import models.courses.{ Student, Teacher }
 
 @PersistenceCapable(detachable="true")
 class PriorityScheduling {

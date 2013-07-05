@@ -9,6 +9,7 @@ import com.itextpdf.text.pdf.{ Barcode128, Barcode, PdfContentByte, PdfWriter, B
 import com.itextpdf.text.{ BaseColor, Document, DocumentException, PageSize, Paragraph, Utilities }
 import scalajdo.DataStore
 import models.books._
+import models.courses.{ Student, QStudent }
 import models.users._
 import forms.fields._
 import forms.validators.Validator

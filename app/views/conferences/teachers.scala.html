@@ -1,4 +1,4 @@
-@(teacher: models.users.Teacher, events: List[models.conferences.Event], sessions: List[models.conferences.Session], sections: List[models.courses.Section], priorities: List[models.conferences.PriorityScheduling])(implicit req: controllers.users.VisitRequest[_])
+@(teacher: models.courses.Teacher, events: List[models.conferences.Event], sessions: List[models.conferences.Session], sections: List[models.courses.Section], priorities: List[models.conferences.PriorityScheduling])(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 

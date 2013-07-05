@@ -14,7 +14,6 @@ import models.mastery._
 import models.users._
 import scalajdo.{ DataStore, ScalaPersistenceManager }
 import models.users.Gender
-import models.users.Guardian
 import models.users.User
 
 import util.Helpers.{ isoDatetime, isoDate }
