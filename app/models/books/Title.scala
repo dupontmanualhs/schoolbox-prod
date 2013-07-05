@@ -6,6 +6,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.PersistableFile
 import scalajdo.DataStore
+import org.joda.time.LocalDateTime
 
 @PersistenceCapable(detachable = "true")
 class Title {
@@ -76,10 +77,13 @@ class Title {
 
   @Persistent
   @Column(allowsNull = "true")
-  private[this] var _lastModified: java.sql.Date = _
-  def lastModified: Option[java.sql.Date] = Option(_lastModified)
-  def lastModified_=(theLastModified: Option[java.sql.Date]) { _lastModified = theLastModified.getOrElse(null) }
-  def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
+  private[this] var _lastModified: java.sql.Timestamp = _
+  def lastModified: Option[LocalDateTime] = Option(_lastModified).map(LocalDateTime.fromDateFields(_))
+  def lastModified_=(theLastModified: Option[LocalDateTime]) { 
+    if (theLastModified.isDefined) lastModified_=(theLastModified.get)
+    else _lastModified = null
+  }
+  def lastModified_=(theLastModified: LocalDateTime) { _lastModified = new java.sql.Timestamp(theLastModified.toDate.getTime) }
 
   @Column(allowsNull = "true")
   private[this] var _image: String = _
@@ -88,7 +92,7 @@ class Title {
   def image_=(theImage: String) { _image = theImage }
 
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
-    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: LocalDateTime, image: Option[String] = None) = {
     this()
     name_=(name)
     author_=(author)

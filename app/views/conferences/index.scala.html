@@ -1,4 +1,4 @@
-@(events: List[models.conferences.Event], sessions: List[models.conferences.Session], slots: List[models.conferences.Slot])(implicit req: play.api.mvc.Request[_])
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session], slots: List[models.conferences.Slot])(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 

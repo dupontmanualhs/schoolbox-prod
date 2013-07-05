@@ -1,4 +1,4 @@
-@(sessionId: Long, table: List[xml.NodeSeq], hasEnrollments: Boolean, slots: List[models.conferences.Slot])(implicit req: play.api.mvc.Request[_])
+@(sessionId: Long, table: List[xml.NodeSeq], hasEnrollments: Boolean, slots: List[models.conferences.Slot])(implicit req: controllers.users.VisitRequest[_])
 
 @import controllers.Conferences
 @import util.Helpers._

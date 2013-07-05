@@ -17,6 +17,7 @@ object ApplicationBuild extends Build {
     libraryDependencies ++= Seq(
       "play" % "play_2.10" % "2.1.1",
       "javax.mail" % "mail" % "1.4.7",
+      "com.scalatags" % "scalatags_2.10" % "0.1.2",
       "org.scalatest" % "scalatest_2.10" % "2.0.M5b"))
 
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
@@ -25,8 +26,7 @@ object ApplicationBuild extends Build {
     scalacOptions ++= Seq("-deprecation", "-feature"),
     libraryDependencies ++= Seq(
       "com.google.inject" % "guice" % "3.0",
-      "com.tzavellas" % "sse-guice" % "0.7.1",
-      "com.scalatags" % "scalatags_2.10" % "0.1.2")).dependsOn(
+      "com.tzavellas" % "sse-guice" % "0.7.1")).dependsOn(
       forms, scalaJdo)
 
   val jsDependencies = Seq(
@@ -61,7 +61,7 @@ object ApplicationBuild extends Build {
       (scalaVersion := "2.10.2") +:
       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
-      Nucleus.settings): _*) dependsOn (forms, scalaJdo, users) aggregate (forms, scalaJdo, users)
+      Nucleus.settings): _*) dependsOn (scalaJdo, forms, users)
 }
 
 object Nucleus {

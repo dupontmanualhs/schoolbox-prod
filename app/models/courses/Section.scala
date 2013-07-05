@@ -6,7 +6,7 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.users.{ Student, Teacher }
 import scala.xml.NodeSeq
-import org.joda.time.LocalDate
+import org.joda.time.{ LocalDate, ReadablePartial }
 import models.grades._
 import models.users.{ Student, QStudent }
 
@@ -15,7 +15,7 @@ import scalajdo.DataStore
 import util.Helpers.LocalDateOrdering
 
 @PersistenceCapable(detachable = "true")
-class Section {
+class Section {  
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _

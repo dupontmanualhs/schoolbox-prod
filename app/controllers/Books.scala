@@ -14,10 +14,11 @@ import forms.fields._
 import forms.validators.Validator
 import forms.validators.ValidationError
 import forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
-
 import controllers.users.VisitAction
 import config.Config
 import com.google.inject.{ Inject, Singleton }
+import org.joda.time.LocalDateTime
+import org.joda.time.LocalDate
 
 @Singleton
 class Books @Inject()(implicit config: Config) extends Controller {
@@ -60,7 +61,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val t = new Title(vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author),
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages),
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true,
-          new java.sql.Date(new java.util.Date().getTime()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn) + ".jpg"))
+          LocalDateTime.now(), Some("public/images/books/" + vb.valueOf(TitleForm.isbn) + ".jpg"))
         pm.makePersistent(t)
 
         vb.valueOf(TitleForm.imageUrl) match {
@@ -195,7 +196,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
                 if (cpy.isCheckedOut) {
                   Redirect(routes.Books.checkout()).flashing("error" -> "Copy already checked out")
                 } else {
-                  val c = new Checkout(stu, cpy, new java.sql.Date(new java.util.Date().getTime()), null)
+                  val c = new Checkout(stu, cpy, LocalDate.now(), null)
                   pm.makePersistent(c)
                   Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
                 }
@@ -341,7 +342,8 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val checkedOutCopies: Vector[String] = copies.filter(c => Copy.getByBarcode(c).get.isCheckedOut)
 
     if (checkedOutCopies.isEmpty) {
-      copies.foreach(c => DataStore.pm.makePersistent(new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, new java.sql.Date(new java.util.Date().getTime()), null)))
+      copies.foreach(c => DataStore.pm.makePersistent(
+          new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, LocalDate.now(), null)))
       val mes = copies.length + " copie(s) successfully checked out to " + Student.getByStateId(stu).get.displayName
       request.visit.set("checkoutList", Vector[String]())
       Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)
@@ -380,7 +382,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
             pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
               case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
               case Some(currentCheckout) => {
-                currentCheckout.endDate = new java.sql.Date(new java.util.Date().getTime())
+                currentCheckout.endDate = LocalDate.now()
                 pm.makePersistent(currentCheckout)
                 Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
               }
@@ -763,7 +765,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         title.numPages = vb.valueOf(f.numPages)
         title.dimensions = vb.valueOf(f.dimensions)
         title.weight = vb.valueOf(f.weight)
-        title.lastModified = new java.sql.Date(new java.util.Date().getTime())
+        title.lastModified = LocalDateTime.now
         DataStore.pm.makePersistent(title)
 
         vb.valueOf(f.imageUrl) match {
@@ -1049,7 +1051,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
               pm.makePersistent(c)
             }
             case Some(ch) => {
-              ch.endDate = new java.sql.Date(new java.util.Date().getTime())
+              ch.endDate = LocalDate.now()
               pm.makePersistent(ch)
               c.deleted = true
               pm.makePersistent(c)

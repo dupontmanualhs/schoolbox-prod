@@ -1,4 +1,4 @@
-@(slots: List[models.conferences.Slot], session: models.conferences.Session, sections: List[models.courses.Section], activated: Option[models.conferences.TeacherActivation])(implicit req: play.api.mvc.Request[_])
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, sections: List[models.courses.Section], activated: Option[models.conferences.TeacherActivation])(implicit req: controllers.users.AuthenticatedRequest[_])
 
 @import util.Helpers._
 @import models.users.User
@@ -35,7 +35,7 @@
 						<td>@student.user.displayName</td>
 						<td>@student.grade</td>
 						<td>@student.user.email</td>
-						<td><a href="@routes.Conferences.createSlot(session.id, Teacher.getByUsername(User.current.get.username).get.id)">Schedule a conference</a></td>
+						<td><a href="@routes.Conferences.createSlot(session.id, req.role.id)">Schedule a conference</a></td>
 					</tr>
 				}
 			</table></tr>

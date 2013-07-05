@@ -5,10 +5,10 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import scalajdo.DataStore
-
 import util.PersistableFile
 import models.courses.Section
 import models.users.Role
+import org.joda.time.LocalDateTime
 
 @PersistenceCapable(detachable="true")
 class Announcement {
@@ -30,8 +30,8 @@ class Announcement {
   
   @Persistent(defaultFetchGroup="true")
   private[this] var _timestamp: java.sql.Timestamp = _
-  def timestamp: java.sql.Timestamp = _timestamp
-  def timestamp_=(theTimestamp: java.sql.Timestamp) { _timestamp = theTimestamp }
+  def timestamp: LocalDateTime = LocalDateTime.fromDateFields(_timestamp)
+  def timestamp_=(theTimestamp: LocalDateTime) { _timestamp = new java.sql.Timestamp(theTimestamp.toDate.getTime) }
   
   @Column(jdbcType="CLOB")
   private[this] var _text: String = _
@@ -40,7 +40,7 @@ class Announcement {
   
   // TODO: attachments?
     
-  def this(theAuthor: Role, theSection: Section, theTimestamp: java.sql.Timestamp, theText: String) {
+  def this(theAuthor: Role, theSection: Section, theTimestamp: LocalDateTime, theText: String) {
     this()
     author_=(theAuthor)
     section_=(theSection)

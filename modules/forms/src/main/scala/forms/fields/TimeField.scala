@@ -1,63 +1,49 @@
 package forms.fields
 
+import scala.reflect.runtime.universe.TypeTag
+
+import org.joda.time.LocalTime
+import org.joda.time.format.{ DateTimeFormat, DateTimeFormatter, DateTimeFormatterBuilder }
+
 import forms.validators.ValidationError
-import java.sql.Time
 import forms.widgets.TimeInput
 
-abstract class BaseTimeField[T](name: String)(implicit man: Manifest[T]) extends Field[T](name) {
-  
+abstract class BaseTimeField[T](name: String, parser: DateTimeFormatter = BaseTimeField.defaultParser)(implicit tag: TypeTag[T])
+    extends Field[T](name) {  
   override def widget = new TimeInput(required)
 }
 
-class TimeField(name: String) extends BaseTimeField[Time](name) {
- 
-  def asValue(s: Seq[String]): Either[ValidationError, Time] =
-    try {
-      val splitString = s(0).split(" ")
-      val splitTime = splitString(0).split(":")
-      splitString(1)=splitString(1).capitalize
-      
-      var hours = splitTime(0).toInt
-      if (hours > 12) Left(ValidationError("Please make sure you input a valid time."))
-      else if (splitTime(1).toInt > 59) Left(ValidationError("Please make sure input is a valid time."))
-      else {
-        if (hours == 12 && splitString(1) == "AM") hours = 0
-        if (splitString(1) == "PM" && hours != 12) hours = hours + 12
-      
-        splitTime(0) = hours.toString
-        Right(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00"))
-      }
-    } catch {
-      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is a valid time"))
-      case t: Throwable => Left(ValidationError("Please make sure input is a valid time."))
+object BaseTimeField {
+  // require hours, minutes, and either am/AM or pm/PM; seconds and a space before AM/PM are optional
+  val defaultFormats = List("h:mma", "h:mm a", "h:mm:ssa", "h:mm:ss a")
+  val defaultParser: DateTimeFormatter = {
+    val p = new DateTimeFormatterBuilder()
+    defaultFormats.foreach { f =>
+      p.append(DateTimeFormat.forPattern(f))
     }
+    p.toFormatter()
+  }
+  
+  def asValue(time: String, parser: DateTimeFormatter): Either[ValidationError, LocalTime] = {
+    try {
+      Right(parser.parseLocalTime(time))
+    } catch {
+      // TODO: error message should be based on formats provided
+      case e: IllegalArgumentException => Left(ValidationError(s"Check your time format; '12:30 PM' is a correct time."))
+    } 
+  }
 }
 
-class TimeFieldOptional(name: String) extends BaseTimeField[Option[Time]](name) {
+class TimeField(name: String, parser: DateTimeFormatter = BaseTimeField.defaultParser) extends BaseTimeField[LocalTime](name, parser) {
+ 
+  def asValue(s: Seq[String]): Either[ValidationError, LocalTime] = BaseTimeField.asValue(s(0), parser)
+}
+
+class TimeFieldOptional(name: String, parser: DateTimeFormatter = BaseTimeField.defaultParser) extends BaseTimeField[Option[LocalTime]](name) {
   override def required = false
   
-  def asValue(s: Seq[String]): Either[ValidationError, Option[Time]] =
-    s match {
-    case Seq() => Right(None)
-    case Seq(str) => try {
-      val splitString = s(0).split(" ")
-      val splitTime = splitString(0).split(":")
-      splitString(1)=splitString(1).capitalize
-      
-      var hours = splitTime(0).toInt
-      if (hours > 12) Left(ValidationError("Please make sure input is a valid time."))
-      else {
-    	if (hours == 12 && splitString(1) == "AM") hours = 0
-    	if (splitString(1) == "PM" && hours != 12) hours = hours + 12
-      
-    	splitTime(0) = hours.toString
-    	Right(Option(Time.valueOf(splitTime(0) + ":" + splitTime(1) + ":00")))
-      }
-    } catch {
-      case e: IllegalArgumentException => Left(ValidationError("Please make sure input is a valid time."))
-      case t: Throwable => Left(ValidationError("Please make sure input is a valid time."))
-    }
-      
-    }
-  
+  def asValue(s: Seq[String]): Either[ValidationError, Option[LocalTime]] = {
+    if (s.isEmpty) Right(None)
+    else BaseTimeField.asValue(s(0), parser).fold(Left(_), (lt: LocalTime) => Right(Some(lt)))
+  }
 }

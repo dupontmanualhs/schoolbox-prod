@@ -4,6 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.Student
+import org.joda.time.LocalDate
 
 @PersistenceCapable(detachable="true")
 class Checkout {
@@ -24,20 +25,28 @@ class Checkout {
 
   @Persistent
   private[this] var _startDate: java.sql.Date = _
-  def startDate: java.sql.Date = _startDate
-  def startDate_=(theStartDate: java.sql.Date) { _startDate = theStartDate }
+  def startDate: Option[LocalDate] = Option(_startDate).map(d => LocalDate.fromDateFields(d))
+  def startDate_=(theStartDate: Option[LocalDate]) {
+    if (theStartDate.isDefined) startDate_=(theStartDate.get)
+    else _startDate = null
+  }
+  def startDate_=(theStartDate: LocalDate) { _startDate = new java.sql.Date(theStartDate.toDateTimeAtStartOfDay.getMillis) }
 
   @Persistent
   private[this] var _endDate: java.sql.Date = _
-  def endDate: java.sql.Date = _endDate
-  def endDate_=(theEndDate: java.sql.Date) { _endDate = theEndDate }
+  def endDate: Option[LocalDate] = Option(_endDate).map(d => LocalDate.fromDateFields(d))
+  def endDate_=(theEndDate: Option[LocalDate]) { 
+    if (theEndDate.isDefined) endDate_=(theEndDate.get)
+    else _endDate = null
+  }
+  def endDate_=(theEndDate: LocalDate) { _endDate = new java.sql.Date(theEndDate.toDateTimeAtStartOfDay.getMillis) }
   
-  def this(student: Student, copy: Copy, startDate: java.sql.Date, endDate: java.sql.Date) = {
+  def this(theStudent: Student, theCopy: Copy, theStartDate: LocalDate, theEndDate: LocalDate) = {
     this()
-    _student = student
-    _copy = copy
-    _startDate = startDate
-    _endDate = endDate
+    student_=(theStudent)
+    copy_=(theCopy)
+    startDate_=(theStartDate)
+    endDate_=(theEndDate)
   }
 
   override def toString: String = {

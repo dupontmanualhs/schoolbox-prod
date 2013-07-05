@@ -3,26 +3,29 @@ package forms.widgets
 import scala.xml._
 import java.util.UUID
 import forms.validators.ValidationError
-import java.sql.Date
+
+import scalatags._
 
 class DateInput(
   required: Boolean,
   attrs: MetaData = Null,
   uuid: UUID) extends Widget(required, attrs) {
   
-  val Name:String = uuid.toString
+  val theUuid: String = uuid.toString
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
-<input type="text" name={ name } placeholder="mm/dd/yyyy" class={"datepicker"+ Name+" datepicker"} value={ if (value.isEmpty) "" else value(0) }></input> % attrs % reqAttr % attrList ++    <input disabled="true" style="background-color: #C0C0C0" name={ Name } is={ Name } placeholder="DD, d MM, yy" class={ Name +" datepicker" } size="30" type="text"/>
+    val theValue = if (value.isEmpty) "" else value(0)
+    input.ctype("text").name(name).placeholder("mm/dd/yyyy").cls(s"datepicker${theUuid}", "datepicker").value(theValue).toXML % attrs % reqAttr % attrList ++
+    input.ctype("text").style("background-color" -> "#C0C0C0").name(theUuid).placeholder("DD, d MM, yy").cls(theUuid, "datepicker").attr("disabled" -> "true", "is" -> theUuid, "size" -> "30").toXML
   }
   
   override def scripts: NodeSeq =
-    <script>
-	$(function() {{
-      $('.datepicker{Name}').datepicker({{
+    Seq(script.ctype("text/javascript")(
+    s"""$$(function() {{
+      $$('.datepicker${theUuid}').datepicker({{
 		  changeMonth: true,
   		  changeYear: true,
-  		  altField: '.{Name}',
+  		  altField: '.${theUuid}',
   		  altFormat: 'DD, d MM, yy',
   		  showOtherMonths: true,
   		  selectOtherMonths: true,
@@ -32,11 +35,9 @@ class DateInput(
   		  shortYearCutoff: 99,
   		  buttonText: 'Chooser'
       }});
-    }});
-</script><script type="text/javascript">
-	jQuery(function($){{
-		$('.datepicker').mask('99/99/99?99',{{placeholder:'_'}});
-  	}});
-  </script>
-
+    }});"""),
+    script.ctype("text/javascript")(
+	"""jQuery(function($$){{
+		$$('.datepicker').mask('99/99/99?99',{{placeholder:'_'}});
+  	}});""")).toXML
 }

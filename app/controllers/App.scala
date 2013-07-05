@@ -26,7 +26,7 @@ class App @Inject()(implicit config: Config) extends Controller {
     val ChoiceField = new ChoiceFieldOptional("Choice", List(("hi", "hi"), ("bye", "bye")))
     val DateField = new DateFieldOptional("Date")
     val TimeField = new TimeFieldOptional("Time")
-    val TimestampField = new TimestampFieldOptional("Timestamp")
+    val TimestampField = new DateTimeFieldOptional("Timestamp")
     val EmailField = new EmailFieldOptional("Email")
     val NumericField = new NumericFieldOptional[Double]("Double")
     val PasswordField = new PasswordFieldOptional("Password")

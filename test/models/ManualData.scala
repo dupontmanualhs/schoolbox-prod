@@ -3,7 +3,7 @@ package models
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import xml.{ Node, NodeSeq, Elem, XML }
-import org.joda.time.LocalDate
+import org.joda.time.{ LocalDate, LocalDateTime }
 import org.joda.time.format.DateTimeFormat
 import org.apache.poi.ss.usermodel.{ Sheet, Row, WorkbookFactory }
 import models.users._
@@ -24,6 +24,7 @@ import models.blogs.Blog
 import scalajdo.DataStore
 import models.users.Gender
 import models.users.User
+import org.joda.time.format.DateTimeFormatter
 
 object ManualData {
   val netIdMap: Map[String, String] = buildNetIdMap()
@@ -312,27 +313,19 @@ object ManualData {
     }
   }
 
-  def asDate(s: String, df: DateFormat): java.sql.Date = {
-    try {
-      new java.sql.Date(df.parse(s).getTime)
-    } catch {
-      case e: ParseException => null.asInstanceOf[java.sql.Date]
-    }
-  }
-
   def asOptionString(s: String): Option[String] = {
     if (s.trim() == "") None else Some(s.trim())
   }
 
   def loadTitles(titles: NodeSeq, debug: Boolean = false): mutable.Map[Long, Long] = {
-    val df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    val df = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS")
     val titleIdMap = mutable.Map[Long, Long]()
     DataStore.withTransaction { implicit pm =>
       for (t <- (titles \ "title")) {
         val djId = (t \ "id").text.toLong
         val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
           Option(asInt((t \ "numPages").text)), asOptionString((t \ "dimensions").text), Option(asDouble((t \ "weight").text)),
-          (t \ "verified").text.toBoolean, asDate((t \ "lastModified").text, df), asOptionString((t \ "image").text))
+          (t \ "verified").text.toBoolean, df.parseLocalDateTime((t \ "lastModified").text), asOptionString((t \ "image").text))
         if (debug) println("Adding title: %s...".format(title.name))
         pm.makePersistent(title)
         titleIdMap += (djId -> title.id)
@@ -342,13 +335,13 @@ object ManualData {
   }
 
   def loadPurchaseGroups(pgs: NodeSeq, titleIdMap: mutable.Map[Long, Long], debug: Boolean = false): mutable.Map[Long, Long] = {
-    val df = new SimpleDateFormat("yyyy-MM-dd")
+    val df = DateTimeFormat.forPattern("yyyy-MM-dd")
     val pgIdMap = mutable.Map[Long, Long]()
     DataStore.withTransaction { implicit pm =>
       for (pg <- (pgs \ "purchaseGroup")) {
         val djId = (pg \ "id").text.toLong
         val title = Title.getById(titleIdMap((pg \ "titleId").text.toLong)).get
-        val purchaseGroup = new PurchaseGroup(title, asDate((pg \ "purchaseDate").text, df), asDouble((pg \ "price").text))
+        val purchaseGroup = new PurchaseGroup(title, df.parseLocalDate((pg \ "purchaseDate").text), asDouble((pg \ "price").text))
         if (debug) println("Adding purchase group: %s...".format(purchaseGroup))
         pm.makePersistent(purchaseGroup)
         pgIdMap += (djId -> purchaseGroup.id)
@@ -373,7 +366,7 @@ object ManualData {
   }
 
   def loadCheckouts(checkouts: NodeSeq, copyIdMap: mutable.Map[Long, Long], debug: Boolean = false) {
-    val df = new SimpleDateFormat("yyyy-MM-dd")
+    val df = DateTimeFormat.forPattern("yyyy-MM-dd")
     // only loads items checked out to students in the db; older students aren't included
     DataStore.withTransaction { implicit pm =>
       for (co <- (checkouts \ "checkout")) {
@@ -383,11 +376,11 @@ object ManualData {
             val copy = Copy.getById(copyIdMap((co \ "copyId").text.toLong)).get
             val startDate = (co \ "startDate").text match {
               case "None" => null
-              case s: String => asDate(s, df)
+              case s: String => df.parseLocalDate(s)
             }
             val endDate = (co \ "endDate").text match {
               case "None" => null
-              case s: String => asDate(s, df)
+              case s: String => df.parseLocalDate(s)
             }
             val checkout = new Checkout(student, copy, startDate, endDate)
             if (debug) println("Adding checkout: %s".format(checkout))

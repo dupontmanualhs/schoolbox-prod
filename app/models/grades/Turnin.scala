@@ -4,9 +4,9 @@ import java.sql.Timestamp
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-
 import models.users.Student
 import util.PersistableFile
+import org.joda.time.LocalDateTime
 
 @PersistenceCapable(detachable = "true")
 class Turnin {
@@ -17,8 +17,8 @@ class Turnin {
 
   @Persistent(defaultFetchGroup = "true")
   private[this] var _timestamp: java.sql.Timestamp = _
-  def date: java.sql.Timestamp = _timestamp
-  def date_=(theTimestamp: java.sql.Timestamp) { _timestamp = theTimestamp }
+  def date: LocalDateTime = LocalDateTime.fromDateFields(_timestamp)
+  def date_=(theTimestamp: LocalDateTime) { _timestamp = new java.sql.Timestamp(theTimestamp.toDate.getTime) }
 
   @Persistent(defaultFetchGroup = "true")
   private[this] var _assignment: Assignment = _
@@ -34,9 +34,10 @@ class Turnin {
   def points: Double = _points
   def points_=(thePoints: Double) { _points = thePoints }
 
-  def this(theStudent: Student, theTimestamp: java.sql.Timestamp, theAssignment: Assignment, thePoints: Double) {
+  def this(theStudent: Student, theTimestamp: LocalDateTime, theAssignment: Assignment, thePoints: Double) {
     this()
     student_=(theStudent)
+    date_=(theTimestamp)
     assignment_=(theAssignment)
     student_=(theStudent)
     points_=(thePoints)

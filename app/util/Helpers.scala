@@ -3,7 +3,8 @@ package util
 import xml.{Atom, Comment, Elem, MetaData, Node, NodeSeq, Text, XML}
 import java.util.Locale
 import views.html.helper.FieldConstructor
-import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{ LocalDate, LocalDateTime, LocalTime, ReadablePartial }
 import java.text.SimpleDateFormat
 import java.sql.Date
 import java.sql.Time
@@ -14,9 +15,24 @@ object Helpers {
     def compare(ld1: LocalDate, ld2: LocalDate) = ld1.compareTo(ld2)
   }
   
-  val date = new SimpleDateFormat("M/d/yyyy")
-  val time = new SimpleDateFormat("h:mm a")
-  val datetime = new SimpleDateFormat("M/d/yyyy' at 'h:mm a")
+  implicit object LocalTimeOrdering extends Ordering[LocalTime] {
+    def compare(lt1: LocalTime, lt2: LocalTime) = lt1.compareTo(lt2)
+  }
+  
+  implicit object LocalDateTimeOrdering extends Ordering[LocalDateTime] {
+    def compare(ldt1: LocalDateTime, ldt2: LocalDateTime) = ldt1.compareTo(ldt2)
+  }
+  
+  val date = DateTimeFormat.forPattern("M/d/yyyy")
+  val isoDate = DateTimeFormat.forPattern("yyyy-MM-dd")
+  val time = DateTimeFormat.forPattern("h:mm a")
+  val datetime = DateTimeFormat.forPattern("M/d/yyyy' at 'h:mm a")
+  val isoDatetime = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+  
+  def localTime2SqlTime(time: LocalTime): java.sql.Time = {
+    val millis = time.toDateTimeToday.withDate(1970, 1, 1).getMillis
+    new java.sql.Time(millis)
+  }
   
   def string2nodeSeq(legalNodeSeq: String): NodeSeq = {
     // TODO: this just crashes if someone passes in malformed XML

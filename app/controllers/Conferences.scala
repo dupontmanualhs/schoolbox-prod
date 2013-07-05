@@ -1,6 +1,6 @@
 package controllers
 
-import users.VisitAction
+import scala.xml.{ NodeSeq, Text }
 import models.users._
 import models.courses._
 import models.conferences._
@@ -11,16 +11,21 @@ import java.sql.Date
 import java.sql.Time
 import java.util.Date
 import java.sql.Timestamp
-
 import scalajdo.DataStore
 import forms.{ Form, Binding, ValidBinding, InvalidBinding }
 import play.api.mvc.Controller
 import config.Config
 import com.google.inject.{ Inject, Singleton }
-
+import controllers.users.{ Authenticated, RoleMustPass, VisitAction }
+import org.joda.time.LocalDate
+import org.joda.time.LocalDateTime
 
 @Singleton
 class Conferences @Inject()(implicit config: Config) extends Controller {
+  val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
+  import dateOrdering._
+  
+  
   def displayStub() = VisitAction { implicit req =>
     Ok(templates.Stub(templates.Main))
   }
@@ -117,7 +122,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
 
   object SessionForm extends Form {
     val date = new DateField("date")
-    val cutoff = new TimestampField("cutoff")
+    val cutoff = new DateTimeField("cutoff")
     //val priority = new TimestampFieldOptional("priority")
     val startTime = new TimeField("start time")
     val endTime = new TimeField("end time")
@@ -165,11 +170,10 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
 
   ////////////////////////////////////////////////////////Teacher View////////////////////////////////////////////////////////////////
 
-	def teacherView() = Action { implicit request =>
+	def teacherView() = RoleMustPass((role: Role) => role.isInstanceOf[Teacher]) { implicit request =>
 	  DataStore.execute { pm =>
-	  	val currUser = User.current
-	  	val teacher = Teacher.getByUsername(currUser.get.username)
-	  	val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher.get)).executeList()
+	    val teacher = request.role.asInstanceOf[Teacher]
+	  	val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher)).executeList()
 	  	val sections = teacherAssignments.map(tA => tA.section)
 	  	val events = pm.query[Event].executeList()
 	  	val sessions = pm.query[models.conferences.Session].executeList()
@@ -178,12 +182,11 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
 	}
 	
 
-  def teacherSession(sessionId: Long) = VisitAction { implicit request =>
+  def teacherSession(sessionId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit request =>
     DataStore.execute { pm =>
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
       val slots = pm.query[Slot].executeList()
-      val currUser = request.visit.user
-      val teacher = Teacher.getByUsername(currUser.get.username).get
+      val teacher = request.role.asInstanceOf[Teacher]
       val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher)).executeList()
 	  val sections = teacherAssignments.map(tA => tA.section)
       val cand = QTeacherActivation.candidate
@@ -243,7 +246,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
 
   def classList(sessionId: Long) = VisitAction { implicit request =>
     DataStore.execute { pm =>
-	  val currentUser = req.visit.user
+	  val currentUser = request.visit.user
 	  val student = Student.getByUsername(currentUser.get.username).get
 	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
 	  val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session).and(QSlot.candidate.student.eq(student))).executeList()
@@ -270,7 +273,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
     }
   }
   
-  def multipleTeacherHandler(sessionId: Long, sectionId: Long)= Action { implicit request =>
+  def multipleTeacherHandler(sessionId: Long, sectionId: Long)= VisitAction { implicit request =>
 	DataStore.execute { pm =>
 		val section = pm.query[Section].filter(QSection.candidate.id.eq(sectionId)).executeOption()
 		section match {
@@ -287,14 +290,11 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
 	}
   }
   
-  def slotHandler(sessionId: Long, teacherId: Long)= Action { implicit request =>
+  def slotHandler(sessionId: Long, teacherId: Long)= RoleMustPass(_.isInstanceOf[Student]) { implicit request =>
 	DataStore.execute  {  pm =>
-	    val dateOrdering = implicitly[Ordering[java.util.Date]]
-        import dateOrdering._
-	    val today = new java.util.Date()
-	  	val currentTime = new Timestamp(today.getTime())
-		val currentUser = User.current
-		val student = Student.getByUsername(currentUser.get.username).get
+	    val today = LocalDate.now()
+	  	val currentTime = LocalDateTime.now()
+	    val student = request.role.asInstanceOf[Student]
 		val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
 		val teacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption().get
 		val cand = QSlot.candidate
@@ -368,7 +368,4 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
       }
     }
   }
-  
-    val dateOrdering = implicitly[Ordering[java.util.Date]]
-    import dateOrdering._
 }

@@ -5,6 +5,8 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.PersistableFile
 
+import org.joda.time.LocalDate
+
 import scalajdo.DataStore
 
 @PersistenceCapable(detachable="true")
@@ -21,18 +23,18 @@ class PurchaseGroup {
 
   @Persistent
   private[this] var _purchaseDate: java.sql.Date = _
-  def purchaseDate: java.sql.Date = _purchaseDate
-  def purchaseDate_=(thePurchaseDate: java.sql.Date) { _purchaseDate = thePurchaseDate }
+  def purchaseDate: LocalDate = LocalDate.fromDateFields(_purchaseDate)
+  def purchaseDate_=(thePurchaseDate: LocalDate) { _purchaseDate = new java.sql.Date(thePurchaseDate.toDate().getTime()) }
 
   private[this] var _price: Double = _
   def price: Double = _price
   def price_=(thePrice: Double) { _price = thePrice }
 
-  def this(title: Title, purchaseDate: java.sql.Date, price: Double) = {
+  def this(theTitle: Title, thePurchaseDate: LocalDate, thePrice: Double) = {
     this()
-    _title = title
-    _purchaseDate = purchaseDate
-    _price = price
+    title_=(theTitle)
+    purchaseDate_=(thePurchaseDate)
+    price_=(thePrice)
   }
 
   override def toString: String = {

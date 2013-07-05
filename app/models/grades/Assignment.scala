@@ -8,6 +8,7 @@ import util.PersistableFile
 import models.courses.Section
 import models.users.Student
 import scalajdo.DataStore
+import org.joda.time.{ LocalDate, LocalDateTime }
 
 @PersistenceCapable(detachable = "true")
 class Assignment {
@@ -26,20 +27,20 @@ class Assignment {
 
   @Persistent(defaultFetchGroup="true")
   private[this] var _post: java.sql.Date = _
-  def post: java.sql.Date = _post
-  def post_=(thePost: java.sql.Date) { _post = thePost }
+  def post: LocalDate = LocalDate.fromDateFields(_post)
+  def post_=(thePost: LocalDate) { _post = new java.sql.Date(thePost.toDateTimeAtStartOfDay.getMillis) }
 
   @Persistent(defaultFetchGroup="true")
   private[this] var _due: java.sql.Timestamp = _
-  def due: java.sql.Timestamp = _due
-  def due_=(theDue: java.sql.Timestamp) { _due = theDue }
+  def due: LocalDateTime = LocalDateTime.fromDateFields(_due)
+  def due_=(theDue: LocalDateTime) { _due = new java.sql.Timestamp(theDue.toDate.getTime) }
 
   @Persistent(defaultFetchGroup="true")
   private[this] var _category: Category = _
   def category: Category = _category
   def category_=(theCategory: Category) { _category = theCategory }
 
-  def this(theName: String, thePoints: Int, thePost: java.sql.Date, theDue: java.sql.Timestamp, theCategory: Category) {
+  def this(theName: String, thePoints: Int, thePost: LocalDate, theDue: LocalDateTime, theCategory: Category) {
     this()
     name_=(theName)
     points_=(thePoints)
