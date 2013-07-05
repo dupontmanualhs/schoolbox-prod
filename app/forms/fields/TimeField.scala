@@ -34,8 +34,6 @@ class TimeField(name: String) extends BaseTimeField[Time](name) {
 }
 
 class TimeFieldOptional(name: String) extends BaseTimeField[Option[Time]](name) {
-  override def required = false
-  
   def asValue(s: Seq[String]): Either[ValidationError, Option[Time]] =
     s match {
     case Seq() => Right(None)

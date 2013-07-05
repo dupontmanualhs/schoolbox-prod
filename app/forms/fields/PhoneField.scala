@@ -25,8 +25,6 @@ class PhoneField(name: String) extends BasePhoneField[String](name) {
 }
 
 class PhoneFieldOptional(name: String) extends BasePhoneField[Option[String]](name) {
-  override def required = false
-
   def asValue(s: Seq[String]): Either[ValidationError, Option[String]] = {
     try {
       val splitPhone = s(0).split("-")

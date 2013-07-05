@@ -40,9 +40,11 @@ class TestWidgets extends FunSuite {
   }
   
   test("CheckboxInput widget") {
-    val cb = new CheckboxInput()
+    val cb = new CheckboxInput(false, List("true"))
     assert(cb.render("box", List("true")) ===
-      <input type="checkbox" name="box" checked="checked" />)
+      <fieldset name="box">
+        <input type="checkbox" name="box" checked="checked" />true<br/>
+      </fieldset>)
   }
   
   test("SelectInput widget") {

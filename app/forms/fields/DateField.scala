@@ -36,8 +36,6 @@ class DateField(name: String) extends BaseDateField[Date](name) {
 }
 
 class DateFieldOptional(name: String) extends BaseDateField[Option[Date]](name) {
-  override def required = false
-  
     def asValue(s: Seq[String]): Either[ValidationError, Option[Date]] =
     try {
       val format = new java.text.SimpleDateFormat("yyyy")

@@ -31,8 +31,6 @@ class TextField(name: String) extends BaseTextField[String](name) {
 }
 
 class TextFieldOptional(name: String) extends BaseTextField[Option[String]](name) {
-  override def required = false
-  
   def asValue(strs: Seq[String]): Either[ValidationError, Option[String]] = {
     strs match {
       case Seq() => Right(None)
