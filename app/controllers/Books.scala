@@ -61,7 +61,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val t = new Title(vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author),
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages),
           vb.valueOf(TitleForm.dimensions), vb.valueOf(TitleForm.weight), true,
-          LocalDateTime.now(), Some("public/images/books/" + vb.valueOf(TitleForm.isbn) + ".jpg"))
+          Some(LocalDateTime.now()), Some("public/images/books/" + vb.valueOf(TitleForm.isbn) + ".jpg"))
         pm.makePersistent(t)
 
         vb.valueOf(TitleForm.imageUrl) match {
@@ -196,7 +196,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
                 if (cpy.isCheckedOut) {
                   Redirect(routes.Books.checkout()).flashing("error" -> "Copy already checked out")
                 } else {
-                  val c = new Checkout(stu, cpy, LocalDate.now(), null)
+                  val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
                   pm.makePersistent(c)
                   Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
                 }
@@ -343,7 +343,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
 
     if (checkedOutCopies.isEmpty) {
       copies.foreach(c => DataStore.pm.makePersistent(
-          new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, LocalDate.now(), null)))
+          new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, Some(LocalDate.now()), None)))
       val mes = copies.length + " copie(s) successfully checked out to " + Student.getByStateId(stu).get.displayName
       request.visit.set("checkoutList", Vector[String]())
       Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)

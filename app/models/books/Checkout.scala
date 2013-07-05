@@ -41,7 +41,7 @@ class Checkout {
   }
   def endDate_=(theEndDate: LocalDate) { _endDate = new java.sql.Date(theEndDate.toDateTimeAtStartOfDay.getMillis) }
   
-  def this(theStudent: Student, theCopy: Copy, theStartDate: LocalDate, theEndDate: LocalDate) = {
+  def this(theStudent: Student, theCopy: Copy, theStartDate: Option[LocalDate], theEndDate: Option[LocalDate]) = {
     this()
     student_=(theStudent)
     copy_=(theCopy)

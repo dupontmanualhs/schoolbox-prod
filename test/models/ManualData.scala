@@ -316,6 +316,14 @@ object ManualData {
   def asOptionString(s: String): Option[String] = {
     if (s.trim() == "") None else Some(s.trim())
   }
+  
+  def asOptionDateTime[T](parseFunction: (String => T), str: String): Option[T] = {
+    try {
+      Some(parseFunction(str))
+    } catch {
+      case e: IllegalArgumentException => None
+    }
+  }
 
   def loadTitles(titles: NodeSeq, debug: Boolean = false): mutable.Map[Long, Long] = {
     val df = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS")
@@ -325,7 +333,7 @@ object ManualData {
         val djId = (t \ "id").text.toLong
         val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
           Option(asInt((t \ "numPages").text)), asOptionString((t \ "dimensions").text), Option(asDouble((t \ "weight").text)),
-          (t \ "verified").text.toBoolean, df.parseLocalDateTime((t \ "lastModified").text), asOptionString((t \ "image").text))
+          (t \ "verified").text.toBoolean, asOptionDateTime(df.parseLocalDateTime _, (t \ "lastModified").text), asOptionString((t \ "image").text))
         if (debug) println("Adding title: %s...".format(title.name))
         pm.makePersistent(title)
         titleIdMap += (djId -> title.id)
@@ -375,12 +383,12 @@ object ManualData {
           case Some(student) => {
             val copy = Copy.getById(copyIdMap((co \ "copyId").text.toLong)).get
             val startDate = (co \ "startDate").text match {
-              case "None" => null
-              case s: String => df.parseLocalDate(s)
+              case "None" => None
+              case s: String => Some(df.parseLocalDate(s))
             }
             val endDate = (co \ "endDate").text match {
-              case "None" => null
-              case s: String => df.parseLocalDate(s)
+              case "None" => None
+              case s: String => Some(df.parseLocalDate(s))
             }
             val checkout = new Checkout(student, copy, startDate, endDate)
             if (debug) println("Adding checkout: %s".format(checkout))
