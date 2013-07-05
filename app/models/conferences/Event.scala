@@ -34,7 +34,7 @@ trait QEvent extends PersistableExpression[Event] {
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
-  private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_id")
+  private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
   def name: StringExpression = _name
   
   private[this] lazy val _isActive: BooleanExpression = new BooleanExpressionImpl(this, "_isActive")
