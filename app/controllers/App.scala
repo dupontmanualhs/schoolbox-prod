@@ -64,13 +64,13 @@ class App @Inject()(implicit config: Config) extends Controller {
 
   }
 
-  /*def formTest() = Action { implicit req =>
-    Ok(views.html.formTester(Binding(FormTests)))
+  def formTest() = Action { implicit req =>
+    Ok(forms.views.html.formTester(Binding(FormTests)))
   }
 
   def formTestP() = Action { implicit req =>
     Binding(FormTests, req) match {
-      case ib: InvalidBinding => Ok(views.html.formTester(ib))
+      case ib: InvalidBinding => Ok(forms.views.html.formTester(ib))
       case vb: ValidBinding => {
         val TheChoice = vb.valueOf(FormTests.ChoiceField)
         val TheDate = vb.valueOf(FormTests.DateField)
@@ -92,7 +92,7 @@ class App @Inject()(implicit config: Config) extends Controller {
         Ok(views.html.showResults(ListOfStuff))
       }
     }
-  }*/
+  }
 }
 
 
