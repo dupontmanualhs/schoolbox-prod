@@ -23,11 +23,7 @@ object ApplicationBuild extends Build {
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature"),
-    libraryDependencies ++= Seq(
-      "org.webjars" %% "webjars-play" % "2.1.0-2",
-      "com.google.inject" % "guice" % "3.0",
-      "com.tzavellas" % "sse-guice" % "0.7.1")).dependsOn(
+    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(
       forms, scalaJdo)
       
   val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
