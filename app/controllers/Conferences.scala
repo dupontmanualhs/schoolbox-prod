@@ -15,6 +15,8 @@ import forms.validators.ValidationError
 import util.Helpers._
 import java.sql.Date
 import java.sql.Time
+import java.util.Date
+import java.sql.Timestamp
 
 import scalajdo.DataStore
 
@@ -28,7 +30,7 @@ object Conferences extends Controller {
       val currUser: Option[User] = User.current
       val events = pm.query[Event].executeList()
       val sessions = pm.query[models.conferences.Session].executeList()
-      Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username), events, sessions))
+      Redirect(routes.Conferences.teacherView())
     }
   }
 
@@ -48,14 +50,15 @@ object Conferences extends Controller {
           if (currUser.get.username == "736052" || currUser.get.username == "todd") {
             Ok(views.html.conferences.admin(events, sessions))
           } else if (Teacher.getByUsername(currUser.get.username).isDefined) {
-            Ok(views.html.conferences.teachers(Teacher.getByUsername(currUser.get.username), events, sessions))
+            Redirect(routes.Conferences.teacherView())
           } else {
             val currentUser = User.current
             val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username).isDefined
             if (!isStudent) {
               NotFound(views.html.notFound("Must be logged-in to get a conference"))
             } else {
-              Ok(views.html.conferences.index(events, sessions))
+              val slots = pm.query[Slot].filter(QSlot.candidate.student.eq(Student.getByUsername(currentUser.get.username).get)).executeList()
+              Ok(views.html.conferences.index(events, sessions, slots))
             }
           }
         }
@@ -163,13 +166,18 @@ object Conferences extends Controller {
 
   ////////////////////////////////////////////////////////Teacher View////////////////////////////////////////////////////////////////
 
-  /* TODO: Get a list of students that a teacher has
-	def teacherView(events: List[Event], sessions: List[Session]): DbAction { implicit request =>
-	  implicit val pm: ScalaPersistenceManager = request.pm
-	  val currUser = User.current
-	  val teacher = Teacher.getByUsername(currUser.get.username).get
+	def teacherView() = Action { implicit request =>
+	  DataStore.execute { pm =>
+	  	val currUser = User.current
+	  	val teacher = Teacher.getByUsername(currUser.get.username)
+	  	val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher.get)).executeList()
+	  	val sections = teacherAssignments.map(tA => tA.section)
+	  	val events = pm.query[Event].executeList()
+	  	val sessions = pm.query[models.conferences.Session].executeList()
+	  	Ok(views.html.conferences.teachers(teacher, events, sessions, sections))
+	  }
 	}
-	*/
+	
 
   def teacherSession(sessionId: Long) = Action { implicit request =>
     DataStore.execute { pm =>
@@ -177,11 +185,13 @@ object Conferences extends Controller {
       val slots = pm.query[Slot].executeList()
       val currUser = User.current
       val teacher = Teacher.getByUsername(currUser.get.username).get
+      val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher)).executeList()
+	  val sections = teacherAssignments.map(tA => tA.section)
       val cand = QTeacherActivation.candidate
       //TODO: sort slots by time
       pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption match {
-        case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, Some(teacherActivation)))
-        case None => Ok(views.html.conferences.teacherSession(slots, session, None))
+        case Some(teacherActivation) => Ok(views.html.conferences.teacherSession(slots, session, sections, Some(teacherActivation)))
+        case None => Ok(views.html.conferences.teacherSession(slots, session, sections, None))
       }
     }
   }
@@ -236,6 +246,8 @@ object Conferences extends Controller {
     DataStore.execute { pm =>
 	  val currentUser = User.current
 	  val student = Student.getByUsername(currentUser.get.username).get
+	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
+	  val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session).and(QSlot.candidate.student.eq(student))).executeList()
 	  val term = Term.current
 		val enrollments: List[StudentEnrollment] = {
 			val sectVar = QSection.variable("sectVar")
@@ -255,7 +267,7 @@ object Conferences extends Controller {
                               <td>{ linkNode }</td>
                               </tr>
                           }
-  			Ok(views.html.conferences.classList(sessionId, table, hasEnrollments))
+  			Ok(views.html.conferences.classList(sessionId, table, hasEnrollments, slots))
     }
   }
   
@@ -278,16 +290,20 @@ object Conferences extends Controller {
   
   def slotHandler(sessionId: Long, teacherId: Long)= Action { implicit request =>
 	DataStore.execute  {  pm =>
+	    val dateOrdering = implicitly[Ordering[java.util.Date]]
+        import dateOrdering._
+	    val today = new java.util.Date()
+	  	val currentTime = new Timestamp(today.getTime())
 		val currentUser = User.current
 		val student = Student.getByUsername(currentUser.get.username).get
 		val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
 		val teacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption().get
 		val cand = QSlot.candidate
 		val slots = pm.query[Slot].filter(cand.student.eq(student).and(cand.session.eq(session)).and(cand.teacher.eq(teacher))).executeList()
-		slots match {
-		  case Nil => Redirect(routes.Conferences.createSlot(sessionId, teacherId))
-		  case x :: xs => Ok(views.html.conferences.slotView(slots, sessionId, teacherId))
-		}
+		if (currentTime > session.cutoff) Ok(views.html.conferences.slotView(slots, session, teacherId, currentTime))
+		else if (slots.isEmpty) Redirect(routes.Conferences.createSlot(sessionId, teacherId))
+		else Ok(views.html.conferences.slotView(slots, session, teacherId, currentTime))
+		
 	}
   }
 
