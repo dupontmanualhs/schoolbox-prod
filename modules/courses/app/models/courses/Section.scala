@@ -58,6 +58,11 @@ class Section {
     _room = room
   }
 
+  override def toString: String = s"Section(${displayName})"
+  
+  def displayName: String = s"${course.name} - ${periodNames}"
+  
+  
   def periodNames: String = {
     periods.map(_.name).mkString(", ")
   }
@@ -83,6 +88,13 @@ class Section {
   def enrollments(): List[StudentEnrollment] = {
     val cand = QStudentEnrollment.candidate
     DataStore.pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
+  }
+  
+  def numStudents(): Long = {
+    val cand = QStudentEnrollment.candidate
+    DataStore.pm.query[StudentEnrollment].filter(
+        cand.section.eq(this).and(
+            cand.end.eq(null.asInstanceOf[java.sql.Date]))).executeResultUnique(false, cand.count()).asInstanceOf[Long]
   }
 }
 
@@ -113,7 +125,7 @@ trait QSection extends PersistableExpression[Section] {
   def terms: CollectionExpression[java.util.Set[Term], Term] = _terms
 
   private[this] lazy val _periods: CollectionExpression[java.util.Set[Period], Period] =
-    new CollectionExpressionImpl[java.util.Set[Period], Period](this, "_terms")
+    new CollectionExpressionImpl[java.util.Set[Period], Period](this, "_periods")
   def periods: CollectionExpression[java.util.Set[Period], Period] = _periods
 
   private[this] lazy val _room: ObjectExpression[Room] = new ObjectExpressionImpl[Room](this, "_room")

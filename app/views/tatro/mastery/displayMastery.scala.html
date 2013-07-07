@@ -2,7 +2,7 @@
 
 @import helper._ 
 
-@views.main(quiz.toString, scripts = Html(myForm.form.scripts.toString)) { 
+@views.html.main(quiz.toString, scripts = Html(myForm.form.scripts.toString)) { 
 	<h1>@quiz</h1>
 	<br />
     @myForm.render()

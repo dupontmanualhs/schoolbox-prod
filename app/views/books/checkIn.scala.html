@@ -1,5 +1,5 @@
 @(checkInForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Check In a Copy") {
+@views.html.main("Check In a Copy") {
   @checkInForm.render()
 }

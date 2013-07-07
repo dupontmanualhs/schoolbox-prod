@@ -383,7 +383,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
             pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
               case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
               case Some(currentCheckout) => {
-                currentCheckout.endDate = LocalDate.now()
+                currentCheckout.endDate = Some(LocalDate.now())
                 pm.makePersistent(currentCheckout)
                 Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
               }
@@ -1052,7 +1052,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
               pm.makePersistent(c)
             }
             case Some(ch) => {
-              ch.endDate = LocalDate.now()
+              ch.endDate = Some(LocalDate.now())
               pm.makePersistent(ch)
               c.deleted = true
               pm.makePersistent(c)

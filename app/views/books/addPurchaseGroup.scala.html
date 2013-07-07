@@ -1,5 +1,5 @@
 @(addPurchaseGroupForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Add a Purchase Group") {
+@views.html.main("Add a Purchase Group") {
   @addPurchaseGroupForm.render()
 }

@@ -11,8 +11,11 @@ trait Config extends config.users.Config
 
 class ConfigImpl extends Config {
   def defaultCall = controllers.routes.App.index()
-  def mainTemplate = templates.Main
+  def main = templates.Main
   def menuBuilder: (Option[Role] => NodeSeq) = controllers.Menu.buildMenu _
+  def notFound = templates.NotFound
+  
+  def webjars = ((file: String) => controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate(file)))
 }
 
 class ConfigInjector extends ScalaModule {

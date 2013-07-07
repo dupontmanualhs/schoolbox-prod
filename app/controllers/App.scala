@@ -15,11 +15,11 @@ import forms.fields.RadioField
 @Singleton
 class App @Inject()(implicit config: Config) extends Controller {
   def index() = VisitAction { implicit req =>
-      Ok(templates.Index(templates.Main))
+      Ok(templates.Index())
   }
   
   def stub() = VisitAction { implicit req =>
-      Ok(templates.Stub(templates.Main))
+      Ok(templates.Stub())
   }
 
   object FormTests extends Form {

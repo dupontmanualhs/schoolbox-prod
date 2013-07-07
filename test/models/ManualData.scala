@@ -245,11 +245,11 @@ object ManualData {
     }
   }
 
-  def asLocalDate(date: String): LocalDate = {
+  def asLocalDate(date: String): Option[LocalDate] = {
     val format = DateTimeFormat.forPattern("MM/dd/yyyy")
     date match {
-      case "" => null
-      case _ => format.parseDateTime(date).toLocalDate
+      case "" => None
+      case _ => Some(format.parseDateTime(date).toLocalDate)
     }
   }
 

@@ -1,6 +1,6 @@
 @(blogs: List[models.blogs.Blog], role: models.users.Role)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main(role.user.displayName + "'s blogs") {
+@views.html.main(role.user.displayName + "'s blogs") {
    <ul>
       @for(blog <- blogs) {
          <li>@blog.title</li>

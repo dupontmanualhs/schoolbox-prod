@@ -126,7 +126,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
    *   @param blog the blog to show the control panel for
    */
   def showControlPanel(blog: Blog) = VisitAction { implicit req =>
-    Ok(templates.Stub(templates.Main))
+    Ok(templates.Stub())
   } 
 
   /**    !!!!!!!!!!!!!!!! UNIMPLEMENTED !!!!!!!!!!!!!!!!!!!
@@ -135,7 +135,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
    *   @param post the post to be shown
    */
   def showPost(post: Post) = VisitAction { implicit req =>
-    Ok(templates.Stub(templates.Main))
+    Ok(templates.Stub())
   }
 
   /** Regex: /blog/:id

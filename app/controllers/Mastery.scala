@@ -200,11 +200,11 @@ class Mastery @Inject()(implicit config: Config) extends Controller {
 
   def displayQuiz(quizId: Long) = VisitAction { implicit req =>
     Quiz.getById(quizId) match {
-      case None => NotFound(templates.NotFound(templates.Main, "The quiz of which you are seeking no longer exists."))
+      case None => NotFound(templates.NotFound("The quiz of which you are seeking no longer exists."))
       case Some(quiz) => {
         val sections: List[QuizSection] = quiz.sections
         if (sections == null || sections.isEmpty) {
-          NotFound(templates.NotFound(templates.Main, "There are no sections in this quiz! :("))
+          NotFound(templates.NotFound("There are no sections in this quiz! :("))
         } else {
           val sectionsWithQuestions: List[(QuizSection, List[Question])] =
             quiz.sections.map(s => (s, s.randomQuestions))
@@ -224,7 +224,7 @@ class Mastery @Inject()(implicit config: Config) extends Controller {
 
   def gradeQuiz(quizId: Long) = VisitAction { implicit req =>
     Quiz.getById(quizId) match {
-      case None => NotFound(templates.NotFound(templates.Main, "You submitted a quiz that doesn't exist. That shouldn't happen."))
+      case None => NotFound(templates.NotFound("You submitted a quiz that doesn't exist. That shouldn't happen."))
       case Some(quiz) => {
         val idsOfSectionsWithQuestions = req.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
         val sectionsWithQuestions = idsOfSectionsWithQuestions.map(

@@ -1,6 +1,6 @@
 @(title: String, form: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Create a post: " + title) {
+@views.html.main("Create a post: " + title) {
 	@form.render()
 }
 	

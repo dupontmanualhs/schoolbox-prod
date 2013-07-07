@@ -1,5 +1,5 @@
 @(allBooksOutLookupForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Find All Books Out") {
+@views.html.main("Find All Books Out") {
   @allBooksOutLookupForm.render()
 }

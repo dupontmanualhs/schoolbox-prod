@@ -1,0 +1,3 @@
+@(title: String, scripts: Html = Html(""))(content: Html)(implicit req: controllers.users.VisitRequest[_]) {
+  @_root_.templates.Main(title, scripts)(content)(req)
+}

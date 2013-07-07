@@ -7,6 +7,7 @@ import scalajdo.DataStore
 import models.users.QRole
 import models.users.Role
 import models.users.User
+import models.users.Permission
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -42,6 +43,13 @@ class Student extends Role {
 }
 
 object Student {
+  object Permissions {
+    val Add = Permission(classOf[Student], 1, "Add", "can add a student")
+    val View = Permission(classOf[StudentEnrollment], 2, "View", "can view any student's information")
+  }
+  
+  
+  
   def getByUsername(username: String): Option[Student] = {
     User.getByUsername(username) match {
       case Some(user) => {

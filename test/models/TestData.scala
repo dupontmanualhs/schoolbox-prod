@@ -204,7 +204,7 @@ object TestData {
 
     for ((student, sections) <- enrollments) {
       for (sect <- sections) {
-        pm.makePersistent(new StudentEnrollment(student, sect, null, null))
+        pm.makePersistent(new StudentEnrollment(student, sect, None, None))
       }
     }
 
@@ -219,7 +219,7 @@ object TestData {
 
     for ((teacher, sections) <- teacherAssignments) {
       for (sect <- sections) {
-        pm.makePersistent(new TeacherAssignment(teacher, sect, null, null))
+        pm.makePersistent(new TeacherAssignment(teacher, sect, None, None))
       }
     }
 

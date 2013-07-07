@@ -1,6 +1,6 @@
 @(student: models.courses.Student, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Schedule") {
+@views.html.main("Schedule") {
 	<div class="page-header">
 	  <h2>Pick a Locker Based on Your Class Locations</h2>
 	</div>

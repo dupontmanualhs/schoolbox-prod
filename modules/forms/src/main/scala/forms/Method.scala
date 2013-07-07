@@ -48,6 +48,8 @@ object Method {
 
 sealed class Call(val method: Method, val url: String) {
   def toXml: Elem = <call><method>{ method.forRequest }</method><url>{ url }</url></call>
+  
+  override def toString: String = url
 }
 case class FormCall(formMethod: FormMethod, formUrl: Option[String]) extends Call(formMethod, formUrl.getOrElse(""))
 

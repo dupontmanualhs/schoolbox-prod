@@ -1,6 +1,6 @@
 @(slotForm: forms.Binding, sessionId: Long, studentId: Long, teacherId: Long)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Create a conferencing slot") {
+@views.html.main("Create a conferencing slot") {
   <h2>Create Slot</h2>
   @slotForm.render()
 }

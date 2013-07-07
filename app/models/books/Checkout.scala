@@ -27,19 +27,17 @@ class Checkout {
   private[this] var _startDate: java.sql.Date = _
   def startDate: Option[LocalDate] = Option(_startDate).map(d => LocalDate.fromDateFields(d))
   def startDate_=(theStartDate: Option[LocalDate]) {
-    if (theStartDate.isDefined) startDate_=(theStartDate.get)
+    if (theStartDate.isDefined) _startDate = new java.sql.Date(theStartDate.get.toDateTimeAtStartOfDay.getMillis)
     else _startDate = null
   }
-  def startDate_=(theStartDate: LocalDate) { _startDate = new java.sql.Date(theStartDate.toDateTimeAtStartOfDay.getMillis) }
 
   @Persistent
   private[this] var _endDate: java.sql.Date = _
   def endDate: Option[LocalDate] = Option(_endDate).map(d => LocalDate.fromDateFields(d))
   def endDate_=(theEndDate: Option[LocalDate]) { 
-    if (theEndDate.isDefined) endDate_=(theEndDate.get)
+    if (theEndDate.isDefined) _endDate = new java.sql.Date(theEndDate.get.toDateTimeAtStartOfDay.getMillis)
     else _endDate = null
   }
-  def endDate_=(theEndDate: LocalDate) { _endDate = new java.sql.Date(theEndDate.toDateTimeAtStartOfDay.getMillis) }
   
   def this(theStudent: Student, theCopy: Copy, theStartDate: Option[LocalDate], theEndDate: Option[LocalDate]) = {
     this()

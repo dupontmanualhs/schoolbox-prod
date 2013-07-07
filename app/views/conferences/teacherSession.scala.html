@@ -4,7 +4,7 @@
 @import models.users.User
 @import models.courses.Teacher
 
-@views.main("Conferences for this session") {
+@views.html.main("Conferences for this session") {
 	@if(activated == None) { 
 		<p>This session has not been activated</p>
 		<a class="btn" href="@routes.Conferences.activateTeacherSession(session.id)">Click here to activate</a>

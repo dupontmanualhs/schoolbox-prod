@@ -25,6 +25,7 @@ object ApplicationBuild extends Build {
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
     libraryDependencies ++= Seq(
+      "org.webjars" %% "webjars-play" % "2.1.0-2",
       "com.google.inject" % "guice" % "3.0",
       "com.tzavellas" % "sse-guice" % "0.7.1")).dependsOn(
       forms, scalaJdo)
@@ -35,11 +36,12 @@ object ApplicationBuild extends Build {
     scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo, users)
 
   val jsDependencies = Seq(
-    "org.webjars" %% "webjars-play" % "2.1.0-2",
     "org.webjars" % "jquery" % "2.0.0",
     "org.webjars" % "bootstrap" % "2.3.2",
     "org.webjars" % "tinymce-jquery" % "3.4.9",
-    "org.webjars" % "jquery-ui" % "1.10.2-1")
+    "org.webjars" % "jquery-ui" % "1.10.2-1",
+    "org.webjars" % "datatables" % "1.9.4-2",
+    "org.webjars" % "datatables-bootstrap" % "2-20120201-1")
 
   val appDependencies = Seq(
     "org.scala-lang" % "scala-compiler" % "2.10.2",

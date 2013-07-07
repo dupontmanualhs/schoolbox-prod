@@ -2,7 +2,7 @@
 
 @import util.Helpers._
 
-@views.main("Scheduled conference"){
+@views.html.main("Scheduled conference"){
 	<h2>Your Scheduled Conference</h2>
 	@if(currentTime.compareTo(session.cutoff) > 0){<p style="color: red;">*The cutoff date for scheduling new conferences has already passed.</p>}
 	@if(slots.isEmpty){<p>There are no scheduled conferences</p>}

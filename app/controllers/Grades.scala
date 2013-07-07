@@ -42,10 +42,10 @@ class Grades @Inject()(implicit config: Config) extends Controller {
 
   def assignmentsForTeachers(sectionId: Long, teacher: Teacher)(implicit req: AuthenticatedRequest[_]): Result = {
     Section.getById(sectionId) match {
-      case None => NotFound(templates.NotFound(templates.Main, "No section with that id.")(req))
+      case None => NotFound(templates.NotFound("No section with that id.")(req))
       case Some(sect) => {
         if (req.role.id != teacher.id || !sect.teachers.contains(teacher)) {
-          NotFound(templates.NotFound(templates.Main, "You do not have permisson to view this course."))
+          NotFound(templates.NotFound("You do not have permisson to view this course."))
         } else {
           val cats = Category.forSection(sect)
           val catsMap = Category.forSection(sect).map(c => (c.name, c))
@@ -95,7 +95,7 @@ class Grades @Inject()(implicit config: Config) extends Controller {
 
   def home(id: Long) = VisitAction { implicit req =>
     Section.getById(id) match {
-      case None => NotFound(templates.NotFound(templates.Main, "No section with that id."))
+      case None => NotFound(templates.NotFound("No section with that id."))
       case Some(sect) => {
         Ok(views.html.grades.home(id, sect))
       }
@@ -104,7 +104,7 @@ class Grades @Inject()(implicit config: Config) extends Controller {
 
   def announcements(id: Long) = VisitAction { implicit req =>
     Section.getById(id) match {
-      case None => NotFound(templates.NotFound(templates.Main, "No section with that id."))
+      case None => NotFound(templates.NotFound("No section with that id."))
       case Some(sect) => {
         val announcements = Announcement.getAnnouncements(sect)
         Ok(views.html.grades.announcements(id, sect, announcements))
@@ -114,7 +114,7 @@ class Grades @Inject()(implicit config: Config) extends Controller {
   
   def gradebook(id: Long) = VisitAction { implicit req =>
     Section.getById(id) match {
-      case None => NotFound(templates.NotFound(templates.Main, "No section with that id."))
+      case None => NotFound(templates.NotFound("No section with that id."))
       case Some(sect) => {
         /*val assignments = Assignment.getAssignments(sect)
         val students = sect.students

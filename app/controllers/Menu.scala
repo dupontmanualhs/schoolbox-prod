@@ -40,7 +40,7 @@ object Menu {
     val locItems = List(currloc, locsearch, locsched, findlocnum)
     val bookItems = List(addTitle, chkHistory, copyHistory, currentBks, addPurchaseGroup, inventory, checkout, checkIn, copyInfo, allBksOut, copyStatusByTitle,
       blkCheckout, editTitle, addToPrintQueue, viewQueue, delCpy, delTitle)
-    val courses = new MenuItem("Courses", "menu_courses", Some(controllers.routes.Courses.getMySchedule().toString), Nil)
+    val courses = new MenuItem("Courses", "menu_courses", Some(controllers.courses.routes.App.mySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)
     val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
     val masteries: MenuItem = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)

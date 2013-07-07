@@ -1,6 +1,6 @@
 @(sessionId: Long, teachers: List[(models.courses.Teacher, Option[models.conferences.TeacherActivation])])(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Choose a teacher") {
+@views.html.main("Choose a teacher") {
 	<h2>Choose a teacher to schedule</h2>
 	<ul>
 	@for(teacher <- teachers)	{

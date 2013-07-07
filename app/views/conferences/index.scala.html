@@ -2,7 +2,7 @@
 
 @import util.Helpers._
 
-@views.main("Conferences") {
+@views.html.main("Conferences") {
 	<table class="table table-striped">
 		<thead><th>Name</th></thead>
 		@for(event <- events if (event.isActive || priority.isDefined)) {

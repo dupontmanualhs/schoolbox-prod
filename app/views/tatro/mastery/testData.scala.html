@@ -1,6 +1,6 @@
 @(q: List[models.mastery.Quiz], s: List[models.mastery.QuizSection], qs: List[models.mastery.QuestionSet], qe: List[models.mastery.Question])(implicit req: controllers.users.VisitRequest[_])
 @import helper._
-@views.main("Test Data"){
+@views.html.main("Test Data"){
 <h1>Quizzes</h1>
 <p>
 @for(z <- q){

@@ -1,5 +1,5 @@
 @(checkoutBulkForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Check Out In Bulk") {
+@views.html.main("Check Out In Bulk") {
   @checkoutBulkForm.render()
 }

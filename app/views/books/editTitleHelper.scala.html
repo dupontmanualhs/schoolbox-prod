@@ -1,5 +1,5 @@
 @(editTitleForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Edit Title") {
+@views.html.main("Edit Title") {
   @editTitleForm.render()
 }

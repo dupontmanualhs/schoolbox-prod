@@ -1,6 +1,6 @@
 @(addTitleToPrintQueueForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Add to Print Queue") {
+@views.html.main("Add to Print Queue") {
    <h2>Add a Copy Range to the Print Queue</h2>
   @addTitleToPrintQueueForm.render()
 }

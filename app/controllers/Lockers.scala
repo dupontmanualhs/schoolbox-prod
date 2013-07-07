@@ -29,9 +29,9 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
    */
   def getMyLocker() = Authenticated { implicit req =>
     req.role match {
-      case teacher: Teacher => NotFound(templates.NotFound(templates.Main, "Teachers do not have lockers."))
+      case teacher: Teacher => NotFound(templates.NotFound("Teachers do not have lockers."))
       case student: Student => Locker.getByStudent(student) match {
-        case None => NotFound(templates.NotFound(templates.Main, "You do not have a locker."))
+        case None => NotFound(templates.NotFound("You do not have a locker."))
         case Some(l) => Ok(views.html.lockers.getLocker(l))
       }
     }
@@ -45,18 +45,18 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
    */
   def getLocker(num: Int) = Authenticated { implicit req =>
     Locker.getByNumber(num) match {
-      case None => NotFound(templates.NotFound(templates.Main, "No locker exists with this ID."))
+      case None => NotFound(templates.NotFound("No locker exists with this ID."))
       case Some(locker) => Ok(views.html.lockers.getLocker(locker))
     }
   }
 
   def claimLocker(num: Int) = Authenticated { implicit req =>
     Locker.getByNumber(num) match {
-      case None => Ok(templates.NotFound(templates.Main, "There is no locker with number $num"))
+      case None => Ok(templates.NotFound("There is no locker with number $num"))
       case Some(locker) => req.role match {
         case student: Student =>
           val oldLocker: Option[Locker] = Locker.getByStudent(student)
-          if (locker.taken) Ok(templates.NotFound(templates.Main, "This locker was taken."))
+          if (locker.taken) Ok(templates.NotFound("This locker was taken."))
           else DataStore.execute { pm =>
             locker.student = student
             locker.taken = true
@@ -68,7 +68,7 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
             }
             Redirect(routes.Lockers.getMyLocker()).flashing("message" -> "You have successfully changed lockers.")
           }
-        case _ => NotFound(templates.NotFound(templates.Main, "Only students have lockers."))
+        case _ => NotFound(templates.NotFound("Only students have lockers."))
       }
     }
   }
@@ -191,7 +191,7 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
           }
           Ok(views.html.lockers.schedule(student, table, hasEnrollments))
         }
-        case _ => NotFound(templates.NotFound(templates.Main, "Only students have lockers."))
+        case _ => NotFound(templates.NotFound("Only students have lockers."))
       }
     }
   }

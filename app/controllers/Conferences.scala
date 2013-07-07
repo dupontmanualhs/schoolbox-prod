@@ -27,7 +27,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   
   
   def displayStub() = VisitAction { implicit req =>
-    Ok(templates.Stub(templates.Main))
+    Ok(templates.Stub())
   }
 
   def viewAsTeacher() = VisitAction { implicit req =>
@@ -59,7 +59,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
             val currentUser = req.visit.user
             val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username).isDefined
             if (!isStudent) {
-              NotFound(templates.NotFound(templates.Main, "Must be logged-in to get a conference"))
+              NotFound(templates.NotFound("Must be logged-in to get a conference"))
             } else {
               val student = Student.getByUsername(currentUser.get.username).get
               val slots = pm.query[Slot].filter(QSlot.candidate.student.eq(student)).executeList()
@@ -105,7 +105,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   def deleteEvent(eventId: Long) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeOption() match {
-        case None => NotFound(templates.NotFound(templates.Main, "No event could be found"))
+        case None => NotFound(templates.NotFound("No event could be found"))
         case Some(event) => {
           val sessions = pm.query[models.conferences.Session].filter(QSession.candidate.event.eq(event)).executeList()
           for (session <- sessions) {
@@ -157,7 +157,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   def deleteSession(sessionId: Long) = VisitAction { implicit request =>
     DataStore.execute { implicit pm =>
       pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption() match {
-        case None => NotFound(templates.NotFound(templates.Main, "No session could be found"))
+        case None => NotFound(templates.NotFound("No session could be found"))
         case Some(session) => {
           val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session)).executeList()
           val teacherActivations = pm.query[TeacherActivation].filter(QTeacherActivation.candidate.session.eq(session)).executeList()
@@ -357,10 +357,10 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
         case vb: ValidBinding => DataStore.execute { implicit pm =>
           val theSession = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption()
           val theTeacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption()
-          if (theSession == None) NotFound(templates.NotFound(templates.Main, "Invalid session ID"))
-          if (theTeacher == None) NotFound(templates.NotFound(templates.Main, "Invalid teacher ID"))
+          if (theSession == None) NotFound(templates.NotFound("Invalid session ID"))
+          if (theTeacher == None) NotFound(templates.NotFound("Invalid teacher ID"))
           val theStudent: Option[Student] = pm.query[Student].filter(QStudent.candidate.id.eq(studentId)).executeOption()
-          if (theStudent == None) NotFound(templates.NotFound(templates.Main, "Invalid student"))
+          if (theStudent == None) NotFound(templates.NotFound("Invalid student"))
 
           val theStartTime = vb.valueOf(SlotForm.startTime)
           val theParent = vb.valueOf(SlotForm.parentName)
@@ -389,7 +389,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   def deleteSlot(slotId: Long) = VisitAction { implicit request =>
     DataStore.execute { implicit pm =>
       pm.query[Slot].filter(QSlot.candidate.id.eq(slotId)).executeOption() match {
-        case None => NotFound(templates.NotFound(templates.Main, "No slot could be found"))
+        case None => NotFound(templates.NotFound("No slot could be found"))
         case Some(slot) => {
           val session = slot.session
           pm.deletePersistent(slot)

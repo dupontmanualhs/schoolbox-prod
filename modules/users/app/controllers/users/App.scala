@@ -41,13 +41,13 @@ class App @Inject()(implicit config: Config) extends Controller {
    */
 
   def login() = VisitAction { implicit request =>
-    Ok(templates.users.Login(config.mainTemplate, Binding(LoginForm)))
+    Ok(templates.users.Login(Binding(LoginForm)))
   }
 
   def loginP() = VisitAction { implicit request =>
     DataStore.execute { pm =>
       Binding(LoginForm, request) match {
-        case ib: InvalidBinding => Ok(templates.users.Login(config.mainTemplate, ib))
+        case ib: InvalidBinding => Ok(templates.users.Login(ib))
         case vb: ValidBinding => {
           // set the session user
           request.visit.user = User.getByUsername(vb.valueOf(LoginForm.username))
@@ -92,13 +92,13 @@ class App @Inject()(implicit config: Config) extends Controller {
    */
 
   def chooseRole() = Authenticated { implicit req =>
-    Ok(templates.users.ChooseRole(config.mainTemplate, Binding(new ChooseRoleForm(req.visit))))
+    Ok(templates.users.ChooseRole(Binding(new ChooseRoleForm(req.visit))))
   }
 
   def chooseRoleP() = Authenticated { implicit req =>
       val form = new ChooseRoleForm(req.visit)
       Binding(form, req) match {
-        case ib: InvalidBinding => Ok(templates.users.ChooseRole(config.mainTemplate, ib))
+        case ib: InvalidBinding => Ok(templates.users.ChooseRole(ib))
         case vb: ValidBinding => {
           req.visit.role = Some(vb.valueOf(form.role))
           req.visit.permissions = req.visit.role.map(_.permissions).getOrElse(Set())
@@ -159,7 +159,7 @@ class App @Inject()(implicit config: Config) extends Controller {
 
   def settings = Authenticated { implicit req =>
     val pwForm = new ChangePasswordForm(req.role.user)
-    Ok(templates.users.ChangeSettings(config.mainTemplate, Binding(pwForm), Binding(ChangeTheme)))
+    Ok(templates.users.ChangeSettings(Binding(pwForm), Binding(ChangeTheme)))
   }
 
   /**
@@ -172,7 +172,7 @@ class App @Inject()(implicit config: Config) extends Controller {
       val user = req.role.user
       val form = new ChangePasswordForm(user)
       Binding(form, req) match {
-        case ib: InvalidBinding => Ok(templates.users.ChangeSettings(config.mainTemplate, ib, Binding(ChangeTheme)))
+        case ib: InvalidBinding => Ok(templates.users.ChangeSettings(ib, Binding(ChangeTheme)))
         case vb: ValidBinding => {
           user.password = vb.valueOf(form.newPassword)
           pm.makePersistent(user)
@@ -192,7 +192,7 @@ class App @Inject()(implicit config: Config) extends Controller {
       val user = req.role.user
       val pwForm = new ChangePasswordForm(user)
       Binding(ChangeTheme, req) match {
-        case ib: InvalidBinding => Ok(templates.users.ChangeSettings(config.mainTemplate, Binding(pwForm), ib))
+        case ib: InvalidBinding => Ok(templates.users.ChangeSettings(Binding(pwForm), ib))
         case vb: ValidBinding => {
           user.theme = vb.valueOf(ChangeTheme.theme)
           pm.makePersistent(user)
@@ -209,6 +209,6 @@ class App @Inject()(implicit config: Config) extends Controller {
    */
   def list = PermissionRequired(User.Permissions.ListAll) { implicit request =>
     val cand = QUser.candidate
-    Ok(templates.users.ListUsers(config.mainTemplate, DataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
+    Ok(templates.users.ListUsers(DataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
   }
 }

@@ -3,7 +3,7 @@
 @import helper._
 
 
-@views.main("TinyMCE"){
+@views.html.main("TinyMCE"){
    @form(action = routes.Blogs.testSubmit) {
          @input(testForm("tinymce")) { (id, name, value, args) =>
              <textarea name="@name" id="@id" rows="15" cols="30" @toHtmlArgs(args)>@value</textarea>

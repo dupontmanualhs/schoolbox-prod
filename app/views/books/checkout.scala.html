@@ -1,6 +1,6 @@
 @(checkoutForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Checkout a Copy") {
+@views.html.main("Checkout a Copy") {
   @checkoutForm.render()
   </div>
 }

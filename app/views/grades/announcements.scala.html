@@ -2,8 +2,8 @@
 @import models.grades._
 @import util.Helpers.datetime
 
-@views.main("Announcements"){
-
+@views.html.main("Announcements"){
+@*
 	        	<div class="span3">
          			<div class="well sidebar-nav">
 					<ul class="nav nav-list">
@@ -25,7 +25,7 @@
  				 <li class="active">Announcements</li>
 			</ul>
     	</div>
-    	
+*@    	
     	<div class="span8">
     		<h2>Announcements</h2>
     		@for(a <- announcements){

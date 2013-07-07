@@ -24,15 +24,21 @@ class TeacherAssignment {
   
   @Persistent(defaultFetchGroup="true")
   private[this] var _start: java.sql.Date = _
-  def start: LocalDate = if (_start != null) new DateTime(_start).toLocalDate else section.startDate
-  def start_=(theStart: LocalDate) { _start = if (theStart != null) new java.sql.Date(theStart.toDateTimeAtStartOfDay.toDate.getTime) else null }
+  def start: Option[LocalDate] = Option(_start).map(LocalDate.fromDateFields(_))
+  def start_=(theStart: Option[LocalDate]) {
+    if (theStart.isDefined) _start = new java.sql.Date(theStart.get.toDateTimeAtStartOfDay.getMillis)
+    else _start = null
+  }
   
   @Persistent(defaultFetchGroup="true")
   private[this] var _end: java.sql.Date = _
-  def end: LocalDate = if (_end != null) new DateTime(_end).toLocalDate else section.endDate
-  def end_=(theEnd: LocalDate) { _end = if (theEnd != null) new java.sql.Date(theEnd.toDateTimeAtStartOfDay.toDate.getTime) else null }
+  def end: Option[LocalDate] = Option(_end).map(LocalDate.fromDateFields(_))
+  def end_=(theEnd: Option[LocalDate]) {
+    if (theEnd.isDefined) _end = new java.sql.Date(theEnd.get.toDateTimeAtStartOfDay.getMillis)
+    else _end = null
+  }
   
-  def this(theTeacher: Teacher, theSection: Section, theStart: LocalDate, theEnd: LocalDate) = {
+  def this(theTeacher: Teacher, theSection: Section, theStart: Option[LocalDate], theEnd: Option[LocalDate]) = {
     this()
     teacher_=(theTeacher)
     section_=(theSection)

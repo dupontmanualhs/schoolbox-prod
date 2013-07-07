@@ -1,6 +1,6 @@
 @(sessionForm: forms.Binding, eventId: Long)(implicit req: controllers.users.VisitRequest[_])
 
-@views.main("Create a conferencing session") {
+@views.html.main("Create a conferencing session") {
   <h2>Create Session</h2>
   @sessionForm.render()
 }
