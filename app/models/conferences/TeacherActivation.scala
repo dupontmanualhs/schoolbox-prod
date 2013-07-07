@@ -1,7 +1,7 @@
 package models.conferences
 
 import javax.jdo.annotations._
-import models.users._
+import models.courses.{ Student, Teacher }
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import util.QueryClass
@@ -13,11 +13,13 @@ class TeacherActivation {
   private[this] var _id: Long = _
   def id: Long = _id
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _session: Session = _
   def session: Session = _session
   def session_=(theSession: Session) {_session = theSession}
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _teacher: Teacher = _
   def teacher: Teacher = _teacher

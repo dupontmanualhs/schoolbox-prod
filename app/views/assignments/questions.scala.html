@@ -1,8 +1,8 @@
-@(task: models.assignments.Task)(implicit req: play.api.mvc.Request[_])
+@(task: models.assignments.Task)(implicit req: controllers.users.VisitRequest[_])
 
 @import scala.xml.Text
 
-@main("All Questions") {
+@views.html.main("All Questions") {
   <div class="page-header">
   	<h2>All Questions</h2>
   </div>

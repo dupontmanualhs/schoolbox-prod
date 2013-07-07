@@ -1,9 +1,9 @@
-@(sessionId: Long, table: List[xml.NodeSeq], hasEnrollments: Boolean, slots: List[models.conferences.Slot])(implicit req: play.api.mvc.Request[_])
+@(sessionId: Long, table: List[xml.NodeSeq], hasEnrollments: Boolean, slots: List[models.conferences.Slot])(implicit req: controllers.users.VisitRequest[_])
 
 @import controllers.Conferences
 @import util.Helpers._
 
-@main("Student Conferences") {
+@views.html.main("Student Conferences") {
 	<div class="page-header">
 	  <h2>Schedule Your Class Conferences</h2>
 	</div>

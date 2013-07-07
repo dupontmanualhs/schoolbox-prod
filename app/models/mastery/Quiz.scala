@@ -14,22 +14,25 @@ class Quiz {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
+  def id: Long = _id
+
   private[this] var _name: String = _ //name of quiz (i.e. Foiling and Factoring Mastery)
+  def name: String = _name
+  def name_=(theName: String) { _name = theName }
+
+  @Persistent
   @Element(types=Array(classOf[QuizSection]))
   @Join
   private[this] var _sections: java.util.List[QuizSection] = _ //list of sections that make up a quiz
-  
-  def this(name: String, sections: List[QuizSection]) = {
-    this()
-    _name=name
-    sections_=(sections)
-  }
-  
-  def id = _id
-  def name = _name
   def sections: List[QuizSection] = _sections.asScala.toList
   def sections_=(theSections: List[QuizSection]) { _sections = theSections.asJava}
-    
+      
+  def this(theName: String, theSections: List[QuizSection]) = {
+    this()
+    name_=(theName)
+    sections_=(theSections)
+  }
+  
   override def toString = { name }
 }
 object Quiz {
@@ -46,8 +49,8 @@ trait QQuiz extends PersistableExpression[Quiz]{
   private[this] lazy val _name: StringExpression = new StringExpressionImpl(this, "_name")
   def name: StringExpression = _name
   
-  private[this] lazy val _sections: ObjectExpression[List[QuizSection]] = new ObjectExpressionImpl[List[QuizSection]](this, "_sections")
-  def sections: ObjectExpression[List[QuizSection]] = _sections
+  private[this] lazy val _sections: ListExpression[java.util.List[QuizSection], QuizSection] = new ListExpressionImpl[java.util.List[QuizSection], QuizSection](this, "_sections")
+  def sections: ListExpression[java.util.List[QuizSection], QuizSection] = _sections
 }
 
 object QQuiz {

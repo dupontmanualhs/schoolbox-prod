@@ -1,6 +1,7 @@
 package controllers
 
 import play.api.mvc.{ Action, Controller }
+import com.google.inject.{ Inject, Singleton }
 import models.blogs._
 import play.api.data._
 import play.api.data.Forms._
@@ -8,15 +9,17 @@ import models.users._
 import models.blogs._
 import play.api.mvc.Result
 import models.users.QRole
-import forms.fields.TinyMCEField
 import forms.fields.TextField
 import forms.{ Form, ValidBinding, InvalidBinding, Binding }
 import scalajdo.DataStore
-import util.Authenticated
+import models.users.Visit
+import controllers.users.{ Authenticated, VisitAction }
+import config.Config
 
 //TODO: Actually check permissions where applicable
 
-object Blogs extends Controller {
+@Singleton
+class Blogs @Inject()(implicit config: Config) extends Controller {
   
   
   val newPost = Form {
@@ -29,7 +32,7 @@ object Blogs extends Controller {
     "tinymce" -> text
   }
 
-  def editor() = Action { implicit req =>
+  def editor() = VisitAction { implicit req =>
     Ok(views.html.blogs.editor(testEdit))
   }
 
@@ -37,7 +40,7 @@ object Blogs extends Controller {
    * 
    * Display the blogs corresponding to a user's role.
    */
-  def listUserBlogs(roleOpt: Option[Role]) = Action { implicit req =>
+  def listUserBlogs(roleOpt: Option[Role]) = VisitAction { implicit req =>
     roleOpt match {
       case None => NotFound("That role doesn't exist.")
       case Some(role) => DataStore.execute { implicit pm =>
@@ -52,22 +55,15 @@ object Blogs extends Controller {
    * 
    *  Presents a page that lists the blogs that correspond to the current user.
    */
-  def listCurrentUserBlogs() = Action { implicit req =>
-    DataStore.execute { pm =>
-      Visit.getFromRequest(req).role match {
-        case Some(per) => {
-          Ok(views.html.blogs.blogs(Blog.listUserBlogs(per), per))
-        }
-        case None => NotFound("You must log in to view your own blogs.")
-      }
-    }
+  def listCurrentUserBlogs() = Authenticated { implicit req =>
+    Ok(views.html.blogs.blogs(Blog.listUserBlogs(req.role), req.role))
   }
 
   /** Regex: /blog/user/:id 
    * 
    *  Presents a page with blogs corresponding to a persepective with given id
    */
-  def listBlogsByRoleId(id: Long) = Action { implicit req =>
+  def listBlogsByRoleId(id: Long) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       Role.getById(id) match {
         case Some(role) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(role), role))
@@ -78,7 +74,9 @@ object Blogs extends Controller {
 
   object CreatePostForm extends Form {
     val title = new TextField("title")
-    val content = new TinyMCEField("content")
+    val content = new TextField("content") {
+      override def widget = new forms.widgets.Textarea(true)
+    }
 
     def fields = List(title, content)
   }
@@ -112,7 +110,7 @@ object Blogs extends Controller {
   }
   */
 
-  def checkBindingCreatePostForm(binding: Binding, b: Blog) = Action { implicit req =>
+  def checkBindingCreatePostForm(binding: Binding, b: Blog) = VisitAction { implicit req =>
     binding match {
       case ib: InvalidBinding => Ok(views.html.blogs.createPost(b.title, ib))
       case vb: ValidBinding => {
@@ -127,8 +125,8 @@ object Blogs extends Controller {
    *
    *   @param blog the blog to show the control panel for
    */
-  def showControlPanel(blog: Blog) = Action { implicit req =>
-    Ok(views.html.stub())
+  def showControlPanel(blog: Blog) = VisitAction { implicit req =>
+    Ok(templates.Stub())
   } 
 
   /**    !!!!!!!!!!!!!!!! UNIMPLEMENTED !!!!!!!!!!!!!!!!!!!
@@ -136,15 +134,15 @@ object Blogs extends Controller {
    *
    *   @param post the post to be shown
    */
-  def showPost(post: Post) = Action { implicit req =>
-    Ok(views.html.stub())
+  def showPost(post: Post) = VisitAction { implicit req =>
+    Ok(templates.Stub())
   }
 
   /** Regex: /blog/:id
    *  
    * Show a blog with given id
    */
-  def showBlog(id: Long) = Action { implicit req =>
+  def showBlog(id: Long) = VisitAction { implicit req =>
     val blogOpt = Blog.getById(id)
     blogOpt match {
       case None => NotFound("This blog is not found.")
@@ -153,7 +151,7 @@ object Blogs extends Controller {
   }
 
   // Tester method?
-  def testSubmit() = Action { implicit req =>
+  def testSubmit() = VisitAction { implicit req =>
     testEdit.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.blogs.editor(formWithErrors)),
       content => {

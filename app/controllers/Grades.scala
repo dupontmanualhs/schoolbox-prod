@@ -1,24 +1,27 @@
 package controllers
 
-import play.api.mvc.{Action, Controller}
-import forms._
+import play.api.mvc.Controller
+import forms.{ Form, Binding, ValidBinding, InvalidBinding }
 import forms.fields._
 import models.grades._
 import models.courses._
 import models.users._
 import util.Helpers.mkNodeSeq
-import views.html
 import scala.xml.NodeSeq
 import play.api.mvc.PlainResult
 import scala.xml.Text
-import util.Authenticated
 import play.api.mvc.Result
 import play.api.templates.Html
 import models.grades.Turnin
 import scalajdo.DataStore
-import util.AuthenticatedRequest
+import forms.Form
 
-object Grades extends Controller {
+import controllers.users.{ Authenticated, AuthenticatedRequest, VisitAction, VisitRequest }
+import config.Config
+import com.google.inject.{ Inject, Singleton }
+
+@Singleton
+class Grades @Inject()(implicit config: Config) extends Controller {
   class DropMenu(catsMap: List[(String, Category)]) extends Form {
     val category = new ChoiceField("Category", catsMap)
     val title = new TextField("Title")
@@ -39,15 +42,15 @@ object Grades extends Controller {
 
   def assignmentsForTeachers(sectionId: Long, teacher: Teacher)(implicit req: AuthenticatedRequest[_]): Result = {
     Section.getById(sectionId) match {
-      case None => NotFound(views.html.notFound("No section with that id."))
+      case None => NotFound(templates.NotFound("No section with that id.")(req))
       case Some(sect) => {
         if (req.role.id != teacher.id || !sect.teachers.contains(teacher)) {
-          NotFound(views.html.notFound("You do not have permisson to view this course."))
+          NotFound(templates.NotFound("You do not have permisson to view this course."))
         } else {
           val cats = Category.forSection(sect)
           val catsMap = Category.forSection(sect).map(c => (c.name, c))
           val dropMenu = new DropMenu(catsMap)
-          Ok(html.grades.assignments(sect, cats, Binding(dropMenu), sectionId))
+          Ok(views.html.grades.assignments(sect, cats, Binding(dropMenu), sectionId))
         }
       }
     }
@@ -76,7 +79,7 @@ object Grades extends Controller {
     }
   }
 
-  def deleteAssignment(id: Long, assignmentId: Long) = Action { implicit req =>
+  def deleteAssignment(id: Long, assignmentId: Long) = VisitAction { implicit req =>
     DataStore.execute { pm => 
     pm.query[Assignment].filter(QAssignment.candidate.id.eq(assignmentId)).executeOption() match {
       case None => NotFound(views.html.notFound("No assignment with that id."))
@@ -90,18 +93,18 @@ object Grades extends Controller {
   * 
   */
 
-  def home(id: Long) = Action { implicit req =>
+  def home(id: Long) = VisitAction { implicit req =>
     Section.getById(id) match {
-      case None => NotFound(views.html.notFound("No section with that id."))
+      case None => NotFound(templates.NotFound("No section with that id."))
       case Some(sect) => {
         Ok(views.html.grades.home(id, sect))
       }
     }
   }
 
-  def announcements(id: Long) = Action { implicit req =>
+  def announcements(id: Long) = VisitAction { implicit req =>
     Section.getById(id) match {
-      case None => NotFound(views.html.notFound("No section with that id."))
+      case None => NotFound(templates.NotFound("No section with that id."))
       case Some(sect) => {
         val announcements = Announcement.getAnnouncements(sect)
         Ok(views.html.grades.announcements(id, sect, announcements))
@@ -109,9 +112,9 @@ object Grades extends Controller {
     }
   }
   
-  def gradebook(id: Long) = Action { implicit req =>
+  def gradebook(id: Long) = VisitAction { implicit req =>
     Section.getById(id) match {
-      case None => NotFound(views.html.notFound("No section with that id."))
+      case None => NotFound(templates.NotFound("No section with that id."))
       case Some(sect) => {
         /*val assignments = Assignment.getAssignments(sect)
         val students = sect.students

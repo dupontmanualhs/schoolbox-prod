@@ -1,5 +1,5 @@
-@(chooseCopyForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(chooseCopyForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Delete Copy") {
+@views.html.main("Delete Copy") {
   @chooseCopyForm.render()
 }

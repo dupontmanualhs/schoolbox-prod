@@ -41,7 +41,7 @@ class TestLogins extends FunSuite with BeforeAndAfterAll with ShouldMatchers wit
     goTo(s"$baseUrl/")
     eventually { pageTitle should be === "ABCD eSchool" }
     clickOn(linkText("Log in"))
-    eventually { pageTitle should be === "Login" }
+    eventually { pageTitle should be === "Log in" }
     cssSelector("#id_username").webElement.sendKeys("john")
     cssSelector("#id_password").webElement.sendKeys("kin123")
     clickOn(cssSelector("button[type=submit]"))
@@ -55,14 +55,14 @@ class TestLogins extends FunSuite with BeforeAndAfterAll with ShouldMatchers wit
   }
   
   test("not allow a user to log in with an incorrect password") {
-    goTo(s"$baseUrl/login")
-    eventually { pageTitle should be === "Login" }
+    goTo(s"$baseUrl/users/login")
+    eventually { pageTitle should be === "Log in" }
     cssSelector("#id_username").webElement.sendKeys("john")
     cssSelector("#id_password").webElement.sendKeys("notkin123")
     clickOn(cssSelector("button[type=submit]"))
     // should stay on same page, display error, username is kept, password is cleared
     eventually { find(cssSelector(".alert-error")) should be ('defined) }
-    pageTitle should be === "Login"
+    pageTitle should be === "Log in"
     find(cssSelector(".alert-error")).map(_.text).get should include ("Incorrect username or password.")
     cssSelector("#id_username").webElement.getAttribute("value") should be === "john"
     cssSelector("#id_password").webElement.getAttribute("value") should be === ""

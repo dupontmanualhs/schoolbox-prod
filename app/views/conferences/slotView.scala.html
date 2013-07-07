@@ -1,8 +1,8 @@
-@(slots: List[models.conferences.Slot], session: models.conferences.Session, teacherId: Long, currentTime: java.sql.Timestamp)(implicit req: play.api.mvc.Request[_])
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, studentId: Long, teacherId: Long, currentTime: org.joda.time.LocalDateTime)(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 
-@main("Scheduled conference"){
+@views.html.main("Scheduled conference"){
 	<h2>Your Scheduled Conference</h2>
 	@if(currentTime.compareTo(session.cutoff) > 0){<p style="color: red;">*The cutoff date for scheduling new conferences has already passed.</p>}
 	@if(slots.isEmpty){<p>There are no scheduled conferences</p>}
@@ -15,5 +15,5 @@
 	<a href="@routes.Conferences.deleteSlot(slot.id)" class="btn">Delete Conference</a>
 	}
 	<br/>
-	@if(currentTime.compareTo(session.cutoff) <= 0){<a href="@routes.Conferences.createSlot(session.id, teacherId)" class="btn">Schedule Another</a>}
+	@if(currentTime.compareTo(session.cutoff) <= 0){<a href="@routes.Conferences.createSlot(session.id, studentId, teacherId)" class="btn">Schedule Another</a>}
 }

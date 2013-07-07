@@ -11,33 +11,33 @@ class QuestionSet { //a QuestionSet is a list of all the questions that can be u
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
+  def id: Long = _id
+
+  @Persistent
   @Element(types=Array(classOf[Question]))
   @Join
   private[this] var _questions: java.util.List[Question] = _ //list of questions that make up a QuestionSet
-
+  def questions: List[Question] = _questions.asScala.toList
+  def questions_=(theQuestions: List[Question]) { _questions = theQuestions.asJava }
+  
   def this(questions: List[Question]) = {
     this()
     questions_=(questions)
   }
   
-  def id = _id
-  def questions: List[Question] = _questions.asScala.toList
-  def questions_=(theQuestions: List[Question]) { _questions = theQuestions.asJava }
-  
   override def toString = { "" + questions }
   
-  def get(num: Int) = questions(num)
+  def apply(num: Int) = questions(num)
   
   def size = questions.length
-
 }
 
 trait QQuestionSet extends PersistableExpression[QuestionSet]{
   private[this] lazy val _id: NumericExpression[Long] = new NumericExpressionImpl[Long](this, "_id")
   def id: NumericExpression[Long] = _id
   
-  private[this] lazy val _questions: ObjectExpression[List[Question]] = new ObjectExpressionImpl[List[Question]](this, "_questions")
-  def listOfQuestions: ObjectExpression[List[Question]] = _questions
+  private[this] lazy val _questions: ListExpression[java.util.List[Question], Question] = new ListExpressionImpl[java.util.List[Question], Question](this, "_questions")
+  def listOfQuestions: ListExpression[java.util.List[Question], Question] = _questions
 }
 
 object QQuestionSet {

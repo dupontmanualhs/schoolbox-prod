@@ -1,10 +1,10 @@
-@(slots: List[models.conferences.Slot], session: models.conferences.Session, sections: List[models.courses.Section], activated: Option[models.conferences.TeacherActivation])(implicit req: play.api.mvc.Request[_])
+@(slots: List[models.conferences.Slot], session: models.conferences.Session, sections: List[models.courses.Section], activated: Option[models.conferences.TeacherActivation])(implicit req: controllers.users.AuthenticatedRequest[_])
 
 @import util.Helpers._
 @import models.users.User
-@import models.users.Teacher
+@import models.courses.Teacher
 
-@main("Conferences for this session") {
+@views.html.main("Conferences for this session") {
 	@if(activated == None) { 
 		<p>This session has not been activated</p>
 		<a class="btn" href="@routes.Conferences.activateTeacherSession(session.id)">Click here to activate</a>
@@ -21,6 +21,7 @@
 	  			<td>@slot.phone</td>
 	  			@if(slot.alternatePhone != None)  { <td>@slot.alternatePhone.get</td> }
 	  			@if(slot.comment != None)  { <td>@slot.comment.get</td> }
+	  			<td><a href="@routes.Conferences.deleteSlot(slot.id)">Delete</a></td>
 	  		</tr>
 	  	}
 	  </table>
@@ -35,7 +36,7 @@
 						<td>@student.user.displayName</td>
 						<td>@student.grade</td>
 						<td>@student.user.email</td>
-						<td><a href="@routes.Conferences.createSlot(session.id, Teacher.getByUsername(User.current.get.username).get.id)">Schedule a conference</a></td>
+						<td><a href="@routes.Conferences.createSlot(session.id, student.id, req.role.id)">Schedule a conference</a></td>
 					</tr>
 				}
 			</table></tr>

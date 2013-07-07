@@ -1,11 +1,13 @@
-import play.api._
-import play.api.mvc.{Handler, RequestHeader}
+import play.api.GlobalSettings
 
-import scalajdo.DataStore
+import com.google.inject.Guice
 
-import models.users.Visit
+import config.ConfigInjector
 
 object Global extends GlobalSettings {
-  
-  
+  lazy val injector = Guice.createInjector(new ConfigInjector())
+ 
+  override def getControllerInstance[A](klass: Class[A]) = {
+    injector.getInstance(klass)
+  }
 }

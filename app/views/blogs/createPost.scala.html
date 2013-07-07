@@ -1,7 +1,6 @@
-@(title: String, form: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(title: String, form: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Create a post: " + title, scripts = views.JavascriptLibraries.TINY_MCE) {
-
+@views.html.main("Create a post: " + title) {
 	@form.render()
 }
 	

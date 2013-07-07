@@ -1,9 +1,9 @@
-@(id: Long, section: models.courses.Section, announcements: List[models.grades.Announcement])(implicit req: play.api.mvc.Request[_]) 
+@(id: Long, section: models.courses.Section, announcements: List[models.grades.Announcement])(implicit req: controllers.users.VisitRequest[_]) 
 @import models.grades._
 @import util.Helpers.datetime
 
-@main("Announcements"){
-
+@views.html.main("Announcements"){
+@*
 	        	<div class="span3">
          			<div class="well sidebar-nav">
 					<ul class="nav nav-list">
@@ -25,12 +25,12 @@
  				 <li class="active">Announcements</li>
 			</ul>
     	</div>
-    	
+*@    	
     	<div class="span8">
     		<h2>Announcements</h2>
     		@for(a <- announcements){
   		  		<div class="well well-small">
-  		  			<h4>@a.author.displayName<small>@datetime.format(a.date)</small></h4>
+  		  			<h4>@a.author.displayName<small>@datetime.print(a.timestamp)</small></h4>
   		  			<p>@a.text</p>
   		  		    <button class="btn btn-primary pull-right btn-small">Comment</button><br />
   		  		</div>

@@ -12,10 +12,24 @@ class Copy /*extends StoreCallback*/ {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
+  def id: Long = _id
+
+  @Persistent
   private[this] var _purchaseGroup: PurchaseGroup = _
+  def purchaseGroup: PurchaseGroup = _purchaseGroup
+  def purchaseGroup_=(thePurchaseGroup: PurchaseGroup) { _purchaseGroup = thePurchaseGroup }
+
   private[this] var _number: Int = _
+  def number: Int = _number
+  def number_=(theNumber: Int) { _number = theNumber }
+
   private[this] var _isLost: Boolean = _
+  def isLost: Boolean = _isLost
+  def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
+
   private[this] var _deleted: Boolean = _
+  def deleted: Boolean = _deleted
+  def deleted_=(theDeleted: Boolean) { _deleted = theDeleted }
 
   def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false, deleted: Boolean = false) = {
     this()
@@ -24,20 +38,6 @@ class Copy /*extends StoreCallback*/ {
     _isLost = isLost
     _deleted = deleted
   }
-
-  def id: Long = _id
-
-  def purchaseGroup: PurchaseGroup = _purchaseGroup
-  def purchaseGroup_=(thePurchaseGroup: PurchaseGroup) { _purchaseGroup = thePurchaseGroup }
-
-  def number: Int = _number
-  def number_=(theNumber: Int) { _number = theNumber }
-
-  def isLost: Boolean = _isLost
-  def isLost_=(theIsLost: Boolean) { _isLost = theIsLost }
-
-  def deleted: Boolean = _deleted
-  def deleted_=(theDeleted: Boolean) { _deleted = theDeleted }
 
   val maxCopyNumber: Int = 99999
 

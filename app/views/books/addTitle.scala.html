@@ -1,6 +1,6 @@
-@(titleForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(titleForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Add Title to Inventory") {
+@views.html.main("Add Title to Inventory") {
   @titleForm.render()
 </div>
 }

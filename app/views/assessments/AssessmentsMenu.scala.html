@@ -1,8 +1,8 @@
-@(question: String, ansForm: Form[Int], temp: Int, answer: Option[Int], first: Int, second: Int, ans: Int, otherChoice: Int)(implicit req: play.api.mvc.Request[_])
+@(question: String, ansForm: Form[Int], temp: Int, answer: Option[Int], first: Int, second: Int, ans: Int, otherChoice: Int)(implicit req: controllers.users.VisitRequest[_])
 
 @import helper._
 
-@main("Assessments") {
+@views.html.main("Assessments") {
 	<div class="page-header">
 		<h2>Andrew's General Assessments</h2>
 	</div>

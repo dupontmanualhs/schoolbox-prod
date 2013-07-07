@@ -1,0 +1,10 @@
+@(form: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
+
+@views.main("formTester") {
+    
+    <h1>Form Tester</h1>
+    <p>All of these fields are optional and should be used to test how the different types of fields work.</p>
+    <p>
+    @{form.render(legend=Some("This Is A Legend"))}
+    </p>
+}

@@ -1,6 +1,6 @@
-@(copyHistoryLookupForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(copyHistoryLookupForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Find Copy History") {
+@views.html.main("Find Copy History") {
   @copyHistoryLookupForm.render()
 </div>
 }

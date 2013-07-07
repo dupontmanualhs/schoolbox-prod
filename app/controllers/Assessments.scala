@@ -4,11 +4,16 @@ import play.api.mvc.Controller
 import scala.util.Random
 import play.api.data._
 import play.api.data.Forms._
-import play.api.mvc.Action
+
+import com.google.inject.{ Inject, Singleton }
 
 import scalajdo.DataStore
 
-object Assessments extends Controller {
+import controllers.users.VisitAction
+import config.Config
+
+@Singleton
+class Assessments @Inject()(implicit config: Config) extends Controller {
 
   var rand = new Random
   var first = rand.nextInt(9) + 1
@@ -16,7 +21,7 @@ object Assessments extends Controller {
   var otherChoice = rand.nextInt(100)
   var ans = first + second
 
-  def menu() = Action { implicit req =>
+  def menu() = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       rand = new Random
       first = rand.nextInt(9) + 1
@@ -31,7 +36,7 @@ object Assessments extends Controller {
     "answer" -> number
   }
 
-  def checkAnswer(temp: Int) = Action { implicit req =>
+  def checkAnswer(temp: Int) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       ansForm.bindFromRequest.fold(
         errors => {
@@ -47,7 +52,7 @@ object Assessments extends Controller {
     }
   }
 
-  def newQuestion() = Action { implicit req =>
+  def newQuestion() = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
       rand = new Random
       first = rand.nextInt(9) + 1

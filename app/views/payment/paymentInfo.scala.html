@@ -1,6 +1,6 @@
-@(myForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(myForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Current Checkouts") {
+@views.html.main("Current Checkouts") {
 
 <h1>Pay Here</h1>
 	Enter your information here:
