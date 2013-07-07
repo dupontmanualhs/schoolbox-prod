@@ -4,7 +4,7 @@ import play.api.mvc.Request
 import scalatags._
 import _root_.forms.Binding
 
-package object forms {
+package for_forms {
   object Tester {
     def apply(form: Binding)(implicit req: Request[_]) = {
       html(

@@ -1,4 +1,4 @@
-package controllers.forms
+package controllers.for_forms
 
 import play.api.mvc.{Action, Controller}
 import forms.{ Binding, ValidBinding, InvalidBinding, Form }
@@ -10,7 +10,6 @@ import forms.fields.RadioField
 import scala.xml.NodeSeq.seqToNodeSeq
 import com.google.inject.{ Inject, Singleton }
 import play.api.templates.Html
-
 
 object App extends Controller {
 
@@ -57,12 +56,12 @@ object App extends Controller {
   }
   
   def formTest() = Action { implicit req =>
-    Ok(Html(templates.forms.Tester(Binding(FormTests)))) 
+    Ok(Html(templates.for_forms.Tester(Binding(FormTests)))) 
   }
 
   def formTestP() = Action { implicit req =>
     Binding(FormTests, req) match {
-      case ib: InvalidBinding => Ok(Html(templates.forms.Tester(ib)))
+      case ib: InvalidBinding => Ok(Html(templates.for_forms.Tester(ib)))
       case vb: ValidBinding => {
         val TheChoice = vb.valueOf(FormTests.ChoiceField)
         val TheDate = vb.valueOf(FormTests.DateField)
@@ -81,7 +80,7 @@ object App extends Controller {
         val TheFile = vb.valueOf(FormTests.FileField)
         val listOfStuff = List(("Radio", TheRadioR.toString),("File", TheFile.toString),("Choice Field Mult", TheChoiceMult.toString),("Checkbox Optional", TheCheckboxO.toString),("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Phone Field", ThePhone.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
 
-        Ok(Html(templates.forms.Results(listOfStuff)))
+        Ok(Html(templates.for_forms.Results(listOfStuff)))
       }
     }
   }

@@ -11,10 +11,10 @@ import scalajdo.DataStore
 import models.books._
 import models.courses.{ Student, QStudent }
 import models.users._
-import forms.fields._
-import forms.validators.Validator
-import forms.validators.ValidationError
-import forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
+import _root_.forms.fields._
+import _root_.forms.validators.Validator
+import _root_.forms.validators.ValidationError
+import _root_.forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
 import controllers.users.VisitAction
 import config.Config
 import com.google.inject.{ Inject, Singleton }
