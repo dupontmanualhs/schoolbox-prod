@@ -65,6 +65,7 @@ object Call {
   implicit def call2playCall(call: Call): PlayCall = PlayCall(call.method.forRequest, call.url)
   implicit def playCall2call(playCall: PlayCall): Call = Call(Method(playCall.method), playCall.url)
   implicit def call2sTag(call: Call): STag = StringSTag(call.toString)
+  implicit def call2string(call: Call): String = call.toString
 }
 
 object FormCall {

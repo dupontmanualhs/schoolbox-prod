@@ -1,0 +1,3 @@
+#
+GET  /test				controllers.forms.App.formTest()
+POST /test				controllers.forms.App.formTestP()  
