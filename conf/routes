@@ -13,9 +13,8 @@ GET		/webjars/*file						controllers.WebJarAssets.at(file)
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               		controllers.Assets.at(path="/public", file)
 
-#form example
-#GET		/this/is/spartas/formtest				controllers.Application.formTest()
-#POST	/this/is/spartas/formtest				controllers.Application.formTestP()
+#form tests
+-> /forms				forms.Routes
 
 #Users
 -> /users				users.Routes

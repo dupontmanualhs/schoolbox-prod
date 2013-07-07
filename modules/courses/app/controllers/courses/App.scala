@@ -22,7 +22,7 @@ class App @Inject()(implicit config: Config) extends Controller {
   // these are not Actions, and should be called by an Action once the right info has been found
   private[this] def roleSchedule(maybeRole: Option[Role], maybeTerm: Option[Term])(implicit req: VisitRequest[_]) = {
     maybeTerm match {
-      case None => NotFound(config.notFound("You are looking for a schedule in a term that does'nt exist."))
+      case None => NotFound(config.notFound("You are looking for a schedule in a term that doesn't exist."))
       case Some(term) => maybeRole match {
         case None => NotFound(config.notFound("There is no schedule for that user."))
         case Some(role) => role match {
