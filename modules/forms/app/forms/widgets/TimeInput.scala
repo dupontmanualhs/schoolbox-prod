@@ -18,17 +18,17 @@ class TimeInput(
   
   override def scripts: NodeSeq = 
     Seq(script.ctype("text/javascript")(
-	"""$(function() {{
-      $('.timepicker').timepicker({{
+	"""$(function() {
+      $('.timepicker').timepicker({
 		showPeriod: true,
     	showLeadingZero: true
-      }});
-    }});"""),
+      });
+    });"""),
 	script.ctype("text/javascript")(
-    """jQuery(function($){{
+    """jQuery(function($) {
 	  	$.mask.definitions['5']='[012345]';
 	  	$.mask.definitions['1']='[01]';
 		$.mask.definitions['`']='[apAP]';
-		$('.timepicker').mask('19:59 `M',{{placeholder:'_'}});
-  	}});""")).toXML
+		$('.timepicker').mask('19:59 `M', { placeholder:'_' });
+  	});""")).toXML
 }

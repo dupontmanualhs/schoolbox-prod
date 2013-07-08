@@ -21,8 +21,8 @@ class DateInput(
   
   override def scripts: NodeSeq =
     Seq(script.ctype("text/javascript")(
-    s"""$$(function() {{
-      $$('.datepicker${theUuid}').datepicker({{
+    s"""$$(function() {
+      $$('.datepicker${theUuid}').datepicker({
 		  changeMonth: true,
   		  changeYear: true,
   		  altField: '.${theUuid}',
@@ -34,10 +34,10 @@ class DateInput(
   		  buttonImage: '/assets/images/calendar.jpeg',
   		  shortYearCutoff: 99,
   		  buttonText: 'Chooser'
-      }});
-    }});"""),
+      });
+    });"""),
     script.ctype("text/javascript")(
-	"""jQuery(function($$){{
-		$$('.datepicker').mask('99/99/99?99',{{placeholder:'_'}});
-  	}});""")).toXML
+	"""jQuery(function($){
+		$('.datepicker').mask('99/99/99?99',{ placeholder:'_' });
+  	});""")).toXML
 }
