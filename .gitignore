@@ -9,6 +9,7 @@ tmp
 *.orig
 chromedriver.log
 *.log
+C:\\nppdf32Log\\debuglog.txt
 
 .metadata
 .classpath

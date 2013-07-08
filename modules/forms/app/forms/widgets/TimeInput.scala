@@ -14,10 +14,10 @@ class TimeInput(
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     val theValue = if (value.isEmpty) "" else value(0)
     <div id="timepicker" class="timepicker input-append">
-    		<input data-format="hh:mm" type="text"/> % attrs % reqAttr % attrList ++
+    		{<input data-format="hh:mm" type="text"/> % attrs % reqAttr % attrList ++
     		<span class="add-on">
     			<i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
-    		</span>
+    		</span>}
     </div>
   }
   
@@ -46,17 +46,15 @@ class TimeInput(
     
     
     /*Seq(script.ctype("text/javascript")(
-	"""$(function() {{
-      $('.timepicker').timepicker({{
 		showPeriod: true,
     	showLeadingZero: true
-      }});
-    }});"""),
+      });
+    });"""),
 	script.ctype("text/javascript")(
-    """jQuery(function($){{
+    """jQuery(function($) {
 	  	$.mask.definitions['5']='[012345]';
 	  	$.mask.definitions['1']='[01]';
 		$.mask.definitions['`']='[apAP]';
-		$('.timepicker').mask('19:59 `M',{{placeholder:'_'}});
+		$('.timepicker').mask('19:59 `M', { placeholder:'_' });
   	}});""")).toXML*/
 }
