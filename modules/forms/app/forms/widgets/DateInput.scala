@@ -15,12 +15,34 @@ class DateInput(
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     val theValue = if (value.isEmpty) "" else value(0)
-    input.ctype("text").name(name).placeholder("mm/dd/yyyy").cls(s"datepicker${theUuid}", "datepicker").value(theValue).toXML % attrs % reqAttr % attrList ++
-    input.ctype("text").style("background-color" -> "#C0C0C0").name(theUuid).placeholder("DD, d MM, yy").cls(theUuid, "datepicker").attr("disabled" -> "true", "is" -> theUuid, "size" -> "30").toXML
+    input.ctype("text").name(name).placeholder("mm/dd/yyyy").cls("datepicker").value(theValue).toXML % attrs % reqAttr % attrList //++
+    //input.ctype("text").style("background-color" -> "#C0C0C0").name(theUuid).placeholder("DD, d MM, yy").cls(theUuid, "datepicker").attr("disabled" -> "true", "is" -> theUuid, "size" -> "30").toXML
   }
   
   override def scripts: NodeSeq =
-    Seq(script.ctype("text/javascript")(
+    <script type="text/javascript"
+     src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
+    </script> 
+    <script type="text/javascript"
+     src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
+    </script>
+    <script type="text/javascript"
+     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.min.js">
+    </script>
+    <script type="text/javascript"
+     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.pt-BR.js">
+    </script>
+    <script type="text/javascript">
+      $(function(){{
+	    $('.datepicker').datetimepicker({{
+		  pickTime: false
+		}});
+	  }});
+    </script>
+    
+    
+    
+    /*Seq(script.ctype("text/javascript")(
     s"""$$(function() {{
       $$('.datepicker${theUuid}').datepicker({{
 		  changeMonth: true,
@@ -39,5 +61,5 @@ class DateInput(
     script.ctype("text/javascript")(
 	"""jQuery(function($$){{
 		$$('.datepicker').mask('99/99/99?99',{{placeholder:'_'}});
-  	}});""")).toXML
+  	}});""")).toXML*/
 }

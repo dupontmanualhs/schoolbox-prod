@@ -46,7 +46,9 @@ package object templates {
         script.src(config.webjars("jquery-ui.js")),
         script.src(config.webjars("bootstrap.js")),
         script.src(controllers.routes.Assets.at("javascripts/maskedinput.js")),
-        script.src(controllers.routes.Assets.at("javascripts/jquery.timepicker.js")))
+        script.src(controllers.routes.Assets.at("javascripts/jquery.timepicker.js")),
+        <link rel="stylesheet" type="text/css" media="screen" href="http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css"/>
+        )
     }
 
     def menu()(implicit req: VisitRequest[_]): STag = {

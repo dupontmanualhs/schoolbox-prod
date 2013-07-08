@@ -13,11 +13,39 @@ class TimeInput(
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     val theValue = if (value.isEmpty) "" else value(0)
-    input.ctype("text").name(name).placeholder("hh:mm AM/PM").cls("timepicker").value(theValue).toXML % attrs % reqAttr % attrList
+    <div id="timepicker" class="timepicker input-append">
+    		<input data-format="hh:mm" type="text"/> % attrs % reqAttr % attrList ++
+    		<span class="add-on">
+    			<i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+    		</span>
+    </div>
   }
   
   override def scripts: NodeSeq = 
-    Seq(script.ctype("text/javascript")(
+    <script type="text/javascript"
+     src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
+    </script> 
+    <script type="text/javascript"
+     src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
+    </script>
+    <script type="text/javascript"
+     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.min.js">
+    </script>
+    <script type="text/javascript"
+     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.pt-BR.js">
+    </script>
+    <script type="text/javascript">
+      $(function(){{
+		  $('.timepicker').datetimepicker({{
+		  	pickDate: false,
+		  	pickSeconds: false,
+		  	pick12HourFormat: true
+		  }});
+	  }});
+    </script>
+    
+    
+    /*Seq(script.ctype("text/javascript")(
 	"""$(function() {{
       $('.timepicker').timepicker({{
 		showPeriod: true,
@@ -30,5 +58,5 @@ class TimeInput(
 	  	$.mask.definitions['1']='[01]';
 		$.mask.definitions['`']='[apAP]';
 		$('.timepicker').mask('19:59 `M',{{placeholder:'_'}});
-  	}});""")).toXML
+  	}});""")).toXML*/
 }

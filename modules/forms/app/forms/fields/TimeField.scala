@@ -29,7 +29,7 @@ object BaseTimeField {
       Right(parser.parseLocalTime(time))
     } catch {
       // TODO: error message should be based on formats provided
-      case e: IllegalArgumentException => Left(ValidationError(s"Check your time format; '12:30 PM' is a correct time."))
+      case e: IllegalArgumentException => Left(ValidationError(s"Check your time format; '12:30 PM' is an example of a correct time."))
     } 
   }
 }
