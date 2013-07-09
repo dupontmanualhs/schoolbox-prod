@@ -12,10 +12,6 @@ class AutocompleteInput(
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     val valueAttr = if (value.isEmpty) "" else value(0)
-    input.ctype("text").name(name).cls("ac" + uuid.toString).value(valueAttr).attr(attrList.asAttrMap.toList :_*).toXML
+    input.ctype("text").name(name).cls("ac").value(valueAttr).attr(attrList.asAttrMap.toList :_*).attr(("data-provide","typeahead"), ("data-source",array)).toXML
   }
-
-  override def scripts: NodeSeq =
-    javascript()(s"""$$(function() { var availableTags = ${ Unparsed(array.toString) };
-  $$('ac${uuid.toString}').autoComplete({ source: availableTags }); });""").toXML
 }

@@ -22,6 +22,7 @@ package for_forms {
           script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap.js"))),
           script.src(controllers.routes.Assets.at("javascripts/maskedinput.js")),
           script.src(controllers.routes.Assets.at("javascripts/jquery.timepicker.js"))),
+          link.rel("stylesheet").ctype("text/css").href("http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css").attr(("media","screen")),
 	    body(
           h1("Form Tester"),
           p("All of these fields are optional and should be used to test how the different types of fields work."),
