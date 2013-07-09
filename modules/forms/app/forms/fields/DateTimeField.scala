@@ -13,7 +13,7 @@ abstract class BaseDateTimeField[T](
     dateParser: DateTimeFormatter = BaseDateField.usFormat, 
     timeParser: DateTimeFormatter = BaseTimeField.defaultParser)(implicit tag: TypeTag[T]) extends Field[T](name) {
   
-  override def widget = new DateTimeInput(required)
+  override def widget = new DateTimeInput(name, required)
   
   override def checkRequired(rawData: Seq[String]): Either[ValidationError, Seq[String]] = {
     rawData.map(_.trim).filter(_ != "") match {
