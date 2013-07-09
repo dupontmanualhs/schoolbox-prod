@@ -15,8 +15,12 @@ class DateInput(
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     val theValue = if (value.isEmpty) "" else value(0)
-    input.ctype("text").name(name).placeholder("mm/dd/yyyy").cls("datepicker").value(theValue).toXML % attrs % reqAttr % attrList //++
-    //input.ctype("text").style("background-color" -> "#C0C0C0").name(theUuid).placeholder("DD, d MM, yy").cls(theUuid, "datepicker").attr("disabled" -> "true", "is" -> theUuid, "size" -> "30").toXML
+    <div id="datepicker" class="datepicker input-append">
+    		{<input data-format="hh:mm" type="text"/> % attrs % reqAttr % attrList ++
+    		<span class="add-on">
+    			<i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+    		</span>}
+    </div>
   }
   
   override def scripts: NodeSeq =
