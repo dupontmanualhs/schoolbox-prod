@@ -29,12 +29,18 @@ abstract class Form {
     case Some(FormCall(meth, url)) => (meth, url)
     case None => (submitMethod, None)
   }
-      
-  def render(bound: Binding, overrideSubmit: Option[FormCall]=None, legend: Option[String]=None): NodeSeq = {
+  
+  /**
+   * Pass a form's scripts to the main template so they're placed in the <head>.
+   * If you can't, set includeScripts to true and they'll get rendered with the
+   * fields.
+   */
+  def render(bound: Binding, overrideSubmit: Option[FormCall]=None, 
+      legend: Option[String]=None, includeScripts: Boolean = false): NodeSeq = {
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     <form method={ method.forForm } action={ action.map(Text(_)) } enctype={if(fields.map(x => x match{ case f:BaseFileField[_] => true; case _ => false }).contains(true)) "multipart/form-data" else "application/x-www-form-urlencoded"} class="form-horizontal well offset1 span7" >
     	<fieldset>
-    	{this.scripts}
+    	{ if (includeScripts) this.scripts else NodeSeq.Empty }
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
         { bound.formErrors.render }
         { fields.flatMap(_.render(bound)) }
