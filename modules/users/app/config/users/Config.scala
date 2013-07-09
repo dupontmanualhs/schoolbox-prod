@@ -1,6 +1,7 @@
 package config.users
 
 import scala.xml.NodeSeq
+import com.google.inject.Injector
 import scalatags.STag
 import forms.Call
 import play.api.templates.Html
@@ -14,6 +15,10 @@ trait Config {
   def notFound: NotFoundTemplate
   def menuBuilder: (Option[Role] => NodeSeq)
   def webjars: (String => Call)
+}
+
+trait ProvidesInjector {
+  def provideInjector(): Injector
 }
 
 trait MainTemplate {

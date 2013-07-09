@@ -10,25 +10,25 @@ object ApplicationBuild extends Build {
 
   val scalaJdo = RootProject(uri("git://github.com/toddobryan/scalajdo.git"))
 
-  val forms = Project("forms", file("modules/forms")).settings(
+  val forms = play.Project("forms", appVersion, path = file("modules/forms")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
     libraryDependencies ++= Seq(
-      "play" % "play_2.10" % "2.1.1",
+      "com.google.inject" % "guice" % "3.0",
+      "com.tzavellas" % "sse-guice" % "0.7.1",
+      "org.webjars" % "webjars-play_2.10" % "2.1.0-2",
       "javax.mail" % "mail" % "1.4.7",
       "com.scalatags" % "scalatags_2.10" % "0.1.2",
-      "org.scalatest" % "scalatest_2.10" % "2.0.M5b"))
+      "org.scalatest" % "scalatest_2.10" % "2.0.M5b",
+      "org.webjars" % "jquery" % "2.0.0",
+      "org.webjars" % "bootstrap" % "2.3.2",
+      "org.webjars" % "jquery-ui" % "1.10.2-1"))
 
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature"),
-    libraryDependencies ++= Seq(
-      "org.webjars" %% "webjars-play" % "2.1.0-2",
-      "com.google.inject" % "guice" % "3.0",
-      "com.tzavellas" % "sse-guice" % "0.7.1")).dependsOn(
-      forms, scalaJdo)
+    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo)
       
   val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
     scalaVersion := "2.10.2",
@@ -36,10 +36,7 @@ object ApplicationBuild extends Build {
     scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo, users)
 
   val jsDependencies = Seq(
-    "org.webjars" % "jquery" % "2.0.0",
-    "org.webjars" % "bootstrap" % "2.3.2",
     "org.webjars" % "tinymce-jquery" % "3.4.9",
-    "org.webjars" % "jquery-ui" % "1.10.2-1",
     "org.webjars" % "datatables" % "1.9.4-2",
     "org.webjars" % "datatables-bootstrap" % "2-20120201-1")
 

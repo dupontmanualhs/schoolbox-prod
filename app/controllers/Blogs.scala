@@ -9,8 +9,8 @@ import models.users._
 import models.blogs._
 import play.api.mvc.Result
 import models.users.QRole
-import forms.fields.TextField
-import forms.{ Form, ValidBinding, InvalidBinding, Binding }
+import _root_.forms.fields.TextField
+import _root_.forms.{ Form, ValidBinding, InvalidBinding, Binding }
 import scalajdo.DataStore
 import models.users.Visit
 import controllers.users.{ Authenticated, VisitAction }
@@ -75,7 +75,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
   object CreatePostForm extends Form {
     val title = new TextField("title")
     val content = new TextField("content") {
-      override def widget = new forms.widgets.Textarea(true)
+      override def widget = new _root_.forms.widgets.Textarea(true)
     }
 
     def fields = List(title, content)
