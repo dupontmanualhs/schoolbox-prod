@@ -12,9 +12,8 @@ abstract class BaseDateTimeField[T](
     name: String, 
     dateParser: DateTimeFormatter = BaseDateField.usFormat, 
     timeParser: DateTimeFormatter = BaseTimeField.defaultParser)(implicit tag: TypeTag[T]) extends Field[T](name) {
-  val uuid = java.util.UUID.randomUUID()
   
-  override def widget = new DateTimeInput(required, uuid=uuid)
+  override def widget = new DateTimeInput(required)
   
   override def checkRequired(rawData: Seq[String]): Either[ValidationError, Seq[String]] = {
     rawData.map(_.trim).filter(_ != "") match {

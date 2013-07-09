@@ -9,9 +9,8 @@ import forms.validators.ValidationError
 import forms.widgets.DateInput
 
 abstract class BaseDateField[T](name: String, parser: DateTimeFormatter = BaseDateField.usFormat)(implicit tag: TypeTag[T]) extends Field[T](name) {
-  val uuid=java.util.UUID.randomUUID()
   
-  override def widget = new DateInput(required, uuid=uuid)
+  override def widget = new DateInput(required)
 }
 
 object BaseDateField {

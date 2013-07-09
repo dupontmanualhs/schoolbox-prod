@@ -8,22 +8,23 @@ import scalatags._
 
 class DateInput(
   required: Boolean,
-  attrs: MetaData = Null,
-  uuid: UUID) extends Widget(required, attrs) {
-  
-  val theUuid: String = uuid.toString
+  attrs: MetaData = Null) extends Widget(required, attrs) {
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
-    val theValue = if (value.isEmpty) "" else value(0)
-    <div id="datepicker" class="datepicker input-append">
-    		{<input data-format="hh:mm" type="text"/> % attrs % reqAttr % attrList ++
-    		<span class="add-on">
-    			<i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
-    		</span>}
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css"/>
+    <div id="datepicker" class="input-append date">
+      <input type="text"></input>
+      <span class="add-on">
+        <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
+      </span>
     </div>
-  }
-  
-  override def scripts: NodeSeq =
+    <script type="text/javascript"
+     src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
+    </script> 
+    <script type="text/javascript"
+     src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
+    </script>
     <script type="text/javascript"
      src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.min.js">
     </script>
@@ -31,12 +32,15 @@ class DateInput(
      src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.pt-BR.js">
     </script>
     <script type="text/javascript">
-      $(function(){{
-	    $('#datepicker').datetimepicker({{
-		  pickTime: false
-		}});
-	  }});
+      $('#datepicker').datetimepicker({{
+        format: 'MM/dd/yyyy',
+        language: 'pt-BR',
+        pickTime: false
+      }});
     </script>
+  }
+  
+  //override def scripts: NodeSeq =
     
     
     
