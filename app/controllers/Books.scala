@@ -502,16 +502,18 @@ class Books @Inject()(implicit config: Config) extends Controller {
     Binding(BulkCheckInForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.checkInBulk(ib))
       case vb: ValidBinding => DataStore.execute { pm =>
-        val bcs = vb.valueOf(BulkCheckInForm.barcodes).split("\\r?\\n").toList
+        val bcs = vb.valueOf(BulkCheckInForm.barcodes).split("\\r?\\n").toList.distinct
         val cps = checkInBulkPHelper(bcs, "", List[Copy]())
-        val chIns = checkInList(cps._1, 0, cps._2, pm)
-        val errors = "problems checking in books with barcodes:" + chIns._2
+        val chIns = checkInList(cps._1, 0, "", pm)
+        val copiesNotFound = if (cps._2.isEmpty) "" else "could not find copies with barcodes:" + cps._2.substring(1)
+        val booksNotCheckedOut = if (chIns._2.isEmpty) "" else "books with the following barcodes were already checked in:" + chIns._2.substring(1)
+        val errors = if (!copiesNotFound.isEmpty && !booksNotCheckedOut.isEmpty) copiesNotFound + " and " + booksNotCheckedOut else copiesNotFound + booksNotCheckedOut
         val successes = chIns._1
         if (chIns._2.isEmpty) {
-          val mes = successes + " copies successfully checked in"
+          val mes = successes + " copie(s) successfully checked in"
           Redirect(routes.Books.checkInBulk()).flashing("message" -> mes)
         } else {
-          val warning = successes + " copies successfully checked in and " + errors
+          val warning = successes + " copie(s) successfully checked in and " + errors
           Redirect(routes.Books.checkInBulk()).flashing("warn" -> warning)
         }
       }
@@ -525,7 +527,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
       checkInBulkPHelper(bcs.tail, errs, cps)
     } else {
       Copy.getByBarcode(bcs.head) match {
-        case None => checkInBulkPHelper(bcs.tail, errs + " " + bcs.head, cps)
+        case None => checkInBulkPHelper(bcs.tail, errs + ", " + bcs.head, cps)
         case Some(c) => checkInBulkPHelper(bcs.tail, errs, cps :+ c)
       }
     }
@@ -537,7 +539,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
     } else {
       val cand = QCheckout.candidate
       pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cps.head))).executeOption() match {
-        case None => checkInList(cps.tail, counter, errs + " " + cps.head.getBarcode, pm)
+        case None => checkInList(cps.tail, counter, errs + ", " + cps.head.getBarcode, pm)
         case Some(c) => {
           c.endDate = Some(LocalDate.now())
           pm.makePersistent(c)
