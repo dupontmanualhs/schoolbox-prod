@@ -14,37 +14,10 @@ class DateTimeInput(
   val timeWidget = new TimeInput(required, attrs)
   
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
-    <div id={s"id_${name}"} class="input-append date">
-      <input type="text"></input>
-      <span class="add-on">
-        <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
-      </span>
-    </div>
+    dateWidget.render(name, value, attrList) ++ <br/> ++ timeWidget.render(name, value, attrList)
   }
   
   override def scripts: NodeSeq = {
-    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" type="text/css" media="screen" href="http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css"/>
-    <script type="text/javascript"
-     src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
-    </script> 
-    <script type="text/javascript"
-     src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
-    </script>
-    <script type="text/javascript"
-     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.min.js">
-    </script>
-    <script type="text/javascript"
-     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.pt-BR.js">
-    </script>
-    <script type="text/javascript">
-      $(document).ready($('#{s"id_${fieldName}"}').datetimepicker({{
-        format: 'MM/dd/yyyy HH:mm PP',
-        language: 'en',
-        pick12HourFormat: true
-      }}));
-    </script>
-    
-
+    dateWidget.scripts ++ timeWidget.scripts
   }
 }

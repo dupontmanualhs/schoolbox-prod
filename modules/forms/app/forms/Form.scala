@@ -50,7 +50,7 @@ abstract class Form {
   def actions: NodeSeq = {
     <div class="form-actions">
       <button type="submit" class="btn btn-primary">{ submitText }</button>
-      { 
+      {
         if (!includeCancel) NodeSeq.Empty
         else {
           val onClick = cancelTo.map(call => s"window.location.href=${call.url}").getOrElse("window.history.back()")

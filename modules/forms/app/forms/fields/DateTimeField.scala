@@ -17,7 +17,7 @@ abstract class BaseDateTimeField[T](
   
   override def checkRequired(rawData: Seq[String]): Either[ValidationError, Seq[String]] = {
     rawData.map(_.trim).filter(_ != "") match {
-      case Seq() => Left(ValidationError(errorMessages("required")))
+      case Seq() => if(required) Left(ValidationError(errorMessages("required"))) else Right(Seq[String]())
       case Seq(tOrD) => Left(ValidationError("Both date and time are required."))
       case Seq(date, time, rest@_*) => Right(Seq(date, time))
     }

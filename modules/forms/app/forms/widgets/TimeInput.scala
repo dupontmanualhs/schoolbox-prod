@@ -12,40 +12,28 @@ class TimeInput(
   attrs: MetaData = Null) extends Widget(required, attrs) { 
 
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
-//    val theValue = if (value.isEmpty) "" else value(0)
-    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" type="text/css" media="screen" href="http://tarruda.github.com/bootstrap-datetimepicker/assets/css/bootstrap-datetimepicker.min.css"/>
-    <div id="timepicker" class="input-append date">
-      <input type="text"></input>
-      <span class="add-on">
-        <i data-time-icon="icon-time" data-date-icon="icon-calendar"></i>
-      </span>
+    val theValue = if (value.isEmpty) "" else value(0)
+    <div class="input-append bootstrap-timepicker">
+         {<input id="timepicker3" name={name} placeholder="hh:mm A/PM" type="text" class="timepicker" value={theValue} /> % attrs % reqAttr % attrList} ++ <span class="add-on"><i class="icon-time"></i></span>
     </div>
-    <script type="text/javascript"
-     src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
-    </script> 
-    <script type="text/javascript"
-     src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js">
-    </script>
-    <script type="text/javascript"
-     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.min.js">
-    </script>
-    <script type="text/javascript"
-     src="http://tarruda.github.com/bootstrap-datetimepicker/assets/js/bootstrap-datetimepicker.pt-BR.js">
-    </script>
-    <script type="text/javascript">
-      $('#timepicker').datetimepicker({{
-        format: 'hh:mm',
-        language: 'pt-BR',
-        pickDate: false,
-	  	pickSeconds: false,
-	  	pick12HourFormat: true
-      }});
-    </script>
   }
   
-  /*override def scripts: NodeSeq = 
-    <script type="text/javascript"
+  override def scripts: NodeSeq =
+    <script type="text/javascript">
+        $('.timepicker').timepicker({{
+            minuteStep: 5,
+		  	defaultTime: false
+        }});
+    </script>//<script>
+	//	jQuery(function($) {{
+	//  		$.mask.definitions['5']='[012345]';
+	//  		$.mask.definitions['1']='[01]';
+	//	  	$.mask.definitions['`']='[apAP]';
+	//	  	$('.timepicker').mask('19:59 `M', {{ placeholder:'_' }});
+	//	}});
+  	//</script>
+    
+  /*  <script type="text/javascript"
      src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.8.3/jquery.min.js">
     </script> 
     <script type="text/javascript"

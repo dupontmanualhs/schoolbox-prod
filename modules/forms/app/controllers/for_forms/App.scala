@@ -14,10 +14,10 @@ import play.api.templates.Html
 object App extends Controller {
 
   object FormTests extends Form {
-    //val BooleanField = new BooleanField("Boolean")
+    val BooleanField = new BooleanField("Boolean", "THIS IS Forks High School, home of the SPARTANS")
     val ChoiceField = new ChoiceFieldOptional("Choice", List(("hi", "hi"), ("bye", "bye")))
     val DateField = new DateFieldOptional("Date")
-    val TimeField = new TimeFieldOptional("Time")
+    val TimeField = new TimeFieldOptional("Time")    
     val TimestampField = new DateTimeFieldOptional("Timestamp")
     val EmailField = new EmailFieldOptional("Email")
     val NumericField = new NumericFieldOptional[Double]("Double")
@@ -46,7 +46,7 @@ object App extends Controller {
       }
     }
 
-    val fields = List(RadioR, FileField, MultChoiceField, Checkboxo, ACField, ChoiceField, DateField, TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField, editedTextField)
+    val fields = List(RadioR, BooleanField, FileField, MultChoiceField, Checkboxo, ACField, ChoiceField, DateField, TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField, editedTextField)
 
     override def prefix: Option[String] = None
     override def submitText = "Submit"
@@ -78,7 +78,9 @@ object App extends Controller {
         val TheRadioR = vb.valueOf(FormTests.RadioR)
         val TheChoiceMult = vb.valueOf(FormTests.MultChoiceField)
         val TheFile = vb.valueOf(FormTests.FileField)
-        val listOfStuff = List(("Radio", TheRadioR.toString),("File", TheFile.toString),("Choice Field Mult", TheChoiceMult.toString),("Checkbox Optional", TheCheckboxO.toString),("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Phone Field", ThePhone.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
+        val TheAutoComplete = vb.valueOf(FormTests.ACField)
+        val TheBoolean = vb.valueOf(FormTests.BooleanField)
+        val listOfStuff = List(("Radio", TheRadioR.toString),("Boolean Field", TheBoolean.toString),("File", TheFile.toString),("Choice Field Mult", TheChoiceMult.toString),("Checkbox Optional", TheCheckboxO.toString),("AutoComplete Field", TheAutoComplete.toString),("Choice Field", TheChoice.toString), ("Date Field", TheDate.toString), ("Time Field", TheTime.toString), ("Timestamp Field", TheTimestamp.toString), ("Email Field", TheEmail.toString), ("NumericField", TheNumeric.toString), ("Password Field", ThePassword.toString), ("Phone Field", ThePhone.toString), ("Text Field", TheText.toString), ("Url Field", TheUrl.toString), ("Edited Field", TheEdited.toString))
 
         Ok(Html(templates.for_forms.Results(listOfStuff)))
       }

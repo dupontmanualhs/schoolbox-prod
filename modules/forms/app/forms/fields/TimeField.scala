@@ -15,14 +15,8 @@ abstract class BaseTimeField[T](name: String, parser: DateTimeFormatter = BaseTi
 
 object BaseTimeField {
   // require hours, minutes, and either am/AM or pm/PM; seconds and a space before AM/PM are optional
-  val defaultFormats = List("h:mma", "h:mm a", "h:mm:ssa", "h:mm:ss a")
-  val defaultParser: DateTimeFormatter = {
-    val p = new DateTimeFormatterBuilder()
-    defaultFormats.foreach { f =>
-      p.append(DateTimeFormat.forPattern(f))
-    }
-    p.toFormatter()
-  }
+  val defaultFormats = Array("h:mma", "h:mm a", "h:mm:ssa", "h:mm:ss a").map(x=> DateTimeFormat.forPattern(x).getParser)
+  val defaultParser: DateTimeFormatter = new DateTimeFormatterBuilder().append(null, defaultFormats).toFormatter
   
   def asValue(time: String, parser: DateTimeFormatter): Either[ValidationError, LocalTime] = {
     try {

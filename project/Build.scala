@@ -23,7 +23,9 @@ object ApplicationBuild extends Build {
       "org.scalatest" % "scalatest_2.10" % "2.0.M5b",
       "org.webjars" % "jquery" % "2.0.0",
       "org.webjars" % "bootstrap" % "2.3.2",
-      "org.webjars" % "jquery-ui" % "1.10.2-1"))
+      "org.webjars" % "jquery-ui" % "1.10.2-1",
+      "org.webjars" % "bootstrap-datepicker" % "1.0.1",
+      "org.webjars" % "bootstrap-timepicker" % "0.2.3"))
 
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
     scalaVersion := "2.10.2",

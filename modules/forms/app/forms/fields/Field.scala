@@ -42,6 +42,8 @@ abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
     case (Some(label), None) => <label class="control-label">{ label }</label>
     case _ => NodeSeq.Empty
   }
+  
+  val defaultHeight = "30px"
 
   def asWidget(bound: Binding, widget: Widget = widget, attrs: MetaData = Null, onlyInitial: Boolean = false): NodeSeq = {
     val idAttr = if (autoId(bound.form).isDefined && attrs.get("id").isEmpty && widget.attrs.get("id").isEmpty) {
@@ -49,7 +51,9 @@ abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
     } else {
       Null
     }
-    widget.render(if (!onlyInitial) htmlName(bound.form) else htmlInitialName(bound.form), bound.asStringSeq(this), attrs.append(idAttr))
+    widget.render(if (!onlyInitial) htmlName(bound.form) else htmlInitialName(bound.form), bound.asStringSeq(this), attrs.append(idAttr).append(
+        if((this.isInstanceOf[BaseRadioField[_,_]] || this.isInstanceOf[BaseCheckboxField[_,_]] || this.isInstanceOf[BaseFileField[_]])) Null
+        else new UnprefixedAttribute("style", "height:"+defaultHeight, Null)))
   }
 
 
