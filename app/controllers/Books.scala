@@ -495,23 +495,24 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form that allows multiple books to be checked in simultaneously
    */
   def checkInBulk() = VisitAction { implicit req =>
-    Ok(views.html.books.checkInBulk(Binding(BulkCheckInForm)))
+    Ok(templates.books.checkInBulk(Binding(BulkCheckInForm)))
   }
 
   def checkInBulkP() = VisitAction { implicit req =>
     Binding(BulkCheckInForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.checkInBulk(ib))
+      case ib: InvalidBinding => Ok(templates.books.checkInBulk(ib))
       case vb: ValidBinding => DataStore.execute { pm =>
         val bcs = vb.valueOf(BulkCheckInForm.barcodes).split("\\r?\\n").toList
-        val cps = checkInBulkPHelper(bcs, "", new List[Copy]())
+        val cps = checkInBulkPHelper(bcs, "", List[Copy]())
         val chIns = checkInList(cps._1, 0, cps._2, pm)
         val errors = "problems checking in books with barcodes:" + chIns._2
         val successes = chIns._1
         if (chIns._2.isEmpty) {
-          Redirect(routes.Books.checkInBulk()).flashing("message" -> successes + " copies successfully checked in")
+          val mes = successes + " copies successfully checked in"
+          Redirect(routes.Books.checkInBulk()).flashing("message" -> mes)
         } else {
-          Redirect(routes.Books.checkInBulk()).flashing("warn" -> successes + " copies successfully checked in and "
-            + errors)
+          val warning = successes + " copies successfully checked in and " + errors
+          Redirect(routes.Books.checkInBulk()).flashing("warn" -> warning)
         }
       }
     }
