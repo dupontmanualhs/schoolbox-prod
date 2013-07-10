@@ -1,8 +1,36 @@
 package controllers
 
 import scala.xml.{ Elem, NodeSeq }
+import models.users.Role
 
-import models.users.{ MenuItem, MenuBar, Role }
+class MenuItem(val name: String, val id: String, val link: Option[String], val dropItems: List[MenuItem], val sideItems: List[MenuItem] = Nil) { //only include a sideItems list if it is a drop item
+  def asHtml: Elem = if (dropItems.isEmpty && sideItems.isEmpty) {																				 //sideItems are the dropdown within a dropdown 
+    <li>
+      <a href={ link.getOrElse("#") } id={ id }>{ name }</a>
+    </li>
+  } else if(!dropItems.isEmpty){
+    <li class="dropdown">
+      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+        { name }
+        <b class="caret"> </b>
+      </a>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          { dropItems.flatMap(_.asHtml) }
+      </ul>
+   </li >
+  } else {
+    <li class="dropdown-submenu">
+	  <a tabindex="-1" href="#">{name}</a>
+	  <ul class="dropdown-menu">
+		{sideItems.flatMap(_.asHtml)}
+   	  </ul>
+    </li>
+  }
+}
+
+class MenuBar(val menus: List[MenuItem]) {
+  def asHtml: Elem = <ul class="nav">{ menus.flatMap(_.asHtml) }</ul>
+}
 
 object Menu {
   val login = new MenuItem("Log in", "menu_login", Some(controllers.users.routes.App.login().toString), Nil)
@@ -30,6 +58,8 @@ object Menu {
   val viewQueue = new MenuItem("View Print Queue", "menu_viewQueue", Some(controllers.routes.Books.viewPrintQueue.toString), Nil)
   val delCpy = new MenuItem("Delete Copy", "menu_delCpy", Some(controllers.routes.Books.deleteCopyHelper.toString), Nil)
   val delTitle = new MenuItem("Delete Title", "menu_delTitle", Some(controllers.routes.Books.deleteTitleHelper.toString), Nil)
+  val del = new MenuItem("Delete", "menu_delTitle", None, Nil, List(delCpy, delTitle))
+  val evenMoar = new MenuItem("Delete Level 1", "menu_evenMoar", None, Nil, List(del))
   
   def roleMenu(maybeRole: Option[Role]): MenuBar = maybeRole match {
     case None => new MenuBar(List(login))
@@ -39,11 +69,11 @@ object Menu {
   def buildMenu(maybeRole: Option[Role]): NodeSeq = {
     val locItems = List(currloc, locsearch, locsched, findlocnum)
     val bookItems = List(addTitle, chkHistory, copyHistory, currentBks, addPurchaseGroup, inventory, checkout, checkIn, copyInfo, allBksOut, copyStatusByTitle,
-      blkCheckout, editTitle, addToPrintQueue, viewQueue, delCpy, delTitle)
+      blkCheckout, editTitle, addToPrintQueue, viewQueue, evenMoar)
     val courses = new MenuItem("Courses", "menu_courses", Some(controllers.courses.routes.App.mySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)
     val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
-    val masteries: MenuItem = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
+    val masteries = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
     val books = new MenuItem("Books", "menu_books", None, bookItems)
     val bar = new MenuBar(List(courses, lockers, confr, books, masteries))
     bar.asHtml ++ <div class="pull-right">{ roleMenu(maybeRole).asHtml }</div>
