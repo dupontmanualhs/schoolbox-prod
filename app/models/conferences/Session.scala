@@ -1,9 +1,8 @@
 package models.conferences
 
 import javax.jdo.annotations._
-import java.sql.Date
-import java.sql.Time
-import java.sql.Timestamp
+import java.sql.{ Date, Time, Timestamp }
+import org.joda.time.{ LocalDate, LocalTime, LocalDateTime }
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.QueryClass
@@ -15,6 +14,7 @@ class Session {
   private[this] var _id: Long = _
   def id: Long = _id
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _event : Event = _
   def event: Event = _event
@@ -22,42 +22,42 @@ class Session {
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
-  private[this] var _date: java.sql.Date = _
-  def date: java.sql.Date = _date
-  def date_=(theDate: java.sql.Date) { _date = theDate }
+  private[this] var _date: Date = _
+  def date: LocalDate = LocalDate.fromDateFields(_date)
+  def date_=(theDate: LocalDate) { _date = new Date(theDate.toDateTimeAtStartOfDay.getMillis) }
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
-  private[this] var _cutoff: java.sql.Timestamp = _
-  def cutoff: java.sql.Timestamp = _cutoff
-  def cutoff_=(theCutoff: java.sql.Timestamp) {_cutoff = theCutoff}
+  private[this] var _cutoff: Timestamp = _
+  def cutoff: LocalDateTime = LocalDateTime.fromDateFields(_cutoff)
+  def cutoff_=(theCutoff: LocalDateTime) { _cutoff = new Timestamp(theCutoff.toDate.getTime) }
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="true")
   private[this] var _priority: java.sql.Timestamp = _
-  def priority: Option[java.sql.Timestamp] = if (_priority == null) None else Some(_priority)
-  def priority_=(thePriority: Option[java.sql.Timestamp]) {_priority = thePriority.getOrElse(null)}
+  def priority: Option[LocalDateTime] = if (_priority == null) None else Some(LocalDateTime.fromDateFields(_priority))
+  def priority_=(thePriority: Option[LocalDateTime]) { _priority = thePriority.map(p => new Timestamp(p.toDate.getTime)).getOrElse(null) }
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _startTime: java.sql.Time = _
-  def startTime: java.sql.Time = _startTime
-  def startTime_=(theStartTime: java.sql.Time) {_startTime = theStartTime}
+  def startTime: LocalTime = LocalTime.fromDateFields(_startTime)
+  def startTime_=(theStartTime: LocalTime) { _startTime = new Time(theStartTime.getMillisOfDay) }
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _endTime: java.sql.Time = _
-  def endTime: java.sql.Time = _endTime
-  def endTime_=(theEndTime: java.sql.Time) {_endTime = theEndTime}
+  def endTime: LocalTime = LocalTime.fromDateFields(_endTime)
+  def endTime_=(theEndTime: LocalTime) { _endTime = new Time(theEndTime.getMillisOfDay) }
   
-  def this(event: Event, date: java.sql.Date, cutoff: java.sql.Timestamp, priority: Option[java.sql.Timestamp], startTime: java.sql.Time, endTime: java.sql.Time) = {
+  def this(theEvent: Event, theDate: LocalDate, theCutoff: LocalDateTime, thePriority: Option[LocalDateTime], theStartTime: LocalTime, theEndTime: LocalTime) = {
     this()
-    _event = event
-    _date = date
-    _cutoff = cutoff
-    _priority = priority.getOrElse(null)
-    _startTime = startTime
-    _endTime = endTime
+    event_=(theEvent)
+    date_=(theDate)
+    cutoff_=(theCutoff)
+    priority_=(thePriority)
+    startTime_=(theStartTime)
+    endTime_=(theEndTime)
   }
 }
 

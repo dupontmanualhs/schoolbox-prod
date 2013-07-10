@@ -1,6 +1,6 @@
-@(answers: List[String])(implicit req: play.api.mvc.Request[_])
+@(answers: List[String])(implicit req: controllers.users.VisitRequest[_])
 
-@main("Check Quiz") {
+@views.html.main("Check Quiz") {
   <div class="page-header">
   	<h2>Check a Quiz</h2>
   </div>

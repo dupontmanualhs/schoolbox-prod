@@ -1,12 +1,14 @@
 package models.conferences
 
 import javax.jdo.annotations._
-import models.users._
-import java.sql.Date
-import java.sql.Time
+import models.courses.{ Student, QStudent, Teacher, QTeacher}
+import java.sql.{ Date, Time }
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import util.QueryClass
+import util.Helpers.localTime2SqlTime
+
+import org.joda.time.LocalTime
 
 import scalajdo.DataStore
 
@@ -16,17 +18,20 @@ class Slot {
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
-    
+   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _session : Session = _
   def session: Session = _session
   def session_=(theSession: Session) { _session = theSession }
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _teacher : Teacher = _
   def teacher: Teacher = _teacher
   def teacher_=(theTeacher: Teacher) {_teacher = theTeacher}
   
+  @Persistent
   @Column(allowsNull="false")
   private[this] var _student : Student = _
   def student: Student = _student
@@ -37,6 +42,7 @@ class Slot {
   def parentName: String = _parentName
   def parentName_=(theParentName: String) {_parentName = theParentName}
   
+  // TODO: should we use models.users.Email?
   @Column(allowsNull="true")
   private[this] var _email : String = _
   def email: String = _email
@@ -59,34 +65,38 @@ class Slot {
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
-  private[this] var _startTime : java.sql.Time = _
-  def startTime: java.sql.Time = _startTime
-  def startTime_=(theStartTime: java.sql.Time) {_startTime = theStartTime}
+  private[this] var _startTime : Time = _
+  def startTime: LocalTime = LocalTime.fromDateFields(_startTime)
+  def startTime_=(theStartTime: LocalTime) { _startTime = localTime2SqlTime(theStartTime) }
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
-  private[this] var _endTime : java.sql.Time = _
-  def endTime: java.sql.Time = _endTime
-  def endTime_=(theEndTime: java.sql.Time) {_endTime = theEndTime}
+  private[this] var _endTime : Time = _
+  def endTime: LocalTime = LocalTime.fromDateFields(_endTime)
+  def endTime_=(theEndTime: LocalTime) { _endTime = localTime2SqlTime(theEndTime) }
   
+  /**
+   * length of conference in minutes
+   */
   @Column(allowsNull="false")
   private[this] var _slotInterval: Int = _
   def slotInterval: Int = _slotInterval
   def slotInterval_=(theSlotInterval: Int) {_slotInterval = theSlotInterval}
   
-  def this(session: Session, teacher: Teacher, student: Student, startTime: java.sql.Time, parentName: String, email: String, phone: String, alternatePhone: Option[String], comment: Option[String], slotInterval: Int) = {
+  def this(theSession: Session, theTeacher: Teacher, theStudent: Student, theStartTime: LocalTime, theParentName: String,
+      theEmail: String, thePhone: String, theAlternatePhone: Option[String], theComment: Option[String], theSlotInterval: Int) = {
     this()
-    _session = session
-    _teacher = teacher
-    _student = student
-    _startTime = startTime
-    _endTime = calculateEndTime(startTime, slotInterval)
-    _parentName = parentName
-    _email = email
-    _phone = phone 
-    _alternatePhone = alternatePhone.getOrElse(null)
-    _comment = comment.getOrElse(null)
-    _slotInterval = slotInterval
+    session_=(theSession)
+    teacher_=(theTeacher)
+    student_=(theStudent)
+    startTime_=(theStartTime)
+    parentName_=(theParentName)
+    email_=(theEmail)
+    phone_=(thePhone)
+    alternatePhone_=(theAlternatePhone)
+    comment_=(theComment)
+    slotInterval_=(theSlotInterval)
+    endTime_=(theStartTime.plusMinutes(theSlotInterval))
   }
   
   def calculateEndTime(startTime: Time, slotInterval: Int): java.sql.Time = {
@@ -95,15 +105,15 @@ class Slot {
   
   //Checks if the slot lies within the session's start and end times
   def validateSession: Boolean = {
-    val dateOrdering = implicitly[Ordering[java.util.Date]]
-    import dateOrdering._
+    val timeOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
+    import timeOrdering._
     (this.startTime < this.session.startTime || this.startTime >= this.session.endTime) ||
     (this.endTime <= this.session.startTime || this.endTime > this.session.endTime)
   } 
   
   //Checks if the slot overlaps another slot's time period
   def validateSlot: Boolean = {
-    val dateOrdering = implicitly[Ordering[java.util.Date]]
+    val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
     import dateOrdering._
     val startTime = this.startTime
     val endTime = this.endTime

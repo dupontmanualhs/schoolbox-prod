@@ -1,5 +1,5 @@
-@(editTitleForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(editTitleForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Edit Title") {
+@views.html.main("Edit Title") {
   @editTitleForm.render()
 }

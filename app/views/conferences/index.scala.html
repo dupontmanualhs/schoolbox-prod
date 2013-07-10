@@ -1,21 +1,38 @@
-@(events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
+@(events: List[models.conferences.Event], sessions: List[models.conferences.Session], slots: List[models.conferences.Slot], priority: Option[models.conferences.PriorityScheduling], currentTime: org.joda.time.LocalDateTime)(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 
-@main("Conferences") {
+@views.html.main("Conferences") {
 	<table class="table table-striped">
 		<thead><th>Name</th></thead>
-		@for(event <- events if (event.isActive)) {
+		@for(event <- events if (event.isActive || priority.isDefined)) {
 			<tr>
 			<td>@event.name</td>
 			</tr>
 			@for(session <- sessions if session.event == event) {
-			<tr>
-			<td><a href="@routes.Conferences.classList(session.id)">@toAmericanString(session.date)</a></td>
-			<td>@toAmericanString(session.cutoff)</td>
-			<td>@{toAmericanString(session.startTime) + " - " + toAmericanString(session.endTime)}</td>
-			</tr>
+				if(event.isActive || currentTime.compareTo(session.priority) >= 0){
+					<tr>
+					<td><a href="@routes.Conferences.classList(session.id)">@toAmericanString(session.date)</a></td>
+					<td>@toAmericanString(session.cutoff)</td>
+					<td>@{toAmericanString(session.startTime) + " - " + toAmericanString(session.endTime)}</td>
+					</tr>
+				}
 			}
 		}
-		</table>
+	</table>
+	<h3>All scheduled conferences</h3>
+		<table>
+	  		<thead><th>Date</th><th>Teacher</th><th>Time</th><th>Email</th><th>Phone</th><th>Alternate Phone</th><th>Comments</th></thead>
+		  	@for(slot <- slots)	{
+		  		<tr>
+		  			<td>@toAmericanString(slot.session.date)</td>
+		  			<td>@slot.teacher.user.shortName</td>
+		  			<td>@toAmericanString(slot.startTime) - @toAmericanString(slot.endTime)</td>
+		  			<td>@slot.email</td>
+		  			<td>@slot.phone</td>
+		  			@if(slot.alternatePhone != None)  { <td>@slot.alternatePhone.get</td> }
+		  			@if(slot.comment != None)  { <td>@slot.comment.get</td> }
+		  		</tr>
+	  		}
+	  	</table>
 }

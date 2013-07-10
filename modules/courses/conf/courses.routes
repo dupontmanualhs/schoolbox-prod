@@ -1,0 +1,23 @@
+# Get teacher's schedule
+GET /teacher/:username							@controllers.courses.App.teacherScheduleForUsername(username: String)
+GET /teacher/:username/:termSlug				@controllers.courses.App.teacherScheduleForUsernameAndTerm(username: String, termSlug: String)
+
+# Get student's schedule
+GET /student/:username							@controllers.courses.App.studentScheduleForUsername(username: String)
+GET /student/:username/:termSlug				@controllers.courses.App.studentScheduleForUsernameAndTerm(username: String, termSlug: String)
+
+# Get the roster of a particular section
+GET /roster/:sectionId							@controllers.courses.App.roster(sectionId: String)
+
+# Get a list of all courses offered
+GET /list		                        		@controllers.courses.App.classList()
+# Get a list of courses offered in a term
+GET /list/:termSlug								@controllers.courses.App.classListForTerm(termSlug: String)
+# Get a list of all sections of a particular course
+GET /sections/:masterNumber						@controllers.courses.App.sectionList(masterNumber: String)
+# Get a big table of all sections
+GET /sectionList								@controllers.courses.App.sectionMasterList()
+
+# Get user's schedule (second pattern matches above, so must be last)
+GET /											@controllers.courses.App.mySchedule()
+GET /:termSlug									@controllers.courses.App.myScheduleForTerm(termSlug: String)

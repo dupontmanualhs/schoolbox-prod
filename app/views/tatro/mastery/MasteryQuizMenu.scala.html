@@ -1,6 +1,6 @@
-@(table: List[xml.NodeSeq], hasQuizzes: Boolean)(implicit req: play.api.mvc.Request[_])
+@(table: List[xml.NodeSeq], hasQuizzes: Boolean)(implicit req: controllers.users.VisitRequest[_])
 @import helper._
-@main("Mastery Quizzes"){
+@views.html.main("Mastery Quizzes"){
 <h1>Mastery Quiz Menu</h1><br/>
 @if(hasQuizzes){
 <table>

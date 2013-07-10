@@ -14,32 +14,33 @@ class QuizSection { //a section is a part of the quiz where students would be do
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
-  private[this] var _name: String = _ //name of section (i.e. foiling, factoring)
-  private[this] var _instructions: String = _ //instructions for the section (i.e. simplify the following)
-  @Element(types=Array(classOf[QuestionSet]))
-  @Join
-  private[this] var _questionSets: java.util.List[QuestionSet] = _ //a list of the Questions/QuestionSets that make up a section. this.size = numOfQuestionsInSection
+  def id: Long = _id
 
-  def this(name: String, instructions: String, questionSets: List[QuestionSet]) = {
-    this()
-    _name=name
-    _instructions=instructions
-    questionSets_=( questionSets )
-  }
-  def id = _id
-  
+  private[this] var _name: String = _ //name of section (i.e. foiling, factoring)
   def name = _name
   def name_=(theName: String) { _name = theName }
   
+  private[this] var _instructions: String = _ //instructions for the section (i.e. simplify the following)
   def instructions = _instructions
   def instructions_=(theInstructions: String) { _instructions = theInstructions }
   
+  @Persistent
+  @Element(types=Array(classOf[QuestionSet]))
+  @Join
+  private[this] var _questionSets: java.util.List[QuestionSet] = _ //a list of the Questions/QuestionSets that make up a section. this.size = numOfQuestionsInSection
   def questionSets: List[QuestionSet] = _questionSets.asScala.toList
   def questionSets_=(theQuestionSets: List[QuestionSet]) { _questionSets = theQuestionSets.asJava }
   
+  def this(theName: String, theInstructions: String, theQuestionSets: List[QuestionSet]) = {
+    this()
+    name_=(theName)
+    instructions_=(theInstructions)
+    questionSets_=(theQuestionSets)
+  }
 
+  // TODO: does this sometimes get the same question more than once?
   def randomQuestions: List[Question] = {
-    Random.shuffle(questionSets.map((qs: QuestionSet) => qs.get(Random.nextInt(qs.size))))
+    Random.shuffle(questionSets.map((qs: QuestionSet) => qs(Random.nextInt(qs.size))))
   }
 
   override def toString = { _instructions }
@@ -61,8 +62,8 @@ trait QQuizSection extends PersistableExpression[QuizSection] {
   private[this] lazy val _instructions: StringExpression = new StringExpressionImpl(this, "_instructions")
   def instructions: StringExpression = _instructions
   
-  private[this] lazy val _questionSets: ObjectExpression[List[QuestionSet]] = new ObjectExpressionImpl[List[QuestionSet]](this, "_questionSets")
-  def questions: ObjectExpression[List[QuestionSet]] = _questionSets
+  private[this] lazy val _questionSets: ListExpression[java.util.List[QuestionSet], QuestionSet] = new ListExpressionImpl[java.util.List[QuestionSet], QuestionSet](this, "_questionSets")
+  def questions: ListExpression[java.util.List[QuestionSet], QuestionSet] = _questionSets
 }
 
 object QQuizSection {

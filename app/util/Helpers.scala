@@ -3,47 +3,35 @@ package util
 import xml.{Atom, Comment, Elem, MetaData, Node, NodeSeq, Text, XML}
 import java.util.Locale
 import views.html.helper.FieldConstructor
-import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.{ LocalDate, LocalDateTime, LocalTime, ReadablePartial }
 import java.text.SimpleDateFormat
 import java.sql.Date
 import java.sql.Time
 import java.sql.Timestamp
 
 object Helpers {
-  implicit val tableFields = FieldConstructor(views.html.templates.fieldAsTableRow(_))
-  
   implicit object LocalDateOrdering extends Ordering[LocalDate] {
     def compare(ld1: LocalDate, ld2: LocalDate) = ld1.compareTo(ld2)
   }
   
-  val date = new SimpleDateFormat("M/d/yyyy")
-  val time = new SimpleDateFormat("h:mm a")
-  val datetime = new SimpleDateFormat("M/d/yyyy' at 'h:mm a")
+  implicit object LocalTimeOrdering extends Ordering[LocalTime] {
+    def compare(lt1: LocalTime, lt2: LocalTime) = lt1.compareTo(lt2)
+  }
   
-  def camel2TitleCase(camel: String): String = {
-    camel match {
-      case s: String if (s.length > 0) => {
-        val buf: StringBuilder = new StringBuilder(s.substring(0, 1).toUpperCase)
-        (1 until s.length) foreach ((index: Int) => {
-          if ((index < s.length - 2) && 
-              Character.isUpperCase(s.charAt(index - 1)) &&
-              Character.isUpperCase(s.charAt(index)) &&
-              Character.isLowerCase(s.charAt(index + 1))) {
-            buf ++= (" " + s.substring(index, index + 1))
-          } else if (Character.isUpperCase(s.charAt(index)) && 
-              !Character.isUpperCase(s.charAt(index - 1))) {
-            buf ++= (" " + s.substring(index, index + 1))
-          } else if (!Character.isLetter(s.charAt(index)) &&
-              Character.isLetter(s.charAt(index - 1))) {
-            buf ++= (" " + s.substring(index, index + 1))
-          } else {
-            buf += s.charAt(index)
-          }
-        })
-        buf.toString
-      }
-      case _ => camel
-    }
+  implicit object LocalDateTimeOrdering extends Ordering[LocalDateTime] {
+    def compare(ldt1: LocalDateTime, ldt2: LocalDateTime) = ldt1.compareTo(ldt2)
+  }
+  
+  val date = DateTimeFormat.forPattern("M/d/yyyy")
+  val isoDate = DateTimeFormat.forPattern("yyyy-MM-dd")
+  val time = DateTimeFormat.forPattern("h:mm a")
+  val datetime = DateTimeFormat.forPattern("M/d/yyyy' at 'h:mm a")
+  val isoDatetime = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")
+  
+  def localTime2SqlTime(time: LocalTime): java.sql.Time = {
+    val millis = time.toDateTimeToday.withDate(1970, 1, 1).getMillis
+    new java.sql.Time(millis)
   }
   
   def string2nodeSeq(legalNodeSeq: String): NodeSeq = {
@@ -263,7 +251,6 @@ object Helpers {
 	  	  if (hours == 0) hours = 12
 	  	  else if (hours > 12) hours = hours - 12
 	  	  hours.toString + ":" + splitString(1) + " " + ender
-	  	  
 	  	}
 	  	case date: java.sql.Date => {
 	  	  val dateString = date.toString

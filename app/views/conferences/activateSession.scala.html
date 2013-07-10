@@ -1,6 +1,6 @@
-@(teacherActivationForm: forms.Binding, sessionId: Long)(implicit req: play.api.mvc.Request[_])
+@(teacherActivationForm: forms.Binding, sessionId: Long)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Activate this session") {
+@views.html.main("Activate this session") {
 	<h2>Activate Session</h2>
 	@teacherActivationForm.render()
 }

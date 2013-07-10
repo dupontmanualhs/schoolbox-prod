@@ -28,12 +28,16 @@ import views.html
 import forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
-import util.VisitAction
 import scalajdo.DataStore
 import models.users.Visit
 
+import config.Config
+import com.google.inject.{ Inject, Singleton }
+
+import controllers.users.VisitAction
+
 import util.Helpers.string2elem
-import util.{ Call, FormCall, FormMethod }
+import forms.{ Call, FormCall, FormMethod }
 
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
@@ -171,7 +175,8 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
   }
 }
 
-object Mastery extends Controller {
+@Singleton
+class Mastery @Inject()(implicit config: Config) extends Controller {
 
   def menuOfTests() = VisitAction { implicit req =>
     DataStore.execute { pm =>
@@ -195,11 +200,11 @@ object Mastery extends Controller {
 
   def displayQuiz(quizId: Long) = VisitAction { implicit req =>
     Quiz.getById(quizId) match {
-      case None => NotFound(views.html.notFound("The quiz of which you are seeking no longer exists."))
+      case None => NotFound(templates.NotFound("The quiz of which you are seeking no longer exists."))
       case Some(quiz) => {
         val sections: List[QuizSection] = quiz.sections
         if (sections == null || sections.isEmpty) {
-          NotFound(views.html.notFound("There are no sections in this quiz! :("))
+          NotFound(templates.NotFound("There are no sections in this quiz! :("))
         } else {
           val sectionsWithQuestions: List[(QuizSection, List[Question])] =
             quiz.sections.map(s => (s, s.randomQuestions))
@@ -219,7 +224,7 @@ object Mastery extends Controller {
 
   def gradeQuiz(quizId: Long) = VisitAction { implicit req =>
     Quiz.getById(quizId) match {
-      case None => NotFound(views.html.notFound("You submitted a quiz that doesn't exist. That shouldn't happen."))
+      case None => NotFound(templates.NotFound("You submitted a quiz that doesn't exist. That shouldn't happen."))
       case Some(quiz) => {
         val idsOfSectionsWithQuestions = req.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
         val sectionsWithQuestions = idsOfSectionsWithQuestions.map(
@@ -248,13 +253,12 @@ object Mastery extends Controller {
   }
 
   def checkAnswers() = VisitAction { implicit request =>
-    val visit = Visit.getFromRequest(request)
-    val quiz = Quiz.getById(visit.getAs[Long]("quizId").get).get
-    val idsOfSectionsWithQuestions = visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
+    val quiz = Quiz.getById(request.visit.getAs[Long]("quizId").get).get
+    val idsOfSectionsWithQuestions = request.visit.getAs[List[(Long, List[Long])]]("sectionWithQuestionsId").get
     val sectionsWithQuestions = idsOfSectionsWithQuestions.map((sq: (Long, List[Long])) => {
       (QuizSection.getById(sq._1).get, sq._2.map(Question.getById(_).get))
     })
-    val answerList = visit.getAs[List[String]]("answers").get
+    val answerList = request.visit.getAs[List[String]]("answers").get
     val qsAndAs = sectionsWithQuestions.flatMap((sq: (QuizSection, List[Question])) => sq._2).zip(answerList)
     val totalPointsPossible: Int = qsAndAs.map(qa => qa._1.value).reduce((x, y) => x + y)
     val numCorrect = totalPointsPossible - (0 + qsAndAs.map(qa => if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) qa._1.value else 0).reduce((x, y) => x + y))

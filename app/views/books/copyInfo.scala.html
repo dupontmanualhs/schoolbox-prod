@@ -1,6 +1,6 @@
-@(header: String, rows: List[(String, String)])(implicit req: play.api.mvc.Request[_])
+@(header: String, rows: List[(String, String)])(implicit req: controllers.users.VisitRequest[_])
 
-@main("Copy Info") {
+@views.html.main("Copy Info") {
 
 <div class="page-header">
 	<h2>@header</h2>

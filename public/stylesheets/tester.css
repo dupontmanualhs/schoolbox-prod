@@ -16,6 +16,9 @@
 body{
  	padding-top:50px;
 }
+typeahead li.active{
+	color:white;
+}
 
  /*=================================================================
  lolol mack end
@@ -2352,7 +2355,6 @@ table th[class*="span"],
 }
 .dropdown-menu .active > a,
 .dropdown-menu .active > a:hover {
-  color: #dd4814;
   text-decoration: none;
   outline: 0;
   background-color: #d44513;
@@ -2364,6 +2366,9 @@ table th[class*="span"],
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffdd4814', endColorstr='#ffc64012', GradientType=0);
 }
+.dropdown-menu .active > a {color: #ffffff;}
+.dropdown-menu .active > a:hover {color: #ffffff;}
+
 .dropdown-menu .disabled > a,
 .dropdown-menu .disabled > a:hover {
   color: #999999;

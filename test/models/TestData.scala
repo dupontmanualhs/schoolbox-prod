@@ -2,11 +2,8 @@ package models
 
 import java.io.File
 import java.sql._
-
 import javax.jdo.annotations._
-
 import org.joda.time.LocalDate
-
 import models.blogs._
 import models.books._
 import models.conferences._
@@ -15,8 +12,11 @@ import models.grades._
 import models.lockers._
 import models.mastery._
 import models.users._
-
 import scalajdo.{ DataStore, ScalaPersistenceManager }
+import models.users.Gender
+import models.users.User
+
+import util.Helpers.{ isoDatetime, isoDate }
 
 object TestData {
   def load(debug: Boolean = false) {
@@ -77,6 +77,15 @@ object TestData {
     val regGuardian = new Guardian(reg, Set(fitzgeraldStud))
     val hankGuardian = new Guardian(hank, Set(bobbyStud))
 
+    pm.makePersistentAll(List(
+      mary, christina, richard, todd,
+      maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
+      jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
+      ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
+      reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian))
+    toddTeacher.addPermission(User.Permissions.ListAll)
+
+
     if (debug) println("Creating the blagosphere")
     // blogs
     val toddTeacherBlog = new Blog("Todd's Blag", toddTeacher)
@@ -84,12 +93,7 @@ object TestData {
     val tylerBlog = new Blog("Tydar's s'radyT", tylerStud)
     val jordanBlog = new Blog("Jordan doesn't 'Get It(R)'", jordanStud)
 
-    pm.makePersistentAll(List(
-      mary, christina, richard, todd,
-      maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
-      jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
-      ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
-      reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian, toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
+    pm.makePersistentAll(List(toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
 
     //createYearsAndTerms(debug)
     if (debug) println("Creating AcademicYear, Terms, and Periods...")
@@ -200,7 +204,7 @@ object TestData {
 
     for ((student, sections) <- enrollments) {
       for (sect <- sections) {
-        pm.makePersistent(new StudentEnrollment(student, sect, null, null))
+        pm.makePersistent(new StudentEnrollment(student, sect, None, None))
       }
     }
 
@@ -215,7 +219,7 @@ object TestData {
 
     for ((teacher, sections) <- teacherAssignments) {
       for (sect <- sections) {
-        pm.makePersistent(new TeacherAssignment(teacher, sect, null, null))
+        pm.makePersistent(new TeacherAssignment(teacher, sect, None, None))
       }
     }
 
@@ -277,8 +281,8 @@ object TestData {
     //makeConferenceData(debug)
     /*if(debug) println("Creating Conferences...")
     val springConf = new Event("Spring Conferences", true)
-    val springSession = new Session(springConf, Date.valueOf("2013-04-01"), Timestamp.valueOf("2013-04-21 23:59:59"), 
-        Some(Timestamp.valueOf("2013-04-01 23:59:59")), Time.valueOf("00:00:00"), Time.valueOf("23:59:59"), 10)
+    val springSession = new Session(springConf, isoDate.parseLocalDate("2013-04-01"), isoDatetime.parseLocalDateTime("2013-04-21 23:59:59"), 
+        Some(isoDatetime.parseLocalDateTime("2013-04-01 23:59:59")), Time.valueOf("00:00:00"), Time.valueOf("23:59:59"), 10)
     val firstSlot = new Slot(springSession, Teacher.getByUsername("736052").asInstanceOf[Teacher], Student.getByUsername("RASHAH01").asInstanceOf[Student], 
         Time.valueOf("12:00:00"), "Mark Shah", "fakeemail@n00b.com", "5025555555", null, null)
     }*/
@@ -309,57 +313,57 @@ object TestData {
     if (debug) println("Creating Assignments...")
 
     // r2usHistA Assignments
-    val guildedAgeQuiz = new Assignment("Gilded Age Quiz", 25, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-13"), r2usHistAQuizzes)
-    val lincolnFavoriteFooodsQuiz = new Assignment("Lincoln's Favorite Foods Quiz", 35, Date.valueOf("2012-03-05"), Date.valueOf("2012-03-01"), r2usHistAQuizzes)
+    val guildedAgeQuiz = new Assignment("Gilded Age Quiz", 25, isoDate.parseLocalDate("2012-03-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAQuizzes)
+    val lincolnFavoriteFooodsQuiz = new Assignment("Lincoln's Favorite Foods Quiz", 35, isoDate.parseLocalDate("2012-03-05"), isoDatetime.parseLocalDateTime("2012-03-01 23:59:59"), r2usHistAQuizzes)
 
-    val civilWarTest = new Assignment("Civil War Test", 20000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
-    val secondCivilWarTest = new Assignment("Second Civil War Test: East Coast vs West Coast Hip Hop", 200000, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
-    val thirdCivilWarTest = new Assignment("Third Civil War Test: Northeasterly Residents vs Middle Southwest Utah", 20, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistATests)
+    val civilWarTest = new Assignment("Civil War Test", 20000, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistATests)
+    val secondCivilWarTest = new Assignment("Second Civil War Test: East Coast vs West Coast Hip Hop", 200000, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistATests)
+    val thirdCivilWarTest = new Assignment("Third Civil War Test: Northeasterly Residents vs Middle Southwest Utah", 20, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistATests)
 
-    val aLVHReview = new Assignment("Abraham Lincoln Vampire Hunter Review", 1, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
-    val theHistoryOfUSHistory = new Assignment("Worksheet: The History of US History", 2, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
-    val robotsAndKoreanWar = new Assignment("Paper: Advanced Androids Behind the Korean War", 5, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
-    val georgeWashingtonvsGodzilla = new Assignment("George Washington: Savior of Our Union", 8, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAHomework)
+    val aLVHReview = new Assignment("Abraham Lincoln Vampire Hunter Review", 1, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAHomework)
+    val theHistoryOfUSHistory = new Assignment("Worksheet: The History of US History", 2, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAHomework)
+    val robotsAndKoreanWar = new Assignment("Paper: Advanced Androids Behind the Korean War", 5, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAHomework)
+    val georgeWashingtonvsGodzilla = new Assignment("George Washington: Savior of Our Union", 8, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAHomework)
 
-    val apPractice1 = new Assignment("AP Practice 1", 111111, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAAPPractice)
+    val apPractice1 = new Assignment("AP Practice 1", 111111, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAAPPractice)
 
-    val conduct4 = new Assignment("4th 6 weeks Conduct", 10, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAConduct)
-    val conduct5 = new Assignment("5th 6 weeks Conduct", 4, Date.valueOf("2012-02-05"), Date.valueOf("2012-03-13"), r2usHistAConduct)
+    val conduct4 = new Assignment("4th 6 weeks Conduct", 10, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAConduct)
+    val conduct5 = new Assignment("5th 6 weeks Conduct", 4, isoDate.parseLocalDate("2012-02-05"), isoDatetime.parseLocalDateTime("2012-03-13 23:59:59"), r2usHistAConduct)
 
     // r1alg1A Assignments
-    val ass1 = new Assignment("Chaper 12.1 Quiz", 30, Date.valueOf("2012-10-31"), Date.valueOf("2012-10-31"), r1alg1AQuizzes)
-    val ass2 = new Assignment("Chaper 12.2 Quiz", 30, Date.valueOf("2012-11-07"), Date.valueOf("2012-11-07"), r1alg1AQuizzes)
-    val ass3 = new Assignment("Chaper 12.3 Quiz", 30, Date.valueOf("2012-11-14"), Date.valueOf("2012-11-14"), r1alg1AQuizzes)
-    val ass4 = new Assignment("Chaper 12.4 Quiz", 30, Date.valueOf("2012-11-21"), Date.valueOf("2012-11-21"), r1alg1AQuizzes)
+    val ass1 = new Assignment("Chaper 12.1 Quiz", 30, isoDate.parseLocalDate("2012-10-31"), isoDatetime.parseLocalDateTime("2012-10-31 23:59:59"), r1alg1AQuizzes)
+    val ass2 = new Assignment("Chaper 12.2 Quiz", 30, isoDate.parseLocalDate("2012-11-07"), isoDatetime.parseLocalDateTime("2012-11-07 23:59:59"), r1alg1AQuizzes)
+    val ass3 = new Assignment("Chaper 12.3 Quiz", 30, isoDate.parseLocalDate("2012-11-14"), isoDatetime.parseLocalDateTime("2012-11-14 23:59:59"), r1alg1AQuizzes)
+    val ass4 = new Assignment("Chaper 12.4 Quiz", 30, isoDate.parseLocalDate("2012-11-21"), isoDatetime.parseLocalDateTime("2012-11-21 23:59:59"), r1alg1AQuizzes)
 
-    val ass5 = new Assignment("Chaper 12 Test", 100, Date.valueOf("2012-11-30"), Date.valueOf("2012-11-30"), r1alg1ATests)
+    val ass5 = new Assignment("Chaper 12 Test", 100, isoDate.parseLocalDate("2012-11-30"), isoDatetime.parseLocalDateTime("2012-11-30 23:59:59"), r1alg1ATests)
 
-    val ass6 = new Assignment("Chapter 12.1 Homework", 10, Date.valueOf("2012-10-28"), Date.valueOf("2012-10-31"), r1alg1AHomework)
-    val ass7 = new Assignment("Chapter 12.2 Homework", 10, Date.valueOf("2012-11-24"), Date.valueOf("2012-11-27"), r1alg1AHomework)
-    val ass8 = new Assignment("Chapter 12.3 Homework", 10, Date.valueOf("2012-11-11"), Date.valueOf("2012-11-14"), r1alg1AHomework)
-    val ass9 = new Assignment("Chapter 12.4 Homework", 10, Date.valueOf("2012-11-18"), Date.valueOf("2012-11-21"), r1alg1AHomework)
+    val ass6 = new Assignment("Chapter 12.1 Homework", 10, isoDate.parseLocalDate("2012-10-28"), isoDatetime.parseLocalDateTime("2012-10-31 23:59:59"), r1alg1AHomework)
+    val ass7 = new Assignment("Chapter 12.2 Homework", 10, isoDate.parseLocalDate("2012-11-24"), isoDatetime.parseLocalDateTime("2012-11-27 23:59:59"), r1alg1AHomework)
+    val ass8 = new Assignment("Chapter 12.3 Homework", 10, isoDate.parseLocalDate("2012-11-11"), isoDatetime.parseLocalDateTime("2012-11-14 23:59:59"), r1alg1AHomework)
+    val ass9 = new Assignment("Chapter 12.4 Homework", 10, isoDate.parseLocalDate("2012-11-18"), isoDatetime.parseLocalDateTime("2012-11-21 23:59:59"), r1alg1AHomework)
 
-    val ass10 = new Assignment("Week 10 Participation", 10, Date.valueOf("2012-10-31"), Date.valueOf("2012-11-27"), r1alg1AParticipation)
+    val ass10 = new Assignment("Week 10 Participation", 10, isoDate.parseLocalDate("2012-10-31"), isoDatetime.parseLocalDateTime("2012-11-27 23:59:59"), r1alg1AParticipation)
 
-    val ass11 = new Assignment("Chapter 12 Review", 15, Date.valueOf("2012-11-23"), Date.valueOf("2012-11-25"), r1alg1AClasswork)
+    val ass11 = new Assignment("Chapter 12 Review", 15, isoDate.parseLocalDate("2012-11-23"), isoDatetime.parseLocalDateTime("2012-11-25 23:59:59"), r1alg1AClasswork)
 
     // w2bioA Assignments
-    val carbonQuiz = new Assignment("Carbon Quiz", 40, Date.valueOf("2012-11-27"), Date.valueOf("2012-11-27"), w2bioAQuizzes)
-    val popQuiz = new Assignment("Surprise Muthatrucka", 25, Date.valueOf("2012-11-11"), Date.valueOf("2012-11-11"), w2bioAQuizzes)
-    val cellQuiz = new Assignment("Cell Quiz", 40, Date.valueOf("2012-11-17"), Date.valueOf("2012-11-17"), w2bioAQuizzes)
+    val carbonQuiz = new Assignment("Carbon Quiz", 40, isoDate.parseLocalDate("2012-11-27"), isoDatetime.parseLocalDateTime("2012-11-27 23:59:59"), w2bioAQuizzes)
+    val popQuiz = new Assignment("Surprise Muthatrucka", 25, isoDate.parseLocalDate("2012-11-11"), isoDatetime.parseLocalDateTime("2012-11-11 23:59:59"), w2bioAQuizzes)
+    val cellQuiz = new Assignment("Cell Quiz", 40, isoDate.parseLocalDate("2012-11-17"), isoDatetime.parseLocalDateTime("2012-11-17 23:59:59"), w2bioAQuizzes)
 
-    val carbonTest = new Assignment("Carbon Test", 100, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-10"), w2bioATests)
-    val cellTest = new Assignment("Cell Test", 100, Date.valueOf("2012-11-20"), Date.valueOf("2012-11-20"), w2bioATests)
+    val carbonTest = new Assignment("Carbon Test", 100, isoDate.parseLocalDate("2012-11-10"), isoDatetime.parseLocalDateTime("2012-11-10 23:59:59"), w2bioATests)
+    val cellTest = new Assignment("Cell Test", 100, isoDate.parseLocalDate("2012-11-20"), isoDatetime.parseLocalDateTime("2012-11-20 23:59:59"), w2bioATests)
 
-    val wordSearch = new Assignment("Word Search", 10, Date.valueOf("2012-10-31"), Date.valueOf("2012-11-23"), w2bioAHomework)
-    val bookReading = new Assignment("Book Reading", 5, Date.valueOf("2012-11-23"), Date.valueOf("2012-11-25"), w2bioAHomework)
-    val carbonWorksheet = new Assignment("Carbon Worksheet", 20, Date.valueOf("2012-11-25"), Date.valueOf("2012-11-27"), w2bioAHomework)
-    val bondWorksheet = new Assignment("Bond Worksheet", 15, Date.valueOf("2012-11-10"), Date.valueOf("2012-11-12"), w2bioAHomework)
-    val takeHomeProblems = new Assignment("Take Home Problems", 20, Date.valueOf("2012-11-12"), Date.valueOf("2012-11-14"), w2bioAHomework)
-    val cellWorksheet = new Assignment("Cell Worksheet", 20, Date.valueOf("2012-11-15"), Date.valueOf("2012-11-16"), w2bioAHomework)
+    val wordSearch = new Assignment("Word Search", 10, isoDate.parseLocalDate("2012-10-31"), isoDatetime.parseLocalDateTime("2012-11-23 23:59:59"), w2bioAHomework)
+    val bookReading = new Assignment("Book Reading", 5, isoDate.parseLocalDate("2012-11-23"), isoDatetime.parseLocalDateTime("2012-11-25 23:59:59"), w2bioAHomework)
+    val carbonWorksheet = new Assignment("Carbon Worksheet", 20, isoDate.parseLocalDate("2012-11-25"), isoDatetime.parseLocalDateTime("2012-11-27 23:59:59"), w2bioAHomework)
+    val bondWorksheet = new Assignment("Bond Worksheet", 15, isoDate.parseLocalDate("2012-11-10"), isoDatetime.parseLocalDateTime("2012-11-12 23:59:59"), w2bioAHomework)
+    val takeHomeProblems = new Assignment("Take Home Problems", 20, isoDate.parseLocalDate("2012-11-12"), isoDatetime.parseLocalDateTime("2012-11-14 23:59:59"), w2bioAHomework)
+    val cellWorksheet = new Assignment("Cell Worksheet", 20, isoDate.parseLocalDate("2012-11-15"), isoDatetime.parseLocalDateTime("2012-11-16 23:59:59"), w2bioAHomework)
 
-    val carbonExperiment = new Assignment("Carbon Experiment", 30, Date.valueOf("2012-11-25"), Date.valueOf("2012-11-27"), w2bioALabs)
-    val cellLab = new Assignment("Cell Lab", 30, Date.valueOf("2012-11-15"), Date.valueOf("2012-11-17"), w2bioALabs)
+    val carbonExperiment = new Assignment("Carbon Experiment", 30, isoDate.parseLocalDate("2012-11-25"), isoDatetime.parseLocalDateTime("2012-11-27 23:59:59"), w2bioALabs)
+    val cellLab = new Assignment("Cell Lab", 30, isoDate.parseLocalDate("2012-11-15"), isoDatetime.parseLocalDateTime("2012-11-17 23:59:59"), w2bioALabs)
 
     DataStore.pm.makePersistentAll(List(guildedAgeQuiz, lincolnFavoriteFooodsQuiz, civilWarTest, secondCivilWarTest,
       thirdCivilWarTest, aLVHReview, theHistoryOfUSHistory, robotsAndKoreanWar,
@@ -372,21 +376,22 @@ object TestData {
     if (debug) println("Creating Announcements...")
 
     //r2usHistA Announcements
-    val ann1 = new Announcement("HEY KIDS! FIRST DAY OF CLASS AND I'M SOOOO EXCITED!", Timestamp.valueOf("2012-08-15 14:35:21"),
-      r2usHistA, mary)
-    val ann2 = new Announcement("Review sheet #2 and old-school free-response. See you on Monday",
-      Timestamp.valueOf("2012-09-15 04:45:25"), r2usHistA, mary)
-    val ann3 = new Announcement("hksgkdnf", Timestamp.valueOf("2012-09-15 14:34:25"), r2usHistA, mary)
-    val ann4 = new Announcement("I apologize to my students for showing up to class trapped in a plastic bag. I " +
-      "realize it severely impaired my teaching ability.", Timestamp.valueOf("2012-10-15 23:35:21"),
-      r2usHistA, mary)
-    val ann5 = new Announcement("All further announcements will be copied from Mr. Purvis's Edmodo", Timestamp.valueOf("2012-10-30 14:23:51"),
-      r2usHistA, mary)
-    val ann6 = new Announcement("Hi", Timestamp.valueOf("2012-10-31 00:00:00"), r2usHistA, mary)
-    val ann7 = new Announcement("Due Wednesday: 2011 Form B Free-Response Questions. Please bring your responses and" +
-      "scores for each of the questions (scoring rubrics are posted below)\nDue Friday: Series" +
-      "Exam Test corrections. Left column--what i did wrong; right column--what i should have done." +
-      "See multiple choice questions below.", Timestamp.valueOf("2012-11-01 19:19:19"), r2usHistA, mary)
+    val ann1 = new Announcement(maryTeacher, r2usHistA, isoDatetime.parseLocalDateTime("2012-08-15 14:35:21"),
+        "HEY KIDS! FIRST DAY OF CLASS AND I'M SOOOO EXCITED!")
+    val ann2 = new Announcement(maryTeacher,  r2usHistA, isoDatetime.parseLocalDateTime("2012-09-15 04:45:25"),
+        "Review sheet #2 and old-school free-response. See you on Monday")
+    val ann3 = new Announcement(maryTeacher, r2usHistA, isoDatetime.parseLocalDateTime("2012-09-15 14:34:25"),
+        "hksgkdnf")
+    val ann4 = new Announcement(maryTeacher, r2usHistA,  isoDatetime.parseLocalDateTime("2012-10-15 23:35:21"),
+        "I apologize to my students for showing up to class trapped in a plastic bag. I realize it severely impaired my teaching ability.")
+    val ann5 = new Announcement(maryTeacher, r2usHistA,  isoDatetime.parseLocalDateTime("2012-10-30 14:23:51"),
+        "All further announcements will be copied from Mr. Purvis's Edmodo")
+    val ann6 = new Announcement(maryTeacher, r2usHistA,  isoDatetime.parseLocalDateTime("2012-10-31 00:00:00"), "Hi")
+    val ann7 = new Announcement(maryTeacher, r2usHistA, isoDatetime.parseLocalDateTime("2012-11-01 19:19:19"),
+        "Due Wednesday: 2011 Form B Free-Response Questions. Please bring your responses and" +
+        "scores for each of the questions (scoring rubrics are posted below)\nDue Friday: Series" +
+        "Exam Test corrections. Left column--what i did wrong; right column--what i should have done." +
+        "See multiple choice questions below.")
 
     pm.makePersistentAll(List(ann1, ann2, ann3, ann4, ann5, ann6, ann7))
 
@@ -394,15 +399,15 @@ object TestData {
 
     //merry, mack, fitz, jordan
 
-    val ti1 = new Turnin(meriadocStud, Timestamp.valueOf("2012-08-15 14:35:21"), guildedAgeQuiz, 98.0)
-    val ti2 = new Turnin(mackStud, Timestamp.valueOf("2012-08-15 14:35:22"), guildedAgeQuiz, 100)
-    val ti3 = new Turnin(fitzgeraldStud, Timestamp.valueOf("2012-08-15 14:35:23"), guildedAgeQuiz, 77)
-    val ti4 = new Turnin(jordanStud, Timestamp.valueOf("2012-08-15 14:35:23"), guildedAgeQuiz, 40)
+    val ti1 = new Turnin(meriadocStud, isoDatetime.parseLocalDateTime("2012-08-15 14:35:21"), guildedAgeQuiz, 98.0)
+    val ti2 = new Turnin(mackStud, isoDatetime.parseLocalDateTime("2012-08-15 14:35:22"), guildedAgeQuiz, 100)
+    val ti3 = new Turnin(fitzgeraldStud, isoDatetime.parseLocalDateTime("2012-08-15 14:35:23"), guildedAgeQuiz, 77)
+    val ti4 = new Turnin(jordanStud, isoDatetime.parseLocalDateTime("2012-08-15 14:35:23"), guildedAgeQuiz, 40)
 
-    val ti5 = new Turnin(meriadocStud, Timestamp.valueOf("2012-08-19 14:35:21"), aLVHReview, 67)
-    val ti6 = new Turnin(mackStud, Timestamp.valueOf("2012-08-19 14:35:22"), aLVHReview, 54)
-    val ti7 = new Turnin(fitzgeraldStud, Timestamp.valueOf("2012-08-19 14:35:23"), aLVHReview, 80)
-    val ti8 = new Turnin(jordanStud, Timestamp.valueOf("2012-08-20 14:35:23"), aLVHReview, 94.33)
+    val ti5 = new Turnin(meriadocStud, isoDatetime.parseLocalDateTime("2012-08-19 14:35:21"), aLVHReview, 67)
+    val ti6 = new Turnin(mackStud, isoDatetime.parseLocalDateTime("2012-08-19 14:35:22"), aLVHReview, 54)
+    val ti7 = new Turnin(fitzgeraldStud, isoDatetime.parseLocalDateTime("2012-08-19 14:35:23"), aLVHReview, 80)
+    val ti8 = new Turnin(jordanStud, isoDatetime.parseLocalDateTime("2012-08-20 14:35:23"), aLVHReview, 94.33)
 
     DataStore.pm.makePersistentAll(List(ti1, ti2, ti3, ti5, ti6, ti7, ti8))
 

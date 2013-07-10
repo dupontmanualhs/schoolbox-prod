@@ -3,42 +3,50 @@ package models.books
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import models.users.Student
+import models.courses.Student
+import org.joda.time.LocalDate
 
 @PersistenceCapable(detachable="true")
 class Checkout {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
-  private[this] var _student: Student = _
-  private[this] var _copy: Copy = _
-  @Persistent
-  private[this] var _startDate: java.sql.Date = _
-  @Persistent
-  private[this] var _endDate: java.sql.Date = _
-
-  def this(student: Student, copy: Copy, startDate: java.sql.Date, endDate: java.sql.Date) = {
-    this()
-    _student = student
-    _copy = copy
-    _startDate = startDate
-    _endDate = endDate
-  }
-
   def id: Long = _id
 
+  @Persistent
+  private[this] var _student: Student = _
   def student: Student = _student
   def student_=(theStudent: Student) { _student = theStudent }
 
+  @Persistent
+  private[this] var _copy: Copy = _
   def copy: Copy = _copy
   def copy_=(theCopy: Copy) { _copy = theCopy }
 
-  def startDate: java.sql.Date = _startDate
-  def startDate_=(theStartDate: java.sql.Date) { _startDate = theStartDate }
+  @Persistent
+  private[this] var _startDate: java.sql.Date = _
+  def startDate: Option[LocalDate] = Option(_startDate).map(d => LocalDate.fromDateFields(d))
+  def startDate_=(theStartDate: Option[LocalDate]) {
+    if (theStartDate.isDefined) _startDate = new java.sql.Date(theStartDate.get.toDateTimeAtStartOfDay.getMillis)
+    else _startDate = null
+  }
 
-  def endDate: java.sql.Date = _endDate
-  def endDate_=(theEndDate: java.sql.Date) { _endDate = theEndDate }
+  @Persistent
+  private[this] var _endDate: java.sql.Date = _
+  def endDate: Option[LocalDate] = Option(_endDate).map(d => LocalDate.fromDateFields(d))
+  def endDate_=(theEndDate: Option[LocalDate]) { 
+    if (theEndDate.isDefined) _endDate = new java.sql.Date(theEndDate.get.toDateTimeAtStartOfDay.getMillis)
+    else _endDate = null
+  }
   
+  def this(theStudent: Student, theCopy: Copy, theStartDate: Option[LocalDate], theEndDate: Option[LocalDate]) = {
+    this()
+    student_=(theStudent)
+    copy_=(theCopy)
+    startDate_=(theStartDate)
+    endDate_=(theEndDate)
+  }
+
   override def toString: String = {
     "Checkout: Copy %s to %s from %s to %s".format(copy, student.displayName, startDate, endDate)
   }

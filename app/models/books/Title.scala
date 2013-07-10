@@ -6,6 +6,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.PersistableFile
 import scalajdo.DataStore
+import org.joda.time.LocalDateTime
 
 @PersistenceCapable(detachable = "true")
 class Title {
@@ -74,11 +75,15 @@ class Title {
   def verified: Boolean = _verified
   def verified_=(theVerified: Boolean) { _verified = theVerified }
 
+  @Persistent
   @Column(allowsNull = "true")
-  private[this] var _lastModified: java.sql.Date = _
-  def lastModified: Option[java.sql.Date] = Option(_lastModified)
-  def lastModified_=(theLastModified: Option[java.sql.Date]) { _lastModified = theLastModified.getOrElse(null) }
-  def lastModified_=(theLastModified: java.sql.Date) { _lastModified = theLastModified }
+  private[this] var _lastModified: java.sql.Timestamp = _
+  def lastModified: Option[LocalDateTime] = Option(_lastModified).map(LocalDateTime.fromDateFields(_))
+  def lastModified_=(theLastModified: Option[LocalDateTime]) { 
+    if (theLastModified.isDefined) lastModified_=(theLastModified.get)
+    else _lastModified = null
+  }
+  def lastModified_=(theLastModified: LocalDateTime) { _lastModified = new java.sql.Timestamp(theLastModified.toDate.getTime) }
 
   @Column(allowsNull = "true")
   private[this] var _image: String = _
@@ -87,7 +92,7 @@ class Title {
   def image_=(theImage: String) { _image = theImage }
 
   def this(name: String, author: Option[String], publisher: Option[String], isbn: String, numPages: Option[Int],
-    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: java.sql.Date, image: Option[String] = None) = {
+    dimensions: Option[String], weight: Option[Double], verified: Boolean, lastModified: Option[LocalDateTime], image: Option[String] = None) = {
     this()
     name_=(name)
     author_=(author)
@@ -170,7 +175,100 @@ object Title {
     val cand = QTitle.candidate
     DataStore.pm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
   }
+  /**
+   * Helper Method
+   *
+   * Given a list of the first 9 digits from a ten-digit ISBN,
+   * returns the expected check digit (which could also be an X in
+   * addition to the digits 0 through 9). The algorithm can be found here:
+   * http://en.wikipedia.org/wiki/International_Standard_Book_Number#Check_digits
+   */
+  def tenDigitCheckDigit(digits: List[Int]): String = {
+    val checkSum = digits.zipWithIndex.map(digitWithIndex => {
+      val digit = digitWithIndex._1
+      val index = digitWithIndex._2
+      (10 - index) * digit
+    }).sum
+    val checkDigit = (11 - (checkSum % 11)) % 11
+    if (checkDigit == 10) "X" else checkDigit.toString
+  }
 
+  /**
+   * Helper Method
+   *
+   * Given a list of the first 12 digits from a 13-digit ISBN,
+   * returns the expected check digit. The algorithm can be found
+   * here:
+   * http://en.wikipedia.org/wiki/International_Standard_Book_Number#Check_digits
+   */
+  def thirteenDigitCheckDigit(digits: List[Int]): String = {
+    val checkSum = digits.zipWithIndex.map(digitWithIndex => {
+      val digit = digitWithIndex._1
+      val index = digitWithIndex._2
+      digit * (if ((index % 2) == 0) 1 else 3)
+    }).sum
+    ((10 - (checkSum % 10)) % 10).toString
+  }
+
+  /**
+   * Helper Method
+   *
+   * Given a possible ISBN (either 10- or 13-digit) with the check
+   * digit removed, calculates the check digit, if possible. If the
+   * given String is not the right length or has illegal characters,
+   * returns None.
+   */
+  def checkDigit(isbn: String): Option[String] = {
+    // if (isbn.matches("^\\d+$")) {
+    try {
+      val digits = isbn.toList.map(_.toString.toInt)
+      digits.length match {
+        case 9 => Some(tenDigitCheckDigit(digits))
+        case 12 => Some(thirteenDigitCheckDigit(digits))
+        case _ => None
+      }
+    } catch {
+      case _: NumberFormatException => None
+    }
+    // } else None
+  }
+
+  /**
+   * Helper Method
+   *
+   * Converts a valid 10-digit ISBN into the equivalent 13-digit one.
+   * If the original String is not valid, may cause an exception.
+   */
+  def makeIsbn13(isbn10: String): String = {
+    val isbn9 = isbn10.substring(0, 9)
+    val isbn12 = "978" + isbn9
+    isbn12 + checkDigit(isbn12).get
+  }
+
+  /**
+   * Helper Method
+   *
+   * Given a possible ISBN, verifies that it's valid and
+   * returns the 13-digit equivalent. If the original ISBN
+   * is not valid, returns None. Any dashes that the user may
+   * have entered are removed.
+   */
+  def asValidIsbn13(text: String): Option[String] = {
+    def verify(possIsbn: String): Option[String] = {
+      val noCheck = possIsbn.substring(0, possIsbn.length - 1)
+      val check = checkDigit(noCheck)
+      check match {
+        case Some(cd) => if (possIsbn == noCheck + cd) Some(possIsbn) else None
+        case _ => None
+      }
+    }
+    val isbn = "-".r.replaceAllIn(text, "")
+    isbn.length match {
+      case 10 => verify(isbn).map(makeIsbn13(_))
+      case 13 => verify(isbn)
+      case _ => None
+    }
+  }
 }
 
 trait QTitle extends PersistableExpression[Title] {

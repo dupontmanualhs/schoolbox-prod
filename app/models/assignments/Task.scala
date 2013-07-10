@@ -1,6 +1,6 @@
 package models.assignments
 
-import models.users.Teacher
+import models.courses.Teacher
 import javax.jdo.annotations._
 import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._

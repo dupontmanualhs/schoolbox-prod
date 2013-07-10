@@ -1,5 +1,7 @@
 package models.users
 
+import models.courses.{ Guardian, Student, Teacher }
+
 import scalajdo.DataStore
 
 object UserData {  

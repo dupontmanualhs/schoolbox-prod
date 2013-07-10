@@ -1,8 +1,8 @@
-@(teacher: Option[models.users.Teacher], events: List[models.conferences.Event], sessions: List[models.conferences.Session])(implicit req: play.api.mvc.Request[_])
+@(teacher: models.courses.Teacher, events: List[models.conferences.Event], sessions: List[models.conferences.Session], sections: List[models.courses.Section], priorities: List[models.conferences.PriorityScheduling])(implicit req: controllers.users.VisitRequest[_])
 
 @import util.Helpers._
 
-@main("Teacher Conferences") {
+@views.html.main("Teacher Conferences") {
 	<div class="page-header">
 	<table class="table table-striped">
 		<thead><th>Name</th><th>Activated?</th></thead>
@@ -19,5 +19,28 @@
 			</tr>
 			}
 		}
-		</table>
+	</table>
+	<h3>Student List</h3>
+	<table class="table table-striped">
+		@for(section <- sections){
+			<tr>@section.course.name</tr>
+			<tr><table>
+				<thead><th>Name</th><th>Grade</th><th>E-mail</th></thead>
+				@for(student <- section.students()) {
+					<tr>
+						<td>@student.user.displayName</td>
+						<td>@student.grade</td>
+						<td>@student.user.email</td>
+						<td>
+							@if(priorities.exists( p => p.student == student)) {
+								<a href="@routes.Conferences.disablePriority(student.id)">Disable Priority Scheduling</a>
+							} else {
+								<a href="@routes.Conferences.enablePriority(student.id)">Enable Priority Scheduling</a>
+							}
+						</td>
+					</tr>
+				}
+			</table></tr>
+		}
+	</table>
 }

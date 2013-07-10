@@ -16,13 +16,23 @@ class Question extends Serializable {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _ //DB's id
+  def id: Long = _id
+
   private[this] var _text: String = _ // text displayed for question (i.e. 2x^(2) = 3)
+  def text = _text
+  def text_=(theText: String) { _text = theText }
+  
+  @Persistent(defaultFetchGroup="true")
   @Element(types=Array(classOf[String]))
   @Join
-  @Persistent(defaultFetchGroup="true")
   private[this] var _answer: java.util.List[String] = _ // the correct answers for a question
-  private[this] var _value: Int = _ // number of points the question is worth
+  def answer: List[String] = _answer.asScala.toList
+  def answer_=(theAnswer: List[String]) { _answer = theAnswer.asJava }
   
+  private[this] var _value: Int = _ // number of points the question is worth
+  def value = _value
+  def value_=(theValue: Int) { _value = theValue }
+    
   def this(text: String, answer: List[String], value: Int) = {
     this()
     _text = text
@@ -31,18 +41,7 @@ class Question extends Serializable {
   }
   
   def this(text: String, answer: List[String]) = this(text, answer, 1)
-  
-  def id = _id
-  
-  def text = _text
-  def text_=(theText: String) { _text = theText }
-  
-  def answer: List[String] = _answer.asScala.toList
-  def answer_=(theAnswer: List[String]) { _answer = theAnswer.asJava }
-  
-  def value = _value
-  def value_=(theValue: Int) { _value = theValue }
-  
+   
   override def toString = { text }
 }
 

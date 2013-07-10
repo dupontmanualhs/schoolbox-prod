@@ -1,8 +1,9 @@
-@(sessionId: Long, table: List[xml.NodeSeq], hasEnrollments: Boolean)(implicit req: play.api.mvc.Request[_])
+@(sessionId: Long, table: List[xml.NodeSeq], hasEnrollments: Boolean, slots: List[models.conferences.Slot])(implicit req: controllers.users.VisitRequest[_])
 
 @import controllers.Conferences
+@import util.Helpers._
 
-@main("Student Conferences") {
+@views.html.main("Student Conferences") {
 	<div class="page-header">
 	  <h2>Schedule Your Class Conferences</h2>
 	</div>
@@ -14,6 +15,20 @@
   				@row
   			} 
 		</table>
+		<h3>Scheduled conferences for this session</h3>
+		<table>
+	  		<thead><th>Teacher</th><th>Time</th><th>Email</th><th>Phone</th><th>Alternate Phone</th><th>Comments</th></thead>
+		  	@for(slot <- slots)	{
+		  		<tr>
+		  			<td>@slot.teacher.user.shortName</td>
+		  			<td>@toAmericanString(slot.startTime) - @toAmericanString(slot.endTime)</td>
+		  			<td>@slot.email</td>
+		  			<td>@slot.phone</td>
+		  			@if(slot.alternatePhone != None)  { <td>@slot.alternatePhone.get</td> }
+		  			@if(slot.comment != None)  { <td>@slot.comment.get</td> }
+		  		</tr>
+	  		}
+	  	</table>
 	  }
 	  @if(!hasEnrollments) {
 		  <p>This student is not enrolled in any courses for this term.</p>

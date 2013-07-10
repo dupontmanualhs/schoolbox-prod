@@ -1,5 +1,5 @@
-@(quiz: models.mastery.Quiz, PtsPoss: Int, nCorrect: Int, table: List[xml.NodeSeq])(implicit req: play.api.mvc.Request[_])
-@main(quiz.toString + " Score"){
+@(quiz: models.mastery.Quiz, PtsPoss: Int, nCorrect: Int, table: List[xml.NodeSeq])(implicit req: controllers.users.VisitRequest[_])
+@views.html.main(quiz.toString + " Score"){
 	<h1>@quiz.toString Score Card</h1>
 	<h2>Missed: @nCorrect.toString</h2>
 	<table class="table" border="1">

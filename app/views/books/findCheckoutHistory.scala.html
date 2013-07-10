@@ -1,5 +1,5 @@
-@(roleHistoryLookupForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(roleHistoryLookupForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Find Checkout History") {
+@views.html.main("Find Checkout History") {
   @roleHistoryLookupForm.render()
 }

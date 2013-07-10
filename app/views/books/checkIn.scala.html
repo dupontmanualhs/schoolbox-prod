@@ -1,5 +1,5 @@
-@(checkInForm: forms.Binding)(implicit req: play.api.mvc.Request[_])
+@(checkInForm: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
-@main("Check In a Copy") {
+@views.html.main("Check In a Copy") {
   @checkInForm.render()
 }

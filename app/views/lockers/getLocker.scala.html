@@ -1,8 +1,8 @@
-@(locker: models.lockers.Locker)(implicit req: play.api.mvc.Request[_])
+@(locker: models.lockers.Locker)(implicit req: controllers.users.VisitRequest[_])
 
 @import models.lockers._
 
-@main("Locker Info") {
+@views.html.main("Locker Info") {
 
 	  <div class="page-header">
       	<h2>Locker #@locker.number</h2>
