@@ -494,7 +494,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
    *
    * A form that allows multiple books to be checked in simultaneously
    */
-  /*def checkInBulk() = VisitAction { implicit req =>
+  def checkInBulk() = VisitAction { implicit req =>
     Ok(views.html.books.checkInBulk(Binding(BulkCheckInForm)))
   }
 
@@ -503,24 +503,45 @@ class Books @Inject()(implicit config: Config) extends Controller {
       case ib: InvalidBinding => Ok(views.html.books.checkInBulk(ib))
       case vb: ValidBinding => DataStore.execute { pm =>
         val bcs = vb.valueOf(BulkCheckInForm.barcodes).split("\\r?\\n").toList
-        val cand = QCheckout.candidate
         val cps = checkInBulkPHelper(bcs, "", new List[Copy]())
+        val chIns = checkInList(cps._1, 0, cps._2, pm)
+        val errors = "problems checking in books with barcodes:" + chIns._2
+        val successes = chIns._1
+        if (chIns._2.isEmpty) {
+          Redirect(routes.Books.checkInBulk()).flashing("message" -> successes + " copies successfully checked in")
+        } else {
+          Redirect(routes.Books.checkInBulk()).flashing("warn" -> successes + " copies successfully checked in and "
+            + errors)
+        }
       }
     }
-  }*/
+  }
 
   def checkInBulkPHelper(bcs: List[String], errs: String, cps: List[Copy]): (List[Copy], String) = {
-    if (bcs.size == 1) {
-      Copy.getByBarcode(bcs.head) match {
-        case None => (cps, errs + " " + bcs.head)
-        case Some(c) => (cps :+ c, errs)
-      }
+    if (bcs.size == 0) {
+        (cps, errs)
     } else if (bcs.head.isEmpty) {
       checkInBulkPHelper(bcs.tail, errs, cps)
     } else {
       Copy.getByBarcode(bcs.head) match {
         case None => checkInBulkPHelper(bcs.tail, errs + " " + bcs.head, cps)
         case Some(c) => checkInBulkPHelper(bcs.tail, errs, cps :+ c)
+      }
+    }
+  }
+
+  def checkInList(cps: List[Copy], counter: Int, errs: String, pm: scalajdo.ScalaPersistenceManager): (Int, String) = {
+    if (cps.size == 0) {
+      (counter, errs)
+    } else {
+      val cand = QCheckout.candidate
+      pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cps.head))).executeOption() match {
+        case None => checkInList(cps.tail, counter, errs + " " + cps.head.getBarcode, pm)
+        case Some(c) => {
+          c.endDate = Some(LocalDate.now())
+          pm.makePersistent(c)
+          checkInList(cps.tail, counter + 1, errs, pm)
+        }
       }
     }
   }
