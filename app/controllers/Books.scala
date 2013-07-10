@@ -489,6 +489,42 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
+  /**
+   * Regex: /books/checkInBulk
+   *
+   * A form that allows multiple books to be checked in simultaneously
+   */
+  /*def checkInBulk() = VisitAction { implicit req =>
+    Ok(views.html.books.checkInBulk(Binding(BulkCheckInForm)))
+  }
+
+  def checkInBulkP() = VisitAction { implicit req =>
+    Binding(BulkCheckInForm, req) match {
+      case ib: InvalidBinding => Ok(views.html.books.checkInBulk(ib))
+      case vb: ValidBinding => DataStore.execute { pm =>
+        val bcs = vb.valueOf(BulkCheckInForm.barcodes).split("\\r?\\n").toList
+        val cand = QCheckout.candidate
+        val cps = checkInBulkPHelper(bcs, "", new List[Copy]())
+      }
+    }
+  }*/
+
+  def checkInBulkPHelper(bcs: List[String], errs: String, cps: List[Copy]): (List[Copy], String) = {
+    if (bcs.size == 1) {
+      Copy.getByBarcode(bcs.head) match {
+        case None => (cps, errs + " " + bcs.head)
+        case Some(c) => (cps :+ c, errs)
+      }
+    } else if (bcs.head.isEmpty) {
+      checkInBulkPHelper(bcs.tail, errs, cps)
+    } else {
+      Copy.getByBarcode(bcs.head) match {
+        case None => checkInBulkPHelper(bcs.tail, errs + " " + bcs.head, cps)
+        case Some(c) => checkInBulkPHelper(bcs.tail, errs, cps :+ c)
+      }
+    }
+  }
+
   def lookup() = TODO
 
   def inspect() = TODO
