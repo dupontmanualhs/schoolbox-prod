@@ -58,9 +58,18 @@ object Menu {
   val viewQueue = new MenuItem("View Print Queue", "menu_viewQueue", Some(controllers.routes.Books.viewPrintQueue.toString), Nil)
   val delCpy = new MenuItem("Delete Copy", "menu_delCpy", Some(controllers.routes.Books.deleteCopyHelper.toString), Nil)
   val delTitle = new MenuItem("Delete Title", "menu_delTitle", Some(controllers.routes.Books.deleteTitleHelper.toString), Nil)
+  val blkCheckIn = new MenuItem("Bulk Check In", "menu_blkCheckIn", Some(controllers.routes.Books.checkInBulk.toString), Nil)
+
+  val manage = new MenuItem("Manage", "menu_manage", None, Nil, List(addTitle, addPurchaseGroup, checkout, blkCheckout, checkIn, blkCheckIn, editTitle,
+    delCpy, delTitle))
+  val view = new MenuItem("View", "menu_view", None, Nil, List(chkHistory, copyHistory, currentBks, inventory, copyInfo, allBksOut, copyStatusByTitle))
+  val print = new MenuItem("Print", "menu_print", None, Nil, List(addToPrintQueue, viewQueue))
+
+  /* Example for how to do multiple menu levels
   val del = new MenuItem("Delete", "menu_delTitle", None, Nil, List(delCpy, delTitle))
   val evenMoar = new MenuItem("Delete Level 1", "menu_evenMoar", None, Nil, List(del))
-  
+  */
+
   def roleMenu(maybeRole: Option[Role]): MenuBar = maybeRole match {
     case None => new MenuBar(List(login))
     case Some(role) => new MenuBar(List(new MenuItem(role.displayNameWithRole, "menu_name", None, List(changeRole, settings, logout))))
@@ -68,8 +77,7 @@ object Menu {
 
   def buildMenu(maybeRole: Option[Role]): NodeSeq = {
     val locItems = List(currloc, locsearch, locsched, findlocnum)
-    val bookItems = List(addTitle, chkHistory, copyHistory, currentBks, addPurchaseGroup, inventory, checkout, checkIn, copyInfo, allBksOut, copyStatusByTitle,
-      blkCheckout, editTitle, addToPrintQueue, viewQueue, evenMoar)
+    val bookItems = List(manage, view, print)
     val courses = new MenuItem("Courses", "menu_courses", Some(controllers.courses.routes.App.mySchedule().toString), Nil)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)
     val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)

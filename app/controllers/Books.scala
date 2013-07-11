@@ -197,12 +197,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form that allows users to add information for a new book to the database.
    */
   def addTitle() = VisitAction { implicit request =>
-    Ok(views.html.books.addTitle(Binding(TitleForm)))
+    Ok(templates.books.addTitle(Binding(TitleForm)))
   }
 
   def addTitleP() = VisitAction { implicit request =>
     Binding(TitleForm, request) match {
-      case ib: InvalidBinding => Ok(views.html.books.addTitle(ib))
+      case ib: InvalidBinding => Ok(templates.books.addTitle(ib))
       case vb: ValidBinding => DataStore.execute { implicit pm =>
         val t = new Title(vb.valueOf(TitleForm.name), vb.valueOf(TitleForm.author),
           vb.valueOf(TitleForm.publisher), vb.valueOf(TitleForm.isbn), vb.valueOf(TitleForm.numPages),
@@ -240,13 +240,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * information about the number of copies of the book.
    */
   def addPurchaseGroup() = VisitAction { implicit request =>
-    Ok(views.html.books.addPurchaseGroup(Binding(AddPurchaseGroupForm)))
+    Ok(templates.books.addPurchaseGroup(Binding(AddPurchaseGroupForm)))
   }
 
   def addPurchaseGroupP() = VisitAction { implicit request =>
     DataStore.execute { pm =>
       Binding(AddPurchaseGroupForm, request) match {
-        case ib: InvalidBinding => Ok(views.html.books.addPurchaseGroup(ib))
+        case ib: InvalidBinding => Ok(templates.books.addPurchaseGroup(ib))
         case vb: ValidBinding => {
           Title.getByIsbn(vb.valueOf(AddPurchaseGroupForm.isbn)) match {
             case None => Redirect(routes.Books.addPurchaseGroup()).flashing("error" -> "Title with the given ISBN not found")
@@ -298,12 +298,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form page that allows administrators to checkout a copy of a book to a student.
    */
   def checkout = VisitAction { implicit request =>
-    Ok(views.html.books.checkout(Binding(CheckoutForm)))
+    Ok(templates.books.checkout(Binding(CheckoutForm)))
   }
 
   def checkoutP() = VisitAction { implicit request =>
     Binding(CheckoutForm, request) match {
-      case ib: InvalidBinding => Ok(views.html.books.checkout(ib))
+      case ib: InvalidBinding => Ok(templates.books.checkout(ib))
       case vb: ValidBinding => DataStore.execute { implicit pm =>
         val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
         val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
@@ -335,12 +335,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * Redirects to another page.
    */
   def checkoutBulk() = VisitAction { implicit request =>
-    Ok(views.html.books.checkoutBulk(Binding(CheckoutBulkForm)))
+    Ok(templates.books.checkoutBulk(Binding(CheckoutBulkForm)))
   }
 
   def checkoutBulkP() = VisitAction { implicit request =>
     Binding(CheckoutBulkForm, request) match {
-      case ib: InvalidBinding => Ok(views.html.books.checkoutBulk(ib))
+      case ib: InvalidBinding => Ok(templates.books.checkoutBulk(ib))
       case vb: ValidBinding => {
         val checkoutStu: String = vb.valueOf(CheckoutBulkForm.student)
         Student.getByStateId(checkoutStu) match {
@@ -367,7 +367,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val copies = visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
     val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
     val zipped = ct.zipWithIndex
-    Ok(views.html.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped, stu))
+    Ok(templates.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped, stu))
   }
 
   def checkoutBulkHelperP(stu: String) = VisitAction { implicit request =>
@@ -380,7 +380,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val ct = copies.map(c => (c, Copy.getByBarcode(c).get.purchaseGroup.title.isbn))
     val zipped = ct.zipWithIndex
     Binding(CheckoutBulkHelperForm, request) match {
-      case ib: InvalidBinding => Ok(views.html.books.checkoutBulkHelper(ib, dName, zipped, stu))
+      case ib: InvalidBinding => Ok(templates.books.checkoutBulkHelper(ib, dName, zipped, stu))
       case vb: ValidBinding => {
         Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
           case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy not found.")
@@ -464,12 +464,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form that allows for a book to be checked back in.
    */
   def checkIn() = VisitAction { implicit request =>
-    Ok(views.html.books.checkIn(Binding(CheckInForm)))
+    Ok(templates.books.checkIn(Binding(CheckInForm)))
   }
 
   def checkInP() = VisitAction { implicit request =>
     Binding(CheckInForm, request) match {
-      case ib: InvalidBinding => Ok(views.html.books.checkIn(ib))
+      case ib: InvalidBinding => Ok(templates.books.checkIn(ib))
       case vb: ValidBinding => DataStore.execute { pm =>
         val cand = QCheckout.candidate
         Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
@@ -560,12 +560,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * The post request redirects to /books/copyHistory/:barcode
    */
   def findCopyHistory() = VisitAction { implicit req =>
-    Ok(views.html.books.findCopyHistory(Binding(ChooseCopyForm)))
+    Ok(templates.books.findCopyHistory(Binding(ChooseCopyForm)))
   }
 
   def findCopyHistoryP() = VisitAction { implicit req =>
     Binding(ChooseCopyForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.findCopyHistory(ib))
+      case ib: InvalidBinding => Ok(templates.books.findCopyHistory(ib))
       case vb: ValidBinding => {
         val lookupCopyBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
         Redirect(routes.Books.copyHistory(lookupCopyBarcode))
@@ -588,7 +588,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val rows: List[(String, String, String)] = pm.query[Checkout].filter(coCand.copy.eq(copy)).executeList().map(co => {
           (co.student.formalName, co.startDate.map(df.print(_)).getOrElse(""), co.endDate.map(df.print(_)).getOrElse(""))
         })
-        Ok(views.html.books.copyHistory(header, rows))
+        Ok(templates.books.copyHistory(header, rows))
       }
     }
   }
@@ -615,7 +615,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
           (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""),
             co.endDate.map(df.print(_)).getOrElse(""))
         })
-        Ok(views.html.books.checkoutHistory(header, rows))
+        Ok(templates.books.checkoutHistory(header, rows))
       }
     }
   }
@@ -627,12 +627,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * for a desired student.
    */
   def findCheckoutHistory() = VisitAction { implicit req =>
-    Ok(views.html.books.findCheckoutHistory(Binding(ChooseStudentForm)))
+    Ok(templates.books.findCheckoutHistory(Binding(ChooseStudentForm)))
   }
 
   def findCheckoutHistoryP() = VisitAction { implicit req =>
     Binding(ChooseStudentForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.findCheckoutHistory(ib))
+      case ib: InvalidBinding => Ok(templates.books.findCheckoutHistory(ib))
       case vb: ValidBinding => DataStore.execute { implicit pm =>
         val lookupStudentId: String = vb.valueOf(ChooseStudentForm.stateId)
         Redirect(routes.Books.checkoutHistory(lookupStudentId))
@@ -647,12 +647,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * checked out to a student they provide.
    */
   def findCurrentCheckouts() = VisitAction { implicit req =>
-    Ok(views.html.books.findRoleHistory(Binding(ChooseStudentForm)))
+    Ok(templates.books.findRoleHistory(Binding(ChooseStudentForm)))
   }
 
   def findCurrentCheckoutsP() = VisitAction { implicit req =>
     Binding(ChooseStudentForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.findRoleHistory(ib))
+      case ib: InvalidBinding => Ok(templates.books.findRoleHistory(ib))
       case vb: ValidBinding => {
         val lookupStudentId: String = vb.valueOf(ChooseStudentForm.stateId)
         Redirect(routes.Books.currentCheckouts(lookupStudentId))
@@ -675,7 +675,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val studentName = currentStudent.displayName
         val header = "Student: %s".format(studentName)
         val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse("")) })
-        Ok(views.html.books.currentCheckouts(header, rows))
+        Ok(templates.books.currentCheckouts(header, rows))
       }
     }
   }
@@ -699,7 +699,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
 
         val header = "Copy Status for " + t.name
         val rows: List[(String, String, String, String)] = currentCopies.map(cp => { (cp.number.toString, cp.isCheckedOut.toString, cp.isLost.toString, cp.deleted.toString) })
-        Ok(views.html.books.copyStatusByTitle(header, rows))
+        Ok(templates.books.copyStatusByTitle(header, rows))
       }
     }
   }
@@ -710,12 +710,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form page that allows a user to find a copy by its isbn.
    */
   def findCopyStatusByTitle() = VisitAction { implicit req =>
-    Ok(views.html.books.findCopyStatusByTitle(Binding(ChooseTitleForm)))
+    Ok(templates.books.findCopyStatusByTitle(Binding(ChooseTitleForm)))
   }
 
   def findCopyStatusByTitleP() = VisitAction { implicit req =>
     Binding(ChooseTitleForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.findCopyStatusByTitle(ib))
+      case ib: InvalidBinding => Ok(templates.books.findCopyStatusByTitle(ib))
       case vb: ValidBinding => {
         val lookupTitleIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
         Redirect(routes.Books.copyStatusByTitle(lookupTitleIsbn))
@@ -735,7 +735,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
       val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.eq(stu)).and(stu.grade.eq(grade))).executeList()
       val header = "Current books out for grade " + grade
       val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""), co.student.formalName) })
-      Ok(views.html.books.allBooksOut(header, rows))
+      Ok(templates.books.allBooksOut(header, rows))
     }
   }
 
@@ -745,12 +745,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form page that allows a user to find al the books out for a page.
    */
   def findAllBooksOut() = VisitAction { implicit req =>
-    Ok(views.html.books.findAllBooksOut(Binding(ChooseGradeForm)))
+    Ok(templates.books.findAllBooksOut(Binding(ChooseGradeForm)))
   }
 
   def findAllBooksOutP() = VisitAction { implicit req =>
     Binding(ChooseGradeForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.findAllBooksOut(ib))
+      case ib: InvalidBinding => Ok(templates.books.findAllBooksOut(ib))
       case vb: ValidBinding => DataStore.execute { implicit pm =>
         val lookupGrade: Int = vb.valueOf(ChooseGradeForm.grade)
         Redirect(routes.Books.allBooksOut(lookupGrade))
@@ -791,7 +791,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
           ("Copy Number:", num.toString), ("Checked Out:", checkedOut.toString))
         val header = "Copy info for " + barcode
 
-        Ok(views.html.books.copyInfo(header, rows))
+        Ok(templates.books.copyInfo(header, rows))
       }
     }
   }
@@ -802,12 +802,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form page that allows users to find info on a copy with a certain barcode.
    */
   def findCopyInfo() = VisitAction { implicit req =>
-    Ok(views.html.books.findCopyInfo(Binding(ChooseCopyForm)))
+    Ok(templates.books.findCopyInfo(Binding(ChooseCopyForm)))
   }
 
   def findCopyInfoP() = VisitAction { implicit req =>
     Binding(ChooseCopyForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.findCopyInfo(ib))
+      case ib: InvalidBinding => Ok(templates.books.findCopyInfo(ib))
       case vb: ValidBinding => {
         val lookupBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
         Redirect(routes.Books.copyInfo(lookupBarcode))
@@ -827,7 +827,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
       (ti.name, (ti.howManyCopies() - ti.howManyDeleted()).toString,
         ti.howManyCheckedOut().toString, ti.howManyLost().toString, (ti.howManyCopies() - (ti.howManyCheckedOut() + ti.howManyDeleted() + ti.howManyLost())).toString)
     })
-    Ok(views.html.books.inventory(rows))
+    Ok(templates.books.inventory(rows))
   }
 
   /**
@@ -838,7 +838,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   def editTitleHelper(isbn: String) = VisitAction { implicit request =>
     // TODO: what if there's no title?
     val title = Title.getByIsbn(isbn).get
-    Ok(views.html.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
+    Ok(templates.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
   }
 
   def editTitleHelperP(isbn: String) = VisitAction { implicit request =>
@@ -846,7 +846,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val title = Title.getByIsbn(isbn).get
     val f = new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight)
     Binding(f, request) match {
-      case ib: InvalidBinding => Ok(views.html.books.editTitleHelper(ib))
+      case ib: InvalidBinding => Ok(templates.books.editTitleHelper(ib))
       case vb: ValidBinding => {
         title.name = vb.valueOf(f.name)
         title.author = vb.valueOf(f.author)
@@ -876,12 +876,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form that redirects a user to /books/editTitleHelper/:isbn based on the isbn they enter here.
    */
   def editTitle() = VisitAction { implicit req =>
-    Ok(views.html.books.editTitle(Binding(ChooseTitleForm)))
+    Ok(templates.books.editTitle(Binding(ChooseTitleForm)))
   }
 
   def editTitleP() = VisitAction { implicit req =>
     Binding(ChooseTitleForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.editTitle(ib))
+      case ib: InvalidBinding => Ok(templates.books.editTitle(ib))
       case vb: ValidBinding => {
         val lookupIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
         Redirect(routes.Books.editTitleHelper(lookupIsbn))
@@ -981,15 +981,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     document.close()
   }
 
-  // Helper Method
-  val tempBarcode = makeBarcode("1234567890123-200-00001")
-
-  // Helper Method
-  val testBarcodes = List((tempBarcode, "123456788901234567890123456789012345678901234567890", "abcdefghijklmnopqrstuvwxyz123456789012345678901234567890", "qwertyuiopasdfghjklzxcvbnm098765432112345678901234567890"),
-    (tempBarcode, "Name", "Author", "Publisher"), (tempBarcode, "Herp", "Derp", "Snerp"), (tempBarcode, "Welp", "Foo", "Bar"))
-
-  val longTestBarcodes = testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes ++ testBarcodes
-
   /**
    * Regex: /books/addTitleToPrintQueue/:isbn/:cR
    *
@@ -1017,12 +1008,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form page that allows the user to add certain titles and page ranges to a printer setup.
    */
   def addTitleToPrintQueueHelper() = VisitAction { implicit request =>
-    Ok(views.html.books.addTitleToPrintQueueHelper(Binding(AddTitleToPrintQueueForm)))
+    Ok(templates.books.addTitleToPrintQueueHelper(Binding(AddTitleToPrintQueueForm)))
   }
 
   def addTitleToPrintQueueHelperP() = VisitAction { implicit request =>
     Binding(AddTitleToPrintQueueForm, request) match {
-      case ib: InvalidBinding => Ok(views.html.books.addTitleToPrintQueueHelper(ib))
+      case ib: InvalidBinding => Ok(templates.books.addTitleToPrintQueueHelper(ib))
       case vb: ValidBinding => {
         val lookupIsbn: String = vb.valueOf(AddTitleToPrintQueueForm.isbn)
         val copyRange: String = vb.valueOf(AddTitleToPrintQueueForm.copyRange)
@@ -1039,7 +1030,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   def viewPrintQueue() = VisitAction { implicit request =>
     val labelSets = DataStore.pm.query[LabelQueueSet].executeList
     val rows: List[(String, String, String, Long)] = labelSets.map(ls => { (ls.title.name, ls.title.isbn, ls.copyRange, ls.id) })
-    Ok(views.html.books.viewPrintQueue(rows))
+    Ok(templates.books.viewPrintQueue(rows))
   }
 
   def removeFromPrintQueue(id: Long) = VisitAction { implicit request =>
@@ -1134,12 +1125,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form page that allows the user to delete the current copy.
    */
   def deleteCopyHelper() = VisitAction { implicit req =>
-    Ok(views.html.books.deleteCopyHelper(Binding(ChooseCopyForm)))
+    Ok(templates.books.deleteCopyHelper(Binding(ChooseCopyForm)))
   }
 
   def deleteCopyHelperP() = VisitAction { implicit req =>
     Binding(ChooseCopyForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.deleteCopyHelper(ib))
+      case ib: InvalidBinding => Ok(templates.books.deleteCopyHelper(ib))
       case vb: ValidBinding => {
         val lookupBarcode: String = vb.valueOf(ChooseCopyForm.barcode)
         Redirect(routes.Books.deleteCopy(lookupBarcode))
@@ -1175,12 +1166,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form page that allows the user to delete titles from the database.
    */
   def deleteTitleHelper() = VisitAction { implicit req =>
-    Ok(views.html.books.deleteTitleHelper(Binding(ChooseTitleForm)))
+    Ok(templates.books.deleteTitleHelper(Binding(ChooseTitleForm)))
   }
 
   def deleteTitleHelperP() = VisitAction { implicit req =>
     Binding(ChooseTitleForm, req) match {
-      case ib: InvalidBinding => Ok(views.html.books.deleteTitleHelper(ib))
+      case ib: InvalidBinding => Ok(templates.books.deleteTitleHelper(ib))
       case vb: ValidBinding => {
         val lookupIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
         Redirect(routes.Books.deleteTitle(lookupIsbn))

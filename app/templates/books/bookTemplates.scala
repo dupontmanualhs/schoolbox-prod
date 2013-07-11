@@ -271,12 +271,18 @@ object deleteTitleHelper {
 }
 
 object editTitle {
+  def apply(chooseTitleForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Edit a Title")(chooseTitleForm.render())
+  }
+}
+
+object editTitleHelper {
   def apply(editTitleForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Edit a Title")(editTitleForm.render())
   }
 }
 
-object findAllbooksOut {
+object findAllBooksOut {
   def apply(allBooksOutLookupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Find All Books Out")(allBooksOutLookupForm.render())
   }
