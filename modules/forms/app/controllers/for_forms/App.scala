@@ -1,12 +1,10 @@
 package controllers.for_forms
 
 import play.api.mvc.{Action, Controller}
-import forms.{ Binding, ValidBinding, InvalidBinding, Form }
+import forms._
 import forms.fields._
 import forms.widgets._
-import forms.validators.ValidationError
-import forms.fields.CheckboxFieldOptional
-import forms.fields.RadioField
+import forms.validators._
 import scala.xml.NodeSeq.seqToNodeSeq
 import com.google.inject.{ Inject, Singleton }
 import play.api.templates.Html
@@ -35,18 +33,18 @@ object App extends Controller {
     val editedTextField = new TextFieldOptional("edited") {
       override def widget = new TextInput(required)
 
-      override def helpText = Some(<p>Please input "lolCats" for true</p><p>here is a reset button: <button type="reset" class="btn">useless</button></p>)
+      override def helpText = Some(<p>Please input "lolCats" for true</p>)
 
       override def asValue(s: Seq[String]): Either[ValidationError, Option[String]] = {
         s match {
           case Seq() => Right(None)
-          case Seq(str) => if (str == "lolCats") Right(Some("true")) else Right(Some("false"))
+          case Seq(str) => if (str == "lolCats") Right(Some("true")) else Left(ValidationError("Must be \"lolCats\" or empty. The rest of this message is to show how these errors will behave with extremely long error messages because those may be used for some reason."))
           case _ => Left(ValidationError("Expected a single value or none, got multiples."))
         }
       }
     }
 
-    val fields = List(RadioR, BooleanField, FileField, MultChoiceField, Checkboxo, ACField, ChoiceField, DateField, TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField, editedTextField)
+    val fields = List(editedTextField, RadioR, BooleanField, FileField, MultChoiceField, Checkboxo, ACField, ChoiceField, DateField, TimeField, TimestampField, EmailField, NumericField, PasswordField, PhoneField, TextField, UrlField)
 
     override def prefix: Option[String] = None
     override def submitText = "Submit"

@@ -26,21 +26,22 @@ abstract class Field[T](val name: String)(implicit tag: TypeTag[T]) {
   def spacesSameAsBlank = true
   
   def render(bound: Binding): NodeSeq = {
-    <div class="control-group">  
+    val errors = bound.fieldErrors.get(name).map(_.render).getOrElse(NodeSeq.Empty)
+    <div class={"control-group " + {if(errors.isEmpty) "" else "error"}}>
       { labelElem(bound.form) }
-      <div class="controls">  
+      <div class="controls">
+      	{ helpText.map((text: NodeSeq) => <i data-placement="top" title={text} data-html="true" class="formtooltip icon-question-sign"></i>).getOrElse(NodeSeq.Empty) }
         { asWidget(bound) }
-        { helpText.map((text: NodeSeq) => <p class="help-block">{ text }</p>).getOrElse(NodeSeq.Empty) }
-        { bound.fieldErrors.get(name).map(_.render).getOrElse(NodeSeq.Empty) }
+        { errors }
         <br />
       </div>  
     </div>
   }
     
-  def labelElem(form: Form): NodeSeq = (label, id(form)) match {
-    case (Some(label), Some(id)) => <label class="control-label" for={ id }>{ label }</label>
-    case (Some(label), None) => <label class="control-label">{ label }</label>
-    case _ => NodeSeq.Empty
+  def labelElem(form: Form, errors: NodeSeq = NodeSeq.Empty): NodeSeq = (label, id(form)) match {
+    case (Some(label), Some(id)) => <label class={"control-label "+label} for={ id }>{ errors ++ label }</label>
+    case (Some(label), None) => <label class={"control-label "+label}>{ errors ++ label }</label>
+    case _ => errors
   }
   
   val defaultHeight = "30px"

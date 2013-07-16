@@ -32,14 +32,18 @@ abstract class Form {
       
   def render(bound: Binding, overrideSubmit: Option[FormCall]=None, legend: Option[String]=None): NodeSeq = {
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
-    <form method={ method.forForm } action={ action.map(Text(_)) } enctype={if(fields.map(x => x match{ case f:BaseFileField[_] => true; case _ => false }).contains(true)) "multipart/form-data" else "application/x-www-form-urlencoded"} class="form-horizontal well offset1 span7" >
+    <form id="form" method={ method.forForm } action={ action.map(Text(_)) } enctype={if(fields.map(x => x match{ case f:BaseFileField[_] => true; case _ => false }).contains(true)) "multipart/form-data" else "application/x-www-form-urlencoded"} class="form-horizontal well offset1 span7" >
     	<fieldset>
         { legend.map(txt => <legend>{ txt }</legend>).getOrElse(NodeSeq.Empty) }
         { bound.formErrors.render }
         { fields.flatMap(_.render(bound)) }
         { actions }
       </fieldset>
-      { this.scripts }
+      { this.scripts ++ <script type="text/javascript">
+      		$(function () {{ 
+      			$('.formtooltip').tooltip();
+      		}});
+      </script>}
     </form>
   }
   
