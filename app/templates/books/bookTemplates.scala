@@ -95,8 +95,8 @@ object checkoutBulkHelper {
       div.cls("page-header")(
         h2(stu)
       ),div(
-      button.cls("btn").attr("type" -> "button").onclick("window.location.href='/books/checkoutBulkSubmit/@stuNum'")("Submit"),
-      button.cls("btn").attr("type" -> "button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel")
+      button.cls("btn").ctype("button").onclick("window.location.href='/books/checkoutBulkSubmit/" + stuNum + "'")("Checkout"),
+      button.cls("btn").ctype("button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel")
     ),table.cls("table", "table-striped", "table-condensed")(
     thead(
       tr(
@@ -104,7 +104,7 @@ object checkoutBulkHelper {
         th("Tittle"),
         th("Copy Number"),
         th(
-          button.cls("btn").attr("type" -> "button").onclick("window.location.href='/books/removeAllCopiesFromList/@stuNum'")("Remove All")
+          button.cls("btn").ctype("button").onclick("window.location.href='/books/removeAllCopiesFromList/" + stuNum + "'")("Remove All")
         )
     )
 ),
@@ -114,7 +114,7 @@ object checkoutBulkHelper {
                 td((bk._2 + 1).toString),
                 td(Title.getByIsbn(bk._1._2).get.name),
                 td(Copy.getByBarcode(bk._1._1).get.number.toString),
-                button.cls("btn").attr("type" -> "button").onclick("window.location.href='/books/removeCopyFromList/@stuNum/@bk._1._1'")("Remove")
+                td(button.cls("btn").ctype("button").onclick("window.location.href='/books/removeCopyFromList/" + stuNum + "/" + bk._1._1 + "'")("Remove"))
               )
           }
         )
@@ -369,17 +369,17 @@ object viewPrintQueue {
       td(row._1),
       td(row._2),
       td(row._3),
-      td(button.cls("btn").attr("type" -> "button").onclick("window.location.href='/books/removeFromPrintQueue/@row._4'")("Remove"))
+      td(button.cls("btn").attr("type" -> "button").onclick("window.location.href='/books/removeFromPrintQueue/" + row._4 + "'")("Remove"))
     )
 }
             )
         ),
-      button.cls("btn").attr("type" -> "button").onclick("printAllFunc();")("Print All"),
+      button.cls("btn").ctype("button").onclick("printAllFunc()")("Print All"),
       script("""
         function printAllFunc() {
-          window.open("/books/printEntireQueue");
-          document.location.reload(true);
-        }"""   )
+          window.open('/books/printEntireQueue');
+          location.reload(true);
+        }   """)
     )
 }
 }
