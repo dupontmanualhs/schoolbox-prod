@@ -991,12 +991,14 @@ class Books @Inject()(implicit config: Config) extends Controller {
       case None => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("error" -> "Title not found")
       case Some(t) => {
         try {
-          sanatizeCopyRange(copyRange)
+          Books.sanitizeCopyRange(copyRange)
           val l = new LabelQueueSet(request.visit.role.getOrElse(null), t, copyRange)
           DataStore.pm.makePersistent(l)
           Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("message" -> "Labels added to print queue")
         } catch {
-          case e: Exception => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("error" -> "Invalid copy range")
+          case e: Exception => {
+            Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("error" -> "Invalid copy range")
+          }
         }
       }
     }
@@ -1017,7 +1019,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
       case vb: ValidBinding => {
         val lookupIsbn: String = vb.valueOf(AddTitleToPrintQueueForm.isbn)
         val copyRange: String = vb.valueOf(AddTitleToPrintQueueForm.copyRange)
-        Redirect(routes.Books.addTitleToPrintQueue(lookupIsbn, copyRange))
+        Redirect(routes.Books.addTitleToPrintQueue(lookupIsbn, copyRange.replaceAll("\\s", "")))
       }
     }
   }
@@ -1047,7 +1049,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   def print(l: List[LabelQueueSet]) {
     var printList = List[(Barcode, String, String, String)]()
     for (x <- l) {
-      val r = sanatizeCopyRange(x.copyRange)
+      val r = Books.sanitizeCopyRange(x.copyRange)
       for (y <- r) {
         val b = makeBarcode("%s-%s-%05d".format(x.title.isbn, "200", y))
         printList = printList :+ (b, x.title.name, x.title.author.getOrElse(""), x.title.publisher.getOrElse(""))
@@ -1056,25 +1058,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
     makePdf(printList)
   }
 
-  // Helper Method
-  def sanatizeCopyRange(s: String): List[Int] = {
-    val newS = s.trim.split(",")
-    var res: List[Int] = List[Int]()
-    for (x <- newS) {
-      if (x.contains("-")) {
-        val newX = x.trim.split("-")
-        val startVal = newX(0).trim.toInt
-        val endVal = newX(1).trim.toInt
-        val temp = startVal.until(endVal + 1).toList
-        res = res ++ temp
-      } else {
-        res = res :+ x.trim.toInt
-      }
-    }
-    res
-  }
-
-  /**
+   /**
    * Regex: /books/printEntireQueue
    *
    * Prints all of the items in the print queue.
@@ -1177,5 +1161,27 @@ class Books @Inject()(implicit config: Config) extends Controller {
         Redirect(routes.Books.deleteTitle(lookupIsbn))
       }
     }
+  }
+}
+
+object Books {
+  // This is the companion object to the Books class
+
+  // Helper Method
+  def sanitizeCopyRange(s: String): List[Int] = {
+    val newS = s.trim.split(",")
+    var res: List[Int] = List[Int]()
+    for (x <- newS) {
+      if (x.contains("-")) {
+        val newX = x.trim.split("-")
+        val startVal = newX(0).trim.toInt
+        val endVal = newX(1).trim.toInt
+        val temp = startVal.until(endVal + 1).toList
+        res = res ++ temp
+      } else {
+        res = res :+ x.trim.toInt
+      }
+    }
+    res
   }
 }
