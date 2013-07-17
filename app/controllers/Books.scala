@@ -961,13 +961,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
     document.open()
     val cb = writer.getDirectContent() //PdfContentByte
     val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
-    cb.setFontAndSize(font, 10)
     var labelTopLeftX = topLeftX
     var labelTopLeftY = topLeftY
     var n = 0
 
     for (section <- sections) {
-      val students = section.students
+      val students = section.students.sortWith((s1, s2) => s1.formalName < s2.formalName)
       val sec = section.displayName
       val roomNum = section.room.name
       document.newPage()
@@ -978,6 +977,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val b = makeBarcode(student.stateId)
         val studentName = student.formalName
 
+        cb.setFontAndSize(font, 10)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(studentName), (labelTopLeftX + 6), labelTopLeftY, 0)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(sec), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText("Room: " + roomNum), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
@@ -994,7 +994,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         } else {
           labelTopLeftX = labelTopLeftX + labelWidth + gutter
         }
-        if (n % 30 == 0) {
+        if (n % 30 == 0 && student != students.last) {
           // Make a new page
           document.newPage()
           cb.setFontAndSize(font, 10)
@@ -1267,7 +1267,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
   */
   def printSingleSection() = VisitAction { implicit req =>
     val sections = DataStore.pm.query[Section].executeList()
-    println(sections)
     val m = sections.map(s => (s.displayName, s.sectionId)).toMap
     val secs = sections.map(s => s.displayName)
     val f = new ChooseSectionForm(m, secs)
