@@ -190,7 +190,7 @@ object ManualData {
         val dbSection = new Section(course, sectionId, terms.toSet[Term], periods.toSet[Period], room)
         pm.makePersistent(dbSection)
         terms foreach ((term: Term) => {
-          val teacherAssignment = new TeacherAssignment(teacher, dbSection, null, null)
+          val teacherAssignment = new TeacherAssignment(teacher, dbSection, None, None)
           pm.makePersistent(teacherAssignment)
         })
       })

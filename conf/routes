@@ -102,6 +102,8 @@ GET     /books/deleteCopy/:barcode              @controllers.Books.deleteCopy(ba
 GET     /books/deleteTitleHelper                @controllers.Books.deleteTitleHelper()
 POST    /books/deleteTitleHelper                @controllers.Books.deleteTitleHelperP()
 GET     /books/deleteTitle/:isbn                @controllers.Books.deleteTitle(isbn: String)
+GET     /books/checkInBulk                      @controllers.Books.checkInBulk()
+POST    /books/checkInBulk                      @controllers.Books.checkInBulkP()
 
 #Lockers
 GET     /lockers/myLocker                       @controllers.Lockers.getMyLocker()

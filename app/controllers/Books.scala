@@ -20,9 +20,32 @@ import config.Config
 import com.google.inject.{ Inject, Singleton }
 import org.joda.time.LocalDateTime
 import org.joda.time.LocalDate
+import forms.widgets._
 
 @Singleton
 class Books @Inject()(implicit config: Config) extends Controller {
+
+  final val df = org.joda.time.format.DateTimeFormat.forPattern("MM/dd/yyyy")
+
+  object CheckoutForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+    val student = new TextField("Student")
+
+    val fields = List(barcode, student)
+  }
+
+  object CheckInForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+
+    val fields = List(barcode)
+  }
+
   object TitleForm extends Form {
     val isbn = new TextField("ISBN") {
       override val minLength = Some(10)
@@ -44,6 +67,128 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val imageUrl = new UrlFieldOptional("Image URL")
 
     val fields = List(isbn, name, author, publisher, numPages, dimensions, weight, imageUrl)
+  }
+
+  object CheckoutBulkForm extends Form {
+    val student = new TextField("Student")
+
+    val fields = List(student)
+  }
+
+  object CheckoutBulkHelperForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+    }
+
+    val fields = List(barcode)
+  }
+
+  object AddPurchaseGroupForm extends Form {
+    val isbn = new TextField("isbn") {
+      override val minLength = Some(10)
+      override val maxLength = Some(13)
+      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
+        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
+        case Some(isbn) => ValidationError(Nil)
+      }))
+    }
+    val purchaseDate = new DateField("Purchase Date")
+    val price = new NumericField[Double]("Price")
+    val numCopies = new NumericField[Int]("Number of Copies")
+
+    val fields = List(isbn, purchaseDate, price, numCopies)
+  }
+
+  object ChooseGradeForm extends Form {
+    val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
+
+    def fields = List(grade)
+  }
+
+  object ChooseStudentForm extends Form {
+    val stateId = new TextField("Student") {
+      override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
+        case None => ValidationError("Student not found.")
+        case Some(student) => ValidationError(Nil)
+      }))
+    }
+
+    def fields = List(stateId)
+  }
+
+  object ChooseCopyForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+      override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
+        case None => ValidationError("Copy not found.")
+        case Some(barcode) => ValidationError(Nil)
+      }))
+    }
+
+    def fields = List(barcode)
+  }
+
+  class EditTitleForm(iName: String, iAuthor: Option[String], iPublisher: Option[String], iNumPages: Option[Int], iDimensions: Option[String], iWeight: Option[Double]) extends Form {
+    val name = new TextField("Name") {
+      override def initialVal = Some(iName)
+      override val maxLength = Some(80)
+    }
+    val author = new TextFieldOptional("Author(s)") {
+      override def initialVal = Some(iAuthor)
+      override val maxLength = Some(80)
+    }
+    val publisher = new TextFieldOptional("Publisher") {
+      override def initialVal = Some(iPublisher)
+      override val maxLength = Some(80)
+    }
+    val numPages = new NumericFieldOptional[Int]("Number Of Pages") {
+      override def initialVal = Some(iNumPages)
+    }
+    val dimensions = new TextFieldOptional("Dimensions (in)") {
+      override def initialVal = Some(iDimensions)
+    }
+    val weight = new NumericFieldOptional[Double]("Weight (lbs)") {
+      override def initialVal = Some(iWeight)
+    }
+    val imageUrl = new UrlFieldOptional("New Image URL")
+
+    // TODO: this should probably be a Call, not a String
+    override def cancelTo = Some(Call(Method.GET, "/books/editTitle"))
+
+    def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
+  }
+
+  object ChooseTitleForm extends Form {
+    val isbn = new TextField("ISBN") {
+      override val minLength = Some(10)
+      override val maxLength = Some(13)
+      override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
+        case None => ValidationError("Title with the given ISBN not found.")
+        case Some(title) => ValidationError(Nil)
+      }))
+    }
+
+    val fields = List(isbn)
+  }
+
+  object AddTitleToPrintQueueForm extends Form {
+    val isbn = new TextField("ISBN") {
+      override val minLength = Some(10)
+      override val maxLength = Some(13)
+    }
+    val copyRange = new TextField("Copy Range")
+
+    val fields = List(isbn, copyRange)
+  }
+
+  object BulkCheckInForm extends Form {
+    val barcodes = new TextField("Barcodes") {
+      override def widget = new Textarea(required)
+    }
+
+    val fields = List(barcodes)
   }
 
   /**
@@ -87,22 +232,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
   def confirmation() = TODO
 
   def verifyTitle(isbnNum: Long) = TODO
-
-  object AddPurchaseGroupForm extends Form {
-    val isbn = new TextField("isbn") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
-        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
-        case Some(isbn) => ValidationError(Nil)
-      }))
-    }
-    val purchaseDate = new DateField("Purchase Date")
-    val price = new NumericField[Double]("Price")
-    val numCopies = new NumericField[Int]("Number of Copies")
-
-    val fields = List(isbn, purchaseDate, price, numCopies)
-  }
 
   /**
    * Regex: /books/addPurchaseGroup
@@ -163,16 +292,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  object CheckoutForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
-    val student = new TextField("Student")
-
-    val fields = List(barcode, student)
-  }
-
   /**
    * Regex: /books/checkout
    *
@@ -209,12 +328,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  object CheckoutBulkForm extends Form {
-    val student = new TextField("Student")
-
-    val fields = List(student)
-  }
-
   /**
    * Regex: /books/checkoutBulk
    *
@@ -236,15 +349,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
         }
       }
     }
-  }
-
-  object CheckoutBulkHelperForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
-
-    val fields = List(barcode)
   }
 
   /**
@@ -354,15 +458,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  object CheckInForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
-
-    val fields = List(barcode)
-  }
-
   /**
    * Regex: /books/checkIn
    *
@@ -389,6 +484,64 @@ class Books @Inject()(implicit config: Config) extends Controller {
               }
             }
           }
+        }
+      }
+    }
+  }
+
+  /**
+   * Regex: /books/checkInBulk
+   *
+   * A form that allows multiple books to be checked in simultaneously
+   */
+  def checkInBulk() = VisitAction { implicit req =>
+    Ok(templates.books.checkInBulk(Binding(BulkCheckInForm)))
+  }
+
+  def checkInBulkP() = VisitAction { implicit req =>
+    Binding(BulkCheckInForm, req) match {
+      case ib: InvalidBinding => Ok(templates.books.checkInBulk(ib))
+      case vb: ValidBinding => DataStore.execute { pm =>
+        val bcs = vb.valueOf(BulkCheckInForm.barcodes).split("\\r?\\n").toList
+        val cps = checkInBulkPHelper(bcs, "", List[Copy]())
+        val chIns = checkInList(cps._1, 0, cps._2, pm)
+        val errors = "problems checking in books with barcodes:" + chIns._2
+        val successes = chIns._1
+        if (chIns._2.isEmpty) {
+          val mes = successes + " copies successfully checked in"
+          Redirect(routes.Books.checkInBulk()).flashing("message" -> mes)
+        } else {
+          val warning = successes + " copies successfully checked in and " + errors
+          Redirect(routes.Books.checkInBulk()).flashing("warn" -> warning)
+        }
+      }
+    }
+  }
+
+  def checkInBulkPHelper(bcs: List[String], errs: String, cps: List[Copy]): (List[Copy], String) = {
+    if (bcs.size == 0) {
+        (cps, errs)
+    } else if (bcs.head.isEmpty) {
+      checkInBulkPHelper(bcs.tail, errs, cps)
+    } else {
+      Copy.getByBarcode(bcs.head) match {
+        case None => checkInBulkPHelper(bcs.tail, errs + " " + bcs.head, cps)
+        case Some(c) => checkInBulkPHelper(bcs.tail, errs, cps :+ c)
+      }
+    }
+  }
+
+  def checkInList(cps: List[Copy], counter: Int, errs: String, pm: scalajdo.ScalaPersistenceManager): (Int, String) = {
+    if (cps.size == 0) {
+      (counter, errs)
+    } else {
+      val cand = QCheckout.candidate
+      pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cps.head))).executeOption() match {
+        case None => checkInList(cps.tail, counter, errs + " " + cps.head.getBarcode, pm)
+        case Some(c) => {
+          c.endDate = Some(LocalDate.now())
+          pm.makePersistent(c)
+          checkInList(cps.tail, counter + 1, errs, pm)
         }
       }
     }
@@ -425,14 +578,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * with the given barcode.
    */
   def copyHistory(barcode: String) = VisitAction { implicit req =>
-    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
     Copy.getByBarcode(barcode) match {
       case None => NotFound("No copy with the given barcode.")
       case Some(copy) => DataStore.execute { pm =>
         val header = "Copy #%d of %s".format(copy.number, copy.purchaseGroup.title.name)
         val coCand = QCheckout.candidate
         val rows: List[(String, String, String)] = pm.query[Checkout].filter(coCand.copy.eq(copy)).executeList().map(co => {
-          (co.student.formalName, df.format(co.startDate), if (co.endDate == null) "" else df.format(co.endDate))
+          (co.student.formalName, co.startDate.map(df.print(_)).getOrElse(""), co.endDate.map(df.print(_)).getOrElse(""))
         })
         Ok(views.html.books.copyHistory(header, rows))
       }
@@ -450,8 +602,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * with the given id (studentId).
    */
   def checkoutHistory(stateId: String) = VisitAction { implicit req =>
-    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
-
     Student.getByStateId(stateId) match {
       case None => NotFound("No student with the given id.")
       case Some(currentStudent) => DataStore.execute { implicit pm =>
@@ -460,23 +610,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val studentName = currentStudent.displayName
         val header = "Student: %s".format(studentName)
         val rows: List[(String, String, String)] = currentBooks.map(co => {
-          (co.copy.purchaseGroup.title.name, df.format(co.startDate),
-            if (co.endDate == null) "" else df.format(co.endDate))
+          (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""),
+            co.endDate.map(df.print(_)).getOrElse(""))
         })
         Ok(views.html.books.checkoutHistory(header, rows))
       }
     }
-  }
-
-  object ChooseStudentForm extends Form {
-    val stateId = new TextField("Student") {
-      override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
-        case None => ValidationError("Student not found.")
-        case Some(student) => ValidationError(Nil)
-      }))
-    }
-
-    def fields = List(stateId)
   }
 
   /**
@@ -526,8 +665,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * to a student with the given id (studentId).
    */
   def currentCheckouts(stateId: String) = VisitAction { implicit req =>
-    val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
-
     Student.getByStateId(stateId) match {
       case None => NotFound("No student with the given id")
       case Some(currentStudent) => DataStore.execute { implicit pm =>
@@ -535,7 +672,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
         val studentName = currentStudent.displayName
         val header = "Student: %s".format(studentName)
-        val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate)) })
+        val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse("")) })
         Ok(views.html.books.currentCheckouts(header, rows))
       }
     }
@@ -591,20 +728,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
    */
   def allBooksOut(grade: Int) = VisitAction { implicit req =>
     DataStore.execute { implicit pm =>
-      val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
       val stu = QStudent.variable("stu")
       val cand = QCheckout.candidate
       val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.eq(stu)).and(stu.grade.eq(grade))).executeList()
       val header = "Current books out for grade " + grade
-      val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, df.format(co.startDate), co.student.formalName) })
+      val rows: List[(String, String, String)] = currentBooksOut.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""), co.student.formalName) })
       Ok(views.html.books.allBooksOut(header, rows))
     }
-  }
-
-  object ChooseGradeForm extends Form {
-    val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
-
-    def fields = List(grade)
   }
 
   /**
@@ -635,7 +765,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     Copy.getByBarcode(barcode) match {
       case None => NotFound("Copy not found.")
       case Some(cpy) => {
-        val df = new java.text.SimpleDateFormat("MM/dd/yyyy")
 
         val lost = cpy.isLost
         val num = cpy.number
@@ -656,26 +785,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
         val checkedOut = cpy.isCheckedOut
 
         val rows: List[(String, String)] = List(("Name:", name), ("Author:", author.getOrElse("Unknown")), ("Publisher:", publisher.getOrElse("Unknown")), ("ISBN:", isbn), ("Pages:", pages.getOrElse("Unknown").toString),
-          ("Dimensions (in):", dim.getOrElse("Unknown")), ("Weight (lbs):", weight.getOrElse("Unknown").toString), ("Purchase Date:", df.format(pDate)), ("Price:", price.toString), ("Lost:", lost.toString),
+          ("Dimensions (in):", dim.getOrElse("Unknown")), ("Weight (lbs):", weight.getOrElse("Unknown").toString), ("Purchase Date:", df.print(pDate)), ("Price:", price.toString), ("Lost:", lost.toString),
           ("Copy Number:", num.toString), ("Checked Out:", checkedOut.toString))
         val header = "Copy info for " + barcode
 
         Ok(views.html.books.copyInfo(header, rows))
       }
     }
-  }
-
-  object ChooseCopyForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-      override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
-        case None => ValidationError("Copy not found.")
-        case Some(barcode) => ValidationError(Nil)
-      }))
-    }
-
-    def fields = List(barcode)
   }
 
   /**
@@ -710,36 +826,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
         ti.howManyCheckedOut().toString, ti.howManyLost().toString, (ti.howManyCopies() - (ti.howManyCheckedOut() + ti.howManyDeleted() + ti.howManyLost())).toString)
     })
     Ok(views.html.books.inventory(rows))
-  }
-
-  class EditTitleForm(iName: String, iAuthor: Option[String], iPublisher: Option[String], iNumPages: Option[Int], iDimensions: Option[String], iWeight: Option[Double]) extends Form {
-    val name = new TextField("Name") {
-      override def initialVal = Some(iName)
-      override val maxLength = Some(80)
-    }
-    val author = new TextFieldOptional("Author(s)") {
-      override def initialVal = Some(iAuthor)
-      override val maxLength = Some(80)
-    }
-    val publisher = new TextFieldOptional("Publisher") {
-      override def initialVal = Some(iPublisher)
-      override val maxLength = Some(80)
-    }
-    val numPages = new NumericFieldOptional[Int]("Number Of Pages") {
-      override def initialVal = Some(iNumPages)
-    }
-    val dimensions = new TextFieldOptional("Dimensions (in)") {
-      override def initialVal = Some(iDimensions)
-    }
-    val weight = new NumericFieldOptional[Double]("Weight (lbs)") {
-      override def initialVal = Some(iWeight)
-    }
-    val imageUrl = new UrlFieldOptional("New Image URL")
-
-    // TODO: this should probably be a Call, not a String
-    override def cancelTo = Some(Call(Method.GET, "/books/editTitle"))
-
-    def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
   }
 
   /**
@@ -780,19 +866,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
         }
       }
     }
-  }
-
-  object ChooseTitleForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
-        case None => ValidationError("Title with the given ISBN not found.")
-        case Some(title) => ValidationError(Nil)
-      }))
-    }
-
-    val fields = List(isbn)
   }
 
   /**
@@ -934,16 +1007,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
         }
       }
     }
-  }
-
-  object AddTitleToPrintQueueForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-    }
-    val copyRange = new TextField("Copy Range")
-
-    val fields = List(isbn, copyRange)
   }
 
   /**
