@@ -21,6 +21,8 @@ import com.google.inject.{ Inject, Singleton }
 import org.joda.time.LocalDateTime
 import org.joda.time.LocalDate
 import forms.widgets._
+import forms.validators._
+import models.courses._
 
 @Singleton
 class Books @Inject()(implicit config: Config) extends Controller {
@@ -189,6 +191,19 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
 
     val fields = List(barcodes)
+  }
+
+  class ChooseSectionForm(m: Map[String, String], secs: List[String]) extends Form {
+    val section = new AutocompleteField("Section", secs) {
+      override def asValue(s: Seq[String]): Either[ValidationError, String] = {
+        if (s.isEmpty) {
+          Left(ValidationError("This field is required."))
+        } else {
+          Right(m.get(s(0)).getOrElse(""))
+        }
+      }
+    }
+    val fields = List(section)
   }
 
   /**
@@ -909,6 +924,88 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
+  // Helper Method - Given a list of Sections, it makes a PDF with a label for each student in the section.
+  //  Each label contains the student's name, the section, and a barcode of the student's stateId. Also, this starts a new page for each section.
+  def makeSectionBarcodes(sections: List[Section]) {
+    // Spacing in points
+    // Bottom left: 0,0
+    // Top right: 612, 792
+
+    // Avery 5160 labels have 1/2 inch top/bottom margins and 0.18 inch left/right margins.
+    // Labels are 2.6" by 1". Labels abut vertically but there is a .15" gutter horizontally.
+
+    // A Barcode Label is an Avery 5160 label with three lines of text across the top and
+    // a Code128 barcode under them. The text is cropped to an appropriate width and the
+    // barcode is sized to fit within the remainder of the label.
+
+    // inchesToPoints gives the point value for a measurement in inches
+
+    // Spacing Increments
+    // Top to bottom (inches)
+    // 0.5 1.0 1.0 1.0 0.5
+    // Left to right (inches)
+    // 0.18 2.6 0.15 2.6 0.15 2.6 0.18
+
+    val halfInch = Utilities.inchesToPoints(.5f)
+    val inch = Utilities.inchesToPoints(1f)
+    val gutter = Utilities.inchesToPoints(.15f)
+    val lAndRBorder = Utilities.inchesToPoints(.18f)
+    val labelWidth = Utilities.inchesToPoints(2.6f)
+
+    val topLeftX = lAndRBorder
+    val topLeftY = 792 - halfInch - 10
+
+    val result: String = "public/sectionBarcodes.pdf"
+    val document: Document = new Document(PageSize.LETTER)
+    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
+    document.open()
+    val cb = writer.getDirectContent() //PdfContentByte
+    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
+    cb.setFontAndSize(font, 10)
+    var labelTopLeftX = topLeftX
+    var labelTopLeftY = topLeftY
+    var n = 0
+
+    for (section <- sections) {
+      val students = section.students
+      val sec = section.displayName
+      val roomNum = section.room.name
+      document.newPage()
+      n = 0
+
+      for (student <- students) {
+        // Do this for each section but change the position so that it is a new label each time
+        val b = makeBarcode(student.stateId)
+        val studentName = student.formalName
+
+        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(studentName), (labelTopLeftX + 6), labelTopLeftY, 0)
+        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(sec), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
+        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText("Room: " + roomNum), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+        b.setX(0.7f)
+        val img = b.createImageWithBarcode(cb, null, null)
+        val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2
+        cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, (labelTopLeftX + barcodeOffset), (labelTopLeftY - 52))
+
+        n += 1
+
+        if (n % 3 == 0) {
+          labelTopLeftX = topLeftX
+          labelTopLeftY = labelTopLeftY - inch
+        } else {
+          labelTopLeftX = labelTopLeftX + labelWidth + gutter
+        }
+        if (n % 30 == 0) {
+          // Make a new page
+          document.newPage()
+          cb.setFontAndSize(font, 10)
+          labelTopLeftY = topLeftY
+        }
+      }
+    }
+
+    document.close()
+  }
+
   // Helper Method
   def makePdf(barcodes: List[(Barcode, String, String, String)]) { //Barcode, title.name, title.author, title.publisher
     // Spacing in points
@@ -1162,6 +1259,49 @@ class Books @Inject()(implicit config: Config) extends Controller {
       }
     }
   }
+
+  /**
+  * Regex: /books/printSingleSection
+  *
+  * A form page that allows a user to pick a section and then print all of the student labels for that section
+  */
+  def printSingleSection() = VisitAction { implicit req =>
+    val sections = DataStore.pm.query[Section].executeList()
+    println(sections)
+    val m = sections.map(s => (s.displayName, s.sectionId)).toMap
+    val secs = sections.map(s => s.displayName)
+    val f = new ChooseSectionForm(m, secs)
+    Ok(templates.books.printSingleSection(Binding(f)))
+  }
+
+  def printSingleSectionP() = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      val sections = pm.query[Section].executeList()
+      val m = sections.map(s => (s.displayName, s.sectionId)).toMap
+      val secs = sections.map(s => s.displayName)
+      val f = new ChooseSectionForm(m, secs)
+      Binding(f, req) match {
+        case ib: InvalidBinding => Ok(templates.books.printSingleSection(ib))
+        case vb: ValidBinding => {
+          val sectionId = vb.valueOf(f.section)
+          Section.getBySectionId(sectionId) match {
+            case None => Redirect(routes.Books.printSingleSection)
+            case Some(s) => {
+              makeSectionBarcodes(List(s))
+              Redirect(routes.Books.displaySectionPdf)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  def displaySectionPdf() = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      Ok.sendFile(content = new java.io.File("public/sectionBarcodes.pdf"), inline = true)
+    }
+  }
+
 }
 
 object Books {

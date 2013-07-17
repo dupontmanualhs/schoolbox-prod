@@ -104,6 +104,9 @@ POST    /books/deleteTitleHelper                @controllers.Books.deleteTitleHe
 GET     /books/deleteTitle/:isbn                @controllers.Books.deleteTitle(isbn: String)
 GET     /books/checkInBulk                      @controllers.Books.checkInBulk()
 POST    /books/checkInBulk                      @controllers.Books.checkInBulkP()
+GET     /books/printSingleSection               @controllers.Books.printSingleSection()
+POST    /books/printSingleSection               @controllers.Books.printSingleSectionP()
+GET     /books/displaySectionPdf                @controllers.Books.displaySectionPdf()
 
 #Lockers
 GET     /lockers/myLocker                       @controllers.Lockers.getMyLocker()
