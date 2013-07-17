@@ -88,7 +88,7 @@ object App extends Controller {
     /**
      * Just a List[String] for use in AutocompleteField
      */
-    val listOfSpectopers = List("Allen", "Quadralateral", "Blagoshpere", "Wisconsin", "Zach", "John", "Mack", "Ava", "Sam Fu", "Jim", "Mr. O'Bryan", "Eliza", "Xavier", "Zander Smith", "Others")
+    val listOfSpectopers = List("Allen", "Austin", "Angular", "Anteater", "Awesomeness", "Anti-climatic", "Audi S8", "Quadralateral", "Blagoshpere", "Wisconsin", "Zach", "John", "Mack", "Ava", "Sam Fu", "Jim", "Mr. O'Bryan", "Eliza", "Xavier", "Zander Smith", "Others")
     
     /**
      * Creates a new AutocompleteFieldOptional
