@@ -37,9 +37,14 @@ class User extends Ordered[User] {
   def preferred: Option[String] = if (_preferred == null) None else Some(_preferred)
   def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
   
-  private[this] var _gender: Int = _
-  def gender: Gender.Gender = Gender(_gender)
-  def gender_=(theGender: Gender.Gender) { _gender = theGender.id }
+  @Persistent
+  private[this] var _gender: Gender.Value = _
+  def gender: Gender.Value = _gender
+  def gender_=(theGender: Gender.Gender) { _gender = theGender }
+  
+//  private[this] var _gender: Int = _
+//  def gender: Gender.Gender = Gender(_gender)
+//  def gender_=(theGender: Gender.Gender) { _gender = theGender.id }
   
   private[this] var _theme: String = _
   def theme: String = _theme
