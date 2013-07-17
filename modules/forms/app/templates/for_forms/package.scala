@@ -13,6 +13,9 @@ package for_forms {
         head(
           title("Form Tester"),
           link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("jquery-ui.css"))),
+          link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("datepicker.css"))),
+          link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.css"))),
+          link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap.css"))),
           <!-- HTML5 shim, for IE6-8 support of HTML5 elements. -->,
           <!--[if lt IE 9]>
             <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -21,7 +24,8 @@ package for_forms {
           script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("jquery-ui.js"))),
           script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap.js"))),
           script.src(controllers.routes.Assets.at("javascripts/maskedinput.js")),
-          script.src(controllers.routes.Assets.at("javascripts/jquery.timepicker.js"))),
+          script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-datepicker.js"))),
+          script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.js")))),
 	    body(
           h1("Form Tester"),
           p("All of these fields are optional and should be used to test how the different types of fields work."),

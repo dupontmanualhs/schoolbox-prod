@@ -6,23 +6,40 @@ import forms.validators.ValidationError
 
 import scalatags._
 
+/**
+ * A widget that creates a datepicker field using bootstrap-datepicker and masked inputs.
+ */
 class DateInput(
   required: Boolean,
-  attrs: MetaData = Null,
-  uuid: UUID) extends Widget(required, attrs) {
+  attrs: MetaData = Null) extends Widget(required, attrs) {
   
-  val theUuid: String = uuid.toString
-  
+  /**
+   * Renders the field with the datepicker and masked inputs using xml.
+   */
   def render(name: String, value: Seq[String], attrList: MetaData = Null) = {
     val theValue = if (value.isEmpty) "" else value(0)
-    input.ctype("text").name(name).placeholder("mm/dd/yyyy").cls(s"datepicker${theUuid}", "datepicker").value(theValue).toXML % attrs % reqAttr % attrList ++
-    input.ctype("text").style("background-color" -> "#C0C0C0").name(theUuid).placeholder("DD, d MM, yy").cls(theUuid, "datepicker").attr("disabled" -> "true", "is" -> theUuid, "size" -> "30").toXML
+    <div class="input-append date">
+	  {<input type="text" class="datepicker" placeholder="mm/dd/yyyy" name={name} value={theValue} /> % attrs % reqAttr % attrList} ++ <span class="add-on"><i class="icon-th"></i></span>
+    </div>
   }
   
-  override def scripts: NodeSeq =
-    Seq(script.ctype("text/javascript")(
-    s"""$$(function() {
-      $$('.datepicker${theUuid}').datepicker({
+  /**
+   * Creates the datepicker script and the datepicker input masking
+   */  
+  override def scripts: NodeSeq = 
+    <script>
+    $('.input-append.date').datepicker({{
+    	autoclose: true,
+		forceParse: false
+    }});
+	</script><script>
+	jQuery(function($){{
+		$('.datepicker').mask('99/99/9999',{{ placeholder:'_' }});
+  	}});
+	</script>
+    
+    
+    /*Seq(script.ctype("text/javascript")(
 		  changeMonth: true,
   		  changeYear: true,
   		  altField: '.${theUuid}',
@@ -39,5 +56,5 @@ class DateInput(
     script.ctype("text/javascript")(
 	"""jQuery(function($){
 		$('.datepicker').mask('99/99/99?99',{ placeholder:'_' });
-  	});""")).toXML
+  	}});""")).toXML*/
 }
