@@ -206,6 +206,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val fields = List(section)
   }
 
+  class ChooseDeptForm(depts: List[(String, String)]) extends Form {
+    val dept = new ChoiceField[String]("Department", depts)
+
+    val fields = List(dept)
+  }
+
   /**
    * Regex: /books/addTitle
    *
@@ -1298,6 +1304,44 @@ class Books @Inject()(implicit config: Config) extends Controller {
   def displaySectionPdf() = VisitAction { implicit req =>
     DataStore.execute { pm =>
       Ok.sendFile(content = new java.io.File("public/sectionBarcodes.pdf"), inline = true)
+    }
+  }
+
+  /**
+  * Regex: /books/printSectionsByDept
+  *
+  * Lets the user select a department and then print the student labels for each section in that department
+  */
+  def printSectionsByDept() = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      val depts = pm.query[Department].executeList().map(d => (d.name, d.name))
+      val f = new ChooseDeptForm(depts)
+      Ok(templates.books.printSectionsByDept(Binding(f)))
+    }
+  }
+
+  def printSectionsByDeptP() = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      val depts = pm.query[Department].executeList()
+      val deptNames = depts.map(d => (d.name, d.name))
+      val f = new ChooseDeptForm(deptNames)
+      Binding(f, req) match {
+        case ib: InvalidBinding => Ok(templates.books.printSectionsByDept(ib))
+        case vb: ValidBinding => {
+          val cand = QDepartment.candidate
+          val deptName = vb.valueOf(f.dept)
+          pm.query[Department].filter(cand.name.eq(deptName)).executeOption() match {
+            case None => Redirect(routes.Books.printSectionsByDept).flashing("error" -> "Department not found")
+            case Some(d) => {
+              val secCand = QSection.candidate
+              val cCand = QCourse.variable("cCand")
+              val sections = pm.query[Section].filter(secCand.course.eq(cCand).and(cCand.department.eq(d))).executeList().sortWith((s1, s2) => s1.displayName < s2.displayName)
+              makeSectionBarcodes(sections)
+              Redirect(routes.Books.displaySectionPdf)
+            }
+          }
+        }
+      }
     }
   }
 

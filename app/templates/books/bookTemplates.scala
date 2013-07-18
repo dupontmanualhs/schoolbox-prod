@@ -349,6 +349,12 @@ object inventory {
 }
 }
 
+object printSectionsByDept {
+  def apply(chooseDeptForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Print Section Barcodes by Department")(chooseDeptForm.render())
+  }
+}
+
 object printSingleSection {
   def apply(chooseSectionForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Print Section Barcodes")(chooseSectionForm.render())
