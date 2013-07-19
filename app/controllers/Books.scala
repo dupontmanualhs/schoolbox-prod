@@ -206,8 +206,10 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val fields = List(section)
   }
 
-  class ChooseDeptForm(depts: List[(String, String)]) extends Form {
-    val dept = new ChoiceField[String]("Department", depts)
+  class ChooseDeptForm extends Form {
+    val cand = QDepartment.candidate()
+    val depts = DataStore.pm.query[Department]().orderBy(cand.name.asc()).executeList().map(d => (d.name, d))
+    val dept = new ChoiceField[Department]("Department", depts)
 
     val fields = List(dept)
   }
@@ -1316,28 +1318,28 @@ class Books @Inject()(implicit config: Config) extends Controller {
   */
   def printSectionsByDept() = VisitAction { implicit req =>
     DataStore.execute { pm =>
-      val depts = pm.query[Department].executeList().map(d => (d.name, d.name))
-      val f = new ChooseDeptForm(depts)
+      val f = new ChooseDeptForm()
       Ok(templates.books.printSectionsByDept(Binding(f)))
     }
   }
 
   def printSectionsByDeptP() = VisitAction { implicit req =>
     DataStore.execute { pm =>
-      val depts = pm.query[Department].executeList()
-      val deptNames = depts.map(d => (d.name, d.name))
-      val f = new ChooseDeptForm(deptNames)
+      val f = new ChooseDeptForm()
       Binding(f, req) match {
         case ib: InvalidBinding => Ok(templates.books.printSectionsByDept(ib))
         case vb: ValidBinding => {
           val cand = QDepartment.candidate
-          val deptName = vb.valueOf(f.dept)
-          pm.query[Department].filter(cand.name.eq(deptName)).executeOption() match {
+          val dept = vb.valueOf(f.dept)
+          pm.query[Department].filter(cand.eq(dept)).executeOption() match {
             case None => Redirect(routes.Books.printSectionsByDept).flashing("error" -> "Department not found")
             case Some(d) => {
               val secCand = QSection.candidate
-              val cCand = QCourse.variable("cCand")
-              val sections = pm.query[Section].filter(secCand.course.eq(cCand).and(cCand.department.eq(d))).executeList().sortWith((s1, s2) => s1.displayName < s2.displayName)
+              val courseVar = QCourse.variable("courseVar")
+              val roomVar = QRoom.variable("roomVar")
+              val sections = pm.query[Section].filter(secCand.terms.contains(Term.current).and(
+                  secCand.course.eq(courseVar)).and(courseVar.department.eq(d)).and(
+                  secCand.room.eq(roomVar))).orderBy(roomVar.name.asc()).executeList()
               makeSectionBarcodes(sections)
               Redirect(routes.Books.displaySectionPdf)
             }
