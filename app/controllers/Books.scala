@@ -977,6 +977,8 @@ class Books @Inject()(implicit config: Config) extends Controller {
       val roomNum = section.room.name
       document.newPage()
       n = 0
+      labelTopLeftX = topLeftX
+      labelTopLeftY = topLeftY
 
       for (student <- students) {
         // Do this for each section but change the position so that it is a new label each time
@@ -987,7 +989,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(studentName), (labelTopLeftX + 6), labelTopLeftY, 0)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(sec), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText("Room: " + roomNum), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
-        b.setX(0.7f)
+        b.setX(1.0f)
         val img = b.createImageWithBarcode(cb, null, null)
         val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2
         cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, (labelTopLeftX + barcodeOffset), (labelTopLeftY - 52))
