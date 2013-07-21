@@ -214,6 +214,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val fields = List(dept)
   }
 
+  class ViewPrintQueueForm(l: List[LabelQueueSet]) extends Form {
+    val cboxes = new CheckboxFieldOptional("Labels to Print", l.map(s => (s.toString, s)))
+
+    val fields = List(cboxes)
+  }
+
   /**
    * Regex: /books/addTitle
    *
@@ -1138,8 +1144,34 @@ class Books @Inject()(implicit config: Config) extends Controller {
    */
   def viewPrintQueue() = VisitAction { implicit request =>
     val labelSets = DataStore.pm.query[LabelQueueSet].executeList
-    val rows: List[(String, String, String, Long)] = labelSets.map(ls => { (ls.title.name, ls.title.isbn, ls.copyRange, ls.id) })
-    Ok(templates.books.viewPrintQueue(rows))
+    Ok(templates.books.viewPrintQueue(Binding(new ViewPrintQueueForm(labelSets))))
+  }
+
+  def viewPrintQueueP() = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      val labelSets = pm.query[LabelQueueSet].executeList()
+      val f = new ViewPrintQueueForm(labelSets)
+      Binding(f, req) match {
+        case ib: InvalidBinding => Ok(templates.books.viewPrintQueue(ib))
+        case vb: ValidBinding => {
+          val setsToPrint = vb.valueOf(f.cboxes)
+          setsToPrint match {
+            case None => Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to print")
+            case Some(stp) => {
+              if (stp.isEmpty) {
+                Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to print")
+              } else {
+                print(stp)
+                for (x <- stp) {
+                  pm.deletePersistent(x)
+                }
+                Ok.sendFile(content = new java.io.File("public/printable.pdf"), inline = true)
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   def removeFromPrintQueue(id: Long) = VisitAction { implicit request =>

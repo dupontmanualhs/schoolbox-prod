@@ -362,37 +362,8 @@ object printSingleSection {
 }
 
 object viewPrintQueue {
-  def apply(rows: List[(String, String, String, Long)])(implicit req: VisitRequest[_], config: Config) = {
-    config.main("Print Queue")(
-      div.cls("page-header")(
-        h2("Print Queue")
-      ),table.cls("table", "table-striped", "table-condensed")(
-      thead(
-        tr(
-          th("Title Name"),
-          th("ISBN"),
-          th("Copy Range"),
-          th("")
-        )
-    ),
-  tbody(
-    rows.map { row =>
-    tr(
-      td(row._1),
-      td(row._2),
-      td(row._3),
-      td(button.cls("btn").attr("type" -> "button").onclick("window.location.href='/books/removeFromPrintQueue/" + row._4 + "'")("Remove"))
-    )
-}
-            )
-        ),
-      button.cls("btn").ctype("button").onclick("printAllFunc()")("Print All"),
-      script("""
-        function printAllFunc() {
-          window.open('/books/printEntireQueue');
-          location.reload(true);
-        }   """)
-    )
-}
+  def apply(viewPrintQueueForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Print Queue")(viewPrintQueueForm.render())
+  }
 }
 }
