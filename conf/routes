@@ -109,6 +109,7 @@ POST    /books/printSingleSection               @controllers.Books.printSingleSe
 GET     /books/displaySectionPdf                @controllers.Books.displaySectionPdf()
 GET     /books/printSectionsByDept              @controllers.Books.printSectionsByDept()
 POST    /books/printSectionsByDept              @controllers.Books.printSectionsByDeptP()
+GET     /books/printAllSections                 @controllers.Books.printAllSections()
 
 #Lockers
 GET     /lockers/myLocker                       @controllers.Lockers.getMyLocker()

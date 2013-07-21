@@ -1349,6 +1349,22 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
+  /*
+  * Regex: /books/printAllSections
+  *
+  * Prints student barcodes for all sections
+  */
+  def printAllSections = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      val secCand = QSection.candidate
+      val roomVar = QRoom.variable("roomVar")
+      val sections = pm.query[Section].filter(secCand.terms.contains(Term.current).and(
+          secCand.room.eq(roomVar))).orderBy(roomVar.name.asc()).executeList()
+      makeSectionBarcodes(sections)
+      Redirect(routes.Books.displaySectionPdf)
+    }
+  }
+
 }
 
 object Books {
