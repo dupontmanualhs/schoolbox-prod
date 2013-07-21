@@ -1174,6 +1174,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
+  // TODO - This needs to be changed to work with the new version. It may not be needed if we can add another button to the form
   def removeFromPrintQueue(id: Long) = VisitAction { implicit request =>
     LabelQueueSet.getById(id) match {
       case None => Redirect(routes.Books.viewPrintQueue()).flashing("error" -> "ID not found")
@@ -1202,6 +1203,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
    *
    * Prints all of the items in the print queue.
    */
+  // TODO - This needs to be added again. It may not be needed if a select all/none box can be added to the form
   def printEntireQueue() = VisitAction { implicit request =>
     DataStore.execute { pm =>
       val labelQueueSets = pm.query[LabelQueueSet].executeList
