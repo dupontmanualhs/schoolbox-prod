@@ -29,11 +29,13 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
    */
   def getMyLocker() = Authenticated { implicit req =>
     req.role match {
-      case teacher: Teacher => NotFound(templates.NotFound("Teachers do not have lockers."))
+      // case teacher: Teacher => NotFound(templates.NotFound("Teachers do not have lockers."))
+      // case guardian: Guardian => NotFound(templates.NotFound("Guardians do not have lockers."))
       case student: Student => Locker.getByStudent(student) match {
         case None => NotFound(templates.NotFound("You do not have a locker."))
         case Some(l) => Ok(views.html.lockers.getLocker(l))
       }
+      case default: Any => NotFound(templates.NotFound("Only students have lockers."))
     }
   }
 
