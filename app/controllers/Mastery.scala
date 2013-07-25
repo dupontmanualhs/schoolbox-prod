@@ -47,7 +47,7 @@ class BlanksField(question: Question) extends Field[String](question.id.toString
 
 class AnswerField(question: Question) extends TextField(question.id.toString) {
   val uuid = java.util.UUID.randomUUID()
-  override def widget = new MathWidget(question.text, uuid = uuid)
+  override def widget = new MathWidget(question.text, uuid = uuid, af = this)
 
   override def asValue(s: Seq[String]): Either[ValidationError, String] = s match {
     case Seq(ans) => Right(ans)
@@ -55,7 +55,7 @@ class AnswerField(question: Question) extends TextField(question.id.toString) {
   }
 }
 
-class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) extends TextInput(false, attrs, "text") {
+class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID, af: AnswerField) extends TextInput(false, attrs, "text") {
   val Name: String = uuid.toString()
   override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     <span>
