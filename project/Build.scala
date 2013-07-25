@@ -47,10 +47,6 @@ object ApplicationBuild extends Build {
     "org.joda" % "joda-convert" % "1.3.1",
     "org.apache.poi" % "poi" % "3.9",
     "org.apache.poi" % "poi-ooxml" % "3.9",
-    "org.datanucleus" % "datanucleus-core" % "3.2.4",
-    "org.datanucleus" % "datanucleus-api-jdo" % "3.2.3",
-    "org.datanucleus" % "datanucleus-jdo-query" % "3.0.2",
-    "org.datanucleus" % "datanucleus-rdbms" % "3.2.3",
     "com.h2database" % "h2" % "1.3.172",
     "javax.jdo" % "jdo-api" % "3.0.1",
     "log4j" % "log4j" % "1.2.17",
@@ -67,6 +63,7 @@ object ApplicationBuild extends Build {
       (scalaVersion := "2.10.2") +:
       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
+      (routesImport += "scala.language.reflectiveCalls") +:
       Nucleus.settings): _*) dependsOn (scalaJdo, forms, users, courses)
 }
 
