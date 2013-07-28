@@ -1,4 +1,4 @@
-@(title: String, form: forms.Binding)(implicit req: controllers.users.VisitRequest[_])
+@(title: String, form: org.dupontmanual.forms.Binding)(implicit req: controllers.users.VisitRequest[_])
 
 @views.html.main("Create a post: " + title) {
 	@form.render()

@@ -9,7 +9,7 @@ import javax.jdo.listener.{LoadCallback, StoreCallback}
 import util.Format
 import math.ExactNumber
 import scala.xml.Node
-import forms.fields.Field
+import org.dupontmanual.forms.fields.Field
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.NEW_TABLE)

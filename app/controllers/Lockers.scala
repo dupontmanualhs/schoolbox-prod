@@ -5,13 +5,11 @@ import scala.xml.{ NodeSeq, Text }
 import models.lockers._
 import models.users._
 import models.courses._
-import forms.{ Form, Binding, InvalidBinding, ValidBinding }
-import forms.fields._
-import forms.validators.Validator
-import forms.validators.ValidationError
+import org.dupontmanual.forms.{ Form, Binding, InvalidBinding, ValidBinding }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.validators.{ Validator, ValidationError }
 import util.Helpers._
 import scalajdo.DataStore
-import forms.Form
 import play.api.mvc.Controller
 
 import controllers.users.{ Authenticated, VisitAction }

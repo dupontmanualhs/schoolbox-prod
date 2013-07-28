@@ -11,17 +11,15 @@ import scalajdo.DataStore
 import models.books._
 import models.courses.{ Student, QStudent }
 import models.users._
-import _root_.forms.fields._
-import _root_.forms.validators.Validator
-import _root_.forms.validators.ValidationError
-import _root_.forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
+import org.dupontmanual.forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.widgets._
+import org.dupontmanual.forms.validators._
 import controllers.users.VisitAction
 import config.Config
 import com.google.inject.{ Inject, Singleton }
 import org.joda.time.LocalDateTime
 import org.joda.time.LocalDate
-import forms.widgets._
-import forms.validators._
 import models.courses._
 
 @Singleton
@@ -215,7 +213,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   }
 
   class ViewPrintQueueForm(l: List[LabelQueueSet]) extends Form {
-    val cboxes = new CheckboxFieldOptional("Labels to Print", l.map(s => (s.toString, s)))
+    val cboxes = new CheckboxFieldMultiple("Labels to Print", l.map(s => (s.toString, s)))
 
     val fields = List(cboxes)
   }
@@ -1154,27 +1152,16 @@ class Books @Inject()(implicit config: Config) extends Controller {
       Binding(f, req) match {
         case ib: InvalidBinding => Ok(templates.books.viewPrintQueue(ib))
         case vb: ValidBinding => {
-          val setsToPrint = vb.valueOf(f.cboxes)
-          setsToPrint match {
-            case None => Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to print")
-            case Some(stp) => {
-              if (stp.isEmpty) {
-                Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to print")
-              } else {
-                print(stp)
-                for (x <- stp) {
-                  pm.deletePersistent(x)
-                }
-                Ok.sendFile(content = new java.io.File("public/printable.pdf"), inline = true)
-              }
-            }
-          }
+          val setsToPrint: List[LabelQueueSet] = vb.valueOf(f.cboxes)
+          createPdf(setsToPrint)
+          pm.deletePersistentAll(setsToPrint)
+          Ok.sendFile(content = new java.io.File("public/printable.pdf"), inline = true)
         }
       }
     }
   }
 
-  def removeFromPrintQueue() = VisitAction { implicit req =>
+  /*def removeFromPrintQueue() = VisitAction { implicit req =>
     DataStore.execute { pm =>
       val labelSets = pm.query[LabelQueueSet].executeList()
       val f = new ViewPrintQueueForm(labelSets)
@@ -1198,7 +1185,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         }
       }
     }
-  }
+  }*/
 
   // TODO - This needs to be changed to work with the new version. It may not be needed if we can add another button to the form
   /*def removeFromPrintQueue(id: Long) = VisitAction { implicit request =>
@@ -1212,7 +1199,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   }*/
 
   // Helper Method
-  def print(l: List[LabelQueueSet]) {
+  def createPdf(l: List[LabelQueueSet]) {
     var printList = List[(Barcode, String, String, String)]()
     for (x <- l) {
       val r = Books.sanitizeCopyRange(x.copyRange)

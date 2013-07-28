@@ -4,13 +4,12 @@ import play.api.mvc.{ Action, Controller }
 import com.google.inject.{ Inject, Singleton }
 import models.blogs._
 import play.api.data._
-import play.api.data.Forms._
 import models.users._
 import models.blogs._
 import play.api.mvc.Result
 import models.users.QRole
-import _root_.forms.fields.TextField
-import _root_.forms.{ Form, ValidBinding, InvalidBinding, Binding }
+import org.dupontmanual.forms.fields.TextField
+import org.dupontmanual.forms.{ Form, ValidBinding, InvalidBinding, Binding }
 import scalajdo.DataStore
 import models.users.Visit
 import controllers.users.{ Authenticated, VisitAction }
@@ -21,20 +20,7 @@ import config.Config
 @Singleton
 class Blogs @Inject()(implicit config: Config) extends Controller {
   
-  
-  val newPost = Form {
-    tuple(
-      "title" -> nonEmptyText,
-      "content" -> text)
-  }
-
-  val testEdit = Form {
-    "tinymce" -> text
-  }
-
-  def editor() = VisitAction { implicit req =>
-    Ok(views.html.blogs.editor(testEdit))
-  }
+  def editor() = TODO
 
   /** No matching route (Not sure where, or even if, this is used)
    * 
@@ -75,7 +61,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
   object CreatePostForm extends Form {
     val title = new TextField("title")
     val content = new TextField("content") {
-      override def widget = new _root_.forms.widgets.Textarea(true)
+      override def widget = new org.dupontmanual.forms.widgets.Textarea(true)
     }
 
     def fields = List(title, content)
@@ -125,18 +111,14 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
    *
    *   @param blog the blog to show the control panel for
    */
-  def showControlPanel(blog: Blog) = VisitAction { implicit req =>
-    Ok(templates.Stub())
-  } 
+  def showControlPanel(blog: Blog) = TODO
 
   /**    !!!!!!!!!!!!!!!! UNIMPLEMENTED !!!!!!!!!!!!!!!!!!!
    * Show a post. Check to see if the currently logged-in user is allowed to see the post
    *
    *   @param post the post to be shown
    */
-  def showPost(post: Post) = VisitAction { implicit req =>
-    Ok(templates.Stub())
-  }
+  def showPost(post: Post) = TODO
 
   /** Regex: /blog/:id
    *  
@@ -151,12 +133,6 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
   }
 
   // Tester method?
-  def testSubmit() = VisitAction { implicit req =>
-    testEdit.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.blogs.editor(formWithErrors)),
-      content => {
-        Ok(views.html.blogs.feedback(content))
-      })
-  }
+  def testSubmit() = TODO
 }
 

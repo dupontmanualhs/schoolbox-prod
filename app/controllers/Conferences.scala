@@ -4,15 +4,15 @@ import scala.xml.{ NodeSeq, Text }
 import models.users._
 import models.courses._
 import models.conferences._
-import forms.fields._
-import forms.validators.{ ValidationError, Validator }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.validators.{ ValidationError, Validator }
 import util.Helpers._
 import java.sql.Date
 import java.sql.Time
 import java.util.Date
 import java.sql.Timestamp
 import scalajdo.DataStore
-import forms.{ Form, Binding, ValidBinding, InvalidBinding }
+import org.dupontmanual.forms.{ Form, Binding, ValidBinding, InvalidBinding }
 import play.api.mvc.Controller
 import config.Config
 import com.google.inject.{ Inject, Singleton }

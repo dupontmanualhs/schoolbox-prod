@@ -9,7 +9,7 @@ import models.users.Role
 import models.users.Permission
 import scala.reflect.ClassTag
 import config.users.Config
-import forms.{ Call, Method }
+import org.dupontmanual.forms.{ Call, Method }
 
 case class VisitRequest[A](visit: Visit, private val request: Request[A])
   extends WrappedRequest(request)

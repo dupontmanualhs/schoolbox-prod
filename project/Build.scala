@@ -9,14 +9,20 @@ object ApplicationBuild extends Build {
   val appVersion = "1.0"
 
   val scalaJdo = RootProject(uri("git://github.com/toddobryan/scalajdo.git"))
+  
+  val commonDependencies = Seq(
+      "com.google.inject" % "guice" % "3.0",
+      "com.tzavellas" % "sse-guice" % "0.7.1",
+      "com.scalatags" %% "scalatags" % "0.1.2",
+      "org.dupontmanual" %% "dm-forms" % "0.1-SNAPSHOT",
+      "org.scalatest" %% "scalatest" % "2.0.M5b"
+  )
 
-  val forms = play.Project("forms", appVersion, path = file("modules/forms")).settings(
+/*  val forms = play.Project("forms", appVersion, path = file("modules/forms")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
     libraryDependencies ++= Seq(
-      "com.google.inject" % "guice" % "3.0",
-      "com.tzavellas" % "sse-guice" % "0.7.1",
       "org.webjars" % "webjars-play_2.10" % "2.1.0-2",
       "javax.mail" % "mail" % "1.4.7",
       "com.scalatags" % "scalatags_2.10" % "0.1.2",
@@ -26,16 +32,18 @@ object ApplicationBuild extends Build {
       "org.webjars" % "jquery-ui" % "1.10.2-1",
       "org.webjars" % "bootstrap-datepicker" % "1.0.1",
       "org.webjars" % "bootstrap-timepicker" % "0.2.3"))
-
+*/
+  
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo)
+    scalacOptions ++= Seq("-deprecation", "-feature"),
+    libraryDependencies ++= commonDependencies).dependsOn(scalaJdo)
       
   val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo, users)
+    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(scalaJdo, users)
 
   val jsDependencies = Seq(
     "org.webjars" % "tinymce-jquery" % "3.4.9",
@@ -64,7 +72,7 @@ object ApplicationBuild extends Build {
       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
       (routesImport += "scala.language.reflectiveCalls") +:
-      Nucleus.settings): _*) dependsOn (scalaJdo, forms, users, courses)
+      Nucleus.settings): _*) dependsOn (scalaJdo, users, courses)
 }
 
 object Nucleus {

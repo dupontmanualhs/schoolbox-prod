@@ -10,9 +10,9 @@ import play.api.mvc.Flash._
 import scalajdo.DataStore
 import com.google.inject.{ Inject, Singleton }
 import config.users.Config
-import _root_.forms.{ Binding, Form, InvalidBinding, ValidBinding }
-import _root_.forms.fields._
-import _root_.forms.validators._
+import org.dupontmanual.forms.{ Binding, Form, InvalidBinding, ValidBinding }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.validators._
 import models.users.{ QUser, User, Visit }
 import scala.xml.NodeSeq
 

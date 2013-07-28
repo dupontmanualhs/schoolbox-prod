@@ -13,20 +13,12 @@ GET		/webjars/*file						controllers.WebJarAssets.at(file)
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               		controllers.Assets.at(path="/public", file)
 
-#form tests
--> /forms				forms.Routes
-
 #Users
 -> /users				users.Routes
 
 #Courses
 -> /courses				courses.Routes
 # current schedules
-
-#Assessments
-GET     /assessments                            @controllers.Assessments.menu()
-POST    /assessments                            @controllers.Assessments.checkAnswer(temp: Int)
-GET     /assessments/newQuestion                @controllers.Assessments.newQuestion()
 
 #Assignments
 GET     /assignments/doTask/:taskId             @controllers.Assignments.doTask(taskId: Long)
@@ -95,7 +87,7 @@ GET     /books/addTitleToPrintQueueHelper       @controllers.Books.addTitleToPri
 POST    /books/addTitleToPrintQueueHelper       @controllers.Books.addTitleToPrintQueueHelperP()
 GET     /books/viewPrintQueue                   @controllers.Books.viewPrintQueue()
 POST    /books/viewPrintQueue                   @controllers.Books.viewPrintQueueP()
-GET     /books/removeFromPrintQueue             @controllers.Books.removeFromPrintQueue()
+#GET     /books/removeFromPrintQueue             @controllers.Books.removeFromPrintQueue()  # Sorry, Zach
 GET     /books/printEntireQueue                 @controllers.Books.printEntireQueue
 GET     /books/deleteCopyHelper                 @controllers.Books.deleteCopyHelper()
 POST    /books/deleteCopyHelper                 @controllers.Books.deleteCopyHelperP()

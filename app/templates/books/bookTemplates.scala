@@ -3,7 +3,7 @@ package templates
 import scala.language.implicitConversions
 import scalatags._
 import play.api.templates.Html
-import forms.{ Binding, FormCall }
+import org.dupontmanual.forms.{ Binding, FormCall }
 import _root_.config.users.{ Config, ProvidesInjector }
 import controllers.users.VisitRequest
 import models.users.User

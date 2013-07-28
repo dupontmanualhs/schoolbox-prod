@@ -3,7 +3,7 @@ package config.users
 import scala.xml.NodeSeq
 import com.google.inject.Injector
 import scalatags.STag
-import forms.Call
+import org.dupontmanual.forms.Call
 import play.api.templates.Html
 
 import models.users.Role

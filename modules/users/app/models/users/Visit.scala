@@ -10,7 +10,7 @@ import scalajdo.DataStore
 import play.api.mvc.Request
 import config.users.Config
 import com.google.inject.Inject
-import forms.Call
+import org.dupontmanual.forms.Call
 
 @PersistenceCapable(detachable="true")
 class Visit {
