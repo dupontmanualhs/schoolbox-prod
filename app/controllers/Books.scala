@@ -1174,8 +1174,34 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
+  def removeFromPrintQueue() = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      val labelSets = pm.query[LabelQueueSet].executeList()
+      val f = new ViewPrintQueueForm(labelSets)
+      Binding(f, req) match {
+        case ib: InvalidBinding => Ok(templates.books.viewPrintQueue(ib))
+        case vb: ValidBinding => {
+          val setsToRemove = vb.valueOf(f.cboxes)
+          setsToRemove match {
+            case None => Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to remove")
+            case Some(str) => {
+              if (str.isEmpty) {
+                Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to remove")
+              } else {
+                for (x <- str) {
+                  pm.deletePersistent(x)
+                }
+                Redirect(routes.Books.viewPrintQueue).flashing("message" -> "Barcodes removed")
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   // TODO - This needs to be changed to work with the new version. It may not be needed if we can add another button to the form
-  def removeFromPrintQueue(id: Long) = VisitAction { implicit request =>
+  /*def removeFromPrintQueue(id: Long) = VisitAction { implicit request =>
     LabelQueueSet.getById(id) match {
       case None => Redirect(routes.Books.viewPrintQueue()).flashing("error" -> "ID not found")
       case Some(l) => {
@@ -1183,7 +1209,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
         Redirect(routes.Books.viewPrintQueue()).flashing("message" -> "Labels removed from print queue")
       }
     }
-  }
+  }*/
 
   // Helper Method
   def print(l: List[LabelQueueSet]) {

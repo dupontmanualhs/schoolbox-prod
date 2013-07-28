@@ -95,7 +95,7 @@ GET     /books/addTitleToPrintQueueHelper       @controllers.Books.addTitleToPri
 POST    /books/addTitleToPrintQueueHelper       @controllers.Books.addTitleToPrintQueueHelperP()
 GET     /books/viewPrintQueue                   @controllers.Books.viewPrintQueue()
 POST    /books/viewPrintQueue                   @controllers.Books.viewPrintQueueP()
-GET     /books/removeFromPrintQueue/:id         @controllers.Books.removeFromPrintQueue(id: Long)
+GET     /books/removeFromPrintQueue             @controllers.Books.removeFromPrintQueue()
 GET     /books/printEntireQueue                 @controllers.Books.printEntireQueue
 GET     /books/deleteCopyHelper                 @controllers.Books.deleteCopyHelper()
 POST    /books/deleteCopyHelper                 @controllers.Books.deleteCopyHelperP()
