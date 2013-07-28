@@ -38,12 +38,15 @@ object ApplicationBuild extends Build {
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",  
     libraryDependencies ++= commonDependencies).dependsOn(scalaJdo)
       
   val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(scalaJdo, users)
+    scalacOptions ++= Seq("-deprecation", "-feature"),
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"  
+  ).dependsOn(scalaJdo, users)
 
   val jsDependencies = Seq(
     "org.webjars" % "tinymce-jquery" % "3.4.9",
@@ -72,6 +75,7 @@ object ApplicationBuild extends Build {
       (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
       (routesImport += "scala.language.reflectiveCalls") +:
+      (resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots") +:
       Nucleus.settings): _*) dependsOn (scalaJdo, users, courses)
 }
 

@@ -38,20 +38,21 @@ package object templates {
       Seq(
         link.rel("icon").ctype("image/png").href(controllers.routes.Assets.at("images/favicon.ico")),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("jquery-ui.css"))),
+        link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap.css"))),
+        link.rel("stylesheet").href(controllers.routes.Assets.at("stylesheets/tester.css")),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("datepicker.css"))),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.css"))),
         <!-- HTML5 shim, for IE6-8 support of HTML5 elements. -->,
-        <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-      <![endif]-->,
+          <!--[if lt IE 9]>
+          <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->,
         script.src(config.webjars("jquery.js")),
         script.src(config.webjars("jquery-ui.js")),
         script.src(config.webjars("bootstrap.js")),
-        script.src(controllers.routes.Assets.at("javascripts/maskedinput.js")),
-        script.src(controllers.routes.Assets.at("javascripts/jquery.timepicker.js")),
         script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-datepicker.js"))),
-        script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.js")))
-        )
+        script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.js"))),
+        script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("jquery.maskedinput.js")))
+      )
     }
 
     def menu()(implicit req: VisitRequest[_]): STag = {
