@@ -420,15 +420,11 @@ class Books @Inject()(implicit config: Config) extends Controller {
         Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
           case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy not found.")
           case Some(cpy) => {
-            if (cpy.isCheckedOut) {
-              Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already checked out.")
+            if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
+              Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
             } else {
-              if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
-                Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
-              } else {
-                visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
-                Redirect(routes.Books.checkoutBulkHelper(stu))
-              }
+              visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
+              Redirect(routes.Books.checkoutBulkHelper(stu))
             }
           }
         }
@@ -479,17 +475,27 @@ class Books @Inject()(implicit config: Config) extends Controller {
    */
   def checkoutBulkSubmit(stu: String) = VisitAction { implicit request =>
     val copies: Vector[String] = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
-    val checkedOutCopies: Vector[String] = copies.filter(c => Copy.getByBarcode(c).get.isCheckedOut)
 
-    if (checkedOutCopies.isEmpty) {
-      copies.foreach(c => DataStore.pm.makePersistent(
-          new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(c).get, Some(LocalDate.now()), None)))
+    DataStore.execute { implicit pm =>
+      for (cpy <- copies) {
+        val cand = QCheckout.candidate
+        pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(Copy.getByBarcode(cpy).get))).executeOption() match {
+          case Some(currentCheckout) => {
+            currentCheckout.endDate = Some(LocalDate.now())
+            pm.makePersistent(currentCheckout)
+            val c = new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(cpy).get, Some(LocalDate.now()), None)
+            pm.makePersistent(c)
+          }
+          case None => {
+            val c = new Checkout(Student.getByStateId(stu).get, Copy.getByBarcode(cpy).get, Some(LocalDate.now()), None)
+            pm.makePersistent(c)
+          }
+        }
+      }
+
       val mes = copies.length + " copie(s) successfully checked out to " + Student.getByStateId(stu).get.displayName
       request.visit.set("checkoutList", Vector[String]())
       Redirect(routes.Books.checkoutBulk()).flashing("message" -> mes)
-    } else {
-      val mes = "Books with the following barcodes already checked out: " + checkedOutCopies.toString.substring(7, checkedOutCopies.toString.length - 1)
-      Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> mes)
     }
   }
 
