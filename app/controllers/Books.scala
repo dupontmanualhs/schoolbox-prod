@@ -340,12 +340,20 @@ class Books @Inject()(implicit config: Config) extends Controller {
             copy match {
               case None => Redirect(routes.Books.checkout()).flashing("error" -> "No copy with that barcode.")
               case Some(cpy) => {
-                if (cpy.isCheckedOut) {
-                  Redirect(routes.Books.checkout()).flashing("error" -> "Copy already checked out")
-                } else {
-                  val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
-                  pm.makePersistent(c)
-                  Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out.")
+                val cand = QCheckout.candidate
+                pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+                  case Some(currentCheckout) => {
+                    currentCheckout.endDate = Some(LocalDate.now())
+                    pm.makePersistent(currentCheckout)
+                    val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+                    pm.makePersistent(c)
+                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
+                  }
+                  case None => {
+                    val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+                    pm.makePersistent(c)
+                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
+                  }
                 }
               }
             }
