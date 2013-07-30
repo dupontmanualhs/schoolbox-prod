@@ -1161,43 +1161,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  /*def removeFromPrintQueue() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
-      val labelSets = pm.query[LabelQueueSet].executeList()
-      val f = new ViewPrintQueueForm(labelSets)
-      Binding(f, req) match {
-        case ib: InvalidBinding => Ok(templates.books.viewPrintQueue(ib))
-        case vb: ValidBinding => {
-          val setsToRemove = vb.valueOf(f.cboxes)
-          setsToRemove match {
-            case None => Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to remove")
-            case Some(str) => {
-              if (str.isEmpty) {
-                Redirect(routes.Books.viewPrintQueue).flashing("warn" -> "Please select barcodes to remove")
-              } else {
-                for (x <- str) {
-                  pm.deletePersistent(x)
-                }
-                Redirect(routes.Books.viewPrintQueue).flashing("message" -> "Barcodes removed")
-              }
-            }
-          }
-        }
-      }
-    }
-  }*/
-
-  // TODO - This needs to be changed to work with the new version. It may not be needed if we can add another button to the form
-  /*def removeFromPrintQueue(id: Long) = VisitAction { implicit request =>
-    LabelQueueSet.getById(id) match {
-      case None => Redirect(routes.Books.viewPrintQueue()).flashing("error" -> "ID not found")
-      case Some(l) => {
-        DataStore.pm.deletePersistent(l)
-        Redirect(routes.Books.viewPrintQueue()).flashing("message" -> "Labels removed from print queue")
-      }
-    }
-  }*/
-
   // Helper Method
   def createPdf(l: List[LabelQueueSet]) {
     var printList = List[(Barcode, String, String, String)]()
@@ -1209,23 +1172,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
       }
     }
     makePdf(printList)
-  }
-
-   /**
-   * Regex: /books/printEntireQueue
-   *
-   * Prints all of the items in the print queue.
-   */
-  // TODO - This needs to be added again. It may not be needed if a select all/none box can be added to the form
-  def printEntireQueue() = VisitAction { implicit request =>
-    DataStore.execute { pm =>
-      val labelQueueSets = pm.query[LabelQueueSet].executeList
-      print(labelQueueSets)
-      for (x <- labelQueueSets) {
-        pm.deletePersistent(x)
-      }
-      Ok.sendFile(content = new java.io.File("public/printable.pdf"), inline = true)
-    }
   }
 
   /**
