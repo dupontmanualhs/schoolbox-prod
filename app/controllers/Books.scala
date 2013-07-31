@@ -21,202 +21,10 @@ import com.google.inject.{ Inject, Singleton }
 import org.joda.time.LocalDateTime
 import org.joda.time.LocalDate
 import models.courses._
+import Books._
 
 @Singleton
 class Books @Inject()(implicit config: Config) extends Controller {
-
-  final val df = org.joda.time.format.DateTimeFormat.forPattern("MM/dd/yyyy")
-
-  object CheckoutForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
-    val student = new TextField("Student")
-
-    val fields = List(barcode, student)
-  }
-
-  object CheckInForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
-
-    val fields = List(barcode)
-  }
-
-  object TitleForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
-        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
-        case Some(isbn) => ValidationError(Nil)
-      }), Validator((str: String) => Title.getByIsbn(str) match {
-        case Some(isbn) => ValidationError("ISBN already exists in database.")
-        case None => ValidationError(Nil)
-      }))
-    }
-    val name = new TextField("Name") { override val maxLength = Some(80) }
-    val author = new TextFieldOptional("Author(s)") { override val maxLength = Some(80) }
-    val publisher = new TextFieldOptional("Publisher") { override val maxLength = Some(80) }
-    val numPages = new NumericFieldOptional[Int]("Number Of Pages")
-    val dimensions = new TextFieldOptional("Dimensions (in)")
-    val weight = new NumericFieldOptional[Double]("Weight (lbs)")
-    val imageUrl = new UrlFieldOptional("Image URL")
-
-    val fields = List(isbn, name, author, publisher, numPages, dimensions, weight, imageUrl)
-  }
-
-  object CheckoutBulkForm extends Form {
-    val student = new TextField("Student")
-
-    val fields = List(student)
-  }
-
-  object CheckoutBulkHelperForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
-
-    val fields = List(barcode)
-  }
-
-  object AddPurchaseGroupForm extends Form {
-    val isbn = new TextField("isbn") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
-        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
-        case Some(isbn) => ValidationError(Nil)
-      }))
-    }
-    val purchaseDate = new DateField("Purchase Date")
-    val price = new NumericField[Double]("Price")
-    val numCopies = new NumericField[Int]("Number of Copies")
-
-    val fields = List(isbn, purchaseDate, price, numCopies)
-  }
-
-  object ChooseGradeForm extends Form {
-    val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
-
-    def fields = List(grade)
-  }
-
-  object ChooseStudentForm extends Form {
-    val stateId = new TextField("Student") {
-      override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
-        case None => ValidationError("Student not found.")
-        case Some(student) => ValidationError(Nil)
-      }))
-    }
-
-    def fields = List(stateId)
-  }
-
-  object ChooseCopyForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-      override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
-        case None => ValidationError("Copy not found.")
-        case Some(barcode) => ValidationError(Nil)
-      }))
-    }
-
-    def fields = List(barcode)
-  }
-
-  class EditTitleForm(iName: String, iAuthor: Option[String], iPublisher: Option[String], iNumPages: Option[Int], iDimensions: Option[String], iWeight: Option[Double]) extends Form {
-    val name = new TextField("Name") {
-      override def initialVal = Some(iName)
-      override val maxLength = Some(80)
-    }
-    val author = new TextFieldOptional("Author(s)") {
-      override def initialVal = Some(iAuthor)
-      override val maxLength = Some(80)
-    }
-    val publisher = new TextFieldOptional("Publisher") {
-      override def initialVal = Some(iPublisher)
-      override val maxLength = Some(80)
-    }
-    val numPages = new NumericFieldOptional[Int]("Number Of Pages") {
-      override def initialVal = Some(iNumPages)
-    }
-    val dimensions = new TextFieldOptional("Dimensions (in)") {
-      override def initialVal = Some(iDimensions)
-    }
-    val weight = new NumericFieldOptional[Double]("Weight (lbs)") {
-      override def initialVal = Some(iWeight)
-    }
-    val imageUrl = new UrlFieldOptional("New Image URL")
-
-    // TODO: this should probably be a Call, not a String
-    override def cancelTo = Some(Call(Method.GET, "/books/editTitle"))
-
-    def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
-  }
-
-  object ChooseTitleForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
-        case None => ValidationError("Title with the given ISBN not found.")
-        case Some(title) => ValidationError(Nil)
-      }))
-    }
-
-    val fields = List(isbn)
-  }
-
-  object AddTitleToPrintQueueForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-    }
-    val copyRange = new TextField("Copy Range")
-
-    val fields = List(isbn, copyRange)
-  }
-
-  object BulkCheckInForm extends Form {
-    val barcodes = new TextField("Barcodes") {
-      override def widget = new Textarea(required)
-    }
-
-    val fields = List(barcodes)
-  }
-
-  class ChooseSectionForm(m: Map[String, String], secs: List[String]) extends Form {
-    val section = new AutocompleteField("Section", secs) {
-      override def asValue(s: Seq[String]): Either[ValidationError, String] = {
-        if (s.isEmpty) {
-          Left(ValidationError("This field is required."))
-        } else {
-          Right(m.get(s(0)).getOrElse(""))
-        }
-      }
-    }
-    val fields = List(section)
-  }
-
-  class ChooseDeptForm extends Form {
-    val cand = QDepartment.candidate()
-    val depts = DataStore.pm.query[Department].orderBy(cand.name.asc()).executeList().map(d => (d.name, d))
-    val dept = new ChoiceField[Department]("Department", depts)
-
-    val fields = List(dept)
-  }
-
-  class ViewPrintQueueForm(l: List[LabelQueueSet]) extends Form {
-    val cboxes = new CheckboxFieldMultiple("Labels to Print", l.map(s => (s.toString, s)))
-
-    val fields = List(cboxes)
-  }
 
   /**
    * Regex: /books/addTitle
@@ -250,16 +58,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  // Helper Method
-  def downloadImage(url: java.net.URL, isbn: String) = {
-    val pic = ImageIO.read(url)
-    ImageIO.write(pic, "jpg", new File("public/images/books/" + isbn + ".jpg"))
-  }
-
-  def confirmation() = TODO
-
-  def verifyTitle(isbnNum: Long) = TODO
-
   /**
    * Regex: /books/addPurchaseGroup
    *
@@ -275,45 +73,40 @@ class Books @Inject()(implicit config: Config) extends Controller {
       Binding(AddPurchaseGroupForm, request) match {
         case ib: InvalidBinding => Ok(templates.books.addPurchaseGroup(ib))
         case vb: ValidBinding => {
-          Title.getByIsbn(vb.valueOf(AddPurchaseGroupForm.isbn)) match {
-            case None => Redirect(routes.Books.addPurchaseGroup()).flashing("error" -> "Title with the given ISBN not found")
-            // TODO - Ask if the user would like to add the title if it is not found
-            case Some(t) => {
-              val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
-              pm.makePersistent(p)
+          val t = vb.valueOf(AddPurchaseGroupForm.title)
+          val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
+          pm.makePersistent(p)
 
-              // Next Copy Number
-              val cand = QCopy.candidate
-              val pCand = QPurchaseGroup.variable("pCand")
-              val currentCopies = pm.query[Copy].filter(cand.purchaseGroup.eq(pCand).and(pCand.title.eq(t))).executeList()
-              val newStart = currentCopies.length match {
-                case 0 => 1
-                case _ => {
-                  val maxCopy = currentCopies.sortWith((c1, c2) => c1.number < c2.number).last.number
-                  maxCopy + 1
-                }
-              }
-
-              def addCopies(copyNumber: Int, copyNumberEnd: Int, purchaseGroup: PurchaseGroup): Unit = {
-                if (copyNumber == copyNumberEnd) {
-                  val cpy = new Copy(purchaseGroup, copyNumber, false)
-                  pm.makePersistent(cpy)
-                } else {
-                  val cpy = new Copy(purchaseGroup, copyNumber, false)
-                  pm.makePersistent(cpy)
-                  addCopies(copyNumber + 1, copyNumberEnd, purchaseGroup)
-                }
-              }
-
-              // Add New Copies
-              val copyNumberEnd = newStart + vb.valueOf(AddPurchaseGroupForm.numCopies) - 1
-              addCopies(newStart, copyNumberEnd, p)
-              val addedCopiesString = "copies " + newStart + " through " + copyNumberEnd + " added."
-
-              val msg = "Purchase Group successfully added for: " + t.name + ". With " + addedCopiesString
-              Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> msg)
+          // Next Copy Number
+          val cand = QCopy.candidate
+          val pCand = QPurchaseGroup.variable("pCand")
+          val currentCopies = pm.query[Copy].filter(cand.purchaseGroup.eq(pCand).and(pCand.title.eq(t))).executeList()
+          val newStart = currentCopies.length match {
+            case 0 => 1
+            case _ => {
+              val maxCopy = currentCopies.sortWith((c1, c2) => c1.number < c2.number).last.number
+              maxCopy + 1
             }
           }
+
+          def addCopies(copyNumber: Int, copyNumberEnd: Int, purchaseGroup: PurchaseGroup): Unit = {
+            if (copyNumber == copyNumberEnd) {
+              val cpy = new Copy(purchaseGroup, copyNumber, false)
+              pm.makePersistent(cpy)
+            } else {
+              val cpy = new Copy(purchaseGroup, copyNumber, false)
+              pm.makePersistent(cpy)
+              addCopies(copyNumber + 1, copyNumberEnd, purchaseGroup)
+            }
+          }
+
+          // Add New Copies
+          val copyNumberEnd = newStart + vb.valueOf(AddPurchaseGroupForm.numCopies) - 1
+          addCopies(newStart, copyNumberEnd, p)
+          val addedCopiesString = "copies " + newStart + " through " + copyNumberEnd + " added."
+
+          val msg = "Purchase Group successfully added for: " + t.name + ". With " + addedCopiesString
+          Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> msg)
         }
       }
     }
@@ -333,28 +126,23 @@ class Books @Inject()(implicit config: Config) extends Controller {
       case ib: InvalidBinding => Ok(templates.books.checkout(ib))
       case vb: ValidBinding => DataStore.execute { implicit pm =>
         val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
-        val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
+        val cpy = vb.valueOf(CheckoutForm.cpy)
         student match {
           case None => Redirect(routes.Books.checkout()).flashing("error" -> "No such student.")
           case Some(stu) => {
-            copy match {
-              case None => Redirect(routes.Books.checkout()).flashing("error" -> "No copy with that barcode.")
-              case Some(cpy) => {
-                val cand = QCheckout.candidate
-                pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
-                  case Some(currentCheckout) => {
-                    currentCheckout.endDate = Some(LocalDate.now())
-                    pm.makePersistent(currentCheckout)
-                    val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
-                    pm.makePersistent(c)
-                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
-                  }
-                  case None => {
-                    val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
-                    pm.makePersistent(c)
-                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
-                  }
-                }
+            val cand = QCheckout.candidate
+            pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+              case Some(currentCheckout) => {
+                currentCheckout.endDate = Some(LocalDate.now())
+                pm.makePersistent(currentCheckout)
+                val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+                pm.makePersistent(c)
+                Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
+              }
+              case None => {
+                val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+                pm.makePersistent(c)
+                Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
               }
             }
           }
@@ -417,16 +205,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
     Binding(CheckoutBulkHelperForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.checkoutBulkHelper(ib, dName, zipped, stu))
       case vb: ValidBinding => {
-        Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
-          case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy not found.")
-          case Some(cpy) => {
-            if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
-              Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
-            } else {
-              visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
-              Redirect(routes.Books.checkoutBulkHelper(stu))
-            }
-          }
+        val cpy = vb.valueOf(CheckoutBulkHelperForm.copy)
+        if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
+          Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
+        } else {
+          visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
+          Redirect(routes.Books.checkoutBulkHelper(stu))
         }
       }
     }
@@ -513,17 +297,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
       case ib: InvalidBinding => Ok(templates.books.checkIn(ib))
       case vb: ValidBinding => DataStore.execute { pm =>
         val cand = QCheckout.candidate
-        Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
-          case None => Redirect(routes.Books.checkIn()).flashing("error" -> "No copy with the given barcode")
-          case Some(cpy) => {
-            pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
-              case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
-              case Some(currentCheckout) => {
-                currentCheckout.endDate = Some(LocalDate.now())
-                pm.makePersistent(currentCheckout)
-                Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
-              }
-            }
+        val cpy = vb.valueOf(CheckInForm.copy)
+        pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+          case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
+          case Some(currentCheckout) => {
+            currentCheckout.endDate = Some(LocalDate.now())
+            pm.makePersistent(currentCheckout)
+            Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
           }
         }
       }
@@ -590,10 +370,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  def lookup() = TODO
-
-  def inspect() = TODO
-
   /**
    * Regex: /books/findCopyHistory
    *
@@ -633,10 +409,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
       }
     }
   }
-
-  def confirmCopyLost(copyId: Long) = TODO
-
-  def checkInLostCopy() = TODO
 
   /**
    * Regex: /books/checkoutHistory/:studentId
@@ -720,10 +492,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
       }
     }
   }
-
-  def checkoutsByTeacherStudents() = TODO
-
-  def statistics() = TODO
 
   /**
    * Regex: /books/copyStatusByTitle/:isbn
@@ -930,183 +698,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  // Helper Method
-  def makeBarcode(barcode: String): Barcode = {
-    val b: Barcode128 = new Barcode128()
-    b.setCode(barcode)
-    b.setAltText(barcode)
-    return b
-  }
-
-  // Helper Method
-  def cropText(s: String): String = {
-    // This will crop strings so that they fit on a label
-    val w = Utilities.inchesToPoints(2.6f) - 12
-    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
-    if (font.getWidthPoint(s, 10f) <= w) {
-      s
-    } else {
-      cropText(s.substring(0, s.length - 1))
-    }
-  }
-
-  // Helper Method - Given a list of Sections, it makes a PDF with a label for each student in the section.
-  //  Each label contains the student's name, the section, and a barcode of the student's stateId. Also, this starts a new page for each section.
-  def makeSectionBarcodes(sections: List[Section]) {
-    // Spacing in points
-    // Bottom left: 0,0
-    // Top right: 612, 792
-
-    // Avery 5160 labels have 1/2 inch top/bottom margins and 0.18 inch left/right margins.
-    // Labels are 2.6" by 1". Labels abut vertically but there is a .15" gutter horizontally.
-
-    // A Barcode Label is an Avery 5160 label with three lines of text across the top and
-    // a Code128 barcode under them. The text is cropped to an appropriate width and the
-    // barcode is sized to fit within the remainder of the label.
-
-    // inchesToPoints gives the point value for a measurement in inches
-
-    // Spacing Increments
-    // Top to bottom (inches)
-    // 0.5 1.0 1.0 1.0 0.5
-    // Left to right (inches)
-    // 0.18 2.6 0.15 2.6 0.15 2.6 0.18
-
-    val halfInch = Utilities.inchesToPoints(.5f)
-    val inch = Utilities.inchesToPoints(1f)
-    val gutter = Utilities.inchesToPoints(.15f)
-    val lAndRBorder = Utilities.inchesToPoints(.18f)
-    val labelWidth = Utilities.inchesToPoints(2.6f)
-
-    val topLeftX = lAndRBorder
-    val topLeftY = 792 - halfInch - 10
-
-    val result: String = "public/sectionBarcodes.pdf"
-    val document: Document = new Document(PageSize.LETTER)
-    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
-    document.open()
-    val cb = writer.getDirectContent() //PdfContentByte
-    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
-    var labelTopLeftX = topLeftX
-    var labelTopLeftY = topLeftY
-    var n = 0
-
-    for (section <- sections) {
-      val students = section.students.sortWith((s1, s2) => s1.formalName < s2.formalName)
-      val sec = section.displayName
-      val roomNum = section.room.name
-      document.newPage()
-      n = 0
-      labelTopLeftX = topLeftX
-      labelTopLeftY = topLeftY
-
-      for (student <- students) {
-        // Do this for each section but change the position so that it is a new label each time
-        val id = if (student.stateId != null && student.stateId != "") student.stateId else "0000000000"
-        val b = makeBarcode(id)
-        val studentName = student.formalName
-
-        cb.setFontAndSize(font, 10)
-        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(studentName), (labelTopLeftX + 6), labelTopLeftY, 0)
-        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(sec), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
-        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText("Room: " + roomNum), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
-        b.setX(1.0f)
-        val img = b.createImageWithBarcode(cb, null, null)
-        val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2
-        cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, (labelTopLeftX + barcodeOffset), (labelTopLeftY - 52))
-
-        n += 1
-
-        if (n % 3 == 0) {
-          labelTopLeftX = topLeftX
-          labelTopLeftY = labelTopLeftY - inch
-        } else {
-          labelTopLeftX = labelTopLeftX + labelWidth + gutter
-        }
-        if (n % 30 == 0 && student != students.last) {
-          // Make a new page
-          document.newPage()
-          cb.setFontAndSize(font, 10)
-          labelTopLeftY = topLeftY
-        }
-      }
-    }
-
-    document.close()
-  }
-
-  // Helper Method
-  def makePdf(barcodes: List[(Barcode, String, String, String)]) { //Barcode, title.name, title.author, title.publisher
-    // Spacing in points
-    // Bottom left: 0,0
-    // Top right: 612, 792
-
-    // Avery 5160 labels have 1/2 inch top/bottom margins and 0.18 inch left/right margins.
-    // Labels are 2.6" by 1". Labels abut vertically but there is a .15" gutter horizontally.
-
-    // A Barcode Label is an Avery 5160 label with three lines of text across the top and
-    // a Code128 barcode under them. The text is cropped to an appropriate width and the
-    // barcode is sized to fit within the remainder of the label.
-
-    // inchesToPoints gives the point value for a measurement in inches
-
-    // Spacing Increments
-    // Top to bottom (inches)
-    // 0.5 1.0 1.0 1.0 0.5
-    // Left to right (inches)
-    // 0.18 2.6 0.15 2.6 0.15 2.6 0.18
-
-    val halfInch = Utilities.inchesToPoints(.5f)
-    val inch = Utilities.inchesToPoints(1f)
-    val gutter = Utilities.inchesToPoints(.15f)
-    val lAndRBorder = Utilities.inchesToPoints(.18f)
-    val labelWidth = Utilities.inchesToPoints(2.6f)
-
-    val topLeftX = lAndRBorder
-    val topLeftY = 792 - halfInch - 10
-
-    val result: String = "public/printable.pdf"
-    val document: Document = new Document(PageSize.LETTER)
-    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
-    document.open()
-    val cb = writer.getDirectContent() //PdfContentByte
-    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
-    cb.setFontAndSize(font, 10)
-    var labelTopLeftX = topLeftX
-    var labelTopLeftY = topLeftY
-    var n = 0
-
-    for (barcode <- barcodes) {
-      // Do this for each barcode but change the position so that it is a new label each time
-
-      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._2), (labelTopLeftX + 6), labelTopLeftY, 0)
-      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._3), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
-      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._4), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
-      val b = barcode._1
-      b.setX(0.7f)
-      val img = b.createImageWithBarcode(cb, null, null)
-      val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2
-      cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, (labelTopLeftX + barcodeOffset), (labelTopLeftY - 52))
-
-      n += 1
-
-      if (n % 3 == 0) {
-        labelTopLeftX = topLeftX
-        labelTopLeftY = labelTopLeftY - inch
-      } else {
-        labelTopLeftX = labelTopLeftX + labelWidth + gutter
-      }
-      if (n % 30 == 0) {
-        // Make a new page
-        document.newPage()
-        cb.setFontAndSize(font, 10)
-        labelTopLeftY = topLeftY
-      }
-    }
-
-    document.close()
-  }
-
   /**
    * Regex: /books/addTitleToPrintQueue/:isbn/:cR
    *
@@ -1174,19 +765,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
         }
       }
     }
-  }
-
-  // Helper Method
-  def createPdf(l: List[LabelQueueSet]) {
-    var printList = List[(Barcode, String, String, String)]()
-    for (x <- l) {
-      val r = Books.sanitizeCopyRange(x.copyRange)
-      for (y <- r) {
-        val b = makeBarcode("%s-%s-%05d".format(x.title.isbn, "200", y))
-        printList = printList :+ (b, x.title.name, x.title.author.getOrElse(""), x.title.publisher.getOrElse(""))
-      }
-    }
-    makePdf(printList)
   }
 
   /**
@@ -1373,10 +951,243 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
+  /*
+  * Regex: /books/reportCopyLost
+  *
+  * Reports a copy lost
+  */
+  def reportCopyLost = TODO
+
 }
 
 object Books {
   // This is the companion object to the Books class
+
+  final val df = org.joda.time.format.DateTimeFormat.forPattern("MM/dd/yyyy")
+
+  class IsbnField(name: String) extends TextField(name) {
+    override val minLength = Some(10)
+    override val maxLength = Some(14)
+    override def asValue(strs: Seq[String]): Either[ValidationError, String] = {
+      strs match {
+        case Seq(s) => Title.asValidIsbn13(s) match {
+          case Some(t) => Right(t)
+          case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
+        }
+        case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
+      }
+    }
+  }
+
+  class TitleField(name: String) extends BaseTextField[Title](name) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Title] = {
+      strs match {
+        case Seq(s) => {
+          Title.getByIsbn(s) match {
+            case Some(t) => Right(t)
+            case _ => Left(ValidationError("Title not found"))
+          }
+        }
+        case _ => Left(ValidationError("Title not found"))
+      }
+    }
+  }
+
+  class CopyField(name: String) extends BaseTextField[Copy](name) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Copy] = {
+      strs match {
+        case Seq(s) => {
+          Copy.getByBarcode(s) match {
+            case Some(c) => Right(c)
+            case _ => Left(ValidationError("Copy not found"))
+          }
+        }
+        case _ => Left(ValidationError("Copy not found"))
+      }
+    }
+  }
+
+  class StudentField(name: String, list: List[String]) extends BaseAutocompleteField[Student](name, list) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Student] = {
+      DataStore.execute { pm =>
+        if (strs.size == 1) {
+          val s = strs(0)
+          val cand = QStudent.candidate
+          pm.query[Student].filter(cand.stateId.eq(s)).executeOption() match {
+            case Some(stu) => Right(stu)
+            case _ => Left(ValidationError("Student not found"))
+          }
+        } else {
+          Left(ValidationError("Please enter only one string"))
+        }
+      }
+    }
+  }
+
+  object CheckoutForm extends Form {
+    val cpy = new CopyField("Barcode")
+    val student = new TextField("Student")
+
+    val fields = List(cpy, student)
+  }
+
+  object CheckInForm extends Form {
+    val copy = new CopyField("Barcode")
+
+    val fields = List(copy)
+  }
+
+  object TitleForm extends Form {
+    val isbn = new IsbnField("ISBN") {
+      override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
+        case Some(isbn) => ValidationError("ISBN already exists in database.")
+        case None => ValidationError(Nil)
+      }))
+    }
+    val name = new TextField("Name") { override val maxLength = Some(80) }
+    val author = new TextFieldOptional("Author(s)") { override val maxLength = Some(80) }
+    val publisher = new TextFieldOptional("Publisher") { override val maxLength = Some(80) }
+    val numPages = new NumericFieldOptional[Int]("Number Of Pages")
+    val dimensions = new TextFieldOptional("Dimensions (in)")
+    val weight = new NumericFieldOptional[Double]("Weight (lbs)")
+    val imageUrl = new UrlFieldOptional("Image URL")
+
+    val fields = List(isbn, name, author, publisher, numPages, dimensions, weight, imageUrl)
+  }
+
+  object CheckoutBulkForm extends Form {
+    val student = new TextField("Student")
+
+    val fields = List(student)
+  }
+
+  object CheckoutBulkHelperForm extends Form {
+    val copy = new CopyField("Barcode")
+
+    val fields = List(copy)
+  }
+
+  object AddPurchaseGroupForm extends Form {
+    val title = new TitleField("ISBN")
+    val purchaseDate = new DateField("Purchase Date")
+    val price = new NumericField[Double]("Price")
+    val numCopies = new NumericField[Int]("Number of Copies")
+
+    val fields = List(title, purchaseDate, price, numCopies)
+  }
+
+  object ChooseGradeForm extends Form {
+    val grade = new ChoiceField[Int]("Grade", List("Freshman" -> 9, "Sophomore" -> 10, "Junior" -> 11, "Senior" -> 12))
+
+    def fields = List(grade)
+  }
+
+  object ChooseStudentForm extends Form {
+    val stateId = new TextField("Student") {
+      override def validators = super.validators ++ List(Validator((str: String) => Student.getByStateId(str) match {
+        case None => ValidationError("Student not found.")
+        case Some(student) => ValidationError(Nil)
+      }))
+    }
+
+    def fields = List(stateId)
+  }
+
+  object ChooseCopyForm extends Form {
+    val barcode = new TextField("Barcode") {
+      override val minLength = Some(21)
+      override val maxLength = Some(23)
+      override def validators = super.validators ++ List(Validator((str: String) => Copy.getByBarcode(str) match {
+        case None => ValidationError("Copy not found.")
+        case Some(barcode) => ValidationError(Nil)
+      }))
+    }
+
+    def fields = List(barcode)
+  }
+
+  class EditTitleForm(iName: String, iAuthor: Option[String], iPublisher: Option[String], iNumPages: Option[Int], iDimensions: Option[String], iWeight: Option[Double]) extends Form {
+    val name = new TextField("Name") {
+      override def initialVal = Some(iName)
+      override val maxLength = Some(80)
+    }
+    val author = new TextFieldOptional("Author(s)") {
+      override def initialVal = Some(iAuthor)
+      override val maxLength = Some(80)
+    }
+    val publisher = new TextFieldOptional("Publisher") {
+      override def initialVal = Some(iPublisher)
+      override val maxLength = Some(80)
+    }
+    val numPages = new NumericFieldOptional[Int]("Number Of Pages") {
+      override def initialVal = Some(iNumPages)
+    }
+    val dimensions = new TextFieldOptional("Dimensions (in)") {
+      override def initialVal = Some(iDimensions)
+    }
+    val weight = new NumericFieldOptional[Double]("Weight (lbs)") {
+      override def initialVal = Some(iWeight)
+    }
+    val imageUrl = new UrlFieldOptional("New Image URL")
+
+    // TODO: this should probably be a Call, not a String
+    override def cancelTo = Some(Call(Method.GET, "/books/editTitle"))
+
+    def fields = List(name, author, publisher, numPages, dimensions, weight, imageUrl)
+  }
+
+  object ChooseTitleForm extends Form {
+    val isbn = new IsbnField("ISBN") {
+      override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
+        case None => ValidationError("Title with the given ISBN not found.")
+        case Some(title) => ValidationError(Nil)
+      }))
+    }
+
+    val fields = List(isbn)
+  }
+
+  object AddTitleToPrintQueueForm extends Form {
+    val isbn = new IsbnField("ISBN")
+    val copyRange = new TextField("Copy Range")
+
+    val fields = List(isbn, copyRange)
+  }
+
+  object BulkCheckInForm extends Form {
+    val barcodes = new TextField("Barcodes") {
+      override def widget = new Textarea(required)
+    }
+
+    val fields = List(barcodes)
+  }
+
+  class ChooseSectionForm(m: Map[String, String], secs: List[String]) extends Form {
+    val section = new AutocompleteField("Section", secs) {
+      override def asValue(s: Seq[String]): Either[ValidationError, String] = {
+        if (s.isEmpty) {
+          Left(ValidationError("This field is required."))
+        } else {
+          Right(m.get(s(0)).getOrElse(""))
+        }
+      }
+    }
+    val fields = List(section)
+  }
+
+  class ChooseDeptForm extends Form {
+    val cand = QDepartment.candidate()
+    val depts = DataStore.pm.query[Department].orderBy(cand.name.asc()).executeList().map(d => (d.name, d))
+    val dept = new ChoiceField[Department]("Department", depts)
+
+    val fields = List(dept)
+  }
+
+  class ViewPrintQueueForm(l: List[LabelQueueSet]) extends Form {
+    val cboxes = new CheckboxFieldMultiple("Labels to Print", l.map(s => (s.toString, s)))
+
+    val fields = List(cboxes)
+  }
 
   // Helper Method
   def sanitizeCopyRange(s: String): List[Int] = {
@@ -1395,4 +1206,201 @@ object Books {
     }
     res
   }
+
+  // Helper Method
+  def downloadImage(url: java.net.URL, isbn: String) = {
+    val pic = ImageIO.read(url)
+    ImageIO.write(pic, "jpg", new File("public/images/books/" + isbn + ".jpg"))
+  }
+
+  // Helper Method
+  def makeBarcode(barcode: String): Barcode = {
+    val b: Barcode128 = new Barcode128()
+    b.setCode(barcode)
+    b.setAltText(barcode)
+    return b
+  }
+
+  // Helper Method
+  def cropText(s: String): String = {
+    // This will crop strings so that they fit on a label
+    val w = Utilities.inchesToPoints(2.6f) - 12
+    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
+    if (font.getWidthPoint(s, 10f) <= w) {
+      s
+    } else {
+      cropText(s.substring(0, s.length - 1))
+    }
+  }
+
+  // Helper Method - Given a list of Sections, it makes a PDF with a label for each student in the section.
+  //  Each label contains the student's name, the section, and a barcode of the student's stateId. Also, this starts a new page for each section.
+  def makeSectionBarcodes(sections: List[Section]) {
+    // Spacing in points
+    // Bottom left: 0,0
+    // Top right: 612, 792
+
+    // Avery 5160 labels have 1/2 inch top/bottom margins and 0.18 inch left/right margins.
+    // Labels are 2.6" by 1". Labels abut vertically but there is a .15" gutter horizontally.
+
+    // A Barcode Label is an Avery 5160 label with three lines of text across the top and
+    // a Code128 barcode under them. The text is cropped to an appropriate width and the
+    // barcode is sized to fit within the remainder of the label.
+
+    // inchesToPoints gives the point value for a measurement in inches
+
+    // Spacing Increments
+    // Top to bottom (inches)
+    // 0.5 1.0 1.0 1.0 0.5
+    // Left to right (inches)
+    // 0.18 2.6 0.15 2.6 0.15 2.6 0.18
+
+    val halfInch = Utilities.inchesToPoints(.5f)
+    val inch = Utilities.inchesToPoints(1f)
+    val gutter = Utilities.inchesToPoints(.15f)
+    val lAndRBorder = Utilities.inchesToPoints(.18f)
+    val labelWidth = Utilities.inchesToPoints(2.6f)
+
+    val topLeftX = lAndRBorder
+    val topLeftY = 792 - halfInch - 10
+
+    val result: String = "public/sectionBarcodes.pdf"
+    val document: Document = new Document(PageSize.LETTER)
+    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
+    document.open()
+    val cb = writer.getDirectContent() //PdfContentByte
+    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
+    var labelTopLeftX = topLeftX
+    var labelTopLeftY = topLeftY
+    var n = 0
+
+    for (section <- sections) {
+      val students = section.students.sortWith((s1, s2) => s1.formalName < s2.formalName)
+      val sec = section.labelName
+      val line3 = section.teachers.mkString(", ") + " - " + section.room.name
+      document.newPage()
+      n = 0
+      labelTopLeftX = topLeftX
+      labelTopLeftY = topLeftY
+
+      for (student <- students) {
+        // Do this for each section but change the position so that it is a new label each time
+        val id = if (student.stateId != null && student.stateId != "") student.stateId else "0000000000"
+        val b = makeBarcode(id)
+        val studentName = student.formalName
+
+        cb.setFontAndSize(font, 10)
+        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(studentName), (labelTopLeftX + 6), labelTopLeftY, 0)
+        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(sec), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
+        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(line3), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+        b.setX(1.0f)
+        val img = b.createImageWithBarcode(cb, null, null)
+        val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2
+        cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, (labelTopLeftX + barcodeOffset), (labelTopLeftY - 52))
+
+        n += 1
+
+        if (n % 3 == 0) {
+          labelTopLeftX = topLeftX
+          labelTopLeftY = labelTopLeftY - inch
+        } else {
+          labelTopLeftX = labelTopLeftX + labelWidth + gutter
+        }
+        if (n % 30 == 0 && student != students.last) {
+          // Make a new page
+          document.newPage()
+          cb.setFontAndSize(font, 10)
+          labelTopLeftY = topLeftY
+        }
+      }
+    }
+
+    document.close()
+  }
+
+  // Helper Method
+  def makePdf(barcodes: List[(Barcode, String, String, String)]) { //Barcode, title.name, title.author, title.publisher
+    // Spacing in points
+    // Bottom left: 0,0
+    // Top right: 612, 792
+
+    // Avery 5160 labels have 1/2 inch top/bottom margins and 0.18 inch left/right margins.
+    // Labels are 2.6" by 1". Labels abut vertically but there is a .15" gutter horizontally.
+
+    // A Barcode Label is an Avery 5160 label with three lines of text across the top and
+    // a Code128 barcode under them. The text is cropped to an appropriate width and the
+    // barcode is sized to fit within the remainder of the label.
+
+    // inchesToPoints gives the point value for a measurement in inches
+
+    // Spacing Increments
+    // Top to bottom (inches)
+    // 0.5 1.0 1.0 1.0 0.5
+    // Left to right (inches)
+    // 0.18 2.6 0.15 2.6 0.15 2.6 0.18
+
+    val halfInch = Utilities.inchesToPoints(.5f)
+    val inch = Utilities.inchesToPoints(1f)
+    val gutter = Utilities.inchesToPoints(.15f)
+    val lAndRBorder = Utilities.inchesToPoints(.18f)
+    val labelWidth = Utilities.inchesToPoints(2.6f)
+
+    val topLeftX = lAndRBorder
+    val topLeftY = 792 - halfInch - 10
+
+    val result: String = "public/printable.pdf"
+    val document: Document = new Document(PageSize.LETTER)
+    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
+    document.open()
+    val cb = writer.getDirectContent() //PdfContentByte
+    val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
+    cb.setFontAndSize(font, 10)
+    var labelTopLeftX = topLeftX
+    var labelTopLeftY = topLeftY
+    var n = 0
+
+    for (barcode <- barcodes) {
+      // Do this for each barcode but change the position so that it is a new label each time
+
+      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._2), (labelTopLeftX + 6), labelTopLeftY, 0)
+      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._3), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
+      cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._4), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+      val b = barcode._1
+      b.setX(0.7f)
+      val img = b.createImageWithBarcode(cb, null, null)
+      val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2
+      cb.addImage(img, img.getPlainWidth, 0, 0, img.getPlainHeight, (labelTopLeftX + barcodeOffset), (labelTopLeftY - 52))
+
+      n += 1
+
+      if (n % 3 == 0) {
+        labelTopLeftX = topLeftX
+        labelTopLeftY = labelTopLeftY - inch
+      } else {
+        labelTopLeftX = labelTopLeftX + labelWidth + gutter
+      }
+      if (n % 30 == 0) {
+        // Make a new page
+        document.newPage()
+        cb.setFontAndSize(font, 10)
+        labelTopLeftY = topLeftY
+      }
+    }
+
+    document.close()
+  }
+
+  // Helper Method
+  def createPdf(l: List[LabelQueueSet]) {
+    var printList = List[(Barcode, String, String, String)]()
+    for (x <- l) {
+      val r = Books.sanitizeCopyRange(x.copyRange)
+      for (y <- r) {
+        val b = makeBarcode("%s-%s-%05d".format(x.title.isbn, "200", y))
+        printList = printList :+ (b, x.title.name, x.title.author.getOrElse(""), x.title.publisher.getOrElse(""))
+      }
+    }
+    makePdf(printList)
+  }
+
 }

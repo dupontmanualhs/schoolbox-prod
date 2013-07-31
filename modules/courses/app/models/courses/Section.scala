@@ -59,10 +59,11 @@ class Section {
   }
 
   override def toString: String = s"Section(${course.name} - ${periodNames} - ${room.name})"
-  
+
   def displayName: String = s"${course.name} - ${periodNames}, ${room.name} - ${teachers.mkString(", ")}"
-  
-  
+
+  def labelName: String = s"${course.name} - ${periodNames}"
+
   def periodNames: String = {
     periods.map(_.name).mkString(", ")
   }
