@@ -258,7 +258,7 @@ object currentCheckouts {
 }
 }
 
-object deleteCopyHelper {
+object deleteCopy {
   def apply(chooseCopyForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Delete Copy")(chooseCopyForm.render())
   }

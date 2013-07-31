@@ -56,7 +56,7 @@ object Menu {
   val editTitle = new MenuItem("Edit Title", "menu_editTitle", Some(controllers.routes.Books.editTitle.toString), Nil)
   val addToPrintQueue = new MenuItem("Add Title to Print Queue", "menu_addToPrintQueue", Some(controllers.routes.Books.addTitleToPrintQueueHelper.toString), Nil)
   val viewQueue = new MenuItem("View Print Queue", "menu_viewQueue", Some(controllers.routes.Books.viewPrintQueue.toString), Nil)
-  val delCpy = new MenuItem("Delete Copy", "menu_delCpy", Some(controllers.routes.Books.deleteCopyHelper.toString), Nil)
+  val delCpy = new MenuItem("Delete Copy", "menu_delCpy", Some(controllers.routes.Books.deleteCopy.toString), Nil)
   val delTitle = new MenuItem("Delete Title", "menu_delTitle", Some(controllers.routes.Books.deleteTitleHelper.toString), Nil)
   val blkCheckIn = new MenuItem("Bulk Check In", "menu_blkCheckIn", Some(controllers.routes.Books.checkInBulk.toString), Nil)
   val print1Sec = new MenuItem("Single Section", "menu_print1Sec", Some(controllers.routes.Books.printSingleSection.toString), Nil)
