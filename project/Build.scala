@@ -67,6 +67,8 @@ object ApplicationBuild extends Build {
     "org.seleniumhq.selenium" % "selenium-java" % "2.33.0" % "test") ++ jsDependencies
 
   System.setProperty("log4j.configuration", "file:conf/log4j.properties")
+  
+  def customLessEntryPoints(base: File): PathFinder = (base / "app" / "assets" / "stylesheets" * "*.less")
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     ((testOptions in (ThisBuild, Test) := Nil) +:
@@ -75,6 +77,7 @@ object ApplicationBuild extends Build {
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
       (routesImport += "scala.language.reflectiveCalls") +:
       (resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots") +:
+      (lessEntryPoints <<= baseDirectory(customLessEntryPoints)) +:
       Nucleus.settings): _*) dependsOn (users, courses)
 }
 
