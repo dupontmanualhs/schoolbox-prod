@@ -686,14 +686,14 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form that redirects a user to /books/editTitleHelper/:isbn based on the isbn they enter here.
    */
   def editTitle() = VisitAction { implicit req =>
-    Ok(templates.books.editTitle(Binding(ChooseTitleForm)))
+    Ok(templates.books.editTitle(Binding(EditTitleHelperForm)))
   }
 
   def editTitleP() = VisitAction { implicit req =>
-    Binding(ChooseTitleForm, req) match {
+    Binding(EditTitleHelperForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.editTitle(ib))
       case vb: ValidBinding => {
-        val lookupIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
+        val lookupIsbn: String = vb.valueOf(EditTitleHelperForm.isbn)
         Redirect(routes.Books.editTitleHelper(lookupIsbn))
       }
     }
@@ -814,39 +814,25 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * Deletes the title with given isbn from the database and redirects the user
    * to the deleteTitleHelper controller
    */
-  def deleteTitle(isbn: String) = VisitAction { implicit request =>
-    Title.getByIsbn(isbn) match {
-      case None => Redirect(routes.Books.deleteTitleHelper()).flashing("error" -> "Title not found")
-      case Some(t) => DataStore.execute { pm =>
+  def deleteTitleP() = VisitAction { implicit req =>
+    Binding(ChooseTitleForm, req) match {
+      case ib: InvalidBinding => Ok(templates.books.deleteTitle(ib))
+      case vb: ValidBinding => DataStore.execute { pm =>
+        val t = vb.valueOf(ChooseTitleForm.title)
         val cand = QPurchaseGroup.candidate
         val pg = pm.query[PurchaseGroup].filter(cand.title.eq(t)).executeList()
         if (pg.isEmpty) {
           pm.deletePersistent(t)
-          Redirect(routes.Books.deleteTitleHelper()).flashing("message" -> "Title successfully deleted.")
+          Redirect(routes.Books.deleteTitle()).flashing("message" -> "Title successfully deleted.")
         } else {
-          Redirect(routes.Books.deleteTitleHelper()).flashing("error" -> "Books of this title purchased. Contact your system administrator to remove.")
+          Redirect(routes.Books.deleteTitle()).flashing("error" -> "Books of this title purchased. Contact your system administrator to remove.")
         }
       }
     }
   }
 
-  /**
-   * Regex: /books/deleteTitleHelper
-   *
-   * A form page that allows the user to delete titles from the database.
-   */
-  def deleteTitleHelper() = VisitAction { implicit req =>
-    Ok(templates.books.deleteTitleHelper(Binding(ChooseTitleForm)))
-  }
-
-  def deleteTitleHelperP() = VisitAction { implicit req =>
-    Binding(ChooseTitleForm, req) match {
-      case ib: InvalidBinding => Ok(templates.books.deleteTitleHelper(ib))
-      case vb: ValidBinding => {
-        val lookupIsbn: String = vb.valueOf(ChooseTitleForm.isbn)
-        Redirect(routes.Books.deleteTitle(lookupIsbn))
-      }
-    }
+  def deleteTitle() = VisitAction { implicit req =>
+    Ok(templates.books.deleteTitle(Binding(ChooseTitleForm)))
   }
 
   /**
@@ -1086,6 +1072,12 @@ object Books {
     val copy = new CopyField("Barcode")
 
     def fields = List(copy)
+  }
+
+  object EditTitleHelperForm extends Form {
+    val isbn = new IsbnField("ISBN")
+
+    def fields = List(isbn)
   }
 
   class EditTitleForm(iName: String, iAuthor: Option[String], iPublisher: Option[String], iNumPages: Option[Int], iDimensions: Option[String], iWeight: Option[Double]) extends Form {

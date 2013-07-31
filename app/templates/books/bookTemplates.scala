@@ -264,7 +264,7 @@ object deleteCopy {
   }
 }
 
-object deleteTitleHelper {
+object deleteTitle {
   def apply(chooseTitleForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Delete Copy")(chooseTitleForm.render())
   }
