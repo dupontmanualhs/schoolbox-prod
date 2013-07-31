@@ -15,7 +15,7 @@ import org.dupontmanual.forms.{ Binding, InvalidBinding, ValidBinding, Call, Met
 import org.dupontmanual.forms.fields._
 import org.dupontmanual.forms.widgets._
 import org.dupontmanual.forms.validators._
-import controllers.users.VisitAction
+import controllers.users.{ VisitAction, VisitRequest }
 import config.Config
 import com.google.inject.{ Inject, Singleton }
 import org.joda.time.LocalDateTime
@@ -477,14 +477,18 @@ class Books @Inject()(implicit config: Config) extends Controller {
   def currentCheckouts(stateId: String) = VisitAction { implicit req =>
     Student.getByStateId(stateId) match {
       case None => NotFound("No student with the given id")
-      case Some(currentStudent) => DataStore.execute { implicit pm =>
-        val checkoutCand = QCheckout.candidate
-        val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(currentStudent))).executeList()
-        val studentName = currentStudent.displayName
-        val header = "Student: %s".format(studentName)
-        val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse("")) })
-        Ok(templates.books.currentCheckouts(header, rows))
-      }
+      case Some(currentStudent) => checkoutsForStudent(currentStudent)
+    }
+  }
+        
+  def checkoutsForStudent(student: Student)(implicit req: VisitRequest[_]) = {
+    DataStore.execute { pm => 
+      val checkoutCand = QCheckout.candidate
+      val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(student))).executeList()
+      val studentName = student.displayName
+      val header = "Student: %s".format(studentName)
+      val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse("")) })
+      Ok(templates.books.currentCheckouts(header, rows))
     }
   }
 
