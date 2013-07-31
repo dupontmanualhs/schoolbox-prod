@@ -1007,6 +1007,23 @@ object Books {
     }
   }
 
+  class StudentField(name: String, list: List[String]) extends BaseAutocompleteField[Student](name, list) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Student] = {
+      DataStore.execute { pm =>
+        if (strs.size == 1) {
+          val s = strs(0)
+          val cand = QStudent.candidate
+          pm.query[Student].filter(cand.stateId.eq(s)).executeOption() match {
+            case Some(stu) => Right(stu)
+            case _ => Left(ValidationError("Student not found"))
+          }
+        } else {
+          Left(ValidationError("Please enter only one string"))
+        }
+      }
+    }
+  }
+
   object CheckoutForm extends Form {
     val cpy = new CopyField("Barcode")
     val student = new TextField("Student")
@@ -1259,8 +1276,8 @@ object Books {
 
     for (section <- sections) {
       val students = section.students.sortWith((s1, s2) => s1.formalName < s2.formalName)
-      val sec = section.displayName
-      val roomNum = section.room.name
+      val sec = section.labelName
+      val line3 = section.teachers.mkString(", ") + " - " + section.room.name
       document.newPage()
       n = 0
       labelTopLeftX = topLeftX
@@ -1275,7 +1292,7 @@ object Books {
         cb.setFontAndSize(font, 10)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(studentName), (labelTopLeftX + 6), labelTopLeftY, 0)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(sec), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
-        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText("Room: " + roomNum), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+        cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(line3), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
         b.setX(1.0f)
         val img = b.createImageWithBarcode(cb, null, null)
         val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2
