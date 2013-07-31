@@ -7,14 +7,13 @@ import java.io.File
 object ApplicationBuild extends Build {
   val appName = "play-eschool"
   val appVersion = "1.0"
-
-  val scalaJdo = RootProject(uri("git://github.com/toddobryan/scalajdo.git"))
   
   val commonDependencies = Seq(
       "com.google.inject" % "guice" % "3.0",
       "com.tzavellas" % "sse-guice" % "0.7.1",
       "com.scalatags" %% "scalatags" % "0.1.2",
       "org.dupontmanual" %% "dm-forms" % "0.1-SNAPSHOT",
+      "org.dupontmanual" %% "scalajdo" % "0.1-SNAPSHOT",
       "org.scalatest" %% "scalatest" % "2.0.M5b"
   )
 
@@ -39,14 +38,14 @@ object ApplicationBuild extends Build {
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",  
-    libraryDependencies ++= commonDependencies).dependsOn(scalaJdo)
+    libraryDependencies ++= commonDependencies)
       
   val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"  
-  ).dependsOn(scalaJdo, users)
+  ).dependsOn(users)
 
   val jsDependencies = Seq(
     "org.webjars" % "tinymce-jquery" % "3.4.9",
@@ -76,7 +75,7 @@ object ApplicationBuild extends Build {
       (scalacOptions ++= Seq("-deprecation", "-feature")) +:
       (routesImport += "scala.language.reflectiveCalls") +:
       (resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots") +:
-      Nucleus.settings): _*) dependsOn (scalaJdo, users, courses)
+      Nucleus.settings): _*) dependsOn (users, courses)
 }
 
 object Nucleus {
