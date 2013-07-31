@@ -27,6 +27,35 @@ class Books @Inject()(implicit config: Config) extends Controller {
 
   final val df = org.joda.time.format.DateTimeFormat.forPattern("MM/dd/yyyy")
 
+  class IsbnField(name: String) extends TextField(name) {
+    override val minLength = Some(10)
+    override val maxLength = Some(14)
+    override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
+        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN")
+        case Some(isbn) => ValidationError(Nil)
+      }))
+    override def asValue(strs: Seq[String]): Either[ValidationError, String] = {
+      strs match {
+        case Seq(s) => Right(Title.asValidIsbn13(s).getOrElse(""))
+        case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
+      }
+    }
+  }
+
+  class TitleField(name: String) extends BaseTextField[Title](name) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Title] = {
+      strs match {
+        case Seq(s) => {
+          Title.getByIsbn(s) match {
+            case Some(t) => Right(t)
+            case _ => Left(ValidationError("Title not found"))
+          }
+        }
+        case _ => Left(ValidationError("Title not found"))
+      }
+    }
+  }
+
   object CheckoutForm extends Form {
     val barcode = new TextField("Barcode") {
       override val minLength = Some(21)
@@ -47,13 +76,8 @@ class Books @Inject()(implicit config: Config) extends Controller {
   }
 
   object TitleForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
-        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
-        case Some(isbn) => ValidationError(Nil)
-      }), Validator((str: String) => Title.getByIsbn(str) match {
+    val isbn = new IsbnField("ISBN") {
+      override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
         case Some(isbn) => ValidationError("ISBN already exists in database.")
         case None => ValidationError(Nil)
       }))
@@ -85,14 +109,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   }
 
   object AddPurchaseGroupForm extends Form {
-    val isbn = new TextField("isbn") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-      override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
-        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN.")
-        case Some(isbn) => ValidationError(Nil)
-      }))
-    }
+    val isbn = new IsbnField("ISBN")
     val purchaseDate = new DateField("Purchase Date")
     val price = new NumericField[Double]("Price")
     val numCopies = new NumericField[Int]("Number of Copies")
@@ -161,9 +178,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   }
 
   object ChooseTitleForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
+    val isbn = new IsbnField("ISBN") {
       override def validators = super.validators ++ List(Validator((str: String) => Title.getByIsbn(str) match {
         case None => ValidationError("Title with the given ISBN not found.")
         case Some(title) => ValidationError(Nil)
@@ -174,10 +189,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
   }
 
   object AddTitleToPrintQueueForm extends Form {
-    val isbn = new TextField("ISBN") {
-      override val minLength = Some(10)
-      override val maxLength = Some(13)
-    }
+    val isbn = new IsbnField("ISBN")
     val copyRange = new TextField("Copy Range")
 
     val fields = List(isbn, copyRange)
@@ -255,10 +267,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     val pic = ImageIO.read(url)
     ImageIO.write(pic, "jpg", new File("public/images/books/" + isbn + ".jpg"))
   }
-
-  def confirmation() = TODO
-
-  def verifyTitle(isbnNum: Long) = TODO
 
   /**
    * Regex: /books/addPurchaseGroup
@@ -590,10 +598,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  def lookup() = TODO
-
-  def inspect() = TODO
-
   /**
    * Regex: /books/findCopyHistory
    *
@@ -633,10 +637,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
       }
     }
   }
-
-  def confirmCopyLost(copyId: Long) = TODO
-
-  def checkInLostCopy() = TODO
 
   /**
    * Regex: /books/checkoutHistory/:studentId
@@ -720,10 +720,6 @@ class Books @Inject()(implicit config: Config) extends Controller {
       }
     }
   }
-
-  def checkoutsByTeacherStudents() = TODO
-
-  def statistics() = TODO
 
   /**
    * Regex: /books/copyStatusByTitle/:isbn
@@ -1371,6 +1367,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
       Redirect(routes.Books.displaySectionPdf)
     }
   }
+
+  /*
+  * Regex: /books/reportCopyLost
+  *
+  * Reports a copy lost
+  */
+  def reportCopyLost = TODO
 
 }
 
