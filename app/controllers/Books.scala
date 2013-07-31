@@ -30,13 +30,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
   class IsbnField(name: String) extends TextField(name) {
     override val minLength = Some(10)
     override val maxLength = Some(14)
-    override def validators = super.validators ++ List(Validator((str: String) => Title.asValidIsbn13(str) match {
-        case None => ValidationError("This value must be a valid 10 or 13-digit ISBN")
-        case Some(isbn) => ValidationError(Nil)
-      }))
     override def asValue(strs: Seq[String]): Either[ValidationError, String] = {
       strs match {
-        case Seq(s) => Right(Title.asValidIsbn13(s).getOrElse(""))
+        case Seq(s) => Title.asValidIsbn13(s) match {
+          case Some(t) => Right(t)
+          case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
+        }
         case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
       }
     }
@@ -56,23 +55,31 @@ class Books @Inject()(implicit config: Config) extends Controller {
     }
   }
 
-  object CheckoutForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
+  class CopyField(name: String) extends BaseTextField[Copy](name) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Copy] = {
+      strs match {
+        case Seq(s) => {
+          Copy.getByBarcode(s) match {
+            case Some(c) => Right(c)
+            case _ => Left(ValidationError("Copy not found"))
+          }
+        }
+        case _ => Left(ValidationError("Copy not found"))
+      }
     }
+  }
+
+  object CheckoutForm extends Form {
+    val cpy = new CopyField("Barcode")
     val student = new TextField("Student")
 
-    val fields = List(barcode, student)
+    val fields = List(cpy, student)
   }
 
   object CheckInForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
+    val copy = new CopyField("Barcode")
 
-    val fields = List(barcode)
+    val fields = List(copy)
   }
 
   object TitleForm extends Form {
@@ -100,21 +107,18 @@ class Books @Inject()(implicit config: Config) extends Controller {
   }
 
   object CheckoutBulkHelperForm extends Form {
-    val barcode = new TextField("Barcode") {
-      override val minLength = Some(21)
-      override val maxLength = Some(23)
-    }
+    val copy = new CopyField("Barcode")
 
-    val fields = List(barcode)
+    val fields = List(copy)
   }
 
   object AddPurchaseGroupForm extends Form {
-    val isbn = new IsbnField("ISBN")
+    val title = new TitleField("ISBN")
     val purchaseDate = new DateField("Purchase Date")
     val price = new NumericField[Double]("Price")
     val numCopies = new NumericField[Int]("Number of Copies")
 
-    val fields = List(isbn, purchaseDate, price, numCopies)
+    val fields = List(title, purchaseDate, price, numCopies)
   }
 
   object ChooseGradeForm extends Form {
@@ -283,45 +287,40 @@ class Books @Inject()(implicit config: Config) extends Controller {
       Binding(AddPurchaseGroupForm, request) match {
         case ib: InvalidBinding => Ok(templates.books.addPurchaseGroup(ib))
         case vb: ValidBinding => {
-          Title.getByIsbn(vb.valueOf(AddPurchaseGroupForm.isbn)) match {
-            case None => Redirect(routes.Books.addPurchaseGroup()).flashing("error" -> "Title with the given ISBN not found")
-            // TODO - Ask if the user would like to add the title if it is not found
-            case Some(t) => {
-              val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
-              pm.makePersistent(p)
+          val t = vb.valueOf(AddPurchaseGroupForm.title)
+          val p = new PurchaseGroup(t, vb.valueOf(AddPurchaseGroupForm.purchaseDate), vb.valueOf(AddPurchaseGroupForm.price))
+          pm.makePersistent(p)
 
-              // Next Copy Number
-              val cand = QCopy.candidate
-              val pCand = QPurchaseGroup.variable("pCand")
-              val currentCopies = pm.query[Copy].filter(cand.purchaseGroup.eq(pCand).and(pCand.title.eq(t))).executeList()
-              val newStart = currentCopies.length match {
-                case 0 => 1
-                case _ => {
-                  val maxCopy = currentCopies.sortWith((c1, c2) => c1.number < c2.number).last.number
-                  maxCopy + 1
-                }
-              }
-
-              def addCopies(copyNumber: Int, copyNumberEnd: Int, purchaseGroup: PurchaseGroup): Unit = {
-                if (copyNumber == copyNumberEnd) {
-                  val cpy = new Copy(purchaseGroup, copyNumber, false)
-                  pm.makePersistent(cpy)
-                } else {
-                  val cpy = new Copy(purchaseGroup, copyNumber, false)
-                  pm.makePersistent(cpy)
-                  addCopies(copyNumber + 1, copyNumberEnd, purchaseGroup)
-                }
-              }
-
-              // Add New Copies
-              val copyNumberEnd = newStart + vb.valueOf(AddPurchaseGroupForm.numCopies) - 1
-              addCopies(newStart, copyNumberEnd, p)
-              val addedCopiesString = "copies " + newStart + " through " + copyNumberEnd + " added."
-
-              val msg = "Purchase Group successfully added for: " + t.name + ". With " + addedCopiesString
-              Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> msg)
+          // Next Copy Number
+          val cand = QCopy.candidate
+          val pCand = QPurchaseGroup.variable("pCand")
+          val currentCopies = pm.query[Copy].filter(cand.purchaseGroup.eq(pCand).and(pCand.title.eq(t))).executeList()
+          val newStart = currentCopies.length match {
+            case 0 => 1
+            case _ => {
+              val maxCopy = currentCopies.sortWith((c1, c2) => c1.number < c2.number).last.number
+              maxCopy + 1
             }
           }
+
+          def addCopies(copyNumber: Int, copyNumberEnd: Int, purchaseGroup: PurchaseGroup): Unit = {
+            if (copyNumber == copyNumberEnd) {
+              val cpy = new Copy(purchaseGroup, copyNumber, false)
+              pm.makePersistent(cpy)
+            } else {
+              val cpy = new Copy(purchaseGroup, copyNumber, false)
+              pm.makePersistent(cpy)
+              addCopies(copyNumber + 1, copyNumberEnd, purchaseGroup)
+            }
+          }
+
+          // Add New Copies
+          val copyNumberEnd = newStart + vb.valueOf(AddPurchaseGroupForm.numCopies) - 1
+          addCopies(newStart, copyNumberEnd, p)
+          val addedCopiesString = "copies " + newStart + " through " + copyNumberEnd + " added."
+
+          val msg = "Purchase Group successfully added for: " + t.name + ". With " + addedCopiesString
+          Redirect(routes.Books.addPurchaseGroup()).flashing("message" -> msg)
         }
       }
     }
@@ -341,28 +340,23 @@ class Books @Inject()(implicit config: Config) extends Controller {
       case ib: InvalidBinding => Ok(templates.books.checkout(ib))
       case vb: ValidBinding => DataStore.execute { implicit pm =>
         val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
-        val copy = Copy.getByBarcode(vb.valueOf(CheckoutForm.barcode))
+        val cpy = vb.valueOf(CheckoutForm.cpy)
         student match {
           case None => Redirect(routes.Books.checkout()).flashing("error" -> "No such student.")
           case Some(stu) => {
-            copy match {
-              case None => Redirect(routes.Books.checkout()).flashing("error" -> "No copy with that barcode.")
-              case Some(cpy) => {
-                val cand = QCheckout.candidate
-                pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
-                  case Some(currentCheckout) => {
-                    currentCheckout.endDate = Some(LocalDate.now())
-                    pm.makePersistent(currentCheckout)
-                    val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
-                    pm.makePersistent(c)
-                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
-                  }
-                  case None => {
-                    val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
-                    pm.makePersistent(c)
-                    Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
-                  }
-                }
+            val cand = QCheckout.candidate
+            pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+              case Some(currentCheckout) => {
+                currentCheckout.endDate = Some(LocalDate.now())
+                pm.makePersistent(currentCheckout)
+                val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+                pm.makePersistent(c)
+                Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
+              }
+              case None => {
+                val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+                pm.makePersistent(c)
+                Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
               }
             }
           }
@@ -425,16 +419,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
     Binding(CheckoutBulkHelperForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.checkoutBulkHelper(ib, dName, zipped, stu))
       case vb: ValidBinding => {
-        Copy.getByBarcode(vb.valueOf(CheckoutBulkHelperForm.barcode)) match {
-          case None => Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy not found.")
-          case Some(cpy) => {
-            if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
-              Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
-            } else {
-              visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
-              Redirect(routes.Books.checkoutBulkHelper(stu))
-            }
-          }
+        val cpy = vb.valueOf(CheckoutBulkHelperForm.copy)
+        if (visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()).exists(c => c == cpy.getBarcode)) {
+          Redirect(routes.Books.checkoutBulkHelper(stu)).flashing("error" -> "Copy already in queue.")
+        } else {
+          visit.set("checkoutList", Vector[String](cpy.getBarcode()) ++ visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]()))
+          Redirect(routes.Books.checkoutBulkHelper(stu))
         }
       }
     }
@@ -521,17 +511,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
       case ib: InvalidBinding => Ok(templates.books.checkIn(ib))
       case vb: ValidBinding => DataStore.execute { pm =>
         val cand = QCheckout.candidate
-        Copy.getByBarcode(vb.valueOf(CheckInForm.barcode)) match {
-          case None => Redirect(routes.Books.checkIn()).flashing("error" -> "No copy with the given barcode")
-          case Some(cpy) => {
-            pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
-              case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
-              case Some(currentCheckout) => {
-                currentCheckout.endDate = Some(LocalDate.now())
-                pm.makePersistent(currentCheckout)
-                Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
-              }
-            }
+        val cpy = vb.valueOf(CheckInForm.copy)
+        pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+          case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
+          case Some(currentCheckout) => {
+            currentCheckout.endDate = Some(LocalDate.now())
+            pm.makePersistent(currentCheckout)
+            Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
           }
         }
       }
