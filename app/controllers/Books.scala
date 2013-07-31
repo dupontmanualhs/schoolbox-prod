@@ -125,26 +125,21 @@ class Books @Inject()(implicit config: Config) extends Controller {
     Binding(CheckoutForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.checkout(ib))
       case vb: ValidBinding => DataStore.execute { implicit pm =>
-        val student = Student.getByStateId(vb.valueOf(CheckoutForm.student))
+        val stu = vb.valueOf(CheckoutForm.student)
         val cpy = vb.valueOf(CheckoutForm.cpy)
-        student match {
-          case None => Redirect(routes.Books.checkout()).flashing("error" -> "No such student.")
-          case Some(stu) => {
-            val cand = QCheckout.candidate
-            pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
-              case Some(currentCheckout) => {
-                currentCheckout.endDate = Some(LocalDate.now())
-                pm.makePersistent(currentCheckout)
-                val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
-                pm.makePersistent(c)
-                Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
-              }
-              case None => {
-                val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
-                pm.makePersistent(c)
-                Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
-              }
-            }
+        val cand = QCheckout.candidate
+        pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(cpy))).executeOption() match {
+          case Some(currentCheckout) => {
+            currentCheckout.endDate = Some(LocalDate.now())
+            pm.makePersistent(currentCheckout)
+            val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+            pm.makePersistent(c)
+            Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
+          }
+          case None => {
+            val c = new Checkout(stu, cpy, Some(LocalDate.now()), None)
+            pm.makePersistent(c)
+            Redirect(routes.Books.checkout()).flashing("message" -> "Copy successfully checked out")
           }
         }
       }
@@ -1010,10 +1005,11 @@ object Books {
   class StudentField(name: String, list: List[String]) extends BaseAutocompleteField[Student](name, list) {
     def asValue(strs: Seq[String]): Either[ValidationError, Student] = {
       DataStore.execute { pm =>
-        if (strs.size == 1) {
+        if (strs.size == 1 && !strs(0).isEmpty) {
           val s = strs(0)
+          val sId = s.split("-").last.trim
           val cand = QStudent.candidate
-          pm.query[Student].filter(cand.stateId.eq(s)).executeOption() match {
+          pm.query[Student].filter(cand.stateId.eq(sId)).executeOption() match {
             case Some(stu) => Right(stu)
             case _ => Left(ValidationError("Student not found"))
           }
@@ -1026,7 +1022,7 @@ object Books {
 
   object CheckoutForm extends Form {
     val cpy = new CopyField("Barcode")
-    val student = new TextField("Student")
+    val student = new StudentField("Student", StudentList.students)
 
     val fields = List(cpy, student)
   }
@@ -1401,6 +1397,12 @@ object Books {
       }
     }
     makePdf(printList)
+  }
+
+  object StudentList {
+    val cand = QStudent.candidate
+    // TODO - Need to make sure that this list only contains active students
+    lazy val students = DataStore.pm.query[Student].executeList().map(s => s.formalName + " - " + s.stateId)
   }
 
 }
