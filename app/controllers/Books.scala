@@ -646,35 +646,39 @@ class Books @Inject()(implicit config: Config) extends Controller {
    * A form that allows the user to alter information about a title with a certain isbn.
    */
   def editTitleHelper(isbn: String) = VisitAction { implicit request =>
-    // TODO: what if there's no title?
-    val title = Title.getByIsbn(isbn).get
-    Ok(templates.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
+    Title.getByIsbn(isbn) match {
+      case Some(title) => Ok(templates.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
+      case None => Redirect(routes.Books.editTitle()).flashing("error" -> "Title not found")
+    }
   }
 
   def editTitleHelperP(isbn: String) = VisitAction { implicit request =>
-    // TODO: what if there's no title?
-    val title = Title.getByIsbn(isbn).get
-    val f = new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight)
-    Binding(f, request) match {
-      case ib: InvalidBinding => Ok(templates.books.editTitleHelper(ib))
-      case vb: ValidBinding => {
-        title.name = vb.valueOf(f.name)
-        title.author = vb.valueOf(f.author)
-        title.publisher = vb.valueOf(f.publisher)
-        title.numPages = vb.valueOf(f.numPages)
-        title.dimensions = vb.valueOf(f.dimensions)
-        title.weight = vb.valueOf(f.weight)
-        title.lastModified = LocalDateTime.now
-        DataStore.pm.makePersistent(title)
+    Title.getByIsbn(isbn) match {
+      case None => Redirect(routes.Books.editTitle()).flashing("error" -> "Title not found")
+      case Some(title) => {
+        val f = new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight)
+        Binding(f, request) match {
+          case ib: InvalidBinding => Ok(templates.books.editTitleHelper(ib))
+          case vb: ValidBinding => {
+            title.name = vb.valueOf(f.name)
+            title.author = vb.valueOf(f.author)
+            title.publisher = vb.valueOf(f.publisher)
+            title.numPages = vb.valueOf(f.numPages)
+            title.dimensions = vb.valueOf(f.dimensions)
+            title.weight = vb.valueOf(f.weight)
+            title.lastModified = LocalDateTime.now
+            DataStore.pm.makePersistent(title)
 
-        vb.valueOf(f.imageUrl) match {
-          case Some(url) => try {
-            downloadImage(url, isbn)
-            Redirect(routes.App.index()).flashing("message" -> "Title updated successfully")
-          } catch {
-            case e: Exception => Redirect(routes.App.index()).flashing("error" -> "Image not downloaded. Edit the tite to try downloading again")
+            vb.valueOf(f.imageUrl) match {
+              case Some(url) => try {
+                downloadImage(url, isbn)
+                Redirect(routes.App.index()).flashing("message" -> "Title updated successfully")
+              } catch {
+                case e: Exception => Redirect(routes.App.index()).flashing("error" -> "Image not downloaded. Edit the tite to try downloading again")
+              }
+              case None => Redirect(routes.App.index()).flashing("message" -> "Title updated successfully")
+            }
           }
-          case None => Redirect(routes.App.index()).flashing("message" -> "Title updated successfully")
         }
       }
     }
