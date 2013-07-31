@@ -222,7 +222,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
 
   class ChooseDeptForm extends Form {
     val cand = QDepartment.candidate()
-    val depts = DataStore.pm.query[Department]().orderBy(cand.name.asc()).executeList().map(d => (d.name, d))
+    val depts = DataStore.pm.query[Department].orderBy(cand.name.asc()).executeList().map(d => (d.name, d))
     val dept = new ChoiceField[Department]("Department", depts)
 
     val fields = List(dept)
@@ -984,7 +984,8 @@ class Books @Inject()(implicit config: Config) extends Controller {
 
       for (student <- students) {
         // Do this for each section but change the position so that it is a new label each time
-        val b = makeBarcode(student.stateId)
+        val id = if (student.stateId != null && student.stateId != "") student.stateId else "0000000000"
+        val b = makeBarcode(id)
         val studentName = student.formalName
 
         cb.setFontAndSize(font, 10)
