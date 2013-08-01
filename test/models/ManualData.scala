@@ -54,10 +54,10 @@ object ManualData {
     loadSections(debug)
     if (!debug) println("Creating Enrollment Data...")
     loadEnrollments(debug)
-    //if (!debug) println("Creating Book Data...")
-    //loadBookData(debug)
-    //if (!debug) println("Creating Locker Data...")
-    //loadLockers(debug)
+    if (!debug) println("Creating Book Data...")
+    loadBookData(debug)
+    if (!debug) println("Creating Locker Data...")
+    loadLockers(debug)
   }
 
   def createYearsAndTerms(debug: Boolean) {

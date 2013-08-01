@@ -997,8 +997,26 @@ object Books {
           val s = strs(0)
           val sId = s.split("-").last.trim
           val cand = QStudent.candidate
-          pm.query[Student].filter(cand.stateId.eq(sId)).executeOption() match {
+          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId))).executeOption() match {
             case Some(stu) => Right(stu)
+            case _ => Left(ValidationError("Student not found"))
+          }
+        } else {
+          Left(ValidationError("Please enter only one string"))
+        }
+      }
+    }
+  }
+
+  class StudentIdField(name: String, list: List[String]) extends BaseAutocompleteField[String](name, list) {
+    def asValue(strs: Seq[String]): Either[ValidationError, String] = {
+      DataStore.execute { pm =>
+        if (strs.size == 1 && !strs(0).isEmpty) {
+          val s = strs(0)
+          val sId = s.split("-").last.trim
+          val cand = QStudent.candidate
+          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId))).executeOption() match {
+            case Some(stu) => Right(sId)
             case _ => Left(ValidationError("Student not found"))
           }
         } else {
@@ -1040,7 +1058,7 @@ object Books {
   }
 
   object CheckoutBulkForm extends Form {
-    val student = new TextField("Student")
+    val student = new StudentIdField("Student", StudentList.students)
 
     val fields = List(student)
   }
@@ -1379,7 +1397,8 @@ object Books {
   object StudentList {
     val cand = QStudent.candidate
     // TODO - Need to make sure that this list only contains active students
-    lazy val students = DataStore.pm.query[Student].executeList().map(s => s.formalName + " - " + s.stateId)
+    lazy val students = DataStore.pm.query[Student].executeList().map(s => s.formalName + " - " + (if (s.stateId != null && s.stateId != "") s.stateId
+      else if (s.studentNumber != null && s.studentNumber != "") s.studentNumber else "0000000000"))
   }
 
 }
