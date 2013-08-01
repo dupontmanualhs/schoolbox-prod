@@ -105,8 +105,6 @@ object checkoutBulkHelper {
       div.cls("page-header")(
         h2(stu)
       ),div(
-      button.cls("btn").ctype("button").onclick("window.location.href='/books/checkoutBulkSubmit/" + stuNum + "'")("Checkout"),
-      button.cls("btn").ctype("button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel")
     ),table.cls("table", "table-striped", "table-condensed")(
     thead(
       tr(
@@ -129,7 +127,11 @@ object checkoutBulkHelper {
           }
         )
     ),
-  addCopyForm.render()
+  div.cls("row")(addCopyForm.render()),
+  div.cls("span4 well")(
+    button.cls("btn btn-primary").ctype("button").onclick("window.location.href='/books/checkoutBulkSubmit/" + stuNum + "'")("Checkout"),
+    button.cls("btn").ctype("button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel"))
+
 )
   }
 }
