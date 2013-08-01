@@ -234,7 +234,7 @@ object copyStatusByTitleForm {
 }
 
 object currentCheckouts {
-  def apply(header: String, rows: List[(String, String)])(implicit req: VisitRequest[_], config: Config) = {
+  def apply(header: String, rows: List[(String, String, String)])(implicit req: VisitRequest[_], config: Config) = {
     config.main("Current Checkouts")(
       div.cls("page-header")(
         h2(header)
@@ -249,7 +249,8 @@ object currentCheckouts {
     rows.map { row =>
     tr(
       td(row._1),
-      td(row._2)
+      td(row._2),
+      td(a.cls("btn btn-primary").href("/books/reportCopyLost/" + row._3)("Mark Lost"))
     )
 }
             )

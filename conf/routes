@@ -99,6 +99,7 @@ GET     /books/displaySectionPdf                @controllers.Books.displaySectio
 GET     /books/printSectionsByDept              @controllers.Books.printSectionsByDept()
 POST    /books/printSectionsByDept              @controllers.Books.printSectionsByDeptP()
 GET     /books/printAllSections                 @controllers.Books.printAllSections()
+GET     /books/reportCopyLost/:barcode          @controllers.Books.reportCopyLost(barcode: String)
 
 #Lockers
 GET     /lockers/myLocker                       @controllers.Lockers.getMyLocker()

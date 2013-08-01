@@ -486,11 +486,13 @@ class Books @Inject()(implicit config: Config) extends Controller {
 
   def checkoutsForStudent(student: Student)(implicit req: VisitRequest[_]) = {
     DataStore.execute { pm => 
+      req.visit.redirectUrl = routes.Books.currentCheckouts(student.stateId)
+      pm.makePersistent(req.visit)
       val checkoutCand = QCheckout.candidate
       val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(student))).executeList()
       val studentName = student.displayName
       val header = "Student: %s".format(studentName)
-      val rows: List[(String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse("")) })
+      val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""), co.copy.getBarcode) })
       Ok(templates.books.currentCheckouts(header, rows))
     }
   }
@@ -939,7 +941,37 @@ class Books @Inject()(implicit config: Config) extends Controller {
   *
   * Reports a copy lost
   */
-  def reportCopyLost = TODO
+  def reportCopyLost(barcode: String) = VisitAction { implicit req =>
+    DataStore.execute { pm =>
+      if (req.visit.redirectUrl == None) {
+        req.visit.redirectUrl = routes.App.index
+        pm.makePersistent(req.visit)
+      }
+      val redirectLoc: play.api.mvc.Call = req.visit.redirectUrl.get
+      Copy.getByBarcode(barcode) match {
+        case Some(c) => {
+          if (!c.isCheckedOut) {
+            c.isLost = true
+            pm.makePersistent(c)
+            Redirect(redirectLoc).flashing("message" -> "Copy successfully marked lost")
+          } else {
+            val cand = QCheckout.candidate
+            pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.copy.eq(c))).executeOption() match {
+              case None => Redirect(redirectLoc).flashing("error" -> "Error: please contact your system administrator")
+              case Some(ch) => {
+                ch.endDate = Some(LocalDate.now)
+                pm.makePersistent(ch)
+                c.isLost = true
+                pm.makePersistent(c)
+                Redirect(redirectLoc).flashing("message" -> "Copy successfully marked lost")
+              }
+            }
+          }
+        }
+        case None => Redirect(redirectLoc).flashing("error" -> "Copy not found")
+      }
+    }
+  }
 
 }
 
