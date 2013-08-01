@@ -287,7 +287,7 @@ object ManualData {
   }
 
   def buildNetIdMap(): Map[String, String] = {
-    val wb = WorkbookFactory.create(new XZInputStream(getClass.getResourceAsStream("/manual-data-old/StudentNetworkSecurityInfo.xls.xz")))
+    val wb = WorkbookFactory.create(new XZInputStream(getClass.getResourceAsStream("/manual-data/StudentNetworkSecurityInfo.xls.xz")))
     val sheet: Sheet = wb.getSheetAt(0)
     sheet.removeRow(sheet.getRow(0))
     val pairs = (sheet map ((row: Row) => {
