@@ -39,7 +39,7 @@ package object templates {
         link.rel("icon").ctype("image/png").href(controllers.routes.Assets.at("images/favicon.ico")),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("jquery-ui.css"))),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap.css"))),
-        link.rel("stylesheet").href(controllers.routes.Assets.at("stylesheets/tester.css")),
+        link.rel("stylesheet").href(controllers.routes.Assets.at("stylesheets/ourstyle.css")),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("datepicker.css"))),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.css"))),
         <!-- HTML5 shim, for IE6-8 support of HTML5 elements. -->,

@@ -138,7 +138,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
       <table class="table">
-        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
+        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render() }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
             val instructions: String = instrPlusFields._1
@@ -152,7 +152,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
               fields.zip(1 to fields.length).flatMap {
                 case (f, num) => {
                   val name = f.name
-                  val errorList = bound.fieldErrors.get(name).map(_.render)
+                  val errorList = bound.fieldErrors.get(name).map(_.render())
                   <tr>
                     <td><label>{ "%d. ".format(num) }</label></td>
                     <td>{ f.asWidget(bound) }</td>
