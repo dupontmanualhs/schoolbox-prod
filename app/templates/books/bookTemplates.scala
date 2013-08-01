@@ -11,11 +11,21 @@ import models.books.Title
 import models.books.Copy
 import play.api.Play
 import com.google.inject.Inject
+import java.io.File
 
 package object books {
   private[books] class ConfigProvider @Inject()(val config: Config)
   private[books] val injector = Play.current.global.asInstanceOf[ProvidesInjector].provideInjector()
   private[books] implicit lazy val config: Config = injector.getInstance(classOf[ConfigProvider]).config
+
+  def displayImage(isbn: String) {
+    val f = new File("/public/" + isbn)
+    if (f.exists) {
+      img.src("/public/" + isbn)
+    } else {
+      p() //TODO - this needs to be an empty STag
+    }
+  }
 
   object addPurchaseGroup {
     def apply(addPurchaseGroupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
