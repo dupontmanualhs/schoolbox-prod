@@ -1184,7 +1184,7 @@ object Books {
   }
 
   class ViewPrintQueueForm(l: List[LabelQueueSet]) extends Form {
-    val cboxes = new CheckboxFieldMultiple("Labels to Print", l.map(s => (s.toString, s)))
+    val cboxes = new CheckboxField("Labels to Print", l.map(s => (s.toString, s)))
 
     val fields = List(cboxes)
   }
