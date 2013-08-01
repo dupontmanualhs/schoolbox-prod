@@ -1250,7 +1250,7 @@ object Books {
     for (section <- sections) {
       val students = section.students.sortWith((s1, s2) => s1.formalName < s2.formalName)
       val sec = section.labelName
-      val line3 = section.teachers.mkString(", ") + " - " + section.room.name
+      val line3 = section.teachers.map(t => t.formalName).mkString(", ") + " - " + section.room.name
       document.newPage()
       n = 0
       labelTopLeftX = topLeftX
@@ -1258,7 +1258,7 @@ object Books {
 
       for (student <- students) {
         // Do this for each section but change the position so that it is a new label each time
-        val id = if (student.stateId != null && student.stateId != "") student.stateId else "0000000000"
+        val id = if (student.stateId != null && student.stateId != "") student.stateId else if (student.studentNumber != null && student.studentNumber != "") student.studentNumber else  "0000000000"
         val b = makeBarcode(id)
         val studentName = student.formalName
 
