@@ -18,7 +18,7 @@ package object books {
   private[books] val injector = Play.current.global.asInstanceOf[ProvidesInjector].provideInjector()
   private[books] implicit lazy val config: Config = injector.getInstance(classOf[ConfigProvider]).config
 
-  def displayImage(isbn: String) {
+  def displayImage(isbn: String): scalatags.STag = {
     val f = new File("/public/" + isbn)
     if (f.exists) {
       img.src("/public/" + isbn)
@@ -191,11 +191,12 @@ object copyHistory {
 }
 
 object copyInfo {
-  def apply(header: String, rows: List[(String, String)])(implicit req: VisitRequest[_], config: Config) = {
+  def apply(header: String, rows: List[(String, String)], isbn: String)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Copy Info")(
       div.cls("page-header")(
         h2(header)
-      ),table.cls("table", "table-striped", "table-condensed")(
+      ), displayImage(isbn),
+    table.cls("table", "table-striped", "table-condensed")(
       tbody(
         rows.map { row =>
         tr(

@@ -608,7 +608,7 @@ class Books @Inject()(implicit config: Config) extends Controller {
     ("Copy Number:", num.toString), ("Checked Out:", checkedOut.toString))
     val header = "Copy info for " + cpy.getBarcode
 
-    Ok(templates.books.copyInfo(header, rows))
+    Ok(templates.books.copyInfo(header, rows, isbn))
   }
 
   /**
