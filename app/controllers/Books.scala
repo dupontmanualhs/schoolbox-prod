@@ -1385,9 +1385,11 @@ object Books {
     for (barcode <- barcodes) {
       // Do this for each barcode but change the position so that it is a new label each time
 
+      cb.beginText()
       cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._2), (labelTopLeftX + 6), labelTopLeftY, 0)
       cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._3), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
       cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._4), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+      cb.endText()
       val b = barcode._1
       b.setX(0.7f)
       val img = b.createImageWithBarcode(cb, null, null)
