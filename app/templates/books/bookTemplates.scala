@@ -19,9 +19,9 @@ package object books {
   private[books] implicit lazy val config: Config = injector.getInstance(classOf[ConfigProvider]).config
 
   def displayImage(isbn: String): scalatags.STag = {
-    val f = new File("/public/" + isbn)
+    val f = new File("/public/images/books/" + isbn)
     if (f.exists) {
-      img.src("/public/" + isbn)
+      img.src("/public/images/books/" + isbn)
     } else {
       p() //TODO - this needs to be an empty STag
     }
