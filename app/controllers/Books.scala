@@ -986,7 +986,7 @@ object Books {
     override def asValue(strs: Seq[String]): Either[ValidationError, String] = {
       strs match {
         case Seq(s) => Title.asValidIsbn13(s) match {
-          case Some(t) => Right(t)
+          case Some(t) => Right(t.filterNot(c => c == '-'))
           case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
         }
         case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
@@ -998,7 +998,7 @@ object Books {
     def asValue(strs: Seq[String]): Either[ValidationError, Title] = {
       strs match {
         case Seq(s) => {
-          Title.getByIsbn(s) match {
+          Title.getByIsbn(s.filterNot(c => c == '-')) match {
             case Some(t) => Right(t)
             case _ => Left(ValidationError("Title not found"))
           }
