@@ -1,5 +1,6 @@
 package models
 
+import play.api.Logger
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import xml.{ Node, NodeSeq, Elem, XML }
@@ -28,28 +29,19 @@ import org.joda.time.format.DateTimeFormatter
 import config.users.UsesDataStore
 
 object ManualData extends UsesDataStore {
+  
   val netIdMap: Map[String, String] = buildNetIdMap()
 
   def load(debug: Boolean = false) {
-    val classes = dataStore.persistentClasses.asJava
-    val props = new Properties()
-    dataStore.storeManager.deleteSchema(classes, props)
-    dataStore.storeManager.createSchema(classes, props)    
     loadManualData(debug)
   }
 
-  def loadL(debug: Boolean = false) {
-    val dbFile = new File("data.h2.db")
-    dbFile.delete()
-    loadLockers(debug)
-  }
-
   def loadManualData(debug: Boolean = false) {
-    if (!debug) println("Creating Year and Term Data...")
-    createYearsAndTerms(debug)
-    if (!debug) println("Creating Student Data...")
+    if (!debug) println("Importing student data...")
     loadStudents(debug)
-    if (!debug) println("Creating Teacher Data...")
+    if (!debug) println("Importing parent data...")
+    loadParents(debug)
+    if (!debug) println("Importing teacher data...")
     loadTeachers(debug)
     if (!debug) println("Creating Course Data...")
     loadCourses(debug)
@@ -57,32 +49,11 @@ object ManualData extends UsesDataStore {
     loadSections(debug)
     if (!debug) println("Creating Enrollment Data...")
     loadEnrollments(debug)
-    //if (!debug) println("Creating Book Data...")
-    //loadBookData(debug)
-    //if (!debug) println("Creating Locker Data...")
-    //loadLockers(debug)
-  }
-
-  def createYearsAndTerms(debug: Boolean) {
-    dataStore.withTransaction { implicit pm =>
-      val acadYear = new AcademicYear("2013-14")
-      pm.makePersistent(acadYear)
-      val fall2013 = new Term("Fall 2013", acadYear, "f13", new LocalDate(2013, 8, 20), new LocalDate(2013, 12, 24))
-      pm.makePersistent(fall2013)
-      val spring2014 = new Term("Spring 2014", acadYear, "s14", new LocalDate(2014, 1, 6), new LocalDate(2014, 6, 1))
-      pm.makePersistent(spring2014)
-      val periods: List[Period] = List(
-        new Period("Red 1", 1), new Period("Red 2", 2), new Period("Red 3", 3), new Period("Red 4", 4),
-        new Period("Red Activity", 5), new Period("Red Advisory", 6),
-        new Period("White 1", 7), new Period("White 2", 8), new Period("White 3", 9), new Period("White 4", 10),
-        new Period("White Activity", 11), new Period("White Advisory", 12))
-      pm.makePersistentAll(periods)
-      if (debug) println("Created AcademicYear, Terms, and Periods")
-    }
   }
 
   def loadStudents(debug: Boolean) {
     dataStore.withTransaction { implicit pm =>
+      Logger.debug("opening Students.xml.xz file")
       val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Students.xml.xz")))
       val students = doc \\ "student"
       students foreach ((student: Node) => {
@@ -90,21 +61,26 @@ object ManualData extends UsesDataStore {
         val studentNumber = asIdNumber((student \ "@student.studentNumber").text)
         val stateId = asIdNumber((student \ "@student.stateID").text)
         val first = (student \ "@student.firstName").text
-        val middle = (student \ "@student.middleName").text
+        val middle = asOptionString((student \ "@student.middleName").text)
         val last = (student \ "@student.lastName").text
         val teamName = (student \ "@student.teamName").text
-        val grade = (student \ "@student.grade").text.toInt
-        val gender = if ((student \ "@student.gender").text == "F") Gender.Female else Gender.Male
+        val grade = asInt((student \ "@student.grade").text)
+        val gender = asGender((student \ "@student.gender").text)
         val username = netIdMap.getOrElse(studentNumber, studentNumber)
-        if (debug) {
-          println()
-          println("%s, %s %s".format(last, first, middle))
-          println("#: %s, id: %s, grade: %d".format(studentNumber, stateId, grade))
-          println("name: %s, magnet: %s, gender: %s".format(username, teamName, gender))
+        Logger.debug("updating data for $studentNumber, $stateId, $first, $middle, $last, $teamName, $grade, $gender")
+        val maybeStudent = Student.getByStateId(stateId).getOrElse(Student.getByStudentNumber(studentNumber))
+        maybeStudent match {
+          case None => {
+            Logger.debug("new student, creating")
+            val user = new User(username, first, Some(middle), last, None, gender, null, "temp123")
+            pm.makePersistent(user)
+          }
+          case Some(oldStudent) => {
+            Logger.debug("old student, checking for updates")
+            
+          }
         }
         // create User
-        val user = new User(username, first, Some(middle), last, None, gender, null, "temp123")
-        pm.makePersistent(user)
         if (debug) println("user saved")
         // create Student
         val dbStudent = new Student(user, stateId, studentNumber, grade, teamName)
