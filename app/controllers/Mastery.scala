@@ -47,7 +47,7 @@ class BlanksField(question: Question) extends Field[String](question.id.toString
 
 class AnswerField(question: Question) extends TextField(question.id.toString) {
   val uuid = java.util.UUID.randomUUID()
-  override def widget = new MathWidget(question.text, uuid = uuid, af = this)
+  override def widget = new MathWidget(question.text, uuid = uuid)
 
   override def asValue(s: Seq[String]): Either[ValidationError, String] = s match {
     case Seq(ans) => Right(ans)
@@ -55,12 +55,12 @@ class AnswerField(question: Question) extends TextField(question.id.toString) {
   }
 }
 
-class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID, af: AnswerField) extends TextInput(false, attrs, "text") {
+class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) extends TextInput(false, attrs, "text") {
   val Name: String = uuid.toString()
   override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     <span>
-      { text }{ super.render(name, value, attrList.append(new UnprefixedAttribute("onkeyup", "UpdateMath(this.value)", Null))) }
-      <div id="MathOutput">
+      { text }{ super.render(name, value, attrList.append(new UnprefixedAttribute("onkeyup", "UpdateMath(this)", Null))) }
+      <div id={"MathOutput-" + name} class="carfen">
         You typed: ${{}}$
       </div>
     </span>
@@ -76,16 +76,27 @@ class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID, af:
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
     </script>
     <script>
-      (function () {{
-    var QUEUE = MathJax.Hub.queue; 
-    var math = null;                
     
-    QUEUE.Push(function () {{
-      math = MathJax.Hub.getAllJax('MathOutput')[0];
+  (function () {{
+    var QUEUE = MathJax.Hub.queue; 
+    var math = [];
+	var idTable = [];
+	$(document).ready(function() {{
+        $('div.carfen').each(function(index) {{
+		  var is = this.id;
+		  var theId = is.substring(11).valueOf();
+		  idTable[index] = theId;
+		  QUEUE.Push(function () {{
+	
+		  	math[index] = MathJax.Hub.getAllJax('MathOutput-' + theId)[0];
     }});
-
-    window.UpdateMath = function (TeX) {{
-      QUEUE.Push(['Text',math,'\\displaystyle{{'+TeX+'}}']);
+	}})
+	}});
+	console.log(idTable);
+    window.UpdateMath = function (e) {{
+		  TeX = e.value;
+		  var index = idTable.indexOf(e.name.valueOf());
+		  QUEUE.Push(['Text',math[index],'\\displaystyle{{'+TeX+'}}']);
     }}
   }})();
     </script>
@@ -141,7 +152,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
   override def render(bound: Binding, overrideSubmit: Option[FormCall] = None, legend: Option[String] = None): Elem = {
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
-      <table class="table">
+      <table class="table" id="mastery">
         { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
