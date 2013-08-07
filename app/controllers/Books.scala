@@ -1098,6 +1098,8 @@ object Books {
   object CheckoutBulkHelperForm extends Form {
     val copy = new CopyField("Barcode")
 
+    override def submitText = "Add"
+
     val fields = List(copy)
   }
 
