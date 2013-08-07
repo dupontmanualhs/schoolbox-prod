@@ -607,7 +607,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
     ("Copy Number:", num.toString), ("Checked Out:", checkedOut.toString))
     val header = "Copy info for " + cpy.getBarcode
 
-    Ok(templates.books.copyInfo(header, rows))
+    Ok(templates.books.copyInfo(header, rows, isbn))
   }
 
   /**
@@ -985,7 +985,7 @@ object Books extends UsesDataStore {
     override def asValue(strs: Seq[String]): Either[ValidationError, String] = {
       strs match {
         case Seq(s) => Title.asValidIsbn13(s) match {
-          case Some(t) => Right(t)
+          case Some(t) => Right(t.filterNot(c => c == '-'))
           case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
         }
         case _ => Left(ValidationError("This value must be a valid 10 or 13-digit ISBN"))
@@ -997,7 +997,7 @@ object Books extends UsesDataStore {
     def asValue(strs: Seq[String]): Either[ValidationError, Title] = {
       strs match {
         case Seq(s) => {
-          Title.getByIsbn(s) match {
+          Title.getByIsbn(s.filterNot(c => c == '-')) match {
             case Some(t) => Right(t)
             case _ => Left(ValidationError("Title not found"))
           }
@@ -1384,9 +1384,11 @@ object Books extends UsesDataStore {
     for (barcode <- barcodes) {
       // Do this for each barcode but change the position so that it is a new label each time
 
+      cb.beginText()
       cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._2), (labelTopLeftX + 6), labelTopLeftY, 0)
       cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._3), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
       cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(barcode._4), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+      cb.endText()
       val b = barcode._1
       b.setX(0.7f)
       val img = b.createImageWithBarcode(cb, null, null)
