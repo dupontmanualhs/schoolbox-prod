@@ -1097,6 +1097,8 @@ object Books extends UsesDataStore {
   object CheckoutBulkHelperForm extends Form {
     val copy = new CopyField("Barcode")
 
+    override def submitText = "Add"
+
     val fields = List(copy)
   }
 
@@ -1312,9 +1314,11 @@ object Books extends UsesDataStore {
         val studentName = student.formalName
 
         cb.setFontAndSize(font, 10)
+        cb.beginText()
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(studentName), (labelTopLeftX + 6), labelTopLeftY, 0)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(sec), (labelTopLeftX + 6), (labelTopLeftY - 8), 0)
         cb.showTextAligned(PdfContentByte.ALIGN_LEFT, cropText(line3), (labelTopLeftX + 6), (labelTopLeftY - 16), 0)
+        cb.endText()
         b.setX(1.0f)
         val img = b.createImageWithBarcode(cb, null, null)
         val barcodeOffset = (labelWidth - img.getPlainWidth()) / 2

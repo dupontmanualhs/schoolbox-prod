@@ -20,9 +20,10 @@ package object books {
 
   def displayImage(isbn: String): scalatags.STag = {
     val path = "public/images/books/" + isbn + ".jpg"
+    val url = "/assets/images/books/" + isbn + ".jpg"
     val f = new File(path)
     if (f.exists) {
-      img.src(path)
+      img.src(url).h("100px").w("100px")
     } else {
       p() //TODO - this needs to be an empty STag
     }
@@ -104,8 +105,12 @@ object checkoutBulkHelper {
   def apply(addCopyForm: Binding, stu: String, bks: Vector[((String, String), Int)], stuNum: String)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Checkout Bulk")(
       div.cls("page-header")(
-        h2(stu)
-      ),div(
+        h2(stu,
+          div.cls("span3 pull-right")(
+            div.cls("btn-group").attr(("style", "margin-left: auto; margin-right: auto; width: 180px"))(
+              button.cls("btn btn-primary").ctype("button").onclick("window.location.href='/books/checkoutBulkSubmit/" + stuNum + "'")("Checkout"),
+              button.cls("btn").ctype("button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel"))))
+        ),div(
     ),table.cls("table", "table-striped", "table-condensed")(
     thead(
       tr(
@@ -128,11 +133,7 @@ object checkoutBulkHelper {
           }
         )
     ),
-  div.cls("row")(addCopyForm.render()),
-  div.cls("span4 well")(
-    button.cls("btn btn-primary").ctype("button").onclick("window.location.href='/books/checkoutBulkSubmit/" + stuNum + "'")("Checkout"),
-    button.cls("btn").ctype("button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel"))
-
+  div.cls("row")(addCopyForm.render())
 )
   }
 }
@@ -194,9 +195,10 @@ object copyHistory {
 object copyInfo {
   def apply(header: String, rows: List[(String, String)], isbn: String)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Copy Info")(
-      div.cls("page-header")(
-        h2(header)
-      ), displayImage(isbn),
+      div.cls("page-header row")(
+        div.cls("span2").attr(("style", "margin-right: 0px; padding-right: 0px"))(displayImage(isbn)),
+        h2.cls().attr(("style", "margin-top: 65px; margin-left: 0px; padding-left: 0px"))(header)
+      ),
     table.cls("table", "table-striped", "table-condensed")(
       tbody(
         rows.map { row =>
