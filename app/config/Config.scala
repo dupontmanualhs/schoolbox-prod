@@ -1,6 +1,7 @@
 package config
 
 import scala.xml.NodeSeq
+import com.google.inject.Singleton
 import com.tzavellas.sse.guice.ScalaModule
 import config.users.MainTemplate
 import templates.Main

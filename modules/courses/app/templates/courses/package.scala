@@ -6,7 +6,7 @@ import play.api.templates.Html
 import controllers.users.{ Theme, VisitRequest, AuthenticatedRequest }
 import config.users.Config
 import models.courses.{ Course, Section, Student, StudentEnrollment, Teacher, Term }
-import _root_.forms.{ Call, Method }
+import org.dupontmanual.forms.{ Call, Method }
 import Call._
 import org.joda.time.format.DateTimeFormat
 import com.google.inject.Inject

@@ -1,6 +1,6 @@
 package models
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 import xml.{ Node, NodeSeq, Elem, XML }
 import org.joda.time.{ LocalDate, LocalDateTime }
@@ -11,6 +11,7 @@ import models.courses._
 import models.lockers._
 import util.Helpers
 import java.io.File
+import java.util.Properties
 import models.assignments.AssignmentData
 import org.tukaani.xz.XZInputStream
 import java.text.SimpleDateFormat
@@ -21,17 +22,19 @@ import models.books.PurchaseGroup
 import models.books.Copy
 import models.books.Checkout
 import models.blogs.Blog
-import scalajdo.DataStore
 import models.users.Gender
 import models.users.User
 import org.joda.time.format.DateTimeFormatter
+import config.users.UsesDataStore
 
-object ManualData {
+object ManualData extends UsesDataStore {
   val netIdMap: Map[String, String] = buildNetIdMap()
 
   def load(debug: Boolean = false) {
-    val dbFile = new File("data.h2.db")
-    dbFile.delete()
+    val classes = dataStore.persistentClasses.asJava
+    val props = new Properties()
+    dataStore.storeManager.deleteSchema(classes, props)
+    dataStore.storeManager.createSchema(classes, props)    
     loadManualData(debug)
   }
 
@@ -54,20 +57,20 @@ object ManualData {
     loadSections(debug)
     if (!debug) println("Creating Enrollment Data...")
     loadEnrollments(debug)
-    if (!debug) println("Creating Book Data...")
-    loadBookData(debug)
-    if (!debug) println("Creating Locker Data...")
-    loadLockers(debug)
+    //if (!debug) println("Creating Book Data...")
+    //loadBookData(debug)
+    //if (!debug) println("Creating Locker Data...")
+    //loadLockers(debug)
   }
 
   def createYearsAndTerms(debug: Boolean) {
-    DataStore.withTransaction { implicit pm =>
-      val acadYear = new AcademicYear("2011-12")
+    dataStore.withTransaction { implicit pm =>
+      val acadYear = new AcademicYear("2013-14")
       pm.makePersistent(acadYear)
-      val fall2011 = new Term("Fall 2011", acadYear, "f11", new LocalDate(2011, 8, 17), new LocalDate(2012, 12, 16))
-      pm.makePersistent(fall2011)
-      val spring2012 = new Term("Spring 2012", acadYear, "s12", new LocalDate(2012, 1, 3), new LocalDate(2012, 5, 25))
-      pm.makePersistent(spring2012)
+      val fall2013 = new Term("Fall 2013", acadYear, "f13", new LocalDate(2013, 8, 20), new LocalDate(2013, 12, 24))
+      pm.makePersistent(fall2013)
+      val spring2014 = new Term("Spring 2014", acadYear, "s14", new LocalDate(2014, 1, 6), new LocalDate(2014, 6, 1))
+      pm.makePersistent(spring2014)
       val periods: List[Period] = List(
         new Period("Red 1", 1), new Period("Red 2", 2), new Period("Red 3", 3), new Period("Red 4", 4),
         new Period("Red Activity", 5), new Period("Red Advisory", 6),
@@ -79,8 +82,8 @@ object ManualData {
   }
 
   def loadStudents(debug: Boolean) {
-    DataStore.withTransaction { implicit pm =>
-      val doc = XML.load(getClass.getResourceAsStream("/manual-data/Students.xml"))
+    dataStore.withTransaction { implicit pm =>
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Students.xml.xz")))
       val students = doc \\ "student"
       students foreach ((student: Node) => {
         // grab data
@@ -108,16 +111,17 @@ object ManualData {
         pm.makePersistent(dbStudent)
         if (debug) println("student saved")
         // create Blog
-        val blog = new Blog(username + "'s Blog", dbStudent)
-        pm.makePersistent(blog)
-        if (debug) println("blog saved")
+        //val blog = new Blog(username + "'s Blog", dbStudent)
+        //pm.makePersistent(blog)
+        //if (debug) println("blog saved")
       })
     }
   }
 
   def loadTeachers(debug: Boolean) {
-    DataStore.withTransaction { implicit pm =>
-      val doc = XML.load(getClass.getResourceAsStream("/manual-data/Teachers.xml"))
+    val teacherUsernames = mutable.Set[String]()
+    dataStore.withTransaction { implicit pm =>
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Teachers.xml.xz")))
       val teachers = doc \\ "person"
       teachers foreach ((teacher: Node) => {
         val username = asIdNumber((teacher \ "@individual.personID").text) // TODO: get real login name
@@ -133,19 +137,24 @@ object ManualData {
           println("#: %s, id: %s".format(personId, stateId))
           println("name: %s, gender: %s".format(username, gender))
         }
-        val user = new User(username, first, Some(middle), last, None, gender, null, "temp123")
-        pm.makePersistent(user)
-        if (debug) println("user saved")
-        val dbTeacher = new Teacher(user, personId, stateId)
-        pm.makePersistent(dbTeacher)
-        if (debug) println("teacher saved")
+        if (!teacherUsernames.contains(username)) {
+          val user = new User(username, first, Some(middle), last, None, gender, null, "temp123")
+          pm.makePersistent(user)
+          if (debug) println("user saved")
+          val dbTeacher = new Teacher(user, personId, stateId)
+          pm.makePersistent(dbTeacher)
+          teacherUsernames += username
+          if (debug) println("teacher saved")
+        } else {
+          if (debug) println("teacher already in database")
+        }
       })
     }
   }
 
   def loadCourses(debug: Boolean) {
-    DataStore.withTransaction { implicit pm =>
-      val doc = XML.load(getClass.getResourceAsStream("/manual-data/Courses.xml"))
+    dataStore.withTransaction { implicit pm =>
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Courses.xml.xz")))
       val courses = doc \\ "curriculum"
       courses foreach ((course: Node) => {
         val name = (course \ "@courseInfo.courseName").text
@@ -159,11 +168,11 @@ object ManualData {
   }
 
   def loadSections(debug: Boolean) {
-    DataStore.withTransaction { implicit pm =>
-      val doc = XML.load(getClass.getResourceAsStream("/manual-data/Sections.xml"))
+    dataStore.withTransaction { implicit pm =>
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Sections.xml.xz")))
       val sections = doc \\ "curriculum"
-      val fall11 = Term.getBySlug("f11").get
-      val spring12 = Term.getBySlug("s12").get
+      val fall13 = Term.getBySlug("f13").get
+      val spring14 = Term.getBySlug("s14").get
       sections foreach ((section: Node) => {
         val sectionId = (section \ "@sectionInfo.sectionID").text
         if (debug) println("Working on section: %s".format(sectionId))
@@ -174,9 +183,10 @@ object ManualData {
         val termStart = (section \ "@sectionSchedule.termStart").text
         val termEnd = (section \ "@sectionSchedule.termEnd").text
         val terms: List[Term] = (termStart, termEnd) match {
-          case ("1", "3") => List(fall11)
-          case ("4", "6") => List(spring12)
-          case ("1", "6") => List(fall11, spring12)
+          case ("1", "3") => List(fall13)
+          case ("4", "6") => List(spring14)
+          case ("1", "6") => List(fall13, spring14)
+          case _ => Nil
         }
         val periodStart = (section \ "@sectionSchedule.periodStart").text
         val periodEnd = (section \ "@sectionSchedule.periodEnd").text
@@ -186,22 +196,24 @@ object ManualData {
           pm.query[Period].filter(QPeriod.candidate.name.eq(p)).executeOption().get
         })
         val teacherPersonId = (section \ "@sectionInfo.teacherPersonID").text
-        val teacher = pm.query[Teacher].filter(QTeacher.candidate.personId.eq(teacherPersonId)).executeOption().get
+        val teacher = pm.query[Teacher].filter(QTeacher.candidate.personId.eq(teacherPersonId)).executeOption()
         val dbSection = new Section(course, sectionId, terms.toSet[Term], periods.toSet[Period], room)
         pm.makePersistent(dbSection)
-        terms foreach ((term: Term) => {
-          val teacherAssignment = new TeacherAssignment(teacher, dbSection, null, null)
-          pm.makePersistent(teacherAssignment)
-        })
+        if (teacher.isDefined) {
+          //terms foreach ((term: Term) => { // this isn't necessary, is it?
+            val teacherAssignment = new TeacherAssignment(teacher.get, dbSection, None, None)
+            pm.makePersistent(teacherAssignment)
+          //})
+        }
       })
     }
   }
 
   def loadEnrollments(debug: Boolean) {
-    DataStore.withTransaction { implicit pm =>
+    dataStore.withTransaction { implicit pm =>
       var wellThen = false
       import scala.collection.JavaConversions.asScalaSet
-      val doc = XML.load(getClass.getResourceAsStream("/manual-data/Schedule.xml"))
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Schedule.xml.xz")))
       val enrollments = doc \\ "student"
       enrollments foreach ((enrollment: Node) => {
         var isOk = true
@@ -214,7 +226,7 @@ object ManualData {
             if (debug) println("Adding student #%s to section #%s".format(studentNumber, sectionId))
             val startDate = asLocalDate((enrollment \ "@roster.startDate").text)
             val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
-            asScalaSet[Term](section.terms) foreach ((term: Term) => {
+            section.terms.foreach((term: Term) => {
               val dbEnrollment = new StudentEnrollment(student, section, startDate, endDate)
               pm.makePersistent(dbEnrollment)
             })
@@ -230,8 +242,8 @@ object ManualData {
   }
 
   def loadLockers(debug: Boolean) {
-    DataStore.withTransaction { implicit pm =>
-      val doc = XML.load(getClass.getResourceAsStream("/manual-data/Lockers.xml"))
+    dataStore.withTransaction { implicit pm =>
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Lockers.xml.xz")))
       val lockers = doc \\ "student"
       lockers foreach ((locker: Node) => {
         val number = util.Helpers.toInt((locker \ "@lockerDetail.lockerNumber").text)
@@ -279,12 +291,12 @@ object ManualData {
   }
 
   def buildNetIdMap(): Map[String, String] = {
-    val wb = WorkbookFactory.create(getClass.getResourceAsStream("/manual-data/StudentNetworkSecurityInfo.xls"))
+    val wb = WorkbookFactory.create(new XZInputStream(getClass.getResourceAsStream("/manual-data/StudentNetworkSecurityInfo.xls.xz")))
     val sheet: Sheet = wb.getSheetAt(0)
     sheet.removeRow(sheet.getRow(0))
-    val pairs = (sheet map ((row: Row) => {
+    val pairs = (sheet.asScala.map { (row: Row) =>
       row.getCell(0).getNumericCellValue.toInt.toString -> row.getCell(6).getStringCellValue
-    })).toList
+    }).toList
     Map(pairs: _*)
   }
 
@@ -328,7 +340,7 @@ object ManualData {
   def loadTitles(titles: NodeSeq, debug: Boolean = false): mutable.Map[Long, Long] = {
     val df = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS")
     val titleIdMap = mutable.Map[Long, Long]()
-    DataStore.withTransaction { implicit pm =>
+    dataStore.withTransaction { implicit pm =>
       for (t <- (titles \ "title")) {
         val djId = (t \ "id").text.toLong
         val title = new Title((t \ "name").text, asOptionString((t \ "author").text), asOptionString((t \ "publisher").text), (t \ "isbn").text,
@@ -345,7 +357,7 @@ object ManualData {
   def loadPurchaseGroups(pgs: NodeSeq, titleIdMap: mutable.Map[Long, Long], debug: Boolean = false): mutable.Map[Long, Long] = {
     val df = DateTimeFormat.forPattern("yyyy-MM-dd")
     val pgIdMap = mutable.Map[Long, Long]()
-    DataStore.withTransaction { implicit pm =>
+    dataStore.withTransaction { implicit pm =>
       for (pg <- (pgs \ "purchaseGroup")) {
         val djId = (pg \ "id").text.toLong
         val title = Title.getById(titleIdMap((pg \ "titleId").text.toLong)).get
@@ -360,7 +372,7 @@ object ManualData {
 
   def loadCopies(copies: NodeSeq, pgIdMap: mutable.Map[Long, Long], debug: Boolean = false): mutable.Map[Long, Long] = {
     val copyIdMap = mutable.Map[Long, Long]()
-    DataStore.withTransaction { implicit pm =>
+    dataStore.withTransaction { implicit pm =>
       for (c <- (copies \ "copy")) {
         val djId = (c \ "id").text.toLong
         val pg = PurchaseGroup.getById(pgIdMap((c \ "purchaseGroupId").text.toLong)).get
@@ -376,7 +388,7 @@ object ManualData {
   def loadCheckouts(checkouts: NodeSeq, copyIdMap: mutable.Map[Long, Long], debug: Boolean = false) {
     val df = DateTimeFormat.forPattern("yyyy-MM-dd")
     // only loads items checked out to students in the db; older students aren't included
-    DataStore.withTransaction { implicit pm =>
+    dataStore.withTransaction { implicit pm =>
       for (co <- (checkouts \ "checkout")) {
         Student.getByStudentNumber((co \ "studentNumber").text) match {
           case None => // do nothing

@@ -9,13 +9,11 @@ import scala.xml.NodeSeq
 import scala.xml.NodeSeq.seqToNodeSeq
 import scala.xml.Null
 import scala.xml.transform.BasicTransformer
-import forms.Binding
-import forms.Form
-import forms.InvalidBinding
-import forms.ValidBinding
-import forms.fields.Field
-import forms.fields.TextField
-import forms.widgets.{ TextInput, Widget }
+import org.dupontmanual.forms._
+import org.dupontmanual.forms.validators.ValidationError
+import org.dupontmanual.forms.fields.Field
+import org.dupontmanual.forms.fields.TextField
+import org.dupontmanual.forms.widgets.{ TextInput, Widget }
 import javax.jdo.annotations.PersistenceCapable
 import models.mastery.QQuiz
 import models.mastery.Question
@@ -25,19 +23,17 @@ import models.mastery.QuizSection
 import play.api.mvc.Controller
 import play.api.mvc.PlainResult
 import views.html
-import forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
-import scalajdo.DataStore
 import models.users.Visit
 
 import config.Config
+import config.users.UsesDataStore
 import com.google.inject.{ Inject, Singleton }
 
 import controllers.users.VisitAction
 
 import util.Helpers.string2elem
-import forms.{ Call, FormCall, FormMethod }
 
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
@@ -122,7 +118,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
   val sectionInstructionList: List[String] =
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => sq._1.instructions)
 
-  val instructionsAndFields: List[(String, List[forms.fields.Field[_]])] = {
+  val instructionsAndFields: List[(String, List[Field[_]])] = {
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
       (sq._1.instructions, sq._2.map((q: Question) => {
         if (q.text.contains("___")) {
@@ -134,7 +130,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     })
   }
 
-  val fields: List[forms.fields.Field[_]] = {
+  val fields: List[Field[_]] = {
     instructionsAndFields.flatMap(_._2)
   }
 
@@ -142,11 +138,11 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
       <table class="table">
-        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
+        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render() }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
             val instructions: String = instrPlusFields._1
-            val fields: List[forms.fields.Field[_]] = instrPlusFields._2
+            val fields: List[Field[_]] = instrPlusFields._2
             //TODO: Make it so the strings in the list "sectionInstructionList" appear
             <tr>
               <td></td>
@@ -156,7 +152,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
               fields.zip(1 to fields.length).flatMap {
                 case (f, num) => {
                   val name = f.name
-                  val errorList = bound.fieldErrors.get(name).map(_.render)
+                  val errorList = bound.fieldErrors.get(name).map(_.render())
                   <tr>
                     <td><label>{ "%d. ".format(num) }</label></td>
                     <td>{ f.asWidget(bound) }</td>
@@ -176,10 +172,10 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 }
 
 @Singleton
-class Mastery @Inject()(implicit config: Config) extends Controller {
+class Mastery @Inject()(implicit config: Config) extends Controller with UsesDataStore {
 
   def menuOfTests() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val cand = QQuiz.candidate()
       val listOfMasteries = pm.query[Quiz].orderBy(cand.name.asc).executeList()
       val hasQuizzes = listOfMasteries.size != 0
@@ -242,7 +238,7 @@ class Mastery @Inject()(implicit config: Config) extends Controller {
   }
 
   def testDataBase() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val quizCand = QQuiz.candidate()
       val listOfMasteries = pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
       val listOfSections = pm.query[models.mastery.QuizSection].executeList()

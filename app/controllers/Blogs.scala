@@ -4,37 +4,24 @@ import play.api.mvc.{ Action, Controller }
 import com.google.inject.{ Inject, Singleton }
 import models.blogs._
 import play.api.data._
-import play.api.data.Forms._
 import models.users._
 import models.blogs._
 import play.api.mvc.Result
 import models.users.QRole
-import _root_.forms.fields.TextField
-import _root_.forms.{ Form, ValidBinding, InvalidBinding, Binding }
-import scalajdo.DataStore
+import org.dupontmanual.forms.fields.TextField
+import org.dupontmanual.forms.{ Form, ValidBinding, InvalidBinding, Binding }
+
 import models.users.Visit
 import controllers.users.{ Authenticated, VisitAction }
 import config.Config
+import config.users.UsesDataStore
 
 //TODO: Actually check permissions where applicable
 
 @Singleton
-class Blogs @Inject()(implicit config: Config) extends Controller {
+class Blogs @Inject()(implicit config: Config) extends Controller with UsesDataStore {
   
-  
-  val newPost = Form {
-    tuple(
-      "title" -> nonEmptyText,
-      "content" -> text)
-  }
-
-  val testEdit = Form {
-    "tinymce" -> text
-  }
-
-  def editor() = VisitAction { implicit req =>
-    Ok(views.html.blogs.editor(testEdit))
-  }
+  def editor() = TODO
 
   /** No matching route (Not sure where, or even if, this is used)
    * 
@@ -43,7 +30,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
   def listUserBlogs(roleOpt: Option[Role]) = VisitAction { implicit req =>
     roleOpt match {
       case None => NotFound("That role doesn't exist.")
-      case Some(role) => DataStore.execute { implicit pm =>
+      case Some(role) => dataStore.execute { implicit pm =>
         val cand = QBlog.candidate
         val blogs: List[Blog] = Blog.listUserBlogs(role)
         Ok(views.html.blogs.blogs(blogs, role))
@@ -64,7 +51,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
    *  Presents a page with blogs corresponding to a persepective with given id
    */
   def listBlogsByRoleId(id: Long) = VisitAction { implicit req =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       Role.getById(id) match {
         case Some(role) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(role), role))
         case None => NotFound("That role doesn't exist!")
@@ -75,7 +62,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
   object CreatePostForm extends Form {
     val title = new TextField("title")
     val content = new TextField("content") {
-      override def widget = new _root_.forms.widgets.Textarea(true)
+      override def widget = new org.dupontmanual.forms.widgets.Textarea(true)
     }
 
     def fields = List(title, content)
@@ -125,18 +112,14 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
    *
    *   @param blog the blog to show the control panel for
    */
-  def showControlPanel(blog: Blog) = VisitAction { implicit req =>
-    Ok(templates.Stub())
-  } 
+  def showControlPanel(blog: Blog) = TODO
 
   /**    !!!!!!!!!!!!!!!! UNIMPLEMENTED !!!!!!!!!!!!!!!!!!!
    * Show a post. Check to see if the currently logged-in user is allowed to see the post
    *
    *   @param post the post to be shown
    */
-  def showPost(post: Post) = VisitAction { implicit req =>
-    Ok(templates.Stub())
-  }
+  def showPost(post: Post) = TODO
 
   /** Regex: /blog/:id
    *  
@@ -151,12 +134,6 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
   }
 
   // Tester method?
-  def testSubmit() = VisitAction { implicit req =>
-    testEdit.bindFromRequest.fold(
-      formWithErrors => BadRequest(views.html.blogs.editor(formWithErrors)),
-      content => {
-        Ok(views.html.blogs.feedback(content))
-      })
-  }
+  def testSubmit() = TODO
 }
 

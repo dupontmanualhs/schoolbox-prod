@@ -5,7 +5,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import javax.jdo.JDOHelper
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
 class Term {
@@ -48,7 +48,7 @@ class Term {
   }
 }
 
-object Term {
+object Term extends UsesDataStore {
   // TODO: the "current" term should be based on the date, but each role
   // might have a current term, reflecting the term that s/he is currently
   // looking at
@@ -57,10 +57,10 @@ object Term {
   def current(): Term = _current match {
     case Some(term) => term
     case None => {
-      val pm = DataStore.pm
+      val pm = dataStore.pm
       val cand = QTerm.candidate
       // TODO: this only works if there's exactly one Term in the db
-      val term = pm.query[Term].executeList()(0)
+      val term = pm.query[Term].executeList().last
       _current = Some(pm.detachCopy(term))
       _current.get
     }
@@ -68,7 +68,7 @@ object Term {
 
   def getBySlug(slug: String): Option[Term] = {
     val cand = QTerm.candidate
-    DataStore.pm.query[Term].filter(cand.slug.eq(slug)).executeOption()
+    dataStore.pm.query[Term].filter(cand.slug.eq(slug)).executeOption()
   }
 }
 

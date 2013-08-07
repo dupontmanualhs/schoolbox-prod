@@ -17,15 +17,14 @@
 		</table>
 		<h3>Scheduled conferences for this session</h3>
 		<table>
-	  		<thead><th>Teacher</th><th>Time</th><th>Email</th><th>Phone</th><th>Alternate Phone</th><th>Comments</th></thead>
+	  		<thead><th>Teacher</th><th>Time</th><th>Phone</th><th>Alternate Phone</th><th>Comments</th></thead>
 		  	@for(slot <- slots)	{
 		  		<tr>
 		  			<td>@slot.teacher.user.shortName</td>
 		  			<td>@toAmericanString(slot.startTime) - @toAmericanString(slot.endTime)</td>
-		  			<td>@slot.email</td>
-		  			<td>@slot.phone</td>
-		  			@if(slot.alternatePhone != None)  { <td>@slot.alternatePhone.get</td> }
-		  			@if(slot.comment != None)  { <td>@slot.comment.get</td> }
+		  			<td>@slot.phone.getOrElse("")</td>
+		  			<td>@slot.alternatePhone.getOrElse("")</td>
+		  			<td>@slot.comment.getOrElse("")</td>
 		  		</tr>
 	  		}
 	  	</table>

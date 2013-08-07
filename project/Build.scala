@@ -7,33 +7,47 @@ import java.io.File
 object ApplicationBuild extends Build {
   val appName = "play-eschool"
   val appVersion = "1.0"
+  
+  val commonDependencies = Seq(
+      "org.apache.directory.studio" % "org.apache.commons.codec" % "1.8",
+      "com.google.inject" % "guice" % "3.0",
+      "com.tzavellas" % "sse-guice" % "0.7.1",
+      "com.scalatags" %% "scalatags" % "0.1.4",
+      "org.dupontmanual" %% "dm-forms" % "0.1-SNAPSHOT",
+      "org.dupontmanual" %% "scalajdo" % "0.1-SNAPSHOT",
+      "org.scalatest" %% "scalatest" % "2.0.M5b",
+      "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
+  )
 
-  val scalaJdo = RootProject(uri("git://github.com/toddobryan/scalajdo.git"))
-
-  val forms = play.Project("forms", appVersion, path = file("modules/forms")).settings(
+/*  val forms = play.Project("forms", appVersion, path = file("modules/forms")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
     libraryDependencies ++= Seq(
-      "com.google.inject" % "guice" % "3.0",
-      "com.tzavellas" % "sse-guice" % "0.7.1",
       "org.webjars" % "webjars-play_2.10" % "2.1.0-2",
       "javax.mail" % "mail" % "1.4.7",
       "com.scalatags" % "scalatags_2.10" % "0.1.2",
       "org.scalatest" % "scalatest_2.10" % "2.0.M5b",
       "org.webjars" % "jquery" % "2.0.0",
       "org.webjars" % "bootstrap" % "2.3.2",
-      "org.webjars" % "jquery-ui" % "1.10.2-1"))
-
+      "org.webjars" % "jquery-ui" % "1.10.2-1",
+      "org.webjars" % "bootstrap-datepicker" % "1.0.1",
+      "org.webjars" % "bootstrap-timepicker" % "0.2.3"))
+*/
+  
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo)
+    scalacOptions ++= Seq("-deprecation", "-feature"),
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",  
+    libraryDependencies ++= commonDependencies)
       
   val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature")).dependsOn(forms, scalaJdo, users)
+    scalacOptions ++= Seq("-deprecation", "-feature"),
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"  
+  ).dependsOn(users)
 
   val jsDependencies = Seq(
     "org.webjars" % "tinymce-jquery" % "3.4.9",
@@ -45,10 +59,6 @@ object ApplicationBuild extends Build {
     "org.joda" % "joda-convert" % "1.3.1",
     "org.apache.poi" % "poi" % "3.9",
     "org.apache.poi" % "poi-ooxml" % "3.9",
-    "org.datanucleus" % "datanucleus-core" % "3.2.4",
-    "org.datanucleus" % "datanucleus-api-jdo" % "3.2.3",
-    "org.datanucleus" % "datanucleus-jdo-query" % "3.0.2",
-    "org.datanucleus" % "datanucleus-rdbms" % "3.2.3",
     "com.h2database" % "h2" % "1.3.172",
     "javax.jdo" % "jdo-api" % "3.0.1",
     "log4j" % "log4j" % "1.2.17",
@@ -59,13 +69,19 @@ object ApplicationBuild extends Build {
     "org.seleniumhq.selenium" % "selenium-java" % "2.33.0" % "test") ++ jsDependencies
 
   System.setProperty("log4j.configuration", "file:conf/log4j.properties")
+  
+  def customLessEntryPoints(base: File): PathFinder = (base / "app" / "assets" / "stylesheets" * "*.less")
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    ((testOptions in (ThisBuild, Test) := Nil) +:
-      (scalaVersion := "2.10.2") +:
-      (javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar")) +:
-      (scalacOptions ++= Seq("-deprecation", "-feature")) +:
-      Nucleus.settings): _*) dependsOn (scalaJdo, forms, users, courses)
+      (Seq(parallelExecution in Test := false,
+          testOptions in Test += Tests.Argument("-oDF"),
+          scalaVersion := "2.10.2",
+          javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
+          scalacOptions ++= Seq("-deprecation", "-feature"),
+          routesImport += "scala.language.reflectiveCalls",
+          resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+          lessEntryPoints <<= baseDirectory(customLessEntryPoints)) ++
+      Nucleus.settings): _*).dependsOn(users, courses)
 }
 
 object Nucleus {
@@ -94,8 +110,12 @@ object Nucleus {
     //enhance in Config <<= (fullClasspath in Config, runner, streams).map{(cp, run, s) =>
      */
     enhance <<= Seq(compile in Compile).dependOn,
-    enhance in Config <<= 
-      (fullClasspath in Compile, 
+    enhance in Config <<= (fullClasspath in Test, runner, streams) map { (cp, processRunner, str) =>
+      val options = Seq("-v", "-pu", "play-eschool")
+      val result = processRunner.run("org.datanucleus.enhancer.DataNucleusEnhancer", cp.files, options, str.log)
+      result.foreach(sys.error)
+    })
+    /*  (fullClasspath in Compile, 
        classDirectory in Compile, 
        classDirectory in (ApplicationBuild.users, Compile), 
        classDirectory in (ApplicationBuild.courses, Compile),
@@ -122,7 +142,7 @@ object Nucleus {
         
         val usersResult = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, userOptions, s.log)
         usersResult.foreach(sys.error) */   
-      })
+      }) */
       
   def enhanceClasses(runner: ScalaRun, classpath: Seq[File], classes: File, streams: TaskStreams) = {
     val options = Seq("-v") ++ findAllClassesRecursively(classes).map(_.getAbsolutePath)

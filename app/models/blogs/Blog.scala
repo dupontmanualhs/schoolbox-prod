@@ -4,11 +4,12 @@ import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.users.Role
-import scalajdo.DataStore
+
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 @Unique(members=Array("_owner", "_title"))
-class Blog {
+class Blog extends UsesDataStore {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -32,7 +33,7 @@ class Blog {
 
   def createPost(title: String, content: String) {
     val p = new Post(title, content, this)
-    DataStore.pm.makePersistent(p)
+    dataStore.pm.makePersistent(p)
   }
 }
 
@@ -67,24 +68,24 @@ object QBlog {
   def variable(name: String): QBlog = QBlog(classOf[Blog], name, ExpressionType.VARIABLE)
 }
 
-object Blog {
+object Blog extends UsesDataStore {
   def listUserBlogs(role: Role): List[Blog] = {
     Role.getById(role.id) match {
       case None => Nil
       case Some(realRole) => {
          val cand = QBlog.candidate
-         DataStore.pm.query[Blog].filter(cand.owner.eq(realRole)).executeList()
+         dataStore.pm.query[Blog].filter(cand.owner.eq(realRole)).executeList()
       }
     }
   }
 
   def getById(id: Long): Option[Blog] = {
     val cand = QBlog.candidate
-    DataStore.pm.query[Blog].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[Blog].filter(cand.id.eq(id)).executeOption()
   }
 
   def getPosts(blog: Blog): List[Post] = {
     val cand = QPost.candidate
-    DataStore.pm.query[Post].filter(cand.blog.eq(blog)).executeList()
+    dataStore.pm.query[Post].filter(cand.blog.eq(blog)).executeList()
   }
 }

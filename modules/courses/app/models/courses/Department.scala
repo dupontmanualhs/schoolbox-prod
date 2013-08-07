@@ -3,7 +3,8 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import scalajdo.DataStore
+
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
 class Department {
@@ -22,9 +23,9 @@ class Department {
   }
 }
 
-object Department {
+object Department extends UsesDataStore {
   def getOrCreate(name: String): Department = {
-    val pm = DataStore.pm
+    val pm = dataStore.pm
     val cand = QDepartment.candidate
     pm.query[Department].filter(cand.name.eq(name)).executeOption() match {
       case Some(dept) => dept

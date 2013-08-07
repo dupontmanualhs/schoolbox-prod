@@ -12,15 +12,14 @@ import models.assignments.Task
 import models.assignments.QTask
 
 import config.Config
-
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 import controllers.users.VisitAction
 
 @Singleton
-class Assignments @Inject()(implicit config: Config) extends Controller {
+class Assignments @Inject()(implicit config: Config) extends Controller with UsesDataStore {
   def doTask(taskId: Long) = VisitAction { implicit req =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       pm.query[Task].filter(QTask.candidate.id.eq(taskId)).executeOption() match {
         case None => NotFound("no task with that id")
         case Some(task) => Ok(views.html.assignments.questions(task))

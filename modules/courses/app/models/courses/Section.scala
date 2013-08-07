@@ -6,11 +6,12 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import scala.xml.NodeSeq
 import org.joda.time.{ LocalDate, ReadablePartial }
+import config.users.UsesDataStore
 
-import scalajdo.DataStore
+
 
 @PersistenceCapable(detachable = "true")
-class Section {  
+class Section extends UsesDataStore {  
   // TODO: this needs to be in a util class; maybe in ScalaJDO once we put in date stuff?
   implicit object LocalDateOrdering extends Ordering[LocalDate] {
     def compare(ld1: LocalDate, ld2: LocalDate) = ld1.compareTo(ld2)
@@ -58,11 +59,12 @@ class Section {
     _room = room
   }
 
-  override def toString: String = s"Section(${displayName})"
-  
-  def displayName: String = s"${course.name} - ${periodNames}"
-  
-  
+  override def toString: String = s"Section(${course.name} - ${periodNames} - ${room.name})"
+
+  def displayName: String = s"${course.name} - ${periodNames}, ${room.name} - ${teachers.mkString(", ")}"
+
+  def labelName: String = s"${course.name} - ${periodNames}"
+
   def periodNames: String = {
     periods.map(_.name).mkString(", ")
   }
@@ -78,7 +80,7 @@ class Section {
   // TODO: figure out which teachers to get in what order
   def teachers(): List[Teacher] = {
     val cand = QTeacherAssignment.candidate
-    val assignments = DataStore.pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
+    val assignments = dataStore.pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
     assignments.map(_.teacher)
   }
 
@@ -87,26 +89,26 @@ class Section {
 
   def enrollments(): List[StudentEnrollment] = {
     val cand = QStudentEnrollment.candidate
-    DataStore.pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
+    dataStore.pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
   }
   
   def numStudents(): Long = {
     val cand = QStudentEnrollment.candidate
-    DataStore.pm.query[StudentEnrollment].filter(
+    dataStore.pm.query[StudentEnrollment].filter(
         cand.section.eq(this).and(
             cand.end.eq(null.asInstanceOf[java.sql.Date]))).executeResultUnique(false, cand.count()).asInstanceOf[Long]
   }
 }
 
-object Section {
+object Section extends UsesDataStore {
   def getBySectionId(sectionId: String): Option[Section] = {
     val cand = QSection.candidate
-    DataStore.pm.query[Section].filter(cand.sectionId.eq(sectionId)).executeOption()
+    dataStore.pm.query[Section].filter(cand.sectionId.eq(sectionId)).executeOption()
   }
 
   def getById(id: Long): Option[Section] = {
     val cand = QSection.candidate
-    DataStore.pm.query[Section].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[Section].filter(cand.id.eq(id)).executeOption()
   }
 }
 

@@ -6,8 +6,8 @@ import javax.jdo.annotations._
 import math.Value
 import math.ExactNumber
 import math.Integer
-import forms.fields.Field
-import forms.fields.ChoiceFieldOptional
+import org.dupontmanual.forms.fields.Field
+import org.dupontmanual.forms.fields.ChoiceFieldOptional
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)

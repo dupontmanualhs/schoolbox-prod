@@ -7,6 +7,8 @@ import org.datanucleus.api.jdo.query._
 import models.users.QRole
 import models.users.Role
 import models.users.User
+import config.users.UsesDataStore
+import models.users.QUser
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -25,6 +27,15 @@ class Guardian extends Role {
   
   def role = "Parent/Guardian"
 }
+
+object Guardian extends UsesDataStore {
+  def getByUsername(username: String): Option[Guardian] = {
+    val cand = QGuardian.candidate
+    val userVar = QUser.variable("userVar")
+    dataStore.pm.query[Guardian].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
+  }
+}
+
 
 trait QGuardian extends QRole[Guardian] {
   private[this] lazy val _children: CollectionExpression[java.util.Set[Student], Student] = 

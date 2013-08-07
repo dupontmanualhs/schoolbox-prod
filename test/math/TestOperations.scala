@@ -34,7 +34,7 @@ class TestOperations extends FunSuite {
 	val nineOverThree = Quotient(Integer(9), Integer(3))
 	assert(nineOverThree.description === "Quotient(Integer(9), Integer(3))")
 	assert(nineOverThree.toLaTeX === "9\\div3")
-	//assert(nineOverFive.simplify === Integer(3)
+	//assert(nineOverThree.simplify === Integer(3))
   }
 	
   test("differences") {

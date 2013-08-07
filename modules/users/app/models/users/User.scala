@@ -3,11 +3,13 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import scalajdo.DataStore
+import org.joda.time.DateTime
+
 import play.api.mvc.Request
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
-class User extends Ordered[User] {
+class User extends Ordered[User] with UsesDataStore {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -27,6 +29,7 @@ class User extends Ordered[User] {
   private[this] var _middle: String = _
   def middle: Option[String] = if (_middle == null) None else Some(_middle)
   def middle_=(theMiddle: String) { _middle = theMiddle }
+  def middle_=(theMiddle: Option[String]) { _middle = theMiddle.getOrElse(null) }
   
   @Column(allowsNull="false")
   private[this] var _last: String = _
@@ -49,38 +52,69 @@ class User extends Ordered[User] {
   private[this] var _theme: String = _
   def theme: String = _theme
   def theme_=(theTheme: String) {_theme = theTheme}
+  
+  private[this] var _isActive: Boolean = _
+  def isActive: Boolean = _isActive
+  def isActive_=(active: Boolean) { _isActive = active }
 
-  @Persistent(defaultFetchGroup="true")
-  @Embedded
-  @Unique
-  private[this] var _email: Email = _
-  def email: Option[String] = if (_email == null) None else Some(_email.value)
-  def email_=(theEmail: Email) { _email = theEmail }
+  private[this] var _isStaff: Boolean = _
+  def isStaff: Boolean = _isStaff
+  def isStaff_=(staff: Boolean) { _isStaff = staff }
+  
+  private[this] var _isSuperuser: Boolean = _
+  def isSuperuser: Boolean = _isSuperuser
+  def isSuperuser_=(superuser: Boolean) { _isSuperuser = superuser }
+  
+  private[this] var _dateJoined: java.sql.Timestamp = _
+  def dateJoined: DateTime = { new DateTime(_dateJoined) }
+  def dateJoined_=(theDateJoined: DateTime) { _dateJoined = new java.sql.Timestamp(theDateJoined.getMillis) }
+  
+  private[this] var _lastLogin: java.sql.Timestamp = _
+  def lastLogin: Option[DateTime] = { if (_lastLogin == null) None else Some(new DateTime(_lastLogin)) }
+  def lastLogin_=(maybeLastLogin: Option[DateTime]) { _lastLogin = maybeLastLogin.map(d => new java.sql.Timestamp(d.getMillis)).getOrElse(null) }
+  def lastLogin_=(theLastLogin: DateTime) { _lastLogin = new java.sql.Timestamp(theLastLogin.getMillis) }
+  
+  private[this] var _email: String = _
+  def email: Option[String] = Option(_email)
+  def email_=(theEmail: String) { _email = theEmail }
   def email_=(theEmail: Option[String]) {
-    if (theEmail.isDefined) email = new Email(theEmail.get)
+    if (theEmail.isDefined) email_=(theEmail.get)
     else _email = null
   }
-  def email_=(theEmail: String) { email = Some(theEmail) }
 
-  @Persistent(defaultFetchGroup="true")
-  @Embedded
-  private[this] var _password: Password = _
-  def password: Password = _password
-  def password_=(thePassword: Password) { _password = thePassword }
-  def password_=(thePassword: String) { _password = new Password(thePassword) }
-  
+  private[this] var _password: String = _
+  def password: Password = Password.fromEncoding(_password)
+  def password_=(thePassword: Password) { _password = thePassword.value }
+  def password_=(thePassword: String) {
+    if (thePassword != null) password_=(new Password(thePassword))
+    else _password = Password.fromEncoding("").toString
+  }
+    
   def this(username: String, first: String, middle: Option[String], last: String,
-      preferred: Option[String], gender: Gender.Gender, email: String, password: String) = {
+      preferred: Option[String], gender: Gender.Gender, email: Option[String], password: Option[String],
+      isActive: Boolean, isStaff: Boolean, isSuperuser: Boolean) = {
     this()
     username_=(username)
     first_=(first)
-    if (middle.isDefined) middle_=(middle.get)
+    middle_=(middle)
     last_=(last)
     preferred_=(preferred)
     gender_=(gender)
-    email_=(new Email(email))
-    password_=(new Password(password))
     theme_=("default")
+    isActive_=(isActive)
+    isStaff_=(isStaff)
+    isSuperuser_=(isSuperuser)
+    dateJoined_=(DateTime.now())
+    lastLogin_=(None)
+    email_=(email)
+    password_=(password.getOrElse(""))
+  }
+  
+  def this(username: String, first: String, middle: Option[String], last: String,
+      preferred: Option[String], gender: Gender.Gender, email: String, password: String,
+      isActive: Boolean = true, isStaff: Boolean = false, isSuperuser: Boolean = false) = {
+    this(username, first, middle, last, preferred, gender, Option(email), Option(password),
+        isActive, isStaff, isSuperuser)
   }
   
   override def toString: String = s"User(ID: ${id}, ${formalName})"
@@ -99,7 +133,7 @@ class User extends Ordered[User] {
   
   def roles(): List[Role] = {
     val cand = QRole.candidate
-    DataStore.pm.query[Role].filter(cand.user.eq(this)).executeList()
+    dataStore.pm.query[Role].filter(cand.user.eq(this)).executeList()
   }
   
   def canEqual(that: Any): Boolean = that.isInstanceOf[User]
@@ -112,7 +146,7 @@ class User extends Ordered[User] {
   override def hashCode: Int = this.id.hashCode
 }
 
-object User {
+object User extends UsesDataStore {
   object Permissions {
     val Add = Permission(classOf[User], 0, "Add", "can add new users")
     val Delete = Permission(classOf[User], 1, "Delete", "can delete users")
@@ -123,12 +157,12 @@ object User {
   
   def getById(id: Long): Option[User] = {
     val cand = QUser.candidate
-    DataStore.pm.query[User].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[User].filter(cand.id.eq(id)).executeOption()
   }
 
   def getByUsername(username: String): Option[User] = {
     val cand = QUser.candidate
-    DataStore.pm.query[User].filter(cand.username.eq(username)).executeOption()
+    dataStore.pm.query[User].filter(cand.username.eq(username)).executeOption()
   }
   
   def authenticate(username: String, password: String): Option[User] = {
@@ -173,12 +207,11 @@ trait QUser extends PersistableExpression[User] {
   private[this] lazy val _theme: StringExpression = new StringExpressionImpl(this, "_theme")
   def theme: StringExpression = _theme
   
-  private[this] lazy val _email: ObjectExpression[Email] = new ObjectExpressionImpl[Email](this, "_email")
-  def email: ObjectExpression[Email] = _email
+  private[this] lazy val _email: StringExpression = new StringExpressionImpl(this, "_email")
+  def email: StringExpression = _email
   
   private[this] lazy val _password: ObjectExpression[Password] = new ObjectExpressionImpl[Password](this, "_password")
-  def password: ObjectExpression[Password] = _password
-  
+  def password: ObjectExpression[Password] = _password  
 }
 
 object QUser {

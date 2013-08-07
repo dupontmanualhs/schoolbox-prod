@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 import scalatags._
 import play.api.templates.Html
 
-import forms.{ Binding, FormCall }
+import org.dupontmanual.forms.{ Binding, FormCall }
 
 import config.users.Config
 import controllers.users.VisitRequest

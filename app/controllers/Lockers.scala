@@ -1,25 +1,21 @@
 package controllers
 
 import scala.xml.{ NodeSeq, Text }
-
 import models.lockers._
 import models.users._
 import models.courses._
-import forms.{ Form, Binding, InvalidBinding, ValidBinding }
-import forms.fields._
-import forms.validators.Validator
-import forms.validators.ValidationError
+import org.dupontmanual.forms.{ Form, Binding, InvalidBinding, ValidBinding }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.validators.{ Validator, ValidationError }
 import util.Helpers._
-import scalajdo.DataStore
-import forms.Form
 import play.api.mvc.Controller
-
 import controllers.users.{ Authenticated, VisitAction }
 import config.Config
 import com.google.inject.{ Inject, Singleton }
+import config.users.UsesDataStore
 
 @Singleton
-class Lockers @Inject()(implicit config: Config) extends Controller {
+class Lockers @Inject()(implicit config: Config) extends Controller with UsesDataStore {
 
   /**
    * Regex: /lockers/myLocker
@@ -29,11 +25,13 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
    */
   def getMyLocker() = Authenticated { implicit req =>
     req.role match {
-      case teacher: Teacher => NotFound(templates.NotFound("Teachers do not have lockers."))
+      // case teacher: Teacher => NotFound(templates.NotFound("Teachers do not have lockers."))
+      // case guardian: Guardian => NotFound(templates.NotFound("Guardians do not have lockers."))
       case student: Student => Locker.getByStudent(student) match {
         case None => NotFound(templates.NotFound("You do not have a locker."))
         case Some(l) => Ok(views.html.lockers.getLocker(l))
       }
+      case default: Any => NotFound(templates.NotFound("Only students have lockers."))
     }
   }
 
@@ -57,7 +55,7 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
         case student: Student =>
           val oldLocker: Option[Locker] = Locker.getByStudent(student)
           if (locker.taken) Ok(templates.NotFound("This locker was taken."))
-          else DataStore.execute { pm =>
+          else dataStore.execute { pm =>
             locker.student = student
             locker.taken = true
             pm.makePersistent(locker)
@@ -146,7 +144,7 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
    *  with the given name.
    */
   def lockerByRoom(room: String) = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val roomLocation = RoomLocation.makeRoomLoc(room)
       val matchingLockerLocation = roomLocation.toLockerLocation
       val matcher: Locker => Boolean = (l: Locker) => l.matchingLocation(matchingLockerLocation)
@@ -162,7 +160,7 @@ class Lockers @Inject()(implicit config: Config) extends Controller {
    *  to find lockers near each class.
    */
   def schedule = Authenticated { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       req.role match {
         case student: Student => {
           val term = Term.current

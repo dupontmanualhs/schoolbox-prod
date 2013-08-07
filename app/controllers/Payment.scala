@@ -2,9 +2,6 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import forms._
-import forms.fields._
-import forms.widgets._
 
 object Payment extends Controller {
   /*

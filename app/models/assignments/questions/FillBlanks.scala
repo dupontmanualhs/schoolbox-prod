@@ -5,7 +5,7 @@ import play.api.data._
 import javax.jdo.annotations._
 import models.assignments.DbQuestion
 import scala.xml.transform.BasicTransformer
-import forms.fields.TextField
+import org.dupontmanual.forms.fields.TextField
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)

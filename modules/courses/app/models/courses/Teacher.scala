@@ -3,10 +3,11 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import scalajdo.DataStore
 import models.users.QRole
 import models.users.Role
 import models.users.User
+import config.users.UsesDataStore
+import models.users.QUser
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -17,15 +18,19 @@ class Teacher extends Role {
   def personId_=(thePersonId: String) { _personId = thePersonId }
   
   @Unique(name="TEACHER_STATEID")
+  @Column(allowsNull="true")
   private[this] var _stateId: String = _
   def stateId: String = _stateId
-  def stateId_=(theStateId: String) { _stateId = theStateId }
+  def stateId_=(theStateId: String) { 
+    if (theStateId == "") _stateId = null
+    else _stateId = theStateId
+  }
   
   def this(user: User, personId: String, stateId: String) = {
     this()
     user_=(user)
-    _personId = personId
-    _stateId = stateId
+    personId_=(personId)
+    stateId_=(stateId)
   }
   
   /*def allStudents(term: Term): List[Student] = {
@@ -36,15 +41,11 @@ class Teacher extends Role {
   def role = "Teacher"    
 }
 
-object Teacher {
+object Teacher extends UsesDataStore {
   def getByUsername(username: String): Option[Teacher] = {
-	User.getByUsername(username) match {
-      case Some(user) => {
-        val cand = QTeacher.candidate
-      	DataStore.pm.query[Teacher].filter(cand.user.eq(user)).executeOption
-      }
-      case _ => None
-	}
+    val cand = QTeacher.candidate
+    val userVar = QUser.variable("userVar")
+    dataStore.pm.query[Teacher].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
   }
 }
 
