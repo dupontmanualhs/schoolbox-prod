@@ -101,12 +101,6 @@ object ManualData extends UsesDataStore {
     }
   }
   
-  def asGender(s: String): Gender.Gender = {
-    if (s == "M") Gender.Male
-    else if (s == "F") Gender.Female
-    else Gender.NotListed
-  }
-
   def loadTeachers() {
     dataStore.withTransaction { implicit pm =>
       val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Teachers.xml.xz")))
