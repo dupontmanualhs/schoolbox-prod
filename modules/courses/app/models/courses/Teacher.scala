@@ -47,6 +47,16 @@ object Teacher extends UsesDataStore {
     val userVar = QUser.variable("userVar")
     dataStore.pm.query[Teacher].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
   }
+  
+  def getByStateId(stateId: String): Option[Teacher] = {
+    val cand = QTeacher.candidate
+    dataStore.pm.query[Teacher].filter(cand.stateId.eq(stateId)).executeOption()
+  }
+  
+  def getByPersonId(personId: String): Option[Teacher] = {
+    val cand = QTeacher.candidate
+    dataStore.pm.query[Teacher].filter(cand.personId.eq(personId)).executeOption()
+  }
 }
 
 trait QTeacher extends QRole[Teacher] {
