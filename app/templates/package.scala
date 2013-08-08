@@ -93,8 +93,8 @@ package object templates {
     def apply()(implicit req: VisitRequest[_]) =
       config.main("ABCD eSchool")(
         div.cls("hero-unit")(
-          h1("gMosta 0.5"),
-          p("Ves esdeor")))
+          h1("SVS",sup("ALPHA")),
+          p("We need a name!")))
   }
 
   object NotFound extends NotFoundTemplate {
