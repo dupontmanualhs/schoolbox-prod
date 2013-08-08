@@ -1,6 +1,7 @@
 package models
 
 import play.api.Logger
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import xml.{ Node, NodeSeq, Elem, XML }
@@ -32,28 +33,27 @@ object ManualData extends UsesDataStore {
   
   val netIdMap: Map[String, String] = buildNetIdMap()
 
-  def load(debug: Boolean = false) {
-    loadManualData(debug)
-  }
-
-  def loadManualData(debug: Boolean = false) {
-    if (!debug) println("Importing student data...")
-    loadStudents(debug)
-    if (!debug) println("Importing parent data...")
+  def load() {
+    // de-activate everyone and re-activate only the users in the data dump
+    markAllUsersInactive()
+    loadStudents()
+    loadTeachers()
+    loadCourses()
+    loadSections()
+    loadEnrollments()
+  def markAllUsersInactive() {
+    dataStore.withTransaction { pm =>
+      val users = pm.query[User].executeList()
+      users foreach { user => 
+        user.isActive = false
+        pm.makePersistent(user)
     //loadParents(debug)
     if (!debug) println("Importing teacher data...")
-    loadTeachers(debug)
-    if (!debug) println("Creating Course Data...")
-    loadCourses(debug)
-    if (!debug) println("Creating Section Data...")
-    loadSections(debug)
-    if (!debug) println("Creating Enrollment Data...")
-    loadEnrollments(debug)
   }
 
-  def loadStudents(debug: Boolean) {
+  def loadStudents() {
     dataStore.withTransaction { implicit pm =>
-      Logger.debug("opening Students.xml.xz file")
+      Logger.info("Importing students...")
       val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Students.xml.xz")))
       val students = doc \\ "student"
       students foreach ((student: Node) => {
@@ -67,19 +67,34 @@ object ManualData extends UsesDataStore {
         val grade = asInt((student \ "@student.grade").text)
         val gender = asGender((student \ "@student.gender").text)
         val username = netIdMap.getOrElse(studentNumber, studentNumber)
-        Logger.debug("updating data for $studentNumber, $stateId, $first, $middle, $last, $teamName, $grade, $gender")
-        val maybeStudent = Student.getByStateId(stateId).getOrElse(Student.getByStudentNumber(studentNumber))
+        val info = s"($last, $first: stateId=$stateId; studentNumber=$studentNumber)"
+        val maybeStudent: Option[Student] = 
+            List(Student.getByStateId(stateId), Student.getByStudentNumber(studentNumber)).find(_.isDefined).getOrElse(None)
         maybeStudent match {
           case None => {
-            Logger.debug("new student, creating")
-            val user = new User(username, first, middle, last, None, gender, null, "temp123")
+            Logger.debug(s"Creating new student $info")
+            val user = new User(username, first, middle, last, None, gender, null, null)
             pm.makePersistent(user)
+            Logger.trace("datastore user saved")
             val dbStudent = new Student(user, stateId, studentNumber, grade, teamName)
             pm.makePersistent(dbStudent)
-            if (debug) println("student saved")
+            Logger.trace("datastore student saved")
           }
           case Some(oldStudent) => {
-            Logger.debug("old student, checking for updates")
+            Logger.debug(s"Student $info already exists; setting to new values, in case they've changed")
+            // TODO log what happens and only change what needs changing
+            oldStudent.user.username = username
+            oldStudent.user.first = first
+            oldStudent.user.middle = middle
+            oldStudent.user.last = last
+            oldStudent.user.gender = gender
+            oldStudent.user.isActive = true
+            pm.makePersistent(oldStudent.user)
+            oldStudent.grade = grade
+            oldStudent.teamName = teamName
+            oldStudent.stateId = stateId
+            oldStudent.studentNumber = studentNumber
+            pm.makePersistent(oldStudent)
           }
         }
       })
@@ -92,44 +107,51 @@ object ManualData extends UsesDataStore {
     else Gender.NotListed
   }
 
-  def loadTeachers(debug: Boolean) {
-    val teacherUsernames = mutable.Set[String]()
+  def loadTeachers() {
     dataStore.withTransaction { implicit pm =>
       val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Teachers.xml.xz")))
       val teachers = doc \\ "person"
       teachers foreach ((teacher: Node) => {
-        val username = asIdNumber((teacher \ "@individual.personID").text) // TODO: get real login name
         val first = (teacher \ "@individual.firstName").text
         val middle = (teacher \ "@individual.middleName").text
         val last = (teacher \ "@individual.lastName").text
         val gender = if ((teacher \ "@individual.gender").text == "F") Gender.Female else Gender.Male
         val personId = asIdNumber((teacher \ "@individual.personID").text)
         val stateId = asIdNumber((teacher \ "@individual.stateID").text)
-        if (debug) {
-          println()
-          println("%s, %s %s".format(last, first, middle))
-          println("#: %s, id: %s".format(personId, stateId))
-          println("name: %s, gender: %s".format(username, gender))
-        }
-        if (!teacherUsernames.contains(username)) {
-          val user = new User(username, first, Some(middle), last, None, gender, null, "temp123")
-          pm.makePersistent(user)
-          if (debug) println("user saved")
-          val dbTeacher = new Teacher(user, personId, stateId)
-          pm.makePersistent(dbTeacher)
-          teacherUsernames += username
-          if (debug) println("teacher saved")
-        } else {
-          if (debug) println("teacher already in database")
+        val info = s"($last, $first: stateId=$stateId; personId=$personId)"
+        val maybeTeacher = 
+            List(Teacher.getByStateId(stateId), Teacher.getByPersonId(personId)).find(_.isDefined).getOrElse(None)
+        maybeTeacher match {
+          case None => {
+            Logger.debug(s"Teacher $info not in datastore; adding")
+            val user = new User(personId, first, Some(middle), last, None, gender, null, null)
+            pm.makePersistent(user)
+            Logger.trace("user saved")
+            val dbTeacher = new Teacher(user, personId, stateId)
+            pm.makePersistent(dbTeacher)
+            Logger.trace("teacher saved")
+          }
+          case Some(oldTeacher) => {
+            Logger.debug(s"Teacher $info already in database; updating to newest values")
+            oldTeacher.user.first = first
+            oldTeacher.user.middle = middle
+            oldTeacher.user.last = last
+            oldTeacher.user.gender = gender
+            oldTeacher.user.isActive = true
+            pm.makePersistent(oldTeacher.user)
+            oldTeacher.stateId = stateId
+            oldTeacher.personId = personId
+            pm.makePersistent(oldTeacher)   
+          }
         }
       })
     }
   }
 
   def loadCourses(debug: Boolean) {
+    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Courses.xml.xz")))
+    val courses = doc \\ "curriculum"
     dataStore.withTransaction { implicit pm =>
-      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Courses.xml.xz")))
-      val courses = doc \\ "curriculum"
       courses foreach ((course: Node) => {
         val name = (course \ "@courseInfo.courseName").text
         val masterNumber = asIdNumber((course \ "@courseInfo.courseMasterNumber").text)
@@ -215,7 +237,7 @@ object ManualData extends UsesDataStore {
     }
   }
 
-  def loadLockers(debug: Boolean) {
+  /*def loadLockers(debug: Boolean) {
     dataStore.withTransaction { implicit pm =>
       val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Lockers.xml.xz")))
       val lockers = doc \\ "student"
@@ -229,7 +251,7 @@ object ManualData extends UsesDataStore {
 
       })
     }
-  }
+  }*/
 
   def asLocalDate(date: String): Option[LocalDate] = {
     val format = DateTimeFormat.forPattern("MM/dd/yyyy")
@@ -301,6 +323,12 @@ object ManualData extends UsesDataStore {
 
   def asOptionString(s: String): Option[String] = {
     if (s.trim() == "") None else Some(s.trim())
+  }
+  
+  def asGender(s: String): Gender.Gender = s match {
+    case "M" => Gender.Male
+    case "F" => Gender.Female
+    case _ => Gender.NotListed
   }
   
   def asOptionDateTime[T](parseFunction: (String => T), str: String): Option[T] = {
