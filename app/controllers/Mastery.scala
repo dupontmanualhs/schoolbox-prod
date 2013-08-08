@@ -279,19 +279,19 @@ class Mastery @Inject()(implicit config: Config) extends Controller {
     val table: List[NodeSeq] = qsAndAs.map(qa =>
       if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) {
         <tr bgcolor="#5EFB6E">
-          <td>{ qa._1.text }</td>
-          <td>{ if (!qa._1.isMath) qa._2
-        else "\\(\\displaystyle{" + qa._2 + "}\\)"}</td>
-          <td>{ "correct" }</td>
-          <td>{ qa._1.value + "/" + qa._1.value }</td>
+          <td><font color="black">{ qa._1.text }</font></td>
+          <td><font color="black">{ if (!qa._1.isMath) qa._2
+        else "\\(\\displaystyle{" + qa._2 + "}\\)"}</font></td>
+          <td><font color="black">{ "correct" }</font></td>
+          <td><font color="black">{ qa._1.value + "/" + qa._1.value }</font></td>
         </tr>
       } else {
         <tr bgcolor="#F9966B">
-          <td>{ qa._1.text }</td>
-          <td>{ if (!qa._1.isMath) qa._2
-        else "\\(\\displaystyle{" + qa._2 + "}\\)" }</td>
-          <td>{ "wrong" }</td>
-          <td>{ "0/" + qa._1.value }</td>
+          <td><font color="black">{ qa._1.text }</font></td>
+          <td><font color="black">{ if (!qa._1.isMath) qa._2
+        else "\\(\\displaystyle{" + qa._2 + "}\\)" }</font></td>
+          <td><font color="black">{ "wrong" }</font></td>
+          <td><font color="black">{ "0/" + qa._1.value }</font></td>
         </tr>
       })
     Ok(html.tatro.mastery.displayScore(quiz, totalPointsPossible, numCorrect, table))
