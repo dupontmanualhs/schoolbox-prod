@@ -62,8 +62,9 @@ object Menu {
   val print1Sec = new MenuItem("Single Section", "menu_print1Sec", Some(controllers.routes.Books.printSingleSection.toString), Nil)
   val printByDept = new MenuItem("Sections by Department", "menu_printByDept", Some(controllers.routes.Books.printSectionsByDept.toString), Nil)
   val printAllSec = new MenuItem("All Sections", "menu_printAllSec", Some(controllers.routes.Books.printAllSections.toString), Nil)
+  val quickChout = new MenuItem("Quick Checkout", "menu_quickChout", Some(controllers.routes.Books.quickCheckout.toString), Nil)
 
-  val manage = new MenuItem("Manage", "menu_manage", None, Nil, List(addTitle, addPurchaseGroup, checkout, blkCheckout, checkIn, blkCheckIn, editTitle,
+  val manage = new MenuItem("Manage", "menu_manage", None, Nil, List(quickChout, addTitle, addPurchaseGroup, checkout, blkCheckout, checkIn, blkCheckIn, editTitle,
     delCpy, delTitle))
   val view = new MenuItem("View", "menu_view", None, Nil, List(chkHistory, copyHistory, currentBks, inventory, copyInfo, allBksOut, copyStatusByTitle))
   val print = new MenuItem("Print", "menu_print", None, Nil, List(addToPrintQueue, viewQueue, print1Sec, printByDept, printAllSec))

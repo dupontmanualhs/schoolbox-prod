@@ -100,7 +100,8 @@ GET     /books/printSectionsByDept              @controllers.Books.printSections
 POST    /books/printSectionsByDept              @controllers.Books.printSectionsByDeptP()
 GET     /books/printAllSections                 @controllers.Books.printAllSections()
 GET     /books/reportCopyLost/:barcode          @controllers.Books.reportCopyLost(barcode: String)
-POST    /books/quickCheckoutHelper/:sId/:bcode  @controllers.Books.quickCheckoutHelper(sId: String, bcode: String)
+GET     /books/quickCheckoutHelper/:sId/:bcode  @controllers.Books.quickCheckoutHelper(sId: String, bcode: String)
+GET     /books/quickCheckout                    @controllers.Books.quickCheckout()
 
 #Lockers
 GET     /lockers/myLocker                       @controllers.Lockers.getMyLocker()

@@ -982,10 +982,10 @@ class Books @Inject()(implicit config: Config) extends Controller {
     DataStore.execute { pm =>
       val cand = QStudent.candidate
       pm.query[Student].filter(cand.stateId.eq(stuId).or(cand.studentNumber.eq(stuId))).executeOption() match {
-        case None => Ok(<li>Could not find student \u2718</li>)
+        case None => Ok(<li>Could not find student \u2718</li>.toString)
         case Some(s) => {
           Copy.getByBarcode(barcode) match {
-            case None => Ok(<li>Copy with the given barcode not found \u2718</li>)
+            case None => Ok(<li>Copy with the given barcode not found \u2718</li>.toString)
             case Some(c) => {
               val cand2 = QCheckout.candidate
               pm.query[Checkout].filter(cand2.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand2.copy.eq(c))).executeOption() match {
@@ -994,12 +994,12 @@ class Books @Inject()(implicit config: Config) extends Controller {
                   pm.makePersistent(currentCheckout)
                   val ch = new Checkout(s, c, Some(LocalDate.now()), None)
                   pm.makePersistent(ch)
-                  Ok(<li>{ s.formalName + " was assigned Copy " + c.number + " of " + c.purchaseGroup.title.name + " \u2714" }</li>)
+                  Ok(<li>{ s.formalName + " was assigned Copy " + c.number + " of " + c.purchaseGroup.title.name + " \u2714" }</li>.toString)
                 }
                 case None => {
                   val ch = new Checkout(s, c, Some(LocalDate.now()), None)
                   pm.makePersistent(ch)
-                  Ok(<li>{ s.formalName + " was assigned Copy " + c.number + " of " + c.purchaseGroup.title.name + " \u2714" }</li>)
+                  Ok(<li>{ s.formalName + " was assigned Copy " + c.number + " of " + c.purchaseGroup.title.name + " \u2714" }</li>.toString)
                 }
               }
             }
@@ -1007,6 +1007,15 @@ class Books @Inject()(implicit config: Config) extends Controller {
         }
       }
     }
+  }
+
+  /*
+  * Regex: /books/quickCheckout
+  *
+  * Displays the quickCheckout page
+  */
+  def quickCheckout() = VisitAction { implicit req =>
+    Ok(templates.books.quickCheckout())
   }
 
 }
