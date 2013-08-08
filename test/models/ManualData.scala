@@ -40,7 +40,7 @@ object ManualData extends UsesDataStore {
     if (!debug) println("Importing student data...")
     loadStudents(debug)
     if (!debug) println("Importing parent data...")
-    loadParents(debug)
+    //loadParents(debug)
     if (!debug) println("Importing teacher data...")
     loadTeachers(debug)
     if (!debug) println("Creating Course Data...")
@@ -72,26 +72,24 @@ object ManualData extends UsesDataStore {
         maybeStudent match {
           case None => {
             Logger.debug("new student, creating")
-            val user = new User(username, first, Some(middle), last, None, gender, null, "temp123")
+            val user = new User(username, first, middle, last, None, gender, null, "temp123")
             pm.makePersistent(user)
+            val dbStudent = new Student(user, stateId, studentNumber, grade, teamName)
+            pm.makePersistent(dbStudent)
+            if (debug) println("student saved")
           }
           case Some(oldStudent) => {
             Logger.debug("old student, checking for updates")
-            
           }
         }
-        // create User
-        if (debug) println("user saved")
-        // create Student
-        val dbStudent = new Student(user, stateId, studentNumber, grade, teamName)
-        pm.makePersistent(dbStudent)
-        if (debug) println("student saved")
-        // create Blog
-        //val blog = new Blog(username + "'s Blog", dbStudent)
-        //pm.makePersistent(blog)
-        //if (debug) println("blog saved")
       })
     }
+  }
+  
+  def asGender(s: String): Gender.Gender = {
+    if (s == "M") Gender.Male
+    else if (s == "F") Gender.Female
+    else Gender.NotListed
   }
 
   def loadTeachers(debug: Boolean) {
