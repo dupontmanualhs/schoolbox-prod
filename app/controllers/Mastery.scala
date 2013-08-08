@@ -73,8 +73,7 @@ class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) ext
 		  }}
 		  }});
     </script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
-    </script>
+    
     <script>
     
   (function () {{
@@ -281,14 +280,16 @@ class Mastery @Inject()(implicit config: Config) extends Controller {
       if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) {
         <tr bgcolor="#5EFB6E">
           <td>{ qa._1.text }</td>
-          <td>{ qa._2 }</td>
+          <td>{ if (!qa._1.isMath) qa._2
+        else "\\(\\displaystyle{" + qa._2 + "}\\)"}</td>
           <td>{ "correct" }</td>
           <td>{ qa._1.value + "/" + qa._1.value }</td>
         </tr>
       } else {
         <tr bgcolor="#F9966B">
           <td>{ qa._1.text }</td>
-          <td>{ qa._2 }</td>
+          <td>{ if (!qa._1.isMath) qa._2
+        else "\\(\\displaystyle{" + qa._2 + "}\\)" }</td>
           <td>{ "wrong" }</td>
           <td>{ "0/" + qa._1.value }</td>
         </tr>

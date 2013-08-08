@@ -50,7 +50,17 @@ package object templates {
         script.src(controllers.routes.Assets.at("javascripts/maskedinput.js")),
         script.src(controllers.routes.Assets.at("javascripts/jquery.timepicker.js")),
         script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-datepicker.js"))),
-        script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.js")))
+        script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.js"))),
+        /*<script type="text/x-mathjax-config">
+      MathJax.Hub.Config({{
+		  tex2jax: {{
+      inlineMath: [['$','$'],['\\(','\\)']]
+		  }}
+		  }});
+    </script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
+    </script>*/
+        script.src("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full")
         )
     }
 

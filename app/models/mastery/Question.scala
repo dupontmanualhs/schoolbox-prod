@@ -32,16 +32,21 @@ class Question extends Serializable {
   private[this] var _value: Int = _ // number of points the question is worth
   def value = _value
   def value_=(theValue: Int) { _value = theValue }
+  
+  private[this] var _isMath: Boolean = _
+  def isMath = _isMath
+  def isMath_=(iM : Boolean) { _isMath = iM }
     
-  def this(text: String, answer: List[String], value: Int) = {
+  def this(text: String, answer: List[String], isMath: Boolean, value: Int) = {
     this()
     _text = text
     answer_=(answer)
     _value = value
+    _isMath = isMath
   }
   
-  def this(text: String, answer: List[String]) = this(text, answer, 1)
-   
+  def this(text: String, answer: List[String], isMath:Boolean) = this(text, answer, isMath, 1)
+   def this(text: String, answer: List[String]) = this(text, answer, false)
   override def toString = { text }
 }
 
@@ -66,6 +71,9 @@ trait QQuestion extends PersistableExpression[Question] {
   
   private[this] lazy val _value: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_value")
   def value: NumericExpression[Int] = _value
+  
+  private[this] lazy val _isMath: BooleanExpression = new BooleanExpressionImpl[Boolean](this, "_isMath")
+  def isMath: BooleanExpression = _isMath
   
 }
 
