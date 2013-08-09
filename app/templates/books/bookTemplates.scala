@@ -12,6 +12,7 @@ import models.books.Copy
 import play.api.Play
 import com.google.inject.Inject
 import java.io.File
+import scala.xml.Unparsed
 
 package object books {
   private[books] class ConfigProvider @Inject()(val config: Config)
@@ -375,6 +376,49 @@ object printSectionsByDept {
 object printSingleSection {
   def apply(chooseSectionForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Print Section Barcodes")(chooseSectionForm.render())
+  }
+}
+
+object quickCheckout {
+  def apply()(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Quick Checkout")(
+      div.cls("page-header")(
+        h2("Quick Checkout")
+      ),
+      div.cls()(
+        ol.id("checkout-list")(),
+        form.cls("form-inline").id("checkout-form")(
+          input.id("student").cls("form-control").attr(("type", "text"), ("placeholder", "Student")),
+          input.id("book").cls("form-control").attr(("type", "text"), ("placeholder", "Barcode"))
+        )
+      ),
+      script(Unparsed("""
+        $("#student").keypress(function (event) {
+            if (event.which == 13) {
+              event.preventDefault();
+              $("#book").select();
+            }
+          });
+
+        $("#book").keypress(function (event) {
+            if (event.which == 13) {
+              event.preventDefault();
+              var student = $("#student").val();
+              var book = $("#book").val();
+              $.ajax({
+                  type: 'GET',
+                  url: '/books/quickCheckoutHelper/' + student + '/' + book,
+                  success: function(result) {
+                    $("#checkout-list").append(result);
+                    $("#student").val("");
+                    $("#book").val("");
+                    $("#student").select();
+                  }
+                });
+            }
+          });
+        """))
+    )
   }
 }
 
