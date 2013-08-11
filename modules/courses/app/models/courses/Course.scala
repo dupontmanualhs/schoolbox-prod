@@ -35,6 +35,15 @@ class Course {
   }
   
   override def toString = "%s (%s)".format(name, masterNumber)
+  
+  def canEqual(that: Any): Boolean = that.isInstanceOf[Course]
+  
+  override def equals(that: Any): Boolean = that match {
+    case that: Course => this.canEqual(that) && this.id == that.id
+    case _ => false
+  }
+  
+  override def hashCode: Int = this.id.hashCode
 }
 
 object Course extends UsesDataStore {

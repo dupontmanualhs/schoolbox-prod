@@ -14,18 +14,32 @@ import models.users.QUser
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
 class Guardian extends Role {
   @Persistent
+  @Unique
+  @Column(allowsNull="true")
+  private[this] var _contactId: String = _
+  def contactId: Option[String] = Option(_contactId)
+  def contactId_=(theContactId: Option[String]) = theContactId match {
+    case Some(cid) => _contactId = cid
+    case None => _contactId = null
+  }
+  def contactId_=(theContactId: String) { _contactId = theContactId }
+  
+  @Persistent
   @Element(types=Array(classOf[Student]))
   private[this] var _children: java.util.Set[Student] = _
   def children: Set[Student] = _children.asScala.toSet
   def children_=(theChildren: Set[Student]) { _children = theChildren.asJava }
     
-  def this(theUser: User, theChildren: Set[Student]){
+  def this(user: User, contactId: Option[String], children: Set[Student]){
     this()
-    user_=(theUser)
-    children_=(theChildren)
+    user_=(user)
+    contactId_=(contactId)
+    children_=(children)
   }
   
   def role = "Parent/Guardian"
+    
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[Guardian]
 }
 
 object Guardian extends UsesDataStore {
@@ -34,12 +48,21 @@ object Guardian extends UsesDataStore {
     val userVar = QUser.variable("userVar")
     dataStore.pm.query[Guardian].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
   }
+  
+  def getByContactId(contactId: String): Option[Guardian] = {
+    val cand = QGuardian.candidate
+    dataStore.pm.query[Guardian].filter(cand.contactId.eq(contactId)).executeOption()
+  }
 }
 
 
 trait QGuardian extends QRole[Guardian] {
   private[this] lazy val _children: CollectionExpression[java.util.Set[Student], Student] = 
       new CollectionExpressionImpl[java.util.Set[Student], Student](this, "_children")
+  def children: CollectionExpression[java.util.Set[Student], Student] = _children
+  
+  private[this] lazy val _contactId: StringExpression = new StringExpressionImpl(this, "_contactId")
+  def contactId: StringExpression = _contactId
 }
 
 object QGuardian {

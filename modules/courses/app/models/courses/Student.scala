@@ -27,10 +27,11 @@ class Student extends Role {
   def studentNumber: String = _studentNumber
   def studentNumber_=(theStudentNumber: String) { _studentNumber = theStudentNumber }
   
+  @Column(allowsNull="true")
   private[this] var _grade: java.lang.Integer = _
   def grade: Option[Int] = if (_grade == null) None else Some(_grade.intValue)
-  def grade_=(theGrade: Option[Int]) { _grade = if (theGrade.isDefined) theGrade.get else null.asInstanceOf[java.lang.Integer] }
-  def grade_=(theGrade: Int) { _grade =  theGrade }
+  def grade_=(theGrade: Option[Int]) { _grade = if (theGrade.isDefined) new Integer(theGrade.get) else null.asInstanceOf[java.lang.Integer] }
+  def grade_=(theGrade: Int) { _grade =  new Integer(theGrade) }
   
   private[this] var _teamName: String = _
   def teamName: String = _teamName
@@ -46,6 +47,8 @@ class Student extends Role {
   }
   
   def role = "Student"
+    
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[Student]
 }
 
 object Student extends UsesDataStore {

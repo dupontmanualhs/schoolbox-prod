@@ -77,7 +77,7 @@ trait QTerm extends PersistableExpression[Term] {
   def name: StringExpression = _name
 
   private[this] lazy val _year: ObjectExpression[AcademicYear] = new ObjectExpressionImpl[AcademicYear](this, "_year")
-  def term: ObjectExpression[AcademicYear] = _year
+  def year: ObjectExpression[AcademicYear] = _year
 
   private[this] lazy val _slug: StringExpression = new StringExpressionImpl(this, "_slug")
   def slug: StringExpression = _slug

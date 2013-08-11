@@ -132,7 +132,7 @@ object AccuScholarData extends UsesDataStore {
           }
         }
         val children = childrenUserNames.map(Student.getByUsername(_).get)
-        val dbGuardian = new Guardian(user, children)
+        val dbGuardian = new Guardian(user, None, children)
         pm.makePersistent(dbGuardian)
         if (debug) println("  guardian saved")
       }

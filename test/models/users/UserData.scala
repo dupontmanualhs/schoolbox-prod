@@ -37,7 +37,7 @@ object UserData extends UsesDataStore {
     val christinaTeacher = new Teacher(christina, "542358", "8795177958")
     val richardTeacher = new Teacher(richard, "423423", "4478340832")
     val toddTeacher = new Teacher(todd, "323423", "3042093480")
-    val toddGuardian = new Guardian(todd, Set(meriadocStud, peregrinStud))
+    val toddGuardian = new Guardian(todd, None, Set(meriadocStud, peregrinStud))
     dataStore.pm.makePersistentAll(List(eric, ericStud, mary, christina, jack, richard, john, fitzgerald, emma, laura, tyler, jordan, todd, andrew, mack, meriadoc, peregrin, maryTeacher, christinaTeacher, toddTeacher, richardTeacher, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud))
   }
 }

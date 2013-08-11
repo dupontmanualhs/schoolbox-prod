@@ -978,7 +978,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   * Checks a copy out to a student and is the helper method for quickCheckout
   */
   def quickCheckoutHelper(stuId: String, barcode: String) = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val cand = QStudent.candidate
       pm.query[Student].filter(cand.stateId.eq(stuId).or(cand.studentNumber.eq(stuId))).executeOption() match {
         case None => Ok(<li>Could not find student \u2718</li>.toString)

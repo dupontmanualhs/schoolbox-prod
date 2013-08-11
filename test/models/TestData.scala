@@ -76,9 +76,9 @@ object TestData extends UsesDataStore {
       // guardians
       val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.Male, null, "pen123")
       val hank = new User("hank", "Hank", None, "Hill", Some("Propane and Propane Accessories"), Gender.Male, null, "hil123")
-      val toddGuardian = new Guardian(todd, Set(meriadocStud, peregrinStud))
-      val regGuardian = new Guardian(reg, Set(fitzgeraldStud))
-      val hankGuardian = new Guardian(hank, Set(bobbyStud))
+      val toddGuardian = new Guardian(todd, None, Set(meriadocStud, peregrinStud))
+      val regGuardian = new Guardian(reg, None, Set(fitzgeraldStud))
+      val hankGuardian = new Guardian(hank, None, Set(bobbyStud))
 
       pm.makePersistentAll(List(
         mary, christina, richard, todd,

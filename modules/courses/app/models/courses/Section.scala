@@ -22,7 +22,7 @@ class Section extends UsesDataStore {
   private[this] var _id: Long = _
   def id: Long = _id
 
-  @Persistent
+  @Persistent(defaultFetchGroup="true")
   private[this] var _course: Course = _
   def course: Course = _course
   def course_=(theCourse: Course) { _course = theCourse }
@@ -32,31 +32,32 @@ class Section extends UsesDataStore {
   def sectionId: String = _sectionId
   def sectionId_=(theSectionId: String) { _sectionId = theSectionId }
 
-  @Persistent
+  @Persistent(defaultFetchGroup="true")
   @Element(types = Array(classOf[Term]))
   @Join
   private[this] var _terms: java.util.Set[Term] = _
   def terms: Set[Term] = _terms.asScala.toSet
   def terms_=(theTerms: Set[Term]) { _terms = theTerms.asJava }
 
-  @Persistent
+  @Persistent(defaultFetchGroup="true")
   @Element(types = Array(classOf[Period]))
   @Join
   private[this] var _periods: java.util.Set[Period] = _
   def periods: Set[Period] = _periods.asScala.toSet
   def periods_=(thePeriods: Set[Period]) { _periods = thePeriods.asJava }
 
+  @Persistent(defaultFetchGroup="true")
   private[this] var _room: Room = _
   def room: Room = _room
   def room_=(theRoom: Room) { _room = theRoom }
 
   def this(course: Course, sectionId: String, terms: Set[Term], periods: Set[Period], room: Room) = {
     this()
-    _course = course
-    _sectionId = sectionId
+    course_=(course)
+    sectionId_=(sectionId)
     terms_=(terms)
     periods_=(periods)
-    _room = room
+    room_=(room)
   }
 
   override def toString: String = s"Section(${course.name} - ${periodNames} - ${room.name})"

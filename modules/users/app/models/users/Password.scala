@@ -34,6 +34,8 @@ class Password {
       case _ => false
     }
   }
+  
+  override def toString: String = value
 }
 
 object Password {

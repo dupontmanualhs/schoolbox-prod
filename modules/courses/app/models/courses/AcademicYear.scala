@@ -3,6 +3,7 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 class AcademicYear {
@@ -21,6 +22,13 @@ class AcademicYear {
     this()
     _name = name
   }  
+}
+
+object AcademicYear extends UsesDataStore {
+  def getByName(name: String): Option[AcademicYear] = {
+    val cand = QAcademicYear.candidate
+    dataStore.pm.query[AcademicYear].filter(cand.name.eq(name)).executeOption()
+  }
 }
 
 trait QAcademicYear extends PersistableExpression[AcademicYear] {

@@ -41,9 +41,9 @@ class User extends Ordered[User] with UsesDataStore {
   def preferred_=(thePreferred: Option[String]) { _preferred = thePreferred.getOrElse(null) }
   
   @Persistent
-  private[this] var _gender: Gender.Value = _
-  def gender: Gender.Value = _gender
-  def gender_=(theGender: Gender.Gender) { _gender = theGender }
+  private[this] var _gender: Int = _
+  def gender: Gender.Value = Gender(_gender)
+  def gender_=(theGender: Gender.Gender) { _gender = theGender.id }
   
 //  private[this] var _gender: Int = _
 //  def gender: Gender.Gender = Gender(_gender)
@@ -107,7 +107,7 @@ class User extends Ordered[User] with UsesDataStore {
     dateJoined_=(DateTime.now())
     lastLogin_=(None)
     email_=(email)
-    password_=(password.getOrElse(""))
+    password_=(password.getOrElse(null.asInstanceOf[String]))
   }
   
   def this(username: String, first: String, middle: Option[String], last: String,

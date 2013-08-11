@@ -10,6 +10,10 @@ object ApplicationBuild extends Build {
   
   val commonDependencies = Seq(
       "org.apache.directory.studio" % "org.apache.commons.codec" % "1.8",
+      "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+      "ch.qos.logback" % "logback-core" % "1.0.13",
+      "ch.qos.logback" % "logback-classic" % "1.0.13",
+      "org.slf4j" % "log4j-over-slf4j" % "1.7.5",
       "com.google.inject" % "guice" % "3.0",
       "com.tzavellas" % "sse-guice" % "0.7.1",
       "com.scalatags" %% "scalatags" % "0.1.4",
@@ -61,15 +65,12 @@ object ApplicationBuild extends Build {
     "org.apache.poi" % "poi-ooxml" % "3.9",
     "com.h2database" % "h2" % "1.3.172",
     "javax.jdo" % "jdo-api" % "3.0.1",
-    "log4j" % "log4j" % "1.2.17",
     "com.itextpdf" % "itextpdf" % "5.4.2",
     "org.tukaani" % "xz" % "1.3",
     "javax.mail" % "mail" % "1.4.7",
     "net.sourceforge.htmlunit" % "htmlunit" % "2.12" % "test",
     "org.seleniumhq.selenium" % "selenium-java" % "2.33.0" % "test") ++ jsDependencies
 
-  System.setProperty("log4j.configuration", "file:conf/log4j.properties")
-  
   def customLessEntryPoints(base: File): PathFinder = (base / "app" / "assets" / "stylesheets" * "*.less")
 
   val main = play.Project(appName, appVersion, appDependencies).settings(

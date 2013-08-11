@@ -38,7 +38,9 @@ class Teacher extends Role {
     Nil
   }*/
 
-  def role = "Teacher"    
+  def role = "Teacher"
+    
+  override def canEqual(that: Any): Boolean = that.isInstanceOf[Teacher]
 }
 
 object Teacher extends UsesDataStore {
