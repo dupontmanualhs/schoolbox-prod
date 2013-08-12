@@ -1483,7 +1483,7 @@ object Books extends UsesDataStore {
     lazy val students = dataStore.pm.query[Student].filter(
         cand.user.eq(userVar).and(userVar.isActive.eq(true))).executeList().map(s => {
           val num = List(s.stateId, s.studentNumber).find(x => x != null && x != "").getOrElse("0000000000")
-          s"${s.formalName} - $num - ${s.user.username}"
+          s"${s.formalName} - $num"
         })
   }
 
