@@ -211,7 +211,16 @@ trait QUser extends PersistableExpression[User] {
   def email: StringExpression = _email
   
   private[this] lazy val _password: ObjectExpression[Password] = new ObjectExpressionImpl[Password](this, "_password")
-  def password: ObjectExpression[Password] = _password  
+  def password: ObjectExpression[Password] = _password 
+  
+  private[this] lazy val _isActive: BooleanExpression = new BooleanExpressionImpl(this, "_isActive")
+  def isActive: BooleanExpression = _isActive
+  
+  private[this] lazy val _isStaff: BooleanExpression = new BooleanExpressionImpl(this, "_isStaff")
+  def isStaff: BooleanExpression = _isStaff
+  
+  private[this] lazy val _isSuperuser: BooleanExpression = new BooleanExpressionImpl(this, "_isSuperuser")
+  def isSuperuser: BooleanExpression = _isSuperuser  
 }
 
 object QUser {

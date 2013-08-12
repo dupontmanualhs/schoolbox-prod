@@ -31,18 +31,20 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 object ManualData extends UsesDataStore with Logging {
 
-  val netIdMap: Map[String, String] = buildNetIdMap()
+  val folder = "/manual-data-new"
   
   // Needs to be updated each year
-  val currentYear = AcademicYear.getByName("2013-14").get
-  val fall13 = Term.getBySlug("f13").get
-  val spring14 = Term.getBySlug("s14").get
+  val currentYear = dataStore.pm.detachCopy(AcademicYear.getByName("2013-14").get)
+  val fall13 = dataStore.pm.detachCopy(Term.getBySlug("f13").get)
+  val spring14 = dataStore.pm.detachCopy(Term.getBySlug("s14").get)
   def icToTerms(start: String, end: String): List[Term] = (start, end) match {
     case ("1", "3") => List(fall13)
     case ("4", "6") => List(spring14)
     case ("1", "6") => List(fall13, spring14)
     case _ => Nil
   }
+
+  val netIdMap: Map[String, String] = buildNetIdMap()
 
   def load() {
     val classes = dataStore.persistentClasses.asJava
@@ -72,7 +74,7 @@ object ManualData extends UsesDataStore with Logging {
   def loadStudents() {
     dataStore.withTransaction { implicit pm =>
       logger.info("Importing students...")
-      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Students.xml.xz")))
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Students.xml.xz")))
       val students = doc \\ "student"
       students foreach ((student: Node) => {
         // grab data
@@ -120,9 +122,15 @@ object ManualData extends UsesDataStore with Logging {
       })
     }
   }
+  
+  def altStudentNumber(studentNumber: String): Option[String] = {
+    // if studentNumber begins with 0's, we should try stripping them
+    val alt = """^0+(\d+)$""".r.replaceAllIn(studentNumber, m => m.group(1))
+    if (alt != studentNumber) Some(alt) else None
+  }
 
   def loadGuardians() {
-    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Parents.xml.xz")))
+    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Parents.xml.xz")))
     val contacts = doc \\ "student"
     logger.info("Importing guardians...")
     val cand = QGuardian.candidate
@@ -130,11 +138,12 @@ object ManualData extends UsesDataStore with Logging {
     contacts foreach ((contact: Node) => {
       dataStore.withTransaction { implicit pm =>
         val studentNumber = (contact \ "@student.studentNumber").text
+        val altNumber = altStudentNumber(studentNumber)
         val isGuardian = ((contact \ "@contacts.guardian").text == "1")
         logger.trace(s"read guardian for student number $studentNumber")
         if (isGuardian) {
           logger.trace("processing, because is guardian")
-          Student.getByStudentNumber(studentNumber) match {
+          Student.getByStudentNumber(studentNumber).orElse(altNumber.flatMap(Student.getByStudentNumber(_))) match {
             case None => logger.info(s"No student with studentNumber $studentNumber in database.")
             case Some(student) => {
               logger.trace(s"guardian belongs to Student: ${student.formalName}")
@@ -186,7 +195,7 @@ object ManualData extends UsesDataStore with Logging {
   }
 
   def loadTeachers() {
-    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Teachers.xml.xz")))
+    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Teachers.xml.xz")))
     val teachers = doc \\ "person"
     logger.info("Importing teachers...")
     dataStore.withTransaction { implicit pm =>
@@ -236,7 +245,7 @@ object ManualData extends UsesDataStore with Logging {
     val asl = """amsignlang""".r
     val sci1a = """(?<=science\s)1a""".r
     val pe = """(^|\s)pe(\s|$|\d|/)""".r
-    val newWord = """(^|\s|&|-|/)[a-z]""".r
+    val newWord = """(^|\s|&|-|/|\()[a-z]""".r
     val s2 = acronyms.replaceAllIn(s, cap _)
     val s3 = asl.replaceAllIn(s2, "AmSignLang")
     val s4 = sci1a.replaceAllIn(s3, cap _)
@@ -249,7 +258,7 @@ object ManualData extends UsesDataStore with Logging {
     logger.trace("Fetching courses already in database...")
     val coursesByMasterNumber: Map[String, Course] = dataStore.pm.query[Course].executeList().map(c => (c.masterNumber, c)).toMap
     logger.trace("Comparing to courses in dump...")
-    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Courses.xml.xz")))
+    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Courses.xml.xz")))
     val courses = doc \\ "curriculum"
     dataStore.withTransaction { implicit pm =>
       courses foreach ((course: Node) => {
@@ -287,7 +296,7 @@ object ManualData extends UsesDataStore with Logging {
   def loadSections() {
     logger.info("Importing sections...")
     val dbSectionsByNumber = dataStore.pm.query[Section].executeList().map(s => (s.sectionId -> s)).toMap
-    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Sections.xml.xz")))
+    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Sections.xml.xz")))
     val sections = doc \\ "curriculum"
     sections foreach ((section: Node) => {
       dataStore.withTransaction { implicit pm =>
@@ -360,7 +369,7 @@ object ManualData extends UsesDataStore with Logging {
             termVar.year.eq(currentYear))).executeList()
     val dbEnrollmentIds = mutable.Set(dbEnrollments.map(_.id): _*)
     val unknownSections = mutable.Set[String]()
-    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Schedule.xml.xz")))
+    val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Schedule.xml.xz")))
     val fileEnrollments = doc \\ "student"
     fileEnrollments foreach ((enrollment: Node) => {
       dataStore.withTransaction { implicit pm =>
@@ -410,7 +419,7 @@ object ManualData extends UsesDataStore with Logging {
 
   /*def loadLockers(debug: Boolean) {
     dataStore.withTransaction { implicit pm =>
-      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/Lockers.xml.xz")))
+      val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Lockers.xml.xz")))
       val lockers = doc \\ "student"
       lockers foreach ((locker: Node) => {
         val number = util.Helpers.toInt((locker \ "@lockerDetail.lockerNumber").text)
@@ -458,7 +467,7 @@ object ManualData extends UsesDataStore with Logging {
   }
 
   def buildNetIdMap(): Map[String, String] = {
-    val wb = WorkbookFactory.create(new XZInputStream(getClass.getResourceAsStream("/manual-data/StudentNetworkSecurityInfo.xlsx.xz")))
+    val wb = WorkbookFactory.create(new XZInputStream(getClass.getResourceAsStream(s"$folder/StudentNetworkSecurityInfo.xlsx.xz")))
     val sheet: Sheet = wb.getSheetAt(0)
     sheet.removeRow(sheet.getRow(0))
     val pairs = (sheet.asScala.map { (row: Row) =>
@@ -469,7 +478,7 @@ object ManualData extends UsesDataStore with Logging {
 
   def loadBookData(debug: Boolean = false) {
     if (debug) println("Loading book data...")
-    val data = XML.load(new XZInputStream(getClass.getResourceAsStream("/manual-data/bookData.xml.xz")))
+    val data = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/bookData.xml.xz")))
     val titleIdMap = loadTitles((data \ "titles"), debug)
     val pgIdMap = loadPurchaseGroups((data \ "purchaseGroups"), titleIdMap, debug)
     val copyIdMap = loadCopies((data \ "copies"), pgIdMap, debug)

@@ -25,11 +25,16 @@ class Period {
   def slug: String = _slug
   def slug_=(theSlug: String) { _slug = theSlug }
   
-  def this(name: String, order: Int, slug: String) {
+  private[this] var _showIfEmpty: Boolean = _
+  def showIfEmpty: Boolean = _showIfEmpty
+  def showIfEmpty_=(theShowIfEmpty: Boolean) { _showIfEmpty = theShowIfEmpty }
+  
+  def this(name: String, order: Int, slug: String, showIfEmpty: Boolean = true) {
     this()
     name_=(name)
     order_=(order)
     slug_=(slug)
+    showIfEmpty_=(showIfEmpty)
   }
   
   def this(name: String, order: Int) = {

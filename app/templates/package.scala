@@ -61,7 +61,7 @@ package object templates {
           div.cls("container")(
             a.cls("btn", "btn-navbar").attr("data-toggle" -> "collapse", "data-target" -> ".nav-collapse")(
               span.cls("icon-bar"), span.cls("icon-bar"), span.cls("icon-bar")),
-            a.cls("brand").href("/")("ABCD eSchool"),
+            a.cls("brand").href(controllers.routes.App.index)("Schoolbox (v0.1)"),
             div.cls("nav-collapse", "collapse").id("main-menu")(
               req.visit.menu))))
     }
@@ -82,10 +82,10 @@ package object templates {
 
   object Index {
     def apply()(implicit req: VisitRequest[_]) =
-      config.main("ABCD eSchool")(
+      config.main("Schoolbox")(
         div.cls("hero-unit")(
-          h1("ABCD eSchool"),
-          p("OH GOD IM TRAPPED IN HERE SOMEONE HELP PLEASE!")))
+          h1("Schoolbox"),
+          p("Everything a school needs in one easy package. (Eventually.)")))
   }
 
   object NotFound extends NotFoundTemplate {

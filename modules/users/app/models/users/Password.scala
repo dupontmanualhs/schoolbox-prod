@@ -82,7 +82,7 @@ object PasswordForDataStore {
   }
 }
 
-/** A password hash is stored as "algorithm$iterations$salt$hash"
+/** A password hash is stored as `"algorithm\$iterations\$salt\$hash"`
  *  with the number of iterations optional for some algorithms
  */
 trait PasswordHash { 

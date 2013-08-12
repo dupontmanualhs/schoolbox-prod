@@ -182,11 +182,11 @@ object AccuScholarData extends UsesDataStore {
       }
       val periods: List[Period] = List(
         new Period("Red 1", 1, "r1"), new Period("Red 2", 2, "r2"), new Period("Red 3", 3, "r3"), 
-        new Period("Red 4", 4, "r4"), new Period("Red 5", 5, "r5"),
-        new Period("Red Activity", 6, "ract"), new Period("Red Advisory", 7, "radv"),
+        new Period("Red 4", 4, "r4"), new Period("Red 5", 5, "r5", false),
+        new Period("Red Activity", 6, "ract", false), new Period("Red Advisory", 7, "radv"),
         new Period("White 1", 8, "w1"), new Period("White 2", 9, "w2"), new Period("White 3", 10, "w3"),
-        new Period("White 4", 11, "w4"), new Period("White 5", 12, "w5"),
-        new Period("White Activity", 13, "wact"), new Period("White Advisory", 14, "wadv"))
+        new Period("White 4", 11, "w4"), new Period("White 5", 12, "w5", false),
+        new Period("White Activity", 13, "wact", false), new Period("White Advisory", 14, "wadv"))
       pm.makePersistentAll(periods)
       if (debug) println("Created AcademicYear, Terms, and Periods")
     }

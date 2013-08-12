@@ -47,9 +47,12 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
       val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
       val table = periods.map { p =>
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-        tr(td(p.name),
-           td(intersperse(sectionsThisPeriod.map(s => linkToPage(s)), br())),
-           td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())))
+        if (!p.showIfEmpty && sectionsThisPeriod.isEmpty) StringSTag("")
+        else {
+          tr(td(p.name),
+             td(intersperse(sectionsThisPeriod.map(s => linkToPage(s)), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())))
+        }
       }
       Ok(templates.courses.TeacherSchedule(teacher, term, table, hasAssignments))
     }

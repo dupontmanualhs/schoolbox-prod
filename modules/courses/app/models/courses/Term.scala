@@ -46,6 +46,8 @@ class Term {
     start_=(theStart)
     end_=(theEnd)
   }
+  
+  override def toString: String = s"Term: $name"
 }
 
 object Term extends UsesDataStore {
@@ -57,12 +59,18 @@ object Term extends UsesDataStore {
   def current(): Term = _current match {
     case Some(term) => term
     case None => {
-      val pm = dataStore.pm
+      val today = new java.sql.Date(LocalDate.now().toDateTimeAtStartOfDay().getMillis())
       val cand = QTerm.candidate
-      // TODO: this only works if there's exactly one Term in the db
-      val term = pm.query[Term].executeList().last
-      _current = Some(pm.detachCopy(term))
-      _current.get
+      dataStore.execute { pm =>
+        val maybeTerm = pm.query[Term].filter(cand.start.lteq(today).and(cand.end.gteq(today))).executeOption()
+        val theTerm = maybeTerm match {
+          case Some(term) => term
+          // no term for current date - grabbing latest
+          case None => pm.query[Term].orderBy(cand.end.asc).executeList().last
+        }
+        _current = Some(pm.detachCopy(theTerm))
+        _current.get
+      }
     }
   }
 

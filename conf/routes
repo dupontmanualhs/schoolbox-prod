@@ -18,7 +18,6 @@ GET     /assets/*file               		controllers.Assets.at(path="/public", file
 
 #Courses
 -> /courses				courses.Routes
-# current schedules
 
 #Assignments
 GET     /assignments/doTask/:taskId             @controllers.Assignments.doTask(taskId: Long)
