@@ -51,12 +51,12 @@ object ManualData extends UsesDataStore with Logging {
     val props = new Properties()
     dataStore.storeManager.validateSchema(classes, props)
     // de-activate everyone and re-activate only the users in the data dump
-    //markAllUsersInactive()
-    //loadStudents()
-    //loadGuardians()
-    //loadTeachers()
+    markAllUsersInactive()
+    loadStudents()
+    loadGuardians()
+    loadTeachers()
     loadCourses()
-    loadSections()
+    val unusedSections = loadSections()
     loadEnrollments()
     //graduateSeniors()
   }
@@ -293,9 +293,9 @@ object ManualData extends UsesDataStore with Logging {
     }
   }
 
-  def loadSections() {
+  def loadSections(): mutable.Map[String, Section] = {
     logger.info("Importing sections...")
-    val dbSectionsByNumber = dataStore.pm.query[Section].executeList().map(s => (s.sectionId -> s)).toMap
+    val dbSectionsByNumber = mutable.Map(dataStore.pm.query[Section].executeList().map(s => (s.sectionId -> s)): _*)
     val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Sections.xml.xz")))
     val sections = doc \\ "curriculum"
     sections foreach ((section: Node) => {
@@ -357,9 +357,12 @@ object ManualData extends UsesDataStore with Logging {
               pm.makePersistent(new TeacherAssignment(teacher.get, dbSection, None, None))
             }
           }
+          dbSectionsByNumber -= sectionId
         }
       }
     })
+    logger.info(s"The following sections weren't in the latest data dump. They will be deleted if they are empty: ${dbSectionsByNumber.keySet.mkString(", ")}")
+    dbSectionsByNumber
   }
 
   def loadEnrollments() {
@@ -418,6 +421,23 @@ object ManualData extends UsesDataStore with Logging {
       logger.error(s"The following sections were in the file dump, but not in the database: ${unknownSections.mkString(",")}")
     }
   }
+  
+  def deleteEmptySections(dbSectionsByNumber: Map[String, Section]) {
+    dbSectionsByNumber.map { case (sectionId, section) => 
+      dataStore.withTransaction { pm => 
+        val seCand = QStudentEnrollment.candidate()
+        val enrs = pm.query[StudentEnrollment].filter(seCand.section.eq(section)).executeList()
+        if (enrs.isEmpty) {
+          val taCand = QTeacherAssignment.candidate()
+          val tas = pm.query[TeacherAssignment].filter(taCand.section.eq(section)).executeList()
+          tas.foreach { ta => pm.deletePersistent(ta) }
+          pm.deletePersistent(section)
+        }
+      }
+    }
+  }
+  
+  
 
   /*def loadLockers(debug: Boolean) {
     dataStore.withTransaction { implicit pm =>
