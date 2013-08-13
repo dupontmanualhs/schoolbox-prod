@@ -5,9 +5,13 @@ import com.google.inject.Injector
 import scalatags.STag
 import org.dupontmanual.forms.Call
 import play.api.templates.Html
-
 import models.users.Role
 import controllers.users.VisitRequest
+import com.google.inject.Inject
+import scalajdo.DataStore
+import javax.jdo.JDOHelper
+import org.datanucleus.api.jdo.JDOPersistenceManagerFactory
+
 
 trait Config {
   def defaultCall: Call
@@ -15,6 +19,14 @@ trait Config {
   def notFound: NotFoundTemplate
   def menuBuilder: (Option[Role] => NodeSeq)
   def webjars: (String => Call)
+}
+
+object UsesDataStore {
+  val dataStore: DataStore = new DataStore(() => JDOHelper.getPersistenceManagerFactory("play-eschool").asInstanceOf[JDOPersistenceManagerFactory])
+}
+
+trait UsesDataStore {
+  def dataStore = UsesDataStore.dataStore
 }
 
 trait ProvidesInjector {

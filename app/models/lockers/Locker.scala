@@ -6,8 +6,9 @@ import org.datanucleus.api.jdo.query._
 import models.courses.Student
 import util.Helpers._
 import scala.xml._
+import config.users.UsesDataStore
 
-import scalajdo.DataStore
+
 
 @PersistenceCapable(detachable="true")
 class Locker {
@@ -72,37 +73,37 @@ class Locker {
   }
 }
 
-object Locker {
+object Locker extends UsesDataStore {
   def getById(id: Long): Option[Locker] = {
-    DataStore.execute { epm =>
+    dataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.id.eq(id)).executeOption()
     }
   }
   
   def getByStudent(stu: Student): Option[Locker] = {
-    DataStore.execute { epm =>
+    dataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.student.eq(stu)).executeOption()
     }
   }
   
   def getByNumber(number: Int): Option[Locker] = {
-    DataStore.execute { epm =>
+    dataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.number.eq(number)).executeOption()
     }
   }
   
   def availableLockers(): List[Locker] = {
-    DataStore.execute { epm =>
+    dataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.taken.eq(false)).executeList()
     }
   }
   
   def allLockers(): List[Locker] = {
-    DataStore.execute { epm =>
+    dataStore.execute { epm =>
       val cand = QLocker.candidate
       epm.query[Locker].filter(cand.taken.eq(false).or(cand.taken.eq(true))).executeList()
     }

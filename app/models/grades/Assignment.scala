@@ -6,11 +6,11 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.PersistableFile
 import models.courses.{ Section, Student }
-import scalajdo.DataStore
 import org.joda.time.{ LocalDate, LocalDateTime }
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
-class Assignment {
+class Assignment extends UsesDataStore {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -54,21 +54,21 @@ class Assignment {
 
   def getTurnin(student: Student): Option[Turnin] = {
     val cand = QTurnin.candidate
-    DataStore.pm.query[Turnin].filter(cand.assignment.eq(this).and(cand.student.eq(student))).executeOption
+    dataStore.pm.query[Turnin].filter(cand.assignment.eq(this).and(cand.student.eq(student))).executeOption
   }
 
 }
 
-object Assignment {
+object Assignment extends UsesDataStore {
   def forCategory(category: Category): List[Assignment] = {
     val cand = QAssignment.candidate
-    DataStore.pm.query[Assignment].filter(cand.category.eq(category)).executeList
+    dataStore.pm.query[Assignment].filter(cand.category.eq(category)).executeList
   }
 
   def getAssignments(section: Section): List[Assignment] = {
     val cand = QAssignment.candidate
     val varble = QCategory.variable("sect")
-    DataStore.pm.query[Assignment].filter(cand.category.eq(varble).and(varble.section.eq(section))).executeList
+    dataStore.pm.query[Assignment].filter(cand.category.eq(varble).and(varble.section.eq(section))).executeList
   }
 }
 

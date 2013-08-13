@@ -6,7 +6,7 @@ import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
 class Task {
@@ -30,9 +30,9 @@ class Task {
   def questions_=(theQuestions: List[DbQuestion]) { _questions = theQuestions.asJava }
 }
 
-object Task {
+object Task extends UsesDataStore {
   def getById(id: Long): Option[Task] = {
-    DataStore.pm.query[Task].filter(QTask.candidate.id.eq(id)).executeOption()
+    dataStore.pm.query[Task].filter(QTask.candidate.id.eq(id)).executeOption()
   }
 }
 

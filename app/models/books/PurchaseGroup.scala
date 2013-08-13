@@ -4,13 +4,11 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.PersistableFile
-
 import org.joda.time.LocalDate
-
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
-class PurchaseGroup {
+class PurchaseGroup extends UsesDataStore {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -44,21 +42,21 @@ class PurchaseGroup {
 
   def numCopies(): Int = {
     val copyCand = QCopy.candidate
-    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+    dataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
         copyCand.purchaseGroup.eq(this))).executeList().length
   }
 
   def numLost(): Int = {
     val copyCand = QCopy.candidate
-    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(true).and(
+    dataStore.pm.query[Copy].filter(copyCand.isLost.eq(true).and(
         copyCand.purchaseGroup.eq(this))).executeList().length
   }
 }
 
-object PurchaseGroup {
+object PurchaseGroup extends UsesDataStore {
   def getById(id: Long): Option[PurchaseGroup] = {
     val cand = QPurchaseGroup.candidate
-    DataStore.pm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[PurchaseGroup].filter(cand.id.eq(id)).executeOption()
   }
 }
 

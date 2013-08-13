@@ -25,8 +25,8 @@ class Event {
 
   def this(name: String, isActive: Boolean) = {
     this()
-    _name = name
-    _isActive = isActive
+    name_=(name)
+    isActive_=(isActive)
   }
 }
 

@@ -18,7 +18,6 @@ GET     /assets/*file               		controllers.Assets.at(path="/public", file
 
 #Courses
 -> /courses				courses.Routes
-# current schedules
 
 #Assignments
 GET     /assignments/doTask/:taskId             @controllers.Assignments.doTask(taskId: Long)
@@ -100,6 +99,8 @@ GET     /books/printSectionsByDept              @controllers.Books.printSections
 POST    /books/printSectionsByDept              @controllers.Books.printSectionsByDeptP()
 GET     /books/printAllSections                 @controllers.Books.printAllSections()
 GET     /books/reportCopyLost/:barcode          @controllers.Books.reportCopyLost(barcode: String)
+GET     /books/quickCheckoutHelper/:sId/:bcode  @controllers.Books.quickCheckoutHelper(sId: String, bcode: String)
+GET     /books/quickCheckout                    @controllers.Books.quickCheckout()
 
 #Lockers
 GET     /lockers/myLocker                       @controllers.Lockers.getMyLocker()
@@ -125,8 +126,8 @@ GET		/conferences/createEvent				@controllers.Conferences.createEvent()
 POST	/conferences/createEvent				@controllers.Conferences.createEventP()
 GET		/conferences/createSession/:eventId				@controllers.Conferences.createSession(eventId: Long)
 POST	/conferences/createSession/:eventId				@controllers.Conferences.createSessionP(eventId: Long)
-GET		/conferences/createSlot/:sessionId/:studentId/:teacherId		@controllers.Conferences.createSlot(sessionId: Long, studentId: Long, teacherId: Long)
-POST	/conferences/createSlot/:sessionId/:studentId/:teacherId		@controllers.Conferences.createSlotP(sessionId: Long, studentId: Long, teacherId: Long)
+#GET		/conferences/createSlot/:sessionId/:studentId/:teacherId		@controllers.Conferences.createSlot(sessionId: Long, studentId: Long, teacherId: Long)
+#POST	/conferences/createSlot/:sessionId/:studentId/:teacherId		@controllers.Conferences.createSlotP(sessionId: Long, studentId: Long, teacherId: Long)
 GET		/conferences/deleteEvent/:eventId				@controllers.Conferences.deleteEvent(eventId: Long)
 GET		/conferences/deleteSession/:sessionId			@controllers.Conferences.deleteSession(sessionId: Long)
 GET		/conferences/deleteSlot/:slotId					@controllers.Conferences.deleteSlot(slotId: Long)

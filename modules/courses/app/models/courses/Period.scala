@@ -3,6 +3,7 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 class Period {
@@ -19,10 +20,39 @@ class Period {
   def order: Int = _order
   def order_=(theOrder: Int) { _order = theOrder }
   
-  def this(name: String, order: Int) = {
+  @Unique
+  private[this] var _slug: String = _
+  def slug: String = _slug
+  def slug_=(theSlug: String) { _slug = theSlug }
+  
+  private[this] var _showIfEmpty: Boolean = _
+  def showIfEmpty: Boolean = _showIfEmpty
+  def showIfEmpty_=(theShowIfEmpty: Boolean) { _showIfEmpty = theShowIfEmpty }
+  
+  def this(name: String, order: Int, slug: String, showIfEmpty: Boolean = true) {
     this()
-    _name = name
-    _order = order
+    name_=(name)
+    order_=(order)
+    slug_=(slug)
+    showIfEmpty_=(showIfEmpty)
+  }
+  
+  def this(name: String, order: Int) = {
+    this(name, order, Period.slugFromName(name))
+  }
+}
+
+object Period extends UsesDataStore {
+  def slugFromName(name: String): String = {
+    val wds = name.split(" ", 2)
+    val day = wds(0).substring(0, 1).toLowerCase
+    val rest = wds(1).toLowerCase()
+    day + rest
+  }
+  
+  def getBySlug(slug: String): Option[Period] = {
+    val cand = QPeriod.candidate
+    dataStore.pm.query[Period].filter(cand.slug.eq(slug)).executeOption()
   }
 }
 
@@ -35,6 +65,9 @@ trait QPeriod extends PersistableExpression[Period] {
   
   private[this] lazy val _order: NumericExpression[Int] = new NumericExpressionImpl[Int](this, "_name")
   def order: NumericExpression[Int] = _order
+  
+  private[this] lazy val _slug: StringExpression = new StringExpressionImpl(this, "_slug")
+  def slug: StringExpression = _slug
 }
 
 object QPeriod {

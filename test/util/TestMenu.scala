@@ -5,7 +5,7 @@ import scala.xml.Utility.trim
 import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 
-import models.users.MenuItem
+import controllers.users.MenuItem
 
 class TestMenu extends FunSuite with ShouldMatchers {
   test("correct html") {

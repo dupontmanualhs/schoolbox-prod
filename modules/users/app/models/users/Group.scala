@@ -1,17 +1,17 @@
 package models.users
 
 import scala.collection.JavaConverters._
-
 import javax.jdo.annotations._
-
 import scala.collection.JavaConverters._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 
-import scalajdo.DataStore
+import config.users.Config
+import com.google.inject.Inject
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
-class Group {
+class Group extends UsesDataStore {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -40,7 +40,7 @@ class Group {
   
   def permissions(): Set[Permission] = {
     val cand = QPermission.candidate
-    DataStore.pm.query[Permission].filter(cand.groups.contains(this)).executeList().toSet
+    dataStore.pm.query[Permission].filter(cand.groups.contains(this)).executeList().toSet
   }
   
   def canEqual(that: Any): Boolean = that.isInstanceOf[Group]
@@ -54,6 +54,8 @@ class Group {
 }
 
 object Group {
+  @Inject
+  def config(conf: Config): Config = conf
   
 }
 

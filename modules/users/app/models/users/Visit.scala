@@ -6,11 +6,12 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import scala.collection.JavaConverters._
 import scala.xml.{ Elem, NodeSeq, XML }
-import scalajdo.DataStore
+
 import play.api.mvc.Request
 import config.users.Config
 import com.google.inject.Inject
 import org.dupontmanual.forms.Call
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 class Visit {
@@ -93,11 +94,11 @@ class Visit {
   }
 }
 
-object Visit {
+object Visit extends UsesDataStore {
   val visitLength = 3600000 // one hour in milliseconds
   
   def getByUuid(uuid: String): Option[Visit] = {
-    DataStore.pm.query[Visit].filter(QVisit.candidate.uuid.eq(uuid)).executeOption()
+    dataStore.pm.query[Visit].filter(QVisit.candidate.uuid.eq(uuid)).executeOption()
   }
   
   def getFromRequest[A](implicit req: Request[A], config: Config): Visit = {
@@ -107,7 +108,7 @@ object Visit {
   }
   
   def allExpired: List[Visit] = {
-    DataStore.pm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
+    dataStore.pm.query[Visit].filter(QVisit.candidate.expiration.lt(System.currentTimeMillis)).executeList()
   }
   
   def string2nodeSeq(legalNodeSeq: String): NodeSeq = {

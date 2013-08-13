@@ -5,7 +5,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import javax.jdo.JDOHelper
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
 class Term {
@@ -46,9 +46,11 @@ class Term {
     start_=(theStart)
     end_=(theEnd)
   }
+  
+  override def toString: String = s"Term: $name"
 }
 
-object Term {
+object Term extends UsesDataStore {
   // TODO: the "current" term should be based on the date, but each role
   // might have a current term, reflecting the term that s/he is currently
   // looking at
@@ -57,18 +59,24 @@ object Term {
   def current(): Term = _current match {
     case Some(term) => term
     case None => {
-      val pm = DataStore.pm
+      val today = new java.sql.Date(LocalDate.now().toDateTimeAtStartOfDay().getMillis())
       val cand = QTerm.candidate
-      // TODO: this only works if there's exactly one Term in the db
-      val term = pm.query[Term].executeList()(0)
-      _current = Some(pm.detachCopy(term))
-      _current.get
+      dataStore.execute { pm =>
+        val maybeTerm = pm.query[Term].filter(cand.start.lteq(today).and(cand.end.gteq(today))).executeOption()
+        val theTerm = maybeTerm match {
+          case Some(term) => term
+          // no term for current date - grabbing latest
+          case None => pm.query[Term].orderBy(cand.end.asc).executeList().last
+        }
+        _current = Some(pm.detachCopy(theTerm))
+        _current.get
+      }
     }
   }
 
   def getBySlug(slug: String): Option[Term] = {
     val cand = QTerm.candidate
-    DataStore.pm.query[Term].filter(cand.slug.eq(slug)).executeOption()
+    dataStore.pm.query[Term].filter(cand.slug.eq(slug)).executeOption()
   }
 }
 
@@ -77,7 +85,7 @@ trait QTerm extends PersistableExpression[Term] {
   def name: StringExpression = _name
 
   private[this] lazy val _year: ObjectExpression[AcademicYear] = new ObjectExpressionImpl[AcademicYear](this, "_year")
-  def term: ObjectExpression[AcademicYear] = _year
+  def year: ObjectExpression[AcademicYear] = _year
 
   private[this] lazy val _slug: StringExpression = new StringExpressionImpl(this, "_slug")
   def slug: StringExpression = _slug

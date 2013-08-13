@@ -13,9 +13,10 @@ import org.openqa.selenium.WebDriver
 import org.fluentlenium.core.filter.FilterConstructor._
 import org.scalatest.selenium.WebBrowser
 import java.util.concurrent.TimeUnit
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
-class TestLogins extends FunSuite with BeforeAndAfterAll with ShouldMatchers with WebBrowser {
+
+class TestLogins extends FunSuite with BeforeAndAfterAll with ShouldMatchers with WebBrowser with UsesDataStore {
   val server = TestServer(3333)
   val baseUrl = s"http://localhost:${server.port}"
   implicit val driver = new FirefoxDriver()
@@ -28,7 +29,7 @@ class TestLogins extends FunSuite with BeforeAndAfterAll with ShouldMatchers wit
   override def afterAll() {
     close()
     server.stop()
-    DataStore.close()
+    dataStore.close()
   }
   
   test("home page has 'Log in' link") {

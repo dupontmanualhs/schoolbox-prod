@@ -3,7 +3,8 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import scalajdo.DataStore
+
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 class Course {
@@ -34,12 +35,21 @@ class Course {
   }
   
   override def toString = "%s (%s)".format(name, masterNumber)
+  
+  def canEqual(that: Any): Boolean = that.isInstanceOf[Course]
+  
+  override def equals(that: Any): Boolean = that match {
+    case that: Course => this.canEqual(that) && this.id == that.id
+    case _ => false
+  }
+  
+  override def hashCode: Int = this.id.hashCode
 }
 
-object Course {
+object Course extends UsesDataStore {
   def getByMasterNumber(masterNumber: String): Option[Course] = {
     val cand = QCourse.candidate
-    DataStore.pm.query[Course].filter(cand.masterNumber.eq(masterNumber)).executeOption()
+    dataStore.pm.query[Course].filter(cand.masterNumber.eq(masterNumber)).executeOption()
   }
 }
 

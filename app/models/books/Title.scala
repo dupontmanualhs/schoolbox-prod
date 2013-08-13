@@ -5,11 +5,11 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.PersistableFile
-import scalajdo.DataStore
 import org.joda.time.LocalDateTime
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
-class Title {
+class Title extends UsesDataStore {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -109,7 +109,7 @@ class Title {
   def howManyCopies(): Int = {
     val pgVar = QPurchaseGroup.variable("pg")
     val copyCand = QCopy.candidate
-    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+    dataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
       copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this)).and(copyCand.deleted.eq(false))).executeList().length
   }
@@ -118,7 +118,7 @@ class Title {
     val pgVar = QPurchaseGroup.variable("pg")
     val copyCand = QCopy.candidate
     val coVar = QCheckout.variable("co")
-    DataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
+    dataStore.pm.query[Copy].filter(copyCand.isLost.eq(false).and(
       copyCand.deleted.eq(false)).and(
         copyCand.purchaseGroup.eq(pgVar)).and(
           pgVar.title.eq(this)).and(
@@ -129,7 +129,7 @@ class Title {
   def howManyDeleted(): Int = {
     val pgVar = QPurchaseGroup.variable("pg")
     val copyCand = QCopy.candidate
-    DataStore.pm.query[Copy].filter(copyCand.deleted.eq(true).and(
+    dataStore.pm.query[Copy].filter(copyCand.deleted.eq(true).and(
       copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this))).executeList().length
   }
@@ -137,7 +137,7 @@ class Title {
   def howManyLost(): Int = {
     val pgVar = QPurchaseGroup.variable("pg")
     val copyCand = QCopy.candidate
-    DataStore.pm.query[Copy].filter(copyCand.deleted.eq(false).and(
+    dataStore.pm.query[Copy].filter(copyCand.deleted.eq(false).and(
       copyCand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(this)).and(copyCand.isLost.eq(true))).executeList().length
   }
@@ -151,15 +151,15 @@ class Title {
   }
 }
 
-object Title {
+object Title extends UsesDataStore {
   def getById(id: Long): Option[Title] = {
     val cand = QTitle.candidate
-    DataStore.pm.query[Title].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[Title].filter(cand.id.eq(id)).executeOption()
   }
 
   def getByIsbn(isbn: String): Option[Title] = {
     val cand = QTitle.candidate
-    DataStore.pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
+    dataStore.pm.query[Title].filter(cand.isbn.eq(isbn)).executeOption()
   }
 
   def convertStrToDecimal(str: String): Double = {
@@ -173,7 +173,7 @@ object Title {
 
   def count(): Long = {
     val cand = QTitle.candidate
-    DataStore.pm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
+    dataStore.pm.query[Title].query.executeResultUnique(classOf[java.lang.Long], true, cand.count())
   }
   /**
    * Helper Method

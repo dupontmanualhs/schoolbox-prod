@@ -10,15 +10,16 @@ import play.api.mvc.Result
 import models.users.QRole
 import org.dupontmanual.forms.fields.TextField
 import org.dupontmanual.forms.{ Form, ValidBinding, InvalidBinding, Binding }
-import scalajdo.DataStore
+
 import models.users.Visit
 import controllers.users.{ Authenticated, VisitAction }
 import config.Config
+import config.users.UsesDataStore
 
 //TODO: Actually check permissions where applicable
 
 @Singleton
-class Blogs @Inject()(implicit config: Config) extends Controller {
+class Blogs @Inject()(implicit config: Config) extends Controller with UsesDataStore {
   
   def editor() = TODO
 
@@ -29,7 +30,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
   def listUserBlogs(roleOpt: Option[Role]) = VisitAction { implicit req =>
     roleOpt match {
       case None => NotFound("That role doesn't exist.")
-      case Some(role) => DataStore.execute { implicit pm =>
+      case Some(role) => dataStore.execute { implicit pm =>
         val cand = QBlog.candidate
         val blogs: List[Blog] = Blog.listUserBlogs(role)
         Ok(views.html.blogs.blogs(blogs, role))
@@ -50,7 +51,7 @@ class Blogs @Inject()(implicit config: Config) extends Controller {
    *  Presents a page with blogs corresponding to a persepective with given id
    */
   def listBlogsByRoleId(id: Long) = VisitAction { implicit req =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       Role.getById(id) match {
         case Some(role) => Ok(views.html.blogs.blogs(Blog.listUserBlogs(role), role))
         case None => NotFound("That role doesn't exist!")

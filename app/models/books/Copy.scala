@@ -4,11 +4,10 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import javax.jdo.listener.StoreCallback
-
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
-class Copy /*extends StoreCallback*/ {
+class Copy extends UsesDataStore {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -33,10 +32,10 @@ class Copy /*extends StoreCallback*/ {
 
   def this(purchaseGroup: PurchaseGroup, number: Int, isLost: Boolean = false, deleted: Boolean = false) = {
     this()
-    _purchaseGroup = purchaseGroup
-    _number = number
-    _isLost = isLost
-    _deleted = deleted
+    purchaseGroup_=(purchaseGroup)
+    number_=(number)
+    isLost_=(isLost)
+    deleted_=(deleted)
   }
 
   val maxCopyNumber: Int = 99999
@@ -52,7 +51,7 @@ class Copy /*extends StoreCallback*/ {
 
   def isCheckedOut: Boolean = {
     val cand = QCheckout.candidate
-    DataStore.pm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().nonEmpty
+    dataStore.pm.query[Checkout].filter(cand.copy.eq(this).and(cand.endDate.eq(null.asInstanceOf[java.sql.Date]))).executeList().nonEmpty
   }
 
   //TODO Fix this so that it works
@@ -74,10 +73,10 @@ class Copy /*extends StoreCallback*/ {
   */
 }
 
-object Copy {
+object Copy extends UsesDataStore {
   def getById(id: Long): Option[Copy] = {
     val cand = QCopy.candidate
-    DataStore.pm.query[Copy].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[Copy].filter(cand.id.eq(id)).executeOption()
   }
 
   def getByBarcode(barcode: String): Option[Copy] = {
@@ -86,12 +85,12 @@ object Copy {
     val cand = QCopy.candidate
     val titleVar = QTitle.variable("titleVar")
     val pgVar = QPurchaseGroup.variable("pgVar")
-    DataStore.pm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
+    dataStore.pm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
         pgVar.title.eq(titleVar)).and(titleVar.isbn.eq(isbn))).executeOption()
   }
 
   def makeUniqueCopies(pGroup: PurchaseGroup, quantity: Int): (Int, Int) = {
-    val pm = DataStore.pm
+    val pm = dataStore.pm
     val cand = QCopy.candidate
     val nTitle = pGroup.title
     val pgVar = QPurchaseGroup.variable("pgVar")

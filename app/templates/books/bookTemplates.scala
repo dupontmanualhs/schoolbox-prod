@@ -12,16 +12,19 @@ import models.books.Copy
 import play.api.Play
 import com.google.inject.Inject
 import java.io.File
+import scala.xml.Unparsed
 
 package object books {
   private[books] class ConfigProvider @Inject()(val config: Config)
   private[books] val injector = Play.current.global.asInstanceOf[ProvidesInjector].provideInjector()
   private[books] implicit lazy val config: Config = injector.getInstance(classOf[ConfigProvider]).config
 
-  def displayImage(isbn: String) {
-    val f = new File("/public/" + isbn)
+  def displayImage(isbn: String): scalatags.STag = {
+    val path = "public/images/books/" + isbn + ".jpg"
+    val url = "/assets/images/books/" + isbn + ".jpg"
+    val f = new File(path)
     if (f.exists) {
-      img.src("/public/" + isbn)
+      img.src(url).h("100px").w("100px")
     } else {
       p() //TODO - this needs to be an empty STag
     }
@@ -103,8 +106,12 @@ object checkoutBulkHelper {
   def apply(addCopyForm: Binding, stu: String, bks: Vector[((String, String), Int)], stuNum: String)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Checkout Bulk")(
       div.cls("page-header")(
-        h2(stu)
-      ),div(
+        h2(stu,
+          div.cls("span3 pull-right")(
+            div.cls("btn-group").attr(("style", "margin-left: auto; margin-right: auto; width: 180px"))(
+              button.cls("btn btn-primary").ctype("button").onclick("window.location.href='/books/checkoutBulkSubmit/" + stuNum + "'")("Checkout"),
+              button.cls("btn").ctype("button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel"))))
+        ),div(
     ),table.cls("table", "table-striped", "table-condensed")(
     thead(
       tr(
@@ -127,11 +134,7 @@ object checkoutBulkHelper {
           }
         )
     ),
-  div.cls("row")(addCopyForm.render()),
-  div.cls("span4 well")(
-    button.cls("btn btn-primary").ctype("button").onclick("window.location.href='/books/checkoutBulkSubmit/" + stuNum + "'")("Checkout"),
-    button.cls("btn").ctype("button").onclick("window.location.href='/books/cancelBulkCheckout'")("Cancel"))
-
+  div.cls("row")(addCopyForm.render())
 )
   }
 }
@@ -191,11 +194,13 @@ object copyHistory {
 }
 
 object copyInfo {
-  def apply(header: String, rows: List[(String, String)])(implicit req: VisitRequest[_], config: Config) = {
+  def apply(header: String, rows: List[(String, String)], isbn: String)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Copy Info")(
-      div.cls("page-header")(
-        h2(header)
-      ),table.cls("table", "table-striped", "table-condensed")(
+      div.cls("page-header row")(
+        div.cls("span2").attr(("style", "margin-right: 0px; padding-right: 0px"))(displayImage(isbn)),
+        h2.cls().attr(("style", "margin-top: 65px; margin-left: 0px; padding-left: 0px"))(header)
+      ),
+    table.cls("table", "table-striped", "table-condensed")(
       tbody(
         rows.map { row =>
         tr(
@@ -371,6 +376,49 @@ object printSectionsByDept {
 object printSingleSection {
   def apply(chooseSectionForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Print Section Barcodes")(chooseSectionForm.render())
+  }
+}
+
+object quickCheckout {
+  def apply()(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Quick Checkout")(
+      div.cls("page-header")(
+        h2("Quick Checkout")
+      ),
+      div.cls()(
+        ol.id("checkout-list")(),
+        form.cls("form-inline").id("checkout-form")(
+          input.id("student").cls("form-control").attr(("type", "text"), ("placeholder", "Student")),
+          input.id("book").cls("form-control").attr(("type", "text"), ("placeholder", "Barcode"))
+        )
+      ),
+      script(Unparsed("""
+        $("#student").keypress(function (event) {
+            if (event.which == 13) {
+              event.preventDefault();
+              $("#book").select();
+            }
+          });
+
+        $("#book").keypress(function (event) {
+            if (event.which == 13) {
+              event.preventDefault();
+              var student = $("#student").val();
+              var book = $("#book").val();
+              $.ajax({
+                  type: 'GET',
+                  url: '/books/quickCheckoutHelper/' + student + '/' + book,
+                  success: function(result) {
+                    $("#checkout-list").append(result);
+                    $("#student").val("");
+                    $("#book").val("");
+                    $("#student").select();
+                  }
+                });
+            }
+          });
+        """))
+    )
   }
 }
 

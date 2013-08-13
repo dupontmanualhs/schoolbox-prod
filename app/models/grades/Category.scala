@@ -4,10 +4,9 @@ import java.sql.Date
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import scalajdo.DataStore
-
 import util.PersistableFile
 import models.courses.Section
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
 class Category {
@@ -37,10 +36,10 @@ class Category {
   }
 }
 
-object Category {
+object Category extends UsesDataStore {
   def forSection(section: Section): List[Category] = {
     val cand = QCategory.candidate
-    DataStore.pm.query[Category].filter(cand.section.eq(section)).executeList
+    dataStore.pm.query[Category].filter(cand.section.eq(section)).executeList
   }
 
 }

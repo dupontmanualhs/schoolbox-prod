@@ -1,13 +1,11 @@
 package models.users
 
 import javax.jdo.annotations._
-
 import scala.collection.JavaConverters._
-
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 @Unique(name="CLASS_WITH_NAME", members=Array("_klass", "_enumId"))
@@ -73,11 +71,11 @@ class Permission {
   override def hashCode: Int = id.hashCode
 }
 
-object Permission {
+object Permission extends UsesDataStore {
   def apply(klass: Class[_], enumId: Int, name: String, description: String): Permission = {
     val cand = QPermission.candidate
     val className = klass.getName()
-    DataStore.execute { pm => 
+    dataStore.execute { pm => 
       pm.query[Permission].filter(cand.klass.eq(className).and(cand.enumId.eq(enumId))).executeOption() match {
         case None => val perm = new Permission(className, enumId, name, description)
           pm.makePersistent(perm)

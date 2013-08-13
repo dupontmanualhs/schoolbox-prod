@@ -13,7 +13,7 @@ import scala.xml.Text
 import play.api.mvc.Result
 import play.api.templates.Html
 import models.grades.Turnin
-import scalajdo.DataStore
+
 
 import controllers.users.{ Authenticated, AuthenticatedRequest, VisitAction, VisitRequest }
 import config.Config

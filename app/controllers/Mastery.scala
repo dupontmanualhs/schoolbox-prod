@@ -25,10 +25,10 @@ import play.api.mvc.PlainResult
 import views.html
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
-import scalajdo.DataStore
 import models.users.Visit
 
 import config.Config
+import config.users.UsesDataStore
 import com.google.inject.{ Inject, Singleton }
 
 import controllers.users.VisitAction
@@ -172,10 +172,10 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 }
 
 @Singleton
-class Mastery @Inject()(implicit config: Config) extends Controller {
+class Mastery @Inject()(implicit config: Config) extends Controller with UsesDataStore {
 
   def menuOfTests() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val cand = QQuiz.candidate()
       val listOfMasteries = pm.query[Quiz].orderBy(cand.name.asc).executeList()
       val hasQuizzes = listOfMasteries.size != 0
@@ -238,7 +238,7 @@ class Mastery @Inject()(implicit config: Config) extends Controller {
   }
 
   def testDataBase() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val quizCand = QQuiz.candidate()
       val listOfMasteries = pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
       val listOfSections = pm.query[models.mastery.QuizSection].executeList()

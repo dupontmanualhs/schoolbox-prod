@@ -11,7 +11,6 @@ import java.sql.Date
 import java.sql.Time
 import java.util.Date
 import java.sql.Timestamp
-import scalajdo.DataStore
 import org.dupontmanual.forms.{ Form, Binding, ValidBinding, InvalidBinding }
 import play.api.mvc.Controller
 import config.Config
@@ -19,9 +18,10 @@ import com.google.inject.{ Inject, Singleton }
 import controllers.users.{ Authenticated, RoleMustPass, VisitAction }
 import org.joda.time.LocalDate
 import org.joda.time.LocalDateTime
+import config.users.UsesDataStore
 
 @Singleton
-class Conferences @Inject()(implicit config: Config) extends Controller {
+class Conferences @Inject()(implicit config: Config) extends Controller with UsesDataStore {
   val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
   import dateOrdering._
   
@@ -31,7 +31,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
 
   def viewAsTeacher() = VisitAction { implicit req =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       val currUser: Option[User] = req.visit.user
       val events = pm.query[Event].executeList()
       val sessions = pm.query[models.conferences.Session].executeList()
@@ -40,7 +40,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
 
   def index() = VisitAction { implicit req =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       val events = pm.query[Event].executeList()
       val sessions = pm.query[models.conferences.Session].executeList()
       val currUser: Option[User] = req.visit.user
@@ -62,7 +62,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
               NotFound(templates.NotFound("Must be logged-in to get a conference"))
             } else {
               val student = Student.getByUsername(currentUser.get.username).get
-              val slots = pm.query[Slot].filter(QSlot.candidate.student.eq(student)).executeList()
+              val slots = pm.query[Slot].filter(QSlot.candidate.students.contains(student)).executeList()
               val priority = pm.query[PriorityScheduling].filter(QPriorityScheduling.candidate.student.eq(student)).executeOption()
               val currentTime = LocalDateTime.now()
               Ok(views.html.conferences.index(events, sessions, slots, priority, currentTime))
@@ -91,7 +91,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   def createEventP() = VisitAction { implicit req =>
       Binding(EventForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createEvent(ib))
-        case vb: ValidBinding => DataStore.execute { implicit pm =>
+        case vb: ValidBinding => dataStore.execute { implicit pm =>
           val theName = vb.valueOf(EventForm.name)
           val theActivation = vb.valueOf(EventForm.isActive)
           val e = new Event(theName, theActivation)
@@ -103,7 +103,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   //TODO: Make sure this works
   //TODO: This should be POST
   def deleteEvent(eventId: Long) = VisitAction { implicit req =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeOption() match {
         case None => NotFound(templates.NotFound("No event could be found"))
         case Some(event) => {
@@ -139,7 +139,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   def createSessionP(eventId: Long) = VisitAction { implicit req =>
       Binding(SessionForm, req) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSession(ib, eventId))
-        case vb: ValidBinding => DataStore.execute { implicit pm =>
+        case vb: ValidBinding => dataStore.execute { implicit pm =>
           val theEvent = pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeList()
           val theDate = vb.valueOf(SessionForm.date)
           val theCutoff = vb.valueOf(SessionForm.cutoff)
@@ -155,7 +155,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
 
   def deleteSession(sessionId: Long) = VisitAction { implicit request =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption() match {
         case None => NotFound(templates.NotFound("No session could be found"))
         case Some(session) => {
@@ -173,7 +173,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   ////////////////////////////////////////////////////////Teacher View////////////////////////////////////////////////////////////////
 
 	def teacherView() = RoleMustPass((role: Role) => role.isInstanceOf[Teacher]) { implicit request =>
-	  DataStore.execute { pm =>
+	  dataStore.execute { pm =>
 	    val teacher = request.role.asInstanceOf[Teacher]
 	  	val teacherAssignments = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.teacher.eq(teacher)).executeList()
 	  	val sections = teacherAssignments.map(tA => tA.section)
@@ -186,7 +186,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
 	
 
   def teacherSession(sessionId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit request =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
       val slots = pm.query[Slot].executeList()
       val teacher = request.role.asInstanceOf[Teacher]
@@ -213,7 +213,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
   
   def activateTeacherSessionP(sessionId: Long) = VisitAction { implicit request =>  
-    DataStore.execute { pm => 
+    dataStore.execute { pm => 
         Binding(TeacherActivationForm, request) match {
           case ib: InvalidBinding => Ok(views.html.conferences.activateSession(ib, sessionId))
           case vb: ValidBinding => {
@@ -232,7 +232,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
 
   def deactivateTeacherSession(sessionId: Long) = VisitAction { implicit request =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val cand = QTeacherActivation.candidate()
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
       val currUser = request.visit.user
@@ -246,7 +246,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
   
   def enablePriority(studentId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit request =>
-  	DataStore.execute { pm =>
+  	dataStore.execute { pm =>
       val teacher = request.role.asInstanceOf[Teacher]
       // TODO: this .get could cause a problem
       val student = pm.query[Student].filter(QStudent.candidate.id.eq(studentId)).executeOption().get
@@ -257,7 +257,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
   
   def disablePriority(studentId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit request =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val teacher = request.role.asInstanceOf[Teacher]
       // TODO: what if the studentId is invalid?
       val student = pm.query[Student].filter(QStudent.candidate.id.eq(studentId)).executeOption().get
@@ -274,11 +274,11 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   /////////////////////////////////////////////////////Student View////////////////////////////////////////////////////////////////
 
   def classList(sessionId: Long) = VisitAction { implicit request =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
 	  val currentUser = request.visit.user
 	  val student = Student.getByUsername(currentUser.get.username).get
 	  val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
-	  val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session).and(QSlot.candidate.student.eq(student))).executeList()
+	  val slots = pm.query[Slot].filter(QSlot.candidate.session.eq(session).and(QSlot.candidate.students.contains(student))).executeList()
 	  val term = Term.current
 		val enrollments: List[StudentEnrollment] = {
 			val sectVar = QSection.variable("sectVar")
@@ -303,7 +303,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
   
   def multipleTeacherHandler(sessionId: Long, sectionId: Long)= VisitAction { implicit request =>
-	DataStore.execute { pm =>
+	dataStore.execute { pm =>
 		val section = pm.query[Section].filter(QSection.candidate.id.eq(sectionId)).executeOption()
 		section match {
 		  case None => NotFound("Incorrect Section Id")
@@ -320,22 +320,22 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   }
   
   def slotHandler(sessionId: Long, teacherId: Long)= RoleMustPass(_.isInstanceOf[Student]) { implicit request =>
-	DataStore.execute  {  pm =>
+	dataStore.execute  {  pm =>
 	    val today = LocalDate.now()
 	  	val currentTime = LocalDateTime.now()
 	    val student = request.role.asInstanceOf[Student]
 		val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
 		val teacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption().get
 		val cand = QSlot.candidate
-		val slots = pm.query[Slot].filter(cand.student.eq(student).and(cand.session.eq(session)).and(cand.teacher.eq(teacher))).executeList()
+		val slots = pm.query[Slot].filter(cand.students.contains(student).and(cand.session.eq(session)).and(cand.teacher.eq(teacher))).executeList()
 		if (currentTime > session.cutoff) Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
-		else if (slots.isEmpty) Redirect(routes.Conferences.createSlot(sessionId, student.id, teacherId))
+		//else if (slots.isEmpty) Redirect(routes.Conferences.createSlot(sessionId, student.id, teacherId))
 		else Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
 		
 	}
   }
 
-  object SlotForm extends Form {
+  /*object SlotForm extends Form {
     val startTime = new TimeField("StartTime")
     val parentName = new TextField("Parent Name")
     val email = new EmailField("E-mail")
@@ -354,7 +354,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
   def createSlotP(sessionId: Long, studentId: Long, teacherId: Long) = Authenticated { implicit request =>
       Binding(SlotForm, request) match {
         case ib: InvalidBinding => Ok(views.html.conferences.createSlot(ib, sessionId, studentId, teacherId))
-        case vb: ValidBinding => DataStore.execute { implicit pm =>
+        case vb: ValidBinding => dataStore.execute { implicit pm =>
           val theSession = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption()
           val theTeacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption()
           if (theSession == None) NotFound(templates.NotFound("Invalid session ID"))
@@ -384,10 +384,10 @@ class Conferences @Inject()(implicit config: Config) extends Controller {
           }
         }
       }
-  }
+  }*/
 
   def deleteSlot(slotId: Long) = VisitAction { implicit request =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       pm.query[Slot].filter(QSlot.candidate.id.eq(slotId)).executeOption() match {
         case None => NotFound(templates.NotFound("No slot could be found"))
         case Some(slot) => {

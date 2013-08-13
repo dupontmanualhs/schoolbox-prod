@@ -7,9 +7,8 @@ import play.api.data.Forms._
 import play.api.templates.Html
 import scala.xml.Text
 import play.api.mvc.Flash._
-import scalajdo.DataStore
 import com.google.inject.{ Inject, Singleton }
-import config.users.Config
+import config.users.{ Config, UsesDataStore }
 import org.dupontmanual.forms.{ Binding, Form, InvalidBinding, ValidBinding }
 import org.dupontmanual.forms.fields._
 import org.dupontmanual.forms.validators._
@@ -19,7 +18,7 @@ import scala.xml.NodeSeq
 import scalatags._
 
 @Singleton
-class App @Inject()(implicit config: Config) extends Controller { 
+class App @Inject()(implicit config: Config) extends Controller with UsesDataStore {  
   object LoginForm extends Form {
     val username = new TextField("username")
     val password = new PasswordField("password")
@@ -45,7 +44,7 @@ class App @Inject()(implicit config: Config) extends Controller {
   }
 
   def loginP() = VisitAction { implicit request =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       Binding(LoginForm, request) match {
         case ib: InvalidBinding => Ok(templates.users.Login(ib))
         case vb: ValidBinding => {
@@ -103,7 +102,7 @@ class App @Inject()(implicit config: Config) extends Controller {
           req.visit.role = Some(vb.valueOf(form.role))
           req.visit.permissions = req.visit.role.map(_.permissions).getOrElse(Set())
           req.visit.updateMenu
-          DataStore.pm.makePersistent(req.visit)
+          dataStore.pm.makePersistent(req.visit)
         Redirect(req.visit.redirectUrl.getOrElse(config.defaultCall)).flashing("message" -> "You have successfully logged in.")
         }
       }
@@ -116,7 +115,7 @@ class App @Inject()(implicit config: Config) extends Controller {
    */
 
   def logout = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       pm.deletePersistent(req.visit)
       Redirect(config.defaultCall).flashing("message" -> "You have been logged out.")
     }
@@ -168,7 +167,7 @@ class App @Inject()(implicit config: Config) extends Controller {
    * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
    */
   def changePassword = Authenticated { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val user = req.role.user
       val form = new ChangePasswordForm(user)
       Binding(form, req) match {
@@ -188,7 +187,7 @@ class App @Inject()(implicit config: Config) extends Controller {
    * User chooses from drop-down menu and this changes the theme to that selection.
    */
   def changeTheme = Authenticated { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val user = req.role.user
       val pwForm = new ChangePasswordForm(user)
       Binding(ChangeTheme, req) match {
@@ -209,6 +208,6 @@ class App @Inject()(implicit config: Config) extends Controller {
    */
   def list = PermissionRequired(User.Permissions.ListAll) { implicit request =>
     val cand = QUser.candidate
-    Ok(templates.users.ListUsers(DataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
+    Ok(templates.users.ListUsers(dataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
   }
 }

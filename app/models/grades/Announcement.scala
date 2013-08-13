@@ -4,11 +4,11 @@ import java.sql.Date
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-import scalajdo.DataStore
 import util.PersistableFile
 import models.courses.Section
 import models.users.Role
 import org.joda.time.LocalDateTime
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 class Announcement {
@@ -66,10 +66,10 @@ trait QAnnouncement extends PersistableExpression[Announcement] {
   def text: StringExpression = _text
 }
 
-object Announcement {
+object Announcement extends UsesDataStore {
   def getAnnouncements(section: Section): List[Announcement] = {
       val cand = QAnnouncement.candidate
-      DataStore.pm.query[Announcement].filter(cand.section.eq(section)).executeList
+      dataStore.pm.query[Announcement].filter(cand.section.eq(section)).executeList
   }
 }
 

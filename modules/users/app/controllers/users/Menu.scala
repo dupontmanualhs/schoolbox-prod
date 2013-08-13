@@ -1,6 +1,6 @@
-package models.users
+package controllers.users
 
-import scala.xml.{ Elem, NodeSeq }
+import scala.xml.Elem
 
 class MenuItem(val name: String, val id: String, val link: Option[String], val subItems: List[MenuItem]) {
   def asHtml: Elem = if (subItems.isEmpty) {
