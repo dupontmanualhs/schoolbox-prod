@@ -1,4 +1,5 @@
 bin
+conf/manual-data*
 dist
 logs
 project/project
