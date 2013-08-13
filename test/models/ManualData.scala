@@ -31,7 +31,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 object ManualData extends UsesDataStore with Logging {
 
-  val folder = "/manual-data-new"
+  val folder = "/manual-data-2013-08-12"
   
   // Needs to be updated each year
   val currentYear = dataStore.pm.detachCopy(AcademicYear.getByName("2013-14").get)
@@ -51,10 +51,10 @@ object ManualData extends UsesDataStore with Logging {
     val props = new Properties()
     dataStore.storeManager.validateSchema(classes, props)
     // de-activate everyone and re-activate only the users in the data dump
-    markAllUsersInactive()
-    loadStudents()
-    loadGuardians()
-    loadTeachers()
+    //markAllUsersInactive()
+    //loadStudents()
+    //loadGuardians()
+    //loadTeachers()
     loadCourses()
     loadSections()
     loadEnrollments()
@@ -325,8 +325,10 @@ object ManualData extends UsesDataStore with Logging {
             if (dbSection.course != course) logger.info(s"This section's course changed from ${dbSection.course.name} to ${course.name}. Check on this.")
             else {
               dbSection.room = room
-              dbSection.terms = terms
-              dbSection.periods = periods
+              dbSection.terms.clear
+              dbSection.terms ++= terms
+              dbSection.periods.clear
+              dbSection.periods ++= periods
               val oldTeacherAssignment = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.section.eq(dbSection)).executeOption()
               oldTeacherAssignment match {
                 case None if (teacher == None) => logger.info("No teacher assigned to this section.")

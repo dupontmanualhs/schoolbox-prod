@@ -297,8 +297,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
           case None => Redirect(routes.Books.checkIn()).flashing("error" -> "Copy not checked out")
           case Some(currentCheckout) => {
             currentCheckout.endDate = Some(LocalDate.now())
+            val copyNum = currentCheckout.copy.number
+            val title = currentCheckout.copy.purchaseGroup.title
+            val student = currentCheckout.student
             pm.makePersistent(currentCheckout)
-            Redirect(routes.Books.checkIn()).flashing("message" -> "Copy successfully checked in.")
+            Redirect(routes.Books.checkIn()).flashing("message" -> s"${student.displayName} returned copy #${copyNum} of ${title.name}.")
           }
         }
       }
@@ -425,8 +428,8 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
       val currentBooks = pm.query[Checkout].filter(checkoutCand.student.eq(student)).executeList()
       val studentName = student.displayName
       val header = "Student: %s".format(studentName)
-      val rows: List[(String, String, String)] = currentBooks.map(co => {
-        (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""),
+      val rows: List[(String, String, String, String)] = currentBooks.map(co => {
+        (co.copy.purchaseGroup.title.name, co.copy.number.toString, co.startDate.map(df.print(_)).getOrElse(""),
           co.endDate.map(df.print(_)).getOrElse(""))
       })
       Ok(templates.books.checkoutHistory(header, rows))
@@ -492,7 +495,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
       val currentBooks = pm.query[Checkout].filter(checkoutCand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(checkoutCand.student.eq(student))).executeList()
       val studentName = student.displayName
       val header = "Student: %s".format(studentName)
-      val rows: List[(String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""), co.copy.getBarcode) })
+      val rows: List[(String, String, String, String)] = currentBooks.map(co => { (co.copy.purchaseGroup.title.name, co.copy.number.toString, co.startDate.map(df.print(_)).getOrElse(""), co.copy.getBarcode) })
       Ok(templates.books.currentCheckouts(header, rows))
     }
   }
@@ -847,7 +850,8 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   * A form page that allows a user to pick a section and then print all of the student labels for that section
   */
   def printSingleSection() = Authenticated { implicit req =>
-    val sections = dataStore.pm.query[Section].executeList()
+    val cand = QSection.candidate()
+    val sections = dataStore.pm.query[Section].filter(cand.terms.contains(Term.current)).executeList()
     val m = sections.map(s => (s.displayName, s.sectionId)).toMap
     val secs = sections.map(s => s.displayName)
     val f = new ChooseSectionForm(m, secs)
@@ -856,7 +860,8 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
 
   def printSingleSectionP() = Authenticated { implicit req =>
     dataStore.execute { pm =>
-      val sections = pm.query[Section].executeList()
+      val cand = QSection.candidate()
+      val sections = pm.query[Section].filter(cand.terms.contains(Term.current)).executeList()
       val m = sections.map(s => (s.displayName, s.sectionId)).toMap
       val secs = sections.map(s => s.displayName)
       val f = new ChooseSectionForm(m, secs)
@@ -1074,7 +1079,8 @@ object Books extends UsesDataStore {
           val s = strs(0)
           val sId = s.split("-").last.trim
           val cand = QStudent.candidate
-          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId))).executeOption() match {
+          val userVar = QUser.variable("userVar")
+          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId)).or(cand.user.eq(userVar).and(userVar.username.eq(sId)))).executeOption() match {
             case Some(stu) => Right(stu)
             case _ => Left(ValidationError("Student not found"))
           }

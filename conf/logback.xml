@@ -19,11 +19,11 @@
       <pattern>%d %-5level [%thread] %logger{0}: %msg%n</pattern>
     </encoder>
   </appender>
-  <logger name="play" level="INFO">
-    <appender-ref ref="A1"/>
+  <logger name="play" level="DEBUG">
+    <appender-ref ref="STDOUT"/>
   </logger>
-  <logger name="application" level="INFO">
-    <appender-ref ref="A1"/>
+  <logger name="application" level="DEBUG">
+    <appender-ref ref="STDOUT"/>
   </logger>
   <logger name="DataNucleus.ClassLoading" level="INFO">
     <appender-ref ref="A1"/>
@@ -46,7 +46,7 @@
   <logger name="DataNucleus.Utility" level="INFO">
     <appender-ref ref="A1"/>
   </logger>
-  <logger name="DataNucleus.JDO" level="INFO">
+  <logger name="DataNucleus.JDO" level="DEBUG">
     <appender-ref ref="A1"/>
   </logger>
   <logger name="DataNucleus.Lifecycle" level="INFO">
@@ -64,16 +64,16 @@
   <logger name="DataNucleus.SchemaTool" level="INFO">
     <appender-ref ref="A1"/>
   </logger>
-  <logger name="DataNucleus.Query" level="INFO">
-    <appender-ref ref="A1"/>
+  <logger name="DataNucleus.Query" level="DEBUG">
+    <appender-ref ref="STDOUT"/>
   </logger>
   <logger name="DataNucleus.Persistence" level="INFO">
-    <appender-ref ref="A1"/>
+    <appender-ref ref="STDOUT"/>
   </logger>
   <logger name="DataNucleus.Enhancer" level="INFO">
     <appender-ref ref="A1"/>
   </logger>
-  <root level="INFO">
-    <appender-ref ref="A1"/>
+  <root level="DEBUG">
+    <appender-ref ref="STDOUT"/>
   </root>
 </configuration>

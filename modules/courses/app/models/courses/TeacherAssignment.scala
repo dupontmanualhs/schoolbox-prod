@@ -1,6 +1,7 @@
 package models.courses
 
 import javax.jdo.annotations._
+import scala.collection.mutable
 import org.joda.time._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
@@ -46,7 +47,7 @@ class TeacherAssignment {
     end_=(theEnd)
   }
   
-  def term: Set[Term] = this.section.terms
+  def term: mutable.Set[Term] = this.section.terms
   
 }
 

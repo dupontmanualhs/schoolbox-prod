@@ -80,13 +80,17 @@ object Copy extends UsesDataStore {
   }
 
   def getByBarcode(barcode: String): Option[Copy] = {
-    val isbn = barcode.substring(0, 13)
-    val copyNumber = barcode.substring(18).toInt
-    val cand = QCopy.candidate
-    val titleVar = QTitle.variable("titleVar")
-    val pgVar = QPurchaseGroup.variable("pgVar")
-    dataStore.pm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
-        pgVar.title.eq(titleVar)).and(titleVar.isbn.eq(isbn))).executeOption()
+    if (barcode.matches("""\d{13}-\d{3}-\d{5}""")) {
+      val isbn = barcode.substring(0, 13)
+      val copyNumber = barcode.substring(18).toInt
+      val cand = QCopy.candidate
+      val titleVar = QTitle.variable("titleVar")
+      val pgVar = QPurchaseGroup.variable("pgVar")
+      dataStore.pm.query[Copy].filter(cand.number.eq(copyNumber).and(cand.purchaseGroup.eq(pgVar)).and(
+          pgVar.title.eq(titleVar)).and(titleVar.isbn.eq(isbn))).executeOption()
+    } else {
+      None
+    }
   }
 
   def makeUniqueCopies(pGroup: PurchaseGroup, quantity: Int): (Int, Int) = {

@@ -1,6 +1,7 @@
 package models.courses
 
 import javax.jdo.annotations._
+import scala.collection.mutable
 import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
@@ -36,14 +37,14 @@ class Section extends UsesDataStore {
   @Element(types = Array(classOf[Term]))
   @Join
   private[this] var _terms: java.util.Set[Term] = _
-  def terms: Set[Term] = _terms.asScala.toSet
+  def terms: mutable.Set[Term] = _terms.asScala
   def terms_=(theTerms: Set[Term]) { _terms = theTerms.asJava }
 
   @Persistent(defaultFetchGroup="true")
   @Element(types = Array(classOf[Period]))
   @Join
   private[this] var _periods: java.util.Set[Period] = _
-  def periods: Set[Period] = _periods.asScala.toSet
+  def periods: mutable.Set[Period] = _periods.asScala
   def periods_=(thePeriods: Set[Period]) { _periods = thePeriods.asJava }
 
   @Persistent(defaultFetchGroup="true")
