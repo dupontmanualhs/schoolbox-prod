@@ -987,10 +987,10 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
     dataStore.execute { pm =>
       val cand = QStudent.candidate
       pm.query[Student].filter(cand.stateId.eq(stuId).or(cand.studentNumber.eq(stuId))).executeOption() match {
-        case None => Ok(<li>Could not find student \u2718</li>.toString)
+        case None => Ok(<li class="skip">Could not find student \u2718</li>.toString)
         case Some(s) => {
           Copy.getByBarcode(barcode) match {
-            case None => Ok(<li>Copy with the given barcode not found \u2718</li>.toString)
+            case None => Ok(<li class="skip">Copy with the given barcode not found \u2718</li>.toString)
             case Some(c) => {
               val cand2 = QCheckout.candidate
               pm.query[Checkout].filter(cand2.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand2.copy.eq(c))).executeOption() match {

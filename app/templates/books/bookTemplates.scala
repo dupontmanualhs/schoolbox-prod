@@ -28,19 +28,19 @@ package object books {
     if (f.exists) {
       img.src(url).h("100px").w("100px")
     } else {
-      p() //TODO - this needs to be an empty STag
+      StringSTag("")
     }
   }
 
   object addPurchaseGroup {
     def apply(addPurchaseGroupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Add a Purchase Group")(addPurchaseGroupForm.render())
+      config.main("Add a Purchase Group")(addPurchaseGroupForm.render(), focusFirstTextField)
     }
   }
 
   object addTitle {
     def apply(titleForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Add Title to Inventory")(titleForm.render())
+      config.main("Add Title to Inventory")(titleForm.render(), focusFirstTextField)
     }
   }
 
@@ -48,7 +48,7 @@ package object books {
     def apply(addTitleToPrintQueueForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
       config.main("Add to Print Queue")(
         h2("Add a Copy Range to the Print Queue"),
-        addTitleToPrintQueueForm.render())
+        addTitleToPrintQueueForm.render(), focusFirstTextField)
     }
   }
 
@@ -235,25 +235,25 @@ package object books {
 
   object deleteCopy {
     def apply(chooseCopyForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Delete Copy")(chooseCopyForm.render())
+      config.main("Delete Copy")(chooseCopyForm.render(), focusFirstTextField)
     }
   }
 
   object deleteTitle {
     def apply(chooseTitleForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Delete Copy")(chooseTitleForm.render())
+      config.main("Delete Copy")(chooseTitleForm.render(), focusFirstTextField)
     }
   }
 
   object editTitle {
     def apply(chooseTitleForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Edit a Title")(chooseTitleForm.render())
+      config.main("Edit a Title")(chooseTitleForm.render(), focusFirstTextField)
     }
   }
 
   object editTitleHelper {
     def apply(editTitleForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Edit a Title")(editTitleForm.render())
+      config.main("Edit a Title")(editTitleForm.render(), focusFirstTextField)
     }
   }
 
@@ -289,7 +289,7 @@ package object books {
 
   object findRoleHistory {
     def apply(roleHistoryLookupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Find Role History")(roleHistoryLookupForm.render())
+      config.main("Find Role History")(roleHistoryLookupForm.render(), focusFirstTextField)
     }
   }
 
@@ -325,46 +325,65 @@ package object books {
 
   object printSingleSection {
     def apply(chooseSectionForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Print Section Barcodes")(chooseSectionForm.render())
+      config.main("Print Section Barcodes")(chooseSectionForm.render(), focusFirstTextField)
     }
   }
 
   object quickCheckout {
     def apply()(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Quick Checkout")(
+      config.main("Quick Checkout", 
+          style("""ul#checkout-list {
+            |  counter-reset:yourCounter;
+    		|}
+    		|ul#checkout-list li:not(.skip) {
+    		|  counter-increment:yourCounter;
+    		|  list-style:none;
+    		|}
+    		|ul#checkout-list li:not(.skip):before {
+    		|  content:counter(yourCounter) '. ';
+    		|}
+            |ul#checkout-list li.skip {
+            |   list-style: none;
+            |}
+    		|ul#checkout-list li.skip:before {
+    		|  content:'\a0\a0\a0'; /* some white-space... optional */
+    		|}""".stripMargin))(
         div.cls("page-header")(
           h2("Quick Checkout")),
         div.cls()(
-          ol.id("checkout-list")(),
+          ul.id("checkout-list")(),
           form.cls("form-inline").id("checkout-form")(
-            input.id("student").cls("form-control").attr(("type", "text"), ("placeholder", "Student")),
-            input.id("book").cls("form-control").attr(("type", "text"), ("placeholder", "Barcode")))),
+            input.id("student").cls("form-control").attr("type" -> "text", "placeholder" -> "Student"),
+            input.id("book").cls("form-control").attr("type" -> "text", "placeholder" -> "Barcode"),
+            button.ctype("button").attr("onclick" -> "$('#student').val(''); $('#book').val(''); $('#student').focus();")("Clear"))),
         script(Unparsed("""
-        $("#student").keypress(function (event) {
-            if (event.which == 13) {
-              event.preventDefault();
-              $("#book").select();
-            }
-          });
-
-        $("#book").keypress(function (event) {
-            if (event.which == 13) {
-              event.preventDefault();
-              var student = $("#student").val();
-              var book = $("#book").val();
-              $.ajax({
-                  type: 'GET',
-                  url: '/books/quickCheckoutHelper/' + student + '/' + book,
-                  success: function(result) {
-                    $("#checkout-list").append(result);
-                    $("#student").val("");
-                    $("#book").val("");
-                    $("#student").select();
-                  }
-                });
-            }
-          });
-        """)))
+        |$("#student").keypress(function (event) {
+        |    if (event.which == 13) {
+        |      event.preventDefault();
+        |      $("#book").select();
+        |    }
+        |  });
+        |
+        |$("#book").keypress(function (event) {
+        |    if (event.which == 13) {
+        |      event.preventDefault();
+        |      var student = $("#student").val();
+        |      var book = $("#book").val();
+        |      $.ajax({
+        |          type: 'GET',
+        |          url: '/books/quickCheckoutHelper/' + student + '/' + book,
+        |          success: function(result) {
+        |            $("#checkout-list").append(result);
+        |            $("#student").val("");
+        |            $("#book").val("");
+        |            $("#student").select();
+        |          }
+        |        });
+        |    }
+        |});
+        |    
+        |$(document).ready( function() { $('#student').select(); });
+        """.stripMargin)))
     }
   }
 
