@@ -18,6 +18,8 @@ package object books {
   private[books] class ConfigProvider @Inject() (val config: Config)
   private[books] val injector = Play.current.global.asInstanceOf[ProvidesInjector].provideInjector()
   private[books] implicit lazy val config: Config = injector.getInstance(classOf[ConfigProvider]).config
+  
+  private[books] val focusFirstTextField = script(Unparsed("""$(document).ready(function() { $("input:text:first").focus(); })"""))
 
   def displayImage(isbn: String): scalatags.STag = {
     val path = "public/images/books/" + isbn + ".jpg"
@@ -72,27 +74,25 @@ package object books {
 
   object checkIn {
     def apply(checkInForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Check in a Copy")(
-          checkInForm.render(),
-          script(Unparsed("""$(document).ready(function() { $("input:text:first").focus(); })""")))
+      config.main("Check in a Copy")(checkInForm.render(), focusFirstTextField)
     }
   }
 
   object checkInBulk {
     def apply(bulkCheckInForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Bulk Check In")(bulkCheckInForm.render())
+      config.main("Bulk Check In")(bulkCheckInForm.render(), focusFirstTextField)
     }
   }
 
   object checkout {
     def apply(checkoutForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Checkout a Copy")(checkoutForm.render())
+      config.main("Checkout a Copy")(checkoutForm.render(), focusFirstTextField)
     }
   }
 
   object checkoutBulk {
     def apply(checkoutBulkForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Checkout in Bulk")(checkoutBulkForm.render())
+      config.main("Checkout in Bulk")(checkoutBulkForm.render(), focusFirstTextField)
     }
   }
 
@@ -259,31 +259,31 @@ package object books {
 
   object findAllBooksOut {
     def apply(allBooksOutLookupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Find All Books Out")(allBooksOutLookupForm.render())
+      config.main("Find All Books Out")(allBooksOutLookupForm.render(), focusFirstTextField)
     }
   }
 
   object findCheckoutHistory {
     def apply(roleHistoryLookupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Find Checkout History")(roleHistoryLookupForm.render())
+      config.main("Find Checkout History")(roleHistoryLookupForm.render(), focusFirstTextField)
     }
   }
 
   object findCopyHistory {
     def apply(copyHistoryLookupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Find Copy History")(copyHistoryLookupForm.render())
+      config.main("Find Copy History")(copyHistoryLookupForm.render(), focusFirstTextField)
     }
   }
 
   object findCopyInfo {
     def apply(copyInfoLookupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Find Copy Information")(copyInfoLookupForm.render())
+      config.main("Find Copy Information")(copyInfoLookupForm.render(), focusFirstTextField)
     }
   }
 
   object findCopyStatusByTitle {
     def apply(copyStatusByTitleLookupForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Find Copy Status by Title")(copyStatusByTitleLookupForm.render())
+      config.main("Find Copy Status by Title")(copyStatusByTitleLookupForm.render(), focusFirstTextField)
     }
   }
 

@@ -112,7 +112,7 @@ object Nucleus {
      */
     enhance <<= Seq(compile in Compile).dependOn,
     enhance in Config <<= (fullClasspath in Test, runner, streams) map { (cp, processRunner, str) =>
-      val options = Seq("-v", "-pu", "play-eschool")
+      val options = Seq("-v", "-pu", "schoolbox")
       val result = processRunner.run("org.datanucleus.enhancer.DataNucleusEnhancer", cp.files, options, str.log)
       result.foreach(sys.error)
     })

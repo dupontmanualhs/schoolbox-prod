@@ -58,6 +58,7 @@ object ManualData extends UsesDataStore with Logging {
     loadCourses()
     val unusedSections = loadSections()
     loadEnrollments()
+    //deleteEmptySections(unusedSections)
     //graduateSeniors()
   }
 
@@ -410,7 +411,7 @@ object ManualData extends UsesDataStore with Logging {
       }
     })
     if (!dbEnrollmentIds.isEmpty) {
-      logger.info(s"There were ${dbEnrollmentIds.size} previous enrollments weren't in the data dump. Deleting.")
+      logger.info(s"There were ${dbEnrollmentIds.size} previous enrollments that weren't in the data dump. Deleting.")
       dataStore.withTransaction { pm =>
         dbEnrollmentIds foreach (id => {
           pm.query[StudentEnrollment].filter(enrCand.id.eq(id)).executeOption().map(pm.deletePersistent(_))  
@@ -422,15 +423,20 @@ object ManualData extends UsesDataStore with Logging {
     }
   }
   
-  def deleteEmptySections(dbSectionsByNumber: Map[String, Section]) {
+  def deleteEmptySections(dbSectionsByNumber: mutable.Map[String, Section]) {
+    logger.info(s"Checking ${dbSectionsByNumber.size} sections that weren't in latest dump.")
     dbSectionsByNumber.map { case (sectionId, section) => 
+      logger.info(s"Checking section $sectionId.")
       dataStore.withTransaction { pm => 
         val seCand = QStudentEnrollment.candidate()
         val enrs = pm.query[StudentEnrollment].filter(seCand.section.eq(section)).executeList()
         if (enrs.isEmpty) {
+          logger.info("Empty so deleting.")
           val taCand = QTeacherAssignment.candidate()
           val tas = pm.query[TeacherAssignment].filter(taCand.section.eq(section)).executeList()
+          logger.info(s"Deleting ${tas.size} teacher assignments.")
           tas.foreach { ta => pm.deletePersistent(ta) }
+          logger.info("Deleting section.")
           pm.deletePersistent(section)
         }
       }

@@ -1110,10 +1110,10 @@ object Books extends UsesDataStore {
   }
 
   object CheckoutForm extends Form {
-    val cpy = new CopyField("Barcode")
     val student = new StudentField("Student", StudentList.students)
+    val cpy = new CopyField("Barcode")
 
-    val fields = List(cpy, student)
+    val fields = List(student, cpy)
   }
 
   object CheckInForm extends Form {

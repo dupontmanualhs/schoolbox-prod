@@ -22,7 +22,7 @@ trait Config {
 }
 
 object UsesDataStore {
-  val dataStore: DataStore = new DataStore(() => JDOHelper.getPersistenceManagerFactory("play-eschool").asInstanceOf[JDOPersistenceManagerFactory])
+  val dataStore: DataStore = new DataStore(() => JDOHelper.getPersistenceManagerFactory("schoolbox").asInstanceOf[JDOPersistenceManagerFactory])
 }
 
 trait UsesDataStore {

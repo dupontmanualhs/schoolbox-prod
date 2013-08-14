@@ -4,7 +4,7 @@
     xsi:schemaLocation="http://java.sun.com/xml/ns/persistence 
         http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd" version="2.0">
 
-    <persistence-unit name="play-eschool">
+    <persistence-unit name="schoolbox">
         <!-- users project -->
         <class>models.users.Group</class>
         <class>models.users.Permission</class>
@@ -70,9 +70,9 @@
             <property name="datanucleus.ConnectionURL" value="jdbc:h2:data;AUTO_SERVER=true;MVCC=true"/>-->
 
             <property name="datanucleus.ConnectionDriverName" value="org.postgresql.Driver"/>
-            <property name="datanucleus.ConnectionURL" value="jdbc:postgresql:accuscholar"/>
-            <property name="datanucleus.ConnectionUserName" value="manualky"/>
-            <property name="datanucleus.ConnectionPassword" value="manualky"/>
+            <property name="datanucleus.ConnectionURL" value="jdbc:postgresql:schoolbox"/>
+            <property name="datanucleus.ConnectionUserName" value="schoolbox"/>
+            <property name="datanucleus.ConnectionPassword" value="schoolbox"/>
 
             <property name="datanucleus.autoCreateSchema" value="true"/>
             <property name="datanucleus.DetachAllOnCommit" value="true"/>
