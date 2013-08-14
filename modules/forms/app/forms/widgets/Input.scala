@@ -10,6 +10,8 @@ abstract class Input(
     required : Boolean,
     attrs: MetaData = Null, step: Boolean = false) extends Widget(required, attrs) {
 
+  protected val step2 = step
+  
   /**
    * Sets the input type of the field.
    */

@@ -60,7 +60,8 @@ package object templates {
     </script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
     </script>*/
-        script.src("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full")
+        script.src("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full"),
+        script.src("http://js.ceusmedia.com/jquery/pstrength/2.1.0/source/digitalspaghetti.password.js")
         )
     }
 

@@ -132,7 +132,7 @@ class App @Inject()(implicit config: Config) extends Controller {
         }))
       }
     }
-    val newPassword = new PasswordField("newPassword")
+    val newPassword = new PasswordField("newPassword", true)
     val verifyNewPassword = new PasswordField("verifyNewPassword")
 
     def fields = List(currentPassword, newPassword, verifyNewPassword)
