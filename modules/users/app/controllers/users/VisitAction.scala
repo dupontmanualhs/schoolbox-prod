@@ -36,19 +36,16 @@ object VisitAction extends UsesDataStore {
 
   def apply[A](p: BodyParser[A])(f: VisitRequest[A] => Result)(implicit config: Config): Action[A] = {
     Action(p)( request => {
-      val pm = dataStore.pm
-      pm.beginTransaction()
-      val visitRequest = VisitRequest(Visit.getFromRequest(request, config), request)
-      val res = f(visitRequest)
-      if (JDOHelper.isDeleted(visitRequest.visit)) {
-        pm.commitTransaction()
-        res.withNewSession
-      } else {
-        visitRequest.visit.expiration = System.currentTimeMillis + Visit.visitLength
-        pm.makePersistent(visitRequest.visit)
-        pm.commitTransactionAndClose()
-        if (request.session.get(visitRequest.visit.uuid).isDefined) res
-        else res.withSession("visit" -> visitRequest.visit.uuid)
+      dataStore.withTransaction { pm => 
+        val visitRequest = VisitRequest(Visit.getFromRequest(request, config), request)
+        val res = f(visitRequest)
+        if (JDOHelper.isDeleted(visitRequest.visit)) {
+          res.withNewSession
+        } else {
+          visitRequest.visit.expiration = System.currentTimeMillis + Visit.visitLength
+          if (request.session.get(visitRequest.visit.uuid).isDefined) res
+          else res.withSession("visit" -> visitRequest.visit.uuid)
+        }
       }
     })
   }
