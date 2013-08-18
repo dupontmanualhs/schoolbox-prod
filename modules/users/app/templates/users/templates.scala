@@ -35,6 +35,12 @@ object ListUsers {
   }
 }
 
+object ChangePassword {
+  def apply(pwForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Change Your Password")(pwForm.render())
+  }
+}
+
 object ChangeSettings {
   def apply(pwForm: Binding, themeForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Change Your Settings")(

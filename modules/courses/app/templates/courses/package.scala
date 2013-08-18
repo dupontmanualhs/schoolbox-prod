@@ -21,10 +21,10 @@ package object courses {
     def apply(teacher: Teacher, term: Term,
       rows: Seq[STag], hasAssignments: Boolean)(implicit req: VisitRequest[_]) = {
       config.main(s"${teacher.displayName}'s Schedule")(
-        div.cls("page-header")(h2(teacher.displayName, small(term.name))),
+        div.cls("page-header")(h2(teacher.displayName, " ",small(term.name))),
         if (hasAssignments) {
           table.cls("table", "table-striped", "table-condensed")(
-            thead(th("Period"), th("Course(s)"), th("Room(s)")) +: rows)
+            thead(th("Period"), th("Course(s)"), th("Room(s)"), th("Students")) +: rows)
         } else {
           p("This teacher is not assigned to any courses during this term.")
         })

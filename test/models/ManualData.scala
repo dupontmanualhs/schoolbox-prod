@@ -31,8 +31,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 object ManualData extends UsesDataStore with Logging {
 
-  val folder = "/manual-data-2013-08-12"
-  
+  val folder = "/manual-data-2013-08-14"
+
   // Needs to be updated each year
   val currentYear = dataStore.pm.detachCopy(AcademicYear.getByName("2013-14").get)
   val fall13 = dataStore.pm.detachCopy(Term.getBySlug("f13").get)
@@ -56,10 +56,9 @@ object ManualData extends UsesDataStore with Logging {
     loadGuardians()
     loadTeachers()
     loadCourses()
-    val unusedSections = loadSections()
+    loadSections()
     loadEnrollments()
-    //deleteEmptySections(unusedSections)
-    //graduateSeniors()
+    //deleteEmptySections()
   }
 
   def markAllUsersInactive() {
@@ -123,7 +122,7 @@ object ManualData extends UsesDataStore with Logging {
       })
     }
   }
-  
+
   def altStudentNumber(studentNumber: String): Option[String] = {
     // if studentNumber begins with 0's, we should try stripping them
     val alt = """^0+(\d+)$""".r.replaceAllIn(studentNumber, m => m.group(1))
@@ -238,7 +237,7 @@ object ManualData extends UsesDataStore with Logging {
       })
     }
   }
-  
+
   def normalize(s: String): String = {
     // TODO: Tests for these
     def cap(m: Match): String = m.group(0).toUpperCase
@@ -288,15 +287,14 @@ object ManualData extends UsesDataStore with Logging {
           }
         } else {
           val dbCourse = new Course(courseName, masterNumber, Department.getOrCreate(deptName))
-          pm.makePersistent(dbCourse)      
+          pm.makePersistent(dbCourse)
         }
       })
     }
   }
 
-  def loadSections(): mutable.Map[String, Section] = {
+  def loadSections() {
     logger.info("Importing sections...")
-    val dbSectionsByNumber = mutable.Map(dataStore.pm.query[Section].executeList().map(s => (s.sectionId -> s)): _*)
     val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Sections.xml.xz")))
     val sections = doc \\ "curriculum"
     sections foreach ((section: Node) => {
@@ -320,7 +318,7 @@ object ManualData extends UsesDataStore with Logging {
         // assumes a single teacher is assigned to a section in the file
         val teacherPersonId = (section \ "@sectionInfo.teacherPersonID").text
         val teacher = pm.query[Teacher].filter(QTeacher.candidate.personId.eq(teacherPersonId)).executeOption()
-        dbSectionsByNumber.get(sectionId) match {
+        pm.query[Section].filter(QSection.candidate.sectionId.eq(sectionId)).executeOption() match {
           case Some(dbSection) => {
             logger.debug(s"Section already in datastore. Updating to latest info.")
             if (dbSection.course != course) logger.info(s"This section's course changed from ${dbSection.course.name} to ${course.name}. Check on this.")
@@ -358,12 +356,9 @@ object ManualData extends UsesDataStore with Logging {
               pm.makePersistent(new TeacherAssignment(teacher.get, dbSection, None, None))
             }
           }
-          dbSectionsByNumber -= sectionId
         }
       }
     })
-    logger.info(s"The following sections weren't in the latest data dump. They will be deleted if they are empty: ${dbSectionsByNumber.keySet.mkString(", ")}")
-    dbSectionsByNumber
   }
 
   def loadEnrollments() {
@@ -371,8 +366,8 @@ object ManualData extends UsesDataStore with Logging {
     val sectionVar = QSection.variable("sectionVar")
     val termVar = QTerm.variable("termVar")
     val dbEnrollments = dataStore.pm.query[StudentEnrollment].filter(
-        enrCand.section.eq(sectionVar).and(sectionVar.terms.contains(termVar)).and(
-            termVar.year.eq(currentYear))).executeList()
+      enrCand.section.eq(sectionVar).and(sectionVar.terms.contains(termVar)).and(
+        termVar.year.eq(currentYear))).executeList()
     val dbEnrollmentIds = mutable.Set(dbEnrollments.map(_.id): _*)
     val unknownSections = mutable.Set[String]()
     val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Schedule.xml.xz")))
@@ -387,21 +382,21 @@ object ManualData extends UsesDataStore with Logging {
         val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
         maybeSection match {
           case Some(section) => {
-        	logger.trace("Finding any previous enrollments of this student in this section.")
-        	val prevEnrs = pm.query[StudentEnrollment].filter(
-        	    enrCand.student.eq(student).and(enrCand.section.eq(section))).executeList()
-        	prevEnrs.find(enr => enr.start == startDate || enr.end == endDate) match {
-        	  case Some(enr) => {
-        	    logger.debug("Student already enrolled in this section. Modifying.")
-        	    enr.start = startDate
-        	    enr.end = endDate
-        	    if (dbEnrollmentIds.contains(enr.id)) dbEnrollmentIds -= enr.id
-        	  }
-        	  case None => {
-        	    logger.debug("Creating new enrollment.")
-        	    pm.makePersistent(new StudentEnrollment(student, section, startDate, endDate))
-        	  }
-        	}
+            logger.trace("Finding any previous enrollments of this student in this section.")
+            val prevEnrs = pm.query[StudentEnrollment].filter(
+              enrCand.student.eq(student).and(enrCand.section.eq(section))).executeList()
+            prevEnrs.find(enr => enr.start == startDate || enr.end == endDate) match {
+              case Some(enr) => {
+                logger.debug("Student already enrolled in this section. Modifying.")
+                enr.start = startDate
+                enr.end = endDate
+                if (dbEnrollmentIds.contains(enr.id)) dbEnrollmentIds -= enr.id
+              }
+              case None => {
+                logger.debug("Creating new enrollment.")
+                pm.makePersistent(new StudentEnrollment(student, section, startDate, endDate))
+              }
+            }
           }
           case None => {
             logger.error(s"Student ${student.formalName} is in section ${sectionId}, which doesn't exist.")
@@ -414,7 +409,7 @@ object ManualData extends UsesDataStore with Logging {
       logger.info(s"There were ${dbEnrollmentIds.size} previous enrollments that weren't in the data dump. Deleting.")
       dataStore.withTransaction { pm =>
         dbEnrollmentIds foreach (id => {
-          pm.query[StudentEnrollment].filter(enrCand.id.eq(id)).executeOption().map(pm.deletePersistent(_))  
+          pm.query[StudentEnrollment].filter(enrCand.id.eq(id)).executeOption().map(pm.deletePersistent(_))
         })
       }
     }
@@ -422,28 +417,30 @@ object ManualData extends UsesDataStore with Logging {
       logger.error(s"The following sections were in the file dump, but not in the database: ${unknownSections.mkString(",")}")
     }
   }
-  
-  def deleteEmptySections(dbSectionsByNumber: mutable.Map[String, Section]) {
-    logger.info(s"Checking ${dbSectionsByNumber.size} sections that weren't in latest dump.")
-    dbSectionsByNumber.map { case (sectionId, section) => 
-      logger.info(s"Checking section $sectionId.")
-      dataStore.withTransaction { pm => 
-        val seCand = QStudentEnrollment.candidate()
-        val enrs = pm.query[StudentEnrollment].filter(seCand.section.eq(section)).executeList()
+
+  def deleteEmptySections() {
+    val sectCand = QSection.candidate()
+    val termVar = QTerm.variable("termVar")
+    val enrCand = QStudentEnrollment.candidate()
+    val taCand = QTeacherAssignment.candidate()
+    val currentSections = dataStore.pm.query[Section].filter(sectCand.terms.contains(termVar).and(termVar.year.eq(currentYear))).executeList()
+    currentSections foreach { section =>
+      dataStore.withTransaction { pm =>
+        logger.info(s"Checking section with id=${section.id}, sectionId=${section.sectionId}...")
+        val enrs = pm.query[StudentEnrollment].filter(enrCand.section.eq(section)).executeList()
         if (enrs.isEmpty) {
-          logger.info("Empty so deleting.")
-          val taCand = QTeacherAssignment.candidate()
+          logger.info("Empty, so deleting.")
           val tas = pm.query[TeacherAssignment].filter(taCand.section.eq(section)).executeList()
           logger.info(s"Deleting ${tas.size} teacher assignments.")
           tas.foreach { ta => pm.deletePersistent(ta) }
           logger.info("Deleting section.")
           pm.deletePersistent(section)
+        } else {
+          logger.info(s"Section has ${enrs.length} enrollments, so leaving.")
         }
       }
     }
   }
-  
-  
 
   /*def loadLockers(debug: Boolean) {
     dataStore.withTransaction { implicit pm =>

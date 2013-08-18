@@ -15,7 +15,7 @@ package object templates {
       Html(html(
         head(
           title(pageTitle),
-          Theme.themePick(req.visit.user),
+          //Theme.themePick(req.visit.user),
           (headAfterTitleBeforeScripts ++ extraScripts)),
         body(
           menu(),
@@ -23,7 +23,7 @@ package object templates {
 
     @deprecated("use the Scalatags version of templates", "2013-07-04")
     def apply(pageTitle: String, extraScripts: Html = Html(""))(content: Html)(implicit req: VisitRequest[_]): Html = {
-      Seq(Html(s"<html><head><title>${pageTitle}</title>${Theme.themePick(req.visit.user)}"),
+      Seq(Html(s"<html><head><title>${pageTitle}</title>"),
         seqSTag2html(headAfterTitleBeforeScripts),
         extraScripts,
         Html("</head>"),

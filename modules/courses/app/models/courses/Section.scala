@@ -98,7 +98,7 @@ class Section extends UsesDataStore {
     val cand = QStudentEnrollment.candidate
     dataStore.pm.query[StudentEnrollment].filter(
         cand.section.eq(this).and(
-            cand.end.eq(null.asInstanceOf[java.sql.Date]))).executeResultUnique(false, cand.count()).asInstanceOf[Long]
+            cand.end.eq(null.asInstanceOf[java.sql.Date]))).executeResultUnique(true, cand.count()).asInstanceOf[Long]
   }
 }
 

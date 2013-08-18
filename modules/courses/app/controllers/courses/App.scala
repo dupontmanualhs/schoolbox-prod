@@ -51,7 +51,8 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
         else {
           tr(td(p.name),
              td(intersperse(sectionsThisPeriod.map(s => linkToPage(s)), br())),
-             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())))
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.numStudents.toString)), br())))
         }
       }
       Ok(templates.courses.TeacherSchedule(teacher, term, table, hasAssignments))

@@ -356,6 +356,7 @@ package object books {
             input.id("student").cls("form-control").attr("type" -> "text", "placeholder" -> "Student"),
             input.id("book").cls("form-control").attr("type" -> "text", "placeholder" -> "Barcode"),
             button.ctype("button").attr("onclick" -> "$('#student').val(''); $('#book').val(''); $('#student').focus();")("Clear"))),
+        p(Unparsed("&nbsp;")),
         script(Unparsed("""
         |$("#student").keypress(function (event) {
         |    if (event.which == 13) {

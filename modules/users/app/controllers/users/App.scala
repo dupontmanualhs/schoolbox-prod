@@ -161,12 +161,17 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
     Ok(templates.users.ChangeSettings(Binding(pwForm), Binding(ChangeTheme)))
   }
 
+  
+  def changePassword() = Authenticated { implicit req => 
+    val form = new ChangePasswordForm(req.role.user)  
+    Ok(templates.users.ChangePassword(Binding(form)))
+  }
   /**
-   * regex: /changePassword
+   * regex: /changePasswordP
    *
    * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
    */
-  def changePassword = Authenticated { implicit req =>
+  def changePasswordP() = Authenticated { implicit req =>
     dataStore.execute { pm =>
       val user = req.role.user
       val form = new ChangePasswordForm(user)
