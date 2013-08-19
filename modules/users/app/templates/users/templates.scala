@@ -41,7 +41,13 @@ object ChangePassword {
   }
 }
 
-object ChangeSettings {
+object ChangeOtherPassword {
+  def apply(pwForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Change a User's Password")(pwForm.render())
+  }
+}
+
+/*object ChangeSettings {
   def apply(pwForm: Binding, themeForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Change Your Settings")(
       pwForm.render(overrideSubmit = Some(FormCall(controllers.users.routes.App.changePassword())),
@@ -50,4 +56,4 @@ object ChangeSettings {
           legend = Some("Set your Theme"))
     )
   }
-}
+}*/

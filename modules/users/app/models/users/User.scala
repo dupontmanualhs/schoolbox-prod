@@ -179,6 +179,11 @@ object User extends UsesDataStore {
       None
     }
   }
+  
+  lazy val activeUsers: List[User] = {
+    val cand = QUser.candidate
+    dataStore.pm.query[User].filter(cand.isActive.eq(true)).executeList()
+  }
 }
 
 trait QUser extends PersistableExpression[User] {

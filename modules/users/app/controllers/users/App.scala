@@ -1,7 +1,6 @@
 package controllers.users
 
 import scala.language.implicitConversions
-
 import play.api.mvc.{ Action, Controller, Session }
 import play.api.data.Forms._
 import play.api.templates.Html
@@ -14,8 +13,8 @@ import org.dupontmanual.forms.fields._
 import org.dupontmanual.forms.validators._
 import models.users.{ QUser, User, Visit }
 import scala.xml.NodeSeq
-
 import scalatags._
+import play.api.libs.json.Json._
 
 @Singleton
 class App @Inject()(implicit config: Config) extends Controller with UsesDataStore {  
@@ -141,7 +140,6 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
         ValidationError("New password and verify password must match.")
       } else ValidationError(Nil)
     }
-
   }
 
   object ChangeTheme extends Form {
@@ -156,22 +154,35 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
    * Displays page with the form to change the user's password and the form to change the user's theme.
    */
 
-  def settings = Authenticated { implicit req =>
+  /*def settings = Authenticated { implicit req =>
     val pwForm = new ChangePasswordForm(req.role.user)
     Ok(templates.users.ChangeSettings(Binding(pwForm), Binding(ChangeTheme)))
-  }
+  }*/
 
   
   def changePassword() = Authenticated { implicit req => 
     val form = new ChangePasswordForm(req.role.user)  
     Ok(templates.users.ChangePassword(Binding(form)))
   }
+  
+  def changePasswordP() = Authenticated { implicit req =>
+    val user = req.role.user
+    val form = new ChangePasswordForm(user)
+    Binding(form, req) match {
+      case ib: InvalidBinding => Ok(templates.users.ChangePassword(ib))
+      case vb: ValidBinding => {
+        user.password = vb.valueOf(form.newPassword)
+        Redirect(config.defaultCall).flashing("message" -> "Password successfully changed.")
+      }
+    }
+  }
+  
   /**
    * regex: /changePasswordP
    *
    * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
    */
-  def changePasswordP() = Authenticated { implicit req =>
+  /*def changePasswordP() = Authenticated { implicit req =>
     dataStore.execute { pm =>
       val user = req.role.user
       val form = new ChangePasswordForm(user)
@@ -184,14 +195,14 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
         }
       }
     }
-  }
+  }*/
 
   /**
    * regex: /changeTheme
    *
    * User chooses from drop-down menu and this changes the theme to that selection.
    */
-  def changeTheme = Authenticated { implicit req =>
+  /*def changeTheme = Authenticated { implicit req =>
     dataStore.execute { pm =>
       val user = req.role.user
       val pwForm = new ChangePasswordForm(user)
@@ -202,6 +213,52 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
           pm.makePersistent(user)
           Redirect(config.defaultCall).flashing("message" -> "Settings successfully changed.")
         }
+      }
+    }
+  }*/
+  
+  object ChangeOtherPasswordForm extends Form {
+    val username = new TextField("username") {
+      override def validators: List[Validator[String]] = {
+        List(Validator((str: String) => {
+          ValidationError(
+            if (User.getByUsername(str).isDefined) Nil
+            else List(Text("No user with given username.")))
+        }))
+      }
+    }
+
+    val newPassword = new PasswordField("newPassword")
+    val verifyNewPassword = new PasswordField("verifyPassword")
+
+    override def validate(vb: ValidBinding): ValidationError = {
+      if (vb.valueOf(newPassword) != vb.valueOf(verifyNewPassword)) {
+        ValidationError("New password and verify password must match.")
+      } else ValidationError(Nil)
+    }
+      
+    val fields = List(username, newPassword, verifyNewPassword)      
+  }
+  
+  
+  def activeUserList() = PermissionRequired(User.Permissions.ListAll) { implicit req =>
+    val users = User.activeUsers.map(u => toJsFieldJsValueWrapper(Map("username" -> u.username, "formalName" -> u.formalName, "email" -> u.email.getOrElse(""))))
+    Ok(obj("users" -> arr(users: _*)))
+  }
+  
+  
+  def changeOtherPassword() = PermissionRequired(User.Permissions.ChangePassword) { implicit req => 
+    Ok(templates.users.ChangeOtherPassword(Binding(ChangeOtherPasswordForm)))  
+  }
+  
+  def changeOtherPasswordP() = PermissionRequired(User.Permissions.ChangePassword) { implicit req =>
+    val form = ChangeOtherPasswordForm
+    Binding(ChangeOtherPasswordForm, req) match {
+      case ib: InvalidBinding => Ok(templates.users.ChangeOtherPassword(ib))
+      case vb: ValidBinding => {
+        val user = User.getByUsername(vb.valueOf(form.username)).get
+        user.password = vb.valueOf(form.newPassword)
+        Redirect(config.defaultCall).flashing("message" -> "Settings successfully changed.")
       }
     }
   }
