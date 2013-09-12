@@ -56,3 +56,16 @@ object StudentCheck {
     fromUsername[A](username, p)(newF)(config)
   }
 }
+
+class GuardianRequest[A](val guardian: Guardian, role: Role,
+		visit: Visit, request: Request[A]) extends AuthenticatedRequest[A](role, visit, request)
+    
+object GuardianRequest {
+  def apply[A](guardian: Guardian, role: Role, visit: Visit, request: Request[A]) =
+      new GuardianRequest[A](guardian, role, visit, request)
+}
+
+object GuardianCheck {
+}
+
+

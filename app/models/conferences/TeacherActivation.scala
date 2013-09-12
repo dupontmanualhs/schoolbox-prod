@@ -5,6 +5,7 @@ import models.courses.{ Student, Teacher }
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import util.QueryClass
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 class TeacherActivation {
@@ -41,6 +42,13 @@ class TeacherActivation {
     _teacher = teacher
     _slotInterval = slotInterval
     _note = note.getOrElse(null)
+  }
+}
+
+object TeacherActivation extends UsesDataStore {
+  def isActivated(teacher: Teacher): Boolean = dataStore.execute { pm =>
+    val cand = QTeacherActivation.candidate
+    pm.query[TeacherActivation].filter(cand.teacher.eq(teacher)).executeOption.isDefined
   }
 }
 

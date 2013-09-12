@@ -2,36 +2,9 @@ package controllers
 
 import scala.xml.{ Elem, NodeSeq }
 import models.users.Role
+import controllers.courses.{ Menu => CoursesMenu }
 import config.users.{ Menu => UserMenu }
-
-class MenuItem(val name: String, val id: String, val link: Option[String], val dropItems: List[MenuItem], val sideItems: List[MenuItem] = Nil) { //only include a sideItems list if it is a drop item
-  def asHtml: Elem = if (dropItems.isEmpty && sideItems.isEmpty) {																				 //sideItems are the dropdown within a dropdown 
-    <li>
-      <a href={ link.getOrElse("#") } id={ id }>{ name }</a>
-    </li>
-  } else if(!dropItems.isEmpty){
-    <li class="dropdown">
-      <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-        { name }
-        <b class="caret"> </b>
-      </a>
-      <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-          { dropItems.flatMap(_.asHtml) }
-      </ul>
-   </li >
-  } else {
-    <li class="dropdown-submenu">
-	  <a tabindex="-1" href="#">{name}</a>
-	  <ul class="dropdown-menu">
-		{sideItems.flatMap(_.asHtml)}
-   	  </ul>
-    </li>
-  }
-}
-
-class MenuBar(val menus: List[MenuItem]) {
-  def asHtml: Elem = <ul class="nav">{ menus.flatMap(_.asHtml) }</ul>
-}
+import controllers.users.{ MenuItem, MenuBar }
 
 object Menu {
   val currloc = new MenuItem("My Locker", "menu_lockerStatus", Some(controllers.routes.Lockers.getMyLocker().toString), Nil)
@@ -74,12 +47,16 @@ object Menu {
   def buildMenu(maybeRole: Option[Role]): NodeSeq = {
     val locItems = List(currloc, locsearch, locsched, findlocnum)
     val bookItems = List(manage, view, print)
-    val courses = new MenuItem("Courses", "menu_courses", Some(controllers.courses.routes.App.mySchedule().toString), Nil)
+    val courses = CoursesMenu.forRole(maybeRole)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)
     val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
     val masteries = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
     val books = new MenuItem("Books", "menu_books", None, bookItems)
-    val bar = new MenuBar(List(courses, books))
+    val empty = new MenuItem("", "menu_empty", None, Nil)
+    val bar = maybeRole match {
+      case None => new MenuBar(Nil)
+      case _ => new MenuBar(List(courses, books))
+    }
     bar.asHtml ++ <div class="pull-right">{ UserMenu.forRole(maybeRole).asHtml }</div>
   }
 }

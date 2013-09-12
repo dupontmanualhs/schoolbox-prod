@@ -1,10 +1,15 @@
 # Get teacher's schedule
-GET /teacher/:username							@controllers.courses.App.teacherScheduleForUsername(username: String)
-GET /teacher/:username/:termSlug				@controllers.courses.App.teacherScheduleForUsernameAndTerm(username: String, termSlug: String)
+GET  /teacher/:username							@controllers.courses.App.teacherScheduleForUsername(username: String)
+GET  /teacher/:username/:termSlug				@controllers.courses.App.teacherScheduleForUsernameAndTerm(username: String, termSlug: String)
+GET  /findTeacher								@controllers.courses.App.findTeacher
+POST /findTeacher								@controllers.courses.App.findTeacherP
+
 
 # Get student's schedule
-GET /student/:username							@controllers.courses.App.studentScheduleForUsername(username: String)
-GET /student/:username/:termSlug				@controllers.courses.App.studentScheduleForUsernameAndTerm(username: String, termSlug: String)
+GET  /student/:username							@controllers.courses.App.studentScheduleForUsername(username: String)
+GET  /student/:username/:termSlug				@controllers.courses.App.studentScheduleForUsernameAndTerm(username: String, termSlug: String)
+GET  /findStudent								@controllers.courses.App.findStudent
+POST /findStudent								@controllers.courses.App.findStudentP
 
 # Get the roster of a particular section
 GET /roster/:sectionId							@controllers.courses.App.roster(sectionId: String)

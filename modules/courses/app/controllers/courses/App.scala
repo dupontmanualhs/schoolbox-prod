@@ -15,9 +15,16 @@ import javax.jdo.annotations.Inheritance
 import javax.jdo.annotations.PersistenceCapable
 import scalatags.stringToNodeable.apply
 import controllers.users.AuthenticatedRequest
+import org.dupontmanual.forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.widgets._
+import org.dupontmanual.forms.validators._
+import templates.users._
 
 @Singleton
 class App @Inject()(implicit config: Config) extends Controller with UsesDataStore {
+  import App._
+  
   // functions that return Results given the right input
   // these are not Actions, and should be called by an Action once the right info has been found
   private[this] def roleSchedule(maybeRole: Option[Role], maybeTerm: Option[Term])(implicit req: VisitRequest[_]) = {
@@ -27,7 +34,12 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
         case None => NotFound(config.notFound("There is no schedule for that user."))
         case Some(role) => role match {
           case teacher: Teacher => teacherSchedule(teacher, term)
-          case student: Student => studentSchedule(student, term)
+          case student: Student => {
+            req.visit.role match {
+              case Some(tchr: Teacher) => studentScheduleForTeacher(student, term)
+              case _ => studentSchedule(student, term)
+            }
+          }
           case _ => NotFound(config.notFound("Only teachers and students have schedules."))
         }
       }
@@ -78,6 +90,29 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
           td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())))
       }
       Ok(templates.courses.StudentSchedule(student, term, rows, hasEnrollments))
+    }
+  }
+  
+  def studentScheduleForTeacher(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
+    dataStore.execute { implicit pm =>
+      val enrollments: List[StudentEnrollment] = {
+        val sectVar = QSection.variable("sectVar")
+        val cand = QStudentEnrollment.candidate()
+        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+      }
+      val hasEnrollments = enrollments.size != 0
+      val sections: List[Section] = enrollments.map(_.section)
+      val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
+      val rows: List[STag] = periods.map { p =>
+        val sectionsThisPeriod = sections.filter(_.periods.contains(p))
+        tr(
+          td(p.name),
+          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.course.name)), br())),
+          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.teachers.map(_.shortName).mkString("; "))), br())),
+          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
+          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.numStudents.toString)), br())))
+      }
+      Ok(templates.courses.StudentScheduleForTeacher(student, term, rows, hasEnrollments))
     }
   }
   
@@ -171,6 +206,37 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
       }
     }
   }
+    
+  def findTeacher = Authenticated { implicit req =>
+    Ok(templates.courses.FindTeacherSchedule(Binding(TeacherScheduleForm)))  
+  }
+  
+  def findTeacherP = Authenticated { implicit req =>
+  	Binding(TeacherScheduleForm, req) match {
+  	  case ib: InvalidBinding => Ok(templates.courses.FindTeacherSchedule(ib))
+  	  case vb: ValidBinding => dataStore.execute { pm =>
+  	  	val teacher = vb.valueOf(TeacherScheduleForm.name)
+  	  	Redirect(routes.App.teacherScheduleForUsername(teacher.user.username))
+  	  }
+  	}
+  }
+  
+  def findStudent = Authenticated { implicit req =>
+    req.role match {
+      case teacher: Teacher => Ok(templates.courses.FindStudentSchedule(Binding(StudentScheduleForm)))
+      case _ => NotFound(config.notFound("Only teachers can search student schedules.")) 
+    }
+  }
+  
+  def findStudentP = Authenticated { implicit req =>
+    Binding(StudentScheduleForm, req) match {
+      case ib: InvalidBinding => Ok(templates.courses.FindStudentSchedule(ib))
+      case vb: ValidBinding => dataStore.execute { pm =>
+        val student = vb.valueOf(StudentScheduleForm.name)
+        Redirect(routes.App.studentScheduleForUsername(student.user.username))
+      }
+    }  
+  }
  
   def intersperse(els: List[STag], sep: STag): List[STag] = {
       els match {
@@ -179,4 +245,21 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
       }
     }
 
+}
+
+object App extends UsesDataStore {
+  import Teacher.{TeacherList, TeacherField}, 
+  		 Student.{StudentList, StudentField}
+  
+  object TeacherScheduleForm extends Form {
+    val name = new TeacherField("Name", TeacherList.teacherIds)
+    
+    val fields = List(name)
+  }
+  
+  object StudentScheduleForm extends Form {
+    val name = new StudentField("Name", StudentList.studentsIds)
+    
+    val fields = List(name)
+  }
 }

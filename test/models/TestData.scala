@@ -19,6 +19,7 @@ import util.Helpers.{ isoDatetime, isoDate }
 import org.datanucleus.api.jdo.JDOPersistenceManagerFactory
 import javax.jdo.JDOHelper
 import java.util.Properties
+import org.joda.time.{ LocalDate, LocalDateTime, LocalTime }
 import scala.collection.JavaConverters._
 import config.users.UsesDataStore
 
@@ -411,6 +412,18 @@ object TestData extends UsesDataStore {
 
       pm.makePersistentAll(List(ti1, ti2, ti3, ti5, ti6, ti7, ti8))
 
+      val confDate = new LocalDate(2013, 3, 14)
+      val startTime = new LocalTime(9, 0 , 0)
+      val endTime = new LocalTime(18, 0, 0)
+      
+      val registrationCutoff = new LocalDateTime(2013, 3, 12, 23, 59, 59)
+      val priorityCutoff = new LocalDateTime(2013, 3, 9, 23, 59, 59)
+      
+      val e1 = new Event("Spring Conferences", true)
+      val se1 = new Session(e1, confDate, registrationCutoff, Some(priorityCutoff), startTime, endTime)
+      
+      val ta1 = new TeacherActivation(se1, maryTeacher, 15, None)
+      val ta2 = new TeacherActivation(se1, toddTeacher, 15, None)
       //TODO: make test data for announcements and gradebook
     }
   }

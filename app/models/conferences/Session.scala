@@ -6,6 +6,7 @@ import org.joda.time.{ LocalDate, LocalTime, LocalDateTime }
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.QueryClass
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 class Session {
@@ -58,6 +59,20 @@ class Session {
     priority_=(thePriority)
     startTime_=(theStartTime)
     endTime_=(theEndTime)
+  }
+}
+
+object Session extends UsesDataStore {
+  def getById(id: Long): Option[Session] = {
+    dataStore.execute { pm => 
+      val cand = QSession.candidate
+      pm.query[Session].filter(cand.id.eq(id)).executeOption
+    }
+  }
+  
+  def getById(id: String): Option[Session] = {
+    val maybeLong = try { Some(id.toLong) } catch { case e: Exception => None}
+    maybeLong match { case Some(l) => getById(id); case None => None}
   }
 }
 

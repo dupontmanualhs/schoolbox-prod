@@ -6,7 +6,7 @@ import play.api.templates.Html
 import controllers.users.{ Theme, VisitRequest, AuthenticatedRequest }
 import config.users.Config
 import models.courses.{ Course, Section, Student, StudentEnrollment, Teacher, Term }
-import org.dupontmanual.forms.{ Call, Method }
+import org.dupontmanual.forms.{ Call, Method, Binding }
 import Call._
 import org.joda.time.format.DateTimeFormat
 import com.google.inject.Inject
@@ -33,15 +33,23 @@ package object courses {
 
   object StudentSchedule {
     def apply(student: Student, term: Term,
-      rows: Seq[STag], hasEnrollments: Boolean)(implicit req: VisitRequest[_], config: Config) = {
+      rows: Seq[STag], hasEnrollments: Boolean, 
+      header: STag = studentScheduleHeader)(implicit req: VisitRequest[_], config: Config) = {
       config.main(s"${student.displayName}'s Schedule")(
         div.cls("page-header")(h2(student.displayName, small(term.name))),
         if (hasEnrollments) {
           table.cls("table", "table-striped", "table-condensed")(
-            thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)")) +: rows)
+            header +: rows)
         } else {
           p("This student is not enrolled in any courses for this term.")
         })
+    }
+  }
+  
+  object StudentScheduleForTeacher {
+    def apply(student: Student, term: Term,
+      rows: Seq[STag], hasEnrollments: Boolean)(implicit req: VisitRequest[_], config: Config) = {
+      StudentSchedule(student, term, rows, hasEnrollments, studentScheduleHeaderForTeacher)
     }
   }
 
@@ -155,6 +163,22 @@ package object courses {
                 td(section.periodNames),
                 td(section.terms.map(_.name).mkString(", ")),
                 td(section.numStudents.toString))))))
+    }
+  }
+  
+  def studentScheduleHeader = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"))
+  
+  def studentScheduleHeaderForTeacher = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"), th("Size"))
+  
+  object FindTeacherSchedule {
+    def apply(teacherForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Find Teacher Schedule")(teacherForm.render())
+    }
+  }
+  
+  object FindStudentSchedule {
+    def apply(studentForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Find Student Schedule")(studentForm.render())
     }
   }
 }

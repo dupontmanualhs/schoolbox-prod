@@ -84,6 +84,12 @@ class Slot extends UsesDataStore {
     comment_=(comment)
   }
   
+  def this(session: Session, teacher: Teacher, startTime: LocalTime,
+      students: Set[Student], guardians: Set[Guardian], phone: Option[String],
+      alternatePhone: Option[String], comments: Option[String]) = {
+    this(session, teacher, startTime, 10, students, guardians, phone, alternatePhone, comments)
+  }
+  
   def endTime: LocalTime = startTime.plusMinutes(slotInterval)
   
   //Checks if the slot lies within the session's start and end times
