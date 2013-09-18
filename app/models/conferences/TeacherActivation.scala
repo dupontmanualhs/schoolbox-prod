@@ -43,12 +43,21 @@ class TeacherActivation {
     _slotInterval = slotInterval
     _note = note.getOrElse(null)
   }
+  
+  def this(session: Session, teacher: Teacher, note: Option[String]) = {
+    this(session, teacher, 10, note)
+  }
 }
 
 object TeacherActivation extends UsesDataStore {
   def isActivated(teacher: Teacher): Boolean = dataStore.execute { pm =>
     val cand = QTeacherActivation.candidate
     pm.query[TeacherActivation].filter(cand.teacher.eq(teacher)).executeOption.isDefined
+  }
+  
+  def isActivated(teacher: Teacher, session: Session): Boolean = dataStore.execute { pm =>
+    val cand = QTeacherActivation.candidate
+    pm.query[TeacherActivation].filter(cand.teacher.eq(teacher).and(cand.session.eq(session))).executeOption.isDefined
   }
 }
 

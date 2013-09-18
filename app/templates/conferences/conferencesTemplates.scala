@@ -9,7 +9,7 @@ import _root_.config.users.{ Config, ProvidesInjector }
 import controllers.users.VisitRequest
 import models.users.User
 import models.courses.{Teacher, Guardian, Student, Section}
-import models.conferences.{Event, Session, Slot}
+import models.conferences.{Event, Session, Slot, TeacherActivation}
 import play.api.Play
 import com.google.inject.Inject
 import java.io.File
@@ -27,7 +27,8 @@ package object conferences {
   private[conferences] val guardianSchedulerScript = script.attr("type" -> "text/javascript"
 		  												   ).src("/assets/javascripts/gSchedulerScript.js")
   
-  def collapseMaker(ens: (Event, List[Session]), first: Boolean = false) = {
+  def collapseMaker(ens: (Event, List[Session]), first: Boolean = false)
+  				   (implicit req: VisitRequest[_], config: Config) = {
     div.cls("accordion-group")(
       div.cls("accordion-heading")(
         a.cls("accordion-toggle").attr("data-toggle" -> "collapse"
@@ -44,13 +45,50 @@ package object conferences {
                 h2(session.date.toString()),
                 p("Times Open: " + timeReporter(session.startTime) + " - " + timeReporter(session.endTime)),
                 p("Deadline to Schedule a Conference: " + session.cutoff.toLocalTime.toString("h:mm") + " on " + session.cutoff.toLocalDate.toString()),
-                a.href("/" + ens._1.id + "/" + session.id)("Schedule Here")
+                teacherOrGuardianChoices(session.id)
               ).attr("id" -> session.id)
             }
           }
         )    
       )
     ).attr("id" -> ens._1.id)
+  }
+  
+  def teacherOrGuardianChoices(sessionId: Long)(implicit req: VisitRequest[_], config: Config): STag = {
+    Session.getById(sessionId) match {
+      case Some(session) => { 
+        req.visit.role match {
+          case Some(t: Teacher) => {
+            teacherChoices(t, session)
+          }
+          case Some(g: Guardian) => {
+            guardianChoices(g, session)
+          }
+          case _ => {
+            p("You must be logged in to schedule conferences.")
+          }
+        }
+      }
+      case _ => p("Could not identify this session.")
+    }
+  }
+  
+  def teacherChoices(teacher: Teacher, session: Session): STag = {
+    if(TeacherActivation.isActivated(teacher, session)) {
+      a.href("/conferences/myConferences/" + session.id).cls("Button")("Manage My Conferences")
+    } else {
+      Seq(
+        p("You have not yet activated scheduling for this conference session").cls("warning-text"),
+        form.action(s"/conferences/activateTeacher/${session.id}").attr(("method" -> "get"))(
+          input.attr(("type" -> "submit")).value("Activate for Conferences").cls("btn")
+        )
+      )
+    }
+  }
+  
+  def guardianChoices(guardian: Guardian, session: Session): STag = {
+    for(stu <- guardian.children.toList) yield (a("Schedule a conference for " + stu.formalName
+    									   ).href("/conferences/studentClasses/" + session.id + "/" + {if(stu.stateId != null) stu.stateId else stu.studentNumber}))
   }
   
   object index {
@@ -68,11 +106,17 @@ package object conferences {
     def apply(table: STag, teacher: Teacher, student: Student, session: Session, event: Event)(implicit req: VisitRequest[_], config: Config) = {
       config.main("Schedule a Conference", guardianSchedulerScript)(
         h1(teacher.formalName + " - Schedule a Conference for " + student.formalName).id("info"
-            ).attr(("teacher" -> teacher.stateId), ("event" -> event.id), ("session" -> session.id), ("student" -> student.id)),
+            ).attr(("teacher" -> teacher.personId), ("event" -> event.id), ("session" -> session.id), ("student" -> student.studentNumber)),
         div.cls("span4")(h3("Hours"), table),
         div.cls("span4")(
-          slotForm  
+          slotForm
         )
+      )
+    }
+
+    def apply(form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Schedule a Conference")(
+        form.render(None, None)
       )
     }
   }

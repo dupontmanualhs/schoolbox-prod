@@ -109,7 +109,7 @@ class Slot extends UsesDataStore {
     dataStore.execute { implicit pm =>
       val cand = QSlot.candidate
 	  val slots = pm.query[Slot].filter(cand.teacher.eq(this.teacher).and(cand.session.eq(this.session))).executeList()
-      slots.exists(s => (startTime >= s.startTime && startTime <
+      !slots.exists(s => (startTime >= s.startTime && startTime <
       	s.endTime) || (endTime > s.startTime && endTime <= s.endTime))
     }
   }

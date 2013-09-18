@@ -5,7 +5,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.QRole
 import models.users.Role
-import models.users.User
+import models.users.{User, Gender}
 import config.users.UsesDataStore
 import models.users.QUser
 import org.dupontmanual.forms.fields._
@@ -93,6 +93,8 @@ object Teacher extends UsesDataStore {
       }
     }
   }
+  
+  val sampleTeacher = new Teacher(new User("", "", None, "", None, Gender.NotListed, "", ""), "", "")
 }
 
 trait QTeacher extends QRole[Teacher] {

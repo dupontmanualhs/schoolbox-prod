@@ -5,7 +5,7 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.QRole
 import models.users.Role
-import models.users.User
+import models.users.{User, Gender}
 import models.users.Permission
 import config.users.UsesDataStore
 import models.users.QUser
@@ -125,6 +125,8 @@ object Student extends UsesDataStore {
     }
   }
   
+  val sampleStudent = new Student(new User("", "", None, "", None, Gender.NotListed, "", ""),
+		  						  "", "", 0, "")
 }
 
 trait QStudent extends QRole[Student] {

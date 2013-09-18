@@ -142,7 +142,11 @@ GET		/conferences/classList/:sessionId							@controllers.Conferences.classList(
 GET		/conferences/multipleTeacherHandler/:sessionId/:sectionId	@controllers.Conferences.multipleTeacherHandler(sessionId: Long, sectionId: Long)
 GET		/conferences/slotHandler/:sessionId/:teacherId				@controllers.Conferences.slotHandler(sessionId: Long, teacherId: Long)
 GET 	/conferences/guardianRegister/:sessionId/:teacherId/:studentId		@controllers.Conferences.guardianSlotScheduler(sessionId: Long, teacherId: String, studentId: String)
-POST 	/conferences/checkSlot										@controllers.Conferences.checkSlot
+POST 	/conferences/guardianRegister/:sessionId/:teacherId/:studentId      @controllers.Conferences.guardianSlotSchedulerP(sessionId: Long, teacherId: String, studentId: String)
+#GET		/conferences/studentClasses/:sessionId/:studentId			@controllers.Conferences.studentClasses(sessionId: Long, studentId: String)
+#POST    /conferences/activateTeacher/:sessionId						@controllers.Conferences.activateTeacherSession(sessionId: Long)
+GET		/conferences/myConferences/:sessionId						@controllers.Conferences.myConferences(sessionId: Long)
+#POST    /conferences/scheduleBreak									@controllers.Conferences.scheduleBreak()
 
 #Grades
 GET     /grades/home/:id						@controllers.Grades.home(id: Long)
