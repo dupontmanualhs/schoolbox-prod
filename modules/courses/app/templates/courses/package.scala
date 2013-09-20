@@ -46,6 +46,8 @@ package object courses {
     }
   }
   
+  
+  
   object StudentScheduleForTeacher {
     def apply(student: Student, term: Term,
       rows: Seq[STag], hasEnrollments: Boolean)(implicit req: VisitRequest[_], config: Config) = {
@@ -169,6 +171,8 @@ package object courses {
   def studentScheduleHeader = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"))
   
   def studentScheduleHeaderForTeacher = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"), th("Size"))
+  
+  def studentScheduleHeaderForConferences = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"), th("Schedule a Conf."))
   
   object FindTeacherSchedule {
     def apply(teacherForm: Binding)(implicit req: VisitRequest[_], config: Config) = {

@@ -73,6 +73,21 @@ package object conferences {
     }
   }
   
+  object StudentScheduleForConferences {
+    def apply(student: Student, session: Session,
+              rows: Seq[STag], hasEnrollments: Boolean)
+              (implicit req: VisitRequest[_], config: Config) = {
+      config.main(s"${student.displayName}'s Schedule")(
+        div.cls("page-header")(h2(student.displayName, small(session.event.name))),
+        if (hasEnrollments) {
+          table.cls("table", "table-striped", "table-condensed")(
+            header +: rows)
+        } else {
+          p("This student is not enrolled in any courses for this term.")
+        })
+    }
+  }
+  
   def teacherChoices(teacher: Teacher, session: Session): STag = {
     if(TeacherActivation.isActivated(teacher, session)) {
       a.href("/conferences/myConferences/" + session.id).cls("Button")("Manage My Conferences")
@@ -112,11 +127,24 @@ package object conferences {
           slotForm
         )
       )
+      
     }
 
     def apply(form: Binding)(implicit req: VisitRequest[_], config: Config) = {
       config.main("Schedule a Conference")(
         form.render(None, None)
+      )
+    }
+  }
+  
+  object myConferencesParents {
+    def apply(guardian: Guardian, session: Session, rows: Seq[STag])(implicit req: VisitRequest[_], config: Config) = {
+      config.main(s"Conferences for ${guardian.shortName}")(
+        h1(s"My Conferences for ${session.event.name} on ${session.date.formatted("mm/dd/yy")}"),
+        table.cls("table table-striped span12")(
+          tr(th("Time"), th("Name"), th("Student"), th("Room"), th("Cancel")),
+          rows
+        )
       )
     }
   }

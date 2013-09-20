@@ -21,7 +21,7 @@ import controllers.users.{ Authenticated, RoleMustPass, VisitAction }
 import org.joda.time.{LocalDate, LocalTime, LocalDateTime}
 import config.users.UsesDataStore
 import scalatags._
-import templates.ConfigProvider
+import templates._
 import Conferences._
 import controllers.users.VisitRequest
 
@@ -59,11 +59,11 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
   }
 
   def guardianSlotScheduler(sessionId: Long, teacherId: String, studentId: String) = {
-    guardianSlotRequestValidator(sessionId, teacherId, studentId) { guardianSlotSchedulerBlock(_,_,_,_,_,_) }
+    guardianSlotRequestValidator(sessionId, teacherId, studentId) { guardianSlotSchedulerBlock }
   }
   
   def guardianSlotSchedulerP(sessionId:Long, teacherId: String, studentId:String) = {
-    guardianSlotRequestValidator(sessionId, teacherId, studentId) { guardianSlotSchedulerPBlock(_,_,_,_,_,_) }
+    guardianSlotRequestValidator(sessionId, teacherId, studentId) { guardianSlotSchedulerPBlock }
   }
   
   def guardianSlotRequestValidator(sessionId: Long, teacherId: String, studentId: String)
@@ -87,6 +87,25 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
           case (_, _) => { Redirect(routes.Conferences.index).flashing(("error", "Student could not be found.")) }
         }
      }
+  }
+  
+  def activateTeacherSession(id: Long) = Authenticated { implicit req =>
+    dataStore.execute { pm =>
+      val maybeSession = pm.query[Session].filter(QSession.candidate.id.eq(id)).executeOption()
+      (req.role, maybeSession) match {
+        case (teacher: Teacher, Some(session)) => {
+          val ta = new TeacherActivation(session, teacher, None)
+          pm.makePersistent(ta)
+          Redirect(routes.Conferences.index)
+        }
+        case (teacher:Teacher, _) => {
+          Redirect(routes.Conferences.index).flashing("error" -> "Session not found")
+        }
+        case (_, _) => {
+          Redirect(routes.Conferences.index).flashing("error" -> "You must be a teacher to activate this.")
+        }
+      }
+    }
   }
   
   def guardianSlotSchedulerBlock(guardian: Guardian, student: Student, teacher: Teacher, session: Session, req: VisitRequest[_], pm: scalajdo.ScalaPersistenceManager) = {
@@ -113,7 +132,6 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
                  pm.makePersistent(slot)
                  Redirect("/itworked")
              }
-               
            }
    }
   
@@ -296,10 +314,70 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       }
     }
   }
-
-  def myConferences(sessionId: Long) = TODO
   
-  ////////////////////////////////////////////////////////Teacher View////////////////////////////////////////////////////////////////
+  def studentClasses(sessionId: Long, studentId: String) = Authenticated { implicit req =>
+    dataStore.execute { implicit pm =>
+      val maybeStudent = Student.getByStateId(studentId).orElse(Student.getByStudentNumber(studentId))
+      val maybeSession = pm.query[Session].filter(QSession.candidate.id.eq(sessionId)).executeOption
+      (req.role, maybeStudent, maybeSession) match {
+        case (guardian: Guardian, Some(student), Some(session)) => {
+          if(guardian.children.contains(student)) {
+            studentScheduleForConferences(student, session)
+          } else {
+            Redirect(routes.Conferences.index).flashing("error" -> "You are not the guardian of the requested student.")
+          }
+        }
+        case (guardian: Guardian, Some(_), _) => Redirect(routes.Conferences.index).flashing("error" -> "Could not find requested session")
+        case (guardian: Guardian, _, _) => Redirect(routes.Conferences.index).flashing("error" -> "Could not find requested student.")
+        case (_, _, _) => Redirect(routes.Conferences.index).flashing("error" -> "You must be a guardian to view a schedule in conferences.")
+      }
+    }
+  }
+  
+  def studentScheduleForConferences(student: Student, session: Session)(implicit req: VisitRequest[_]) = {
+    val (rows, hasEnrollments) = {
+      val controller = new controllers.courses.App()
+      import controller.{scheduleConstructor, intersperse}
+      scheduleConstructor(student, Term.current) 
+        { ls => td(intersperse(ls.map(s => a.href(s"/conferences/guardianRegister/${session.id}/${s.teachers.head.personId}/${student.studentNumber}")
+        		                                               ("Schedule a Conference with this Teacher")), br())) }
+    }
+    Ok(templates.conferences.StudentScheduleForConferences(student, session, rows, hasEnrollments))
+  }
+  
+  def myConferences(sessionId: Long) = Authenticated { implicit req =>
+    dataStore.execute { implicit pm => 
+      val maybeSession = pm.query[Session].filter(QSession.candidate.id.eq(sessionId)).executeOption()
+      (req.role, maybeSession) match {
+        case (_, None) => Redirect(routes.Conferences.index).flashing("error" -> "Could not find requested session")
+        case (guardian: Guardian, Some(session)) => myConferencesForParents(guardian, session)
+        case (teacher: Teacher, Some(session)) => Redirect(routes.Conferences.index).flashing("error" -> "Functionality not added yet")
+        case (_, _) => Redirect(routes.Conferences.index).flashing("error" -> "You must be a teacher or guardian to access this page.")
+      }
+    }
+  }
+  
+  def myConferencesForParents(guardian: Guardian, session: Session)
+                             (implicit req: VisitRequest[_], pm: scalajdo.ScalaPersistenceManager) = {
+    val slots = pm.query[Slot].filter(QSlot.candidate.guardians.contains(guardian).and(QSlot.candidate.session.eq(session))).executeList
+    val slotsSorted = slots.sortBy(_.startTime)
+    def likelyRoom(student: Student, teacher: Teacher) = {
+      val enrollments: List[StudentEnrollment] = {
+        val sectVar = QSection.variable("sectVar")
+        val cand = QStudentEnrollment.candidate()
+        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(Term.current))).executeList()
+      }
+      val sections = enrollments.map(_.section)
+      if(sections.size == 0) "No room found." else sections.filter(_.teachers.contains(teacher)).head.room.name
+    }
+    val rows = slots.map(s => tr(td(timeReporter(s.startTime)), td(s.teacher.shortName), 
+    							 td(s.students.head.shortName), td(likelyRoom(s.students.head, s.teacher)), 
+    							 td(form.attr("method" -> "post").action(s"/conferences/cancelSlot/${s.id}")
+    									 (input.attr("type" -> "submit").value("Cancel").cls("btn btn-danger")))))
+    Ok(templates.conferences.myConferencesParents(guardian, session, rows))									 
+  }
+  
+  ////////////////////////////////////////////////////////Teacher View/////////////////////////////////////////////////////////////////
 
 	def teacherView() = RoleMustPass((role: Role) => role.isInstanceOf[Teacher]) { implicit request =>
 	  dataStore.execute { pm =>
@@ -335,10 +413,6 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     val note = new TextFieldOptional("note")
 
     val fields = List(slotInterval, note)
-  }
-
-  def activateTeacherSession(sessionId: Long) = VisitAction { implicit request =>
-    Ok(views.html.conferences.activateSession((Binding(TeacherActivationForm)), sessionId))
   }
   
   def activateTeacherSessionP(sessionId: Long) = VisitAction { implicit request =>  

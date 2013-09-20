@@ -71,29 +71,9 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
     }
   }
 
-  def studentSchedule(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
-    dataStore.execute { implicit pm =>
-      val enrollments: List[StudentEnrollment] = {
-        val sectVar = QSection.variable("sectVar")
-        val cand = QStudentEnrollment.candidate()
-        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
-      }
-      val hasEnrollments = enrollments.size != 0
-      val sections: List[Section] = enrollments.map(_.section)
-      val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
-      val rows: List[STag] = periods.map { p =>
-        val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-        tr(
-          td(p.name),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.course.name)), br())),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.teachers.map(_.shortName).mkString("; "))), br())),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())))
-      }
-      Ok(templates.courses.StudentSchedule(student, term, rows, hasEnrollments))
-    }
-  }
-  
-  def studentScheduleForTeacher(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
+  def scheduleConstructor(student: Student, term: Term)
+  						 (addItems: (List[Section] => STag)*)
+  						 (implicit req: VisitRequest[_]) = {
     dataStore.execute { implicit pm =>
       val enrollments: List[StudentEnrollment] = {
         val sectVar = QSection.variable("sectVar")
@@ -110,10 +90,24 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
           td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.course.name)), br())),
           td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.teachers.map(_.shortName).mkString("; "))), br())),
           td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.numStudents.toString)), br())))
+          for(item <- addItems) yield (item(sectionsThisPeriod))
+        )
       }
-      Ok(templates.courses.StudentScheduleForTeacher(student, term, rows, hasEnrollments))
+      (rows, hasEnrollments)
     }
+  }
+  
+  def studentSchedule(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
+    val (rows, hasEnrollments) = scheduleConstructor(student, term)()
+    Ok(templates.courses.StudentSchedule(student, term, rows, hasEnrollments))
+  }
+  
+  def studentScheduleForTeacher(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
+    val (rows, hasEnrollments) = 
+      scheduleConstructor(student, term) 
+        { ls => td(intersperse(ls.map(s => StringSTag(s.numStudents.toString)), br())) }
+    
+    Ok(templates.courses.StudentScheduleForTeacher(student, term, rows, hasEnrollments))
   }
   
   // Actions - should be the result of routing and should call the functions above
