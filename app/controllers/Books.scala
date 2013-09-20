@@ -9,6 +9,7 @@ import com.itextpdf.text.pdf.{ Barcode128, Barcode, PdfContentByte, PdfWriter, B
 import com.itextpdf.text.{ BaseColor, Document, DocumentException, PageSize, Paragraph, Utilities }
 import models.books._
 import models.courses.{ Student, QStudent }
+import models.courses.Student.{ StudentField, StudentIdField }
 import models.users._
 import org.dupontmanual.forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
 import org.dupontmanual.forms.fields._
@@ -34,7 +35,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   def addTitle() = Authenticated { implicit request =>
     Ok(templates.books.addTitle(Binding(TitleForm)))
   }
-
+  
   def addTitleP() = Authenticated { implicit request =>
     Binding(TitleForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.addTitle(ib))
@@ -1026,6 +1027,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
 }
 
 object Books extends UsesDataStore {
+  import Student.StudentList
   // This is the companion object to the Books class
 
   final val df = org.joda.time.format.DateTimeFormat.forPattern("MM/dd/yyyy")
@@ -1072,45 +1074,8 @@ object Books extends UsesDataStore {
     }
   }
 
-  class StudentField(name: String, list: List[String]) extends BaseAutocompleteField[Student](name, list) {
-    def asValue(strs: Seq[String]): Either[ValidationError, Student] = {
-      dataStore.execute { pm =>
-        if (strs.size == 1 && !strs(0).isEmpty) {
-          val s = strs(0)
-          val sId = s.split("-").last.trim
-          val cand = QStudent.candidate
-          val userVar = QUser.variable("userVar")
-          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId)).or(cand.user.eq(userVar).and(userVar.username.eq(sId)))).executeOption() match {
-            case Some(stu) => Right(stu)
-            case _ => Left(ValidationError("Student not found"))
-          }
-        } else {
-          Left(ValidationError("Please enter only one string"))
-        }
-      }
-    }
-  }
-
-  class StudentIdField(name: String, list: List[String]) extends BaseAutocompleteField[String](name, list) {
-    def asValue(strs: Seq[String]): Either[ValidationError, String] = {
-      dataStore.execute { pm =>
-        if (strs.size == 1 && !strs(0).isEmpty) {
-          val s = strs(0)
-          val sId = s.split("-").last.trim
-          val cand = QStudent.candidate
-          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId))).executeOption() match {
-            case Some(stu) => Right(sId)
-            case _ => Left(ValidationError("Student not found"))
-          }
-        } else {
-          Left(ValidationError("Please enter only one string"))
-        }
-      }
-    }
-  }
-
   object CheckoutForm extends Form {
-    val student = new StudentField("Student", StudentList.students)
+    val student = new StudentField("Student", StudentList.studentsIds)
     val cpy = new CopyField("Barcode")
 
     val fields = List(student, cpy)
@@ -1141,7 +1106,7 @@ object Books extends UsesDataStore {
   }
 
   object CheckoutBulkForm extends Form {
-    val student = new StudentIdField("Student", StudentList.students)
+    val student = new StudentIdField("Student", StudentList.studentsIds)
 
     val fields = List(student)
   }
@@ -1170,7 +1135,7 @@ object Books extends UsesDataStore {
   }
 
   object ChooseStudentForm extends Form {
-    val student = new StudentField("Student", StudentList.students)
+    val student = new StudentField("Student", StudentList.studentsIds)
 
     def fields = List(student)
   }
@@ -1482,15 +1447,5 @@ object Books extends UsesDataStore {
     }
     makePdf(printList)
   }
-
-  object StudentList {
-    val cand = QStudent.candidate
-    val userVar = QUser.variable("userVar")
-    lazy val students = dataStore.pm.query[Student].filter(
-        cand.user.eq(userVar).and(userVar.isActive.eq(true))).executeList().map(s => {
-          val num = List(s.stateId, s.studentNumber).find(x => x != null && x != "").getOrElse("0000000000")
-          s"${s.formalName} - $num"
-        })
-  }
-
+  
 }

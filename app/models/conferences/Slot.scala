@@ -84,6 +84,12 @@ class Slot extends UsesDataStore {
     comment_=(comment)
   }
   
+  def this(session: Session, teacher: Teacher, startTime: LocalTime,
+      students: Set[Student], guardians: Set[Guardian], phone: Option[String],
+      alternatePhone: Option[String], comments: Option[String]) = {
+    this(session, teacher, startTime, 10, students, guardians, phone, alternatePhone, comments)
+  }
+  
   def endTime: LocalTime = startTime.plusMinutes(slotInterval)
   
   //Checks if the slot lies within the session's start and end times
@@ -103,7 +109,7 @@ class Slot extends UsesDataStore {
     dataStore.execute { implicit pm =>
       val cand = QSlot.candidate
 	  val slots = pm.query[Slot].filter(cand.teacher.eq(this.teacher).and(cand.session.eq(this.session))).executeList()
-      slots.exists(s => (startTime >= s.startTime && startTime <
+      !slots.exists(s => (startTime >= s.startTime && startTime <
       	s.endTime) || (endTime > s.startTime && endTime <= s.endTime))
     }
   }

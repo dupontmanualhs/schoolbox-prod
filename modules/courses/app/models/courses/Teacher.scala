@@ -5,9 +5,13 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.QRole
 import models.users.Role
-import models.users.User
+import models.users.{User, Gender}
 import config.users.UsesDataStore
 import models.users.QUser
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.widgets._
+import org.dupontmanual.forms.validators._
+
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -59,6 +63,38 @@ object Teacher extends UsesDataStore {
     val cand = QTeacher.candidate
     dataStore.pm.query[Teacher].filter(cand.personId.eq(personId)).executeOption()
   }
+  
+  object TeacherList {
+    val cand = QTeacher.candidate
+    val userVar = QUser.variable("userVar")
+    lazy val teachers = dataStore.pm.query[Teacher].filter(
+        cand.user.eq(userVar).and(userVar.isActive.eq(true))).executeList()
+    lazy val teacherIds = teachers.map(t => {
+    	val num = List(t.stateId, t.personId).find(x => x != null && x != "").getOrElse("0000000000")
+        s"${t.formalName} - $num"
+    })
+  }
+  
+  class TeacherField(name: String, list: List[String]) extends BaseAutocompleteField[Teacher](name, list) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Teacher] = {
+      dataStore.execute { pm =>
+        if (strs.size == 1 && !strs(0).isEmpty) {
+          val s = strs(0)
+          val tId = s.split("-").last.trim
+          val cand = QTeacher.candidate
+          val userVar = QUser.variable("userVar")
+          pm.query[Teacher].filter(cand.stateId.eq(tId).or(cand.personId.eq(tId))).executeOption() match {
+              case Some(tchr) => Right(tchr)
+              case _ => Left(ValidationError("Teacher not found"))
+          }
+        } else {
+          Left(ValidationError("Please enter only one string"))
+        }
+      }
+    }
+  }
+  
+  val sampleTeacher = new Teacher(new User("", "", None, "", None, Gender.NotListed, "", ""), "", "")
 }
 
 trait QTeacher extends QRole[Teacher] {

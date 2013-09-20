@@ -6,6 +6,8 @@ import models.courses._
 import models.conferences._
 import org.dupontmanual.forms.fields._
 import org.dupontmanual.forms.validators.{ ValidationError, Validator }
+import org.dupontmanual.forms.widgets.Textarea
+import org.dupontmanual.forms.FormCall
 import util.Helpers._
 import java.sql.Date
 import java.sql.Time
@@ -16,9 +18,12 @@ import play.api.mvc.Controller
 import config.Config
 import com.google.inject.{ Inject, Singleton }
 import controllers.users.{ Authenticated, RoleMustPass, VisitAction }
-import org.joda.time.LocalDate
-import org.joda.time.LocalDateTime
+import org.joda.time.{LocalDate, LocalTime, LocalDateTime}
 import config.users.UsesDataStore
+import scalatags._
+import templates.ConfigProvider
+import Conferences._
+import controllers.users.VisitRequest
 
 @Singleton
 class Conferences @Inject()(implicit config: Config) extends Controller with UsesDataStore {
@@ -41,38 +46,160 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
 
   def index() = VisitAction { implicit req =>
     dataStore.execute { implicit pm =>
-      val events = pm.query[Event].executeList()
-      val sessions = pm.query[models.conferences.Session].executeList()
-      val currUser: Option[User] = req.visit.user
-      currUser match {
-        case None => {
-          req.visit.redirectUrl = routes.Conferences.index
-          pm.makePersistent(req.visit)
-          Redirect(controllers.users.routes.App.login()).flashing("error" -> "You are not logged in.")
-        }
-        case Some(x) => {
-          if (currUser.get.username == "736052" || currUser.get.username == "todd") {
-            Ok(views.html.conferences.admin(events, sessions))
-          } else if (Teacher.getByUsername(currUser.get.username).isDefined) {
-            Redirect(routes.Conferences.teacherView())
-          } else {
-            val currentUser = req.visit.user
-            val isStudent = currentUser.isDefined && Student.getByUsername(currentUser.get.username).isDefined
-            if (!isStudent) {
-              NotFound(templates.NotFound("Must be logged-in to get a conference"))
-            } else {
-              val student = Student.getByUsername(currentUser.get.username).get
-              val slots = pm.query[Slot].filter(QSlot.candidate.students.contains(student)).executeList()
-              val priority = pm.query[PriorityScheduling].filter(QPriorityScheduling.candidate.student.eq(student)).executeOption()
-              val currentTime = LocalDateTime.now()
-              Ok(views.html.conferences.index(events, sessions, slots, priority, currentTime))
-            }
-          }
-        }
+      val now = org.joda.time.DateTime.now()
+      val ecand = QEvent.candidate
+      val scand = QSession.candidate
+      val events = pm.query[Event].filter(ecand.isActive).executeList()
+      val sessions = events.map { event => 
+        pm.query[Session].filter(scand.event.eq(event)).executeList
       }
+      val eventsAndSessions = events.zip(sessions).toList
+      Ok(templates.conferences.index(eventsAndSessions))
     }
   }
 
+  def guardianSlotScheduler(sessionId: Long, teacherId: String, studentId: String) = {
+    guardianSlotRequestValidator(sessionId, teacherId, studentId) { guardianSlotSchedulerBlock(_,_,_,_,_,_) }
+  }
+  
+  def guardianSlotSchedulerP(sessionId:Long, teacherId: String, studentId:String) = {
+    guardianSlotRequestValidator(sessionId, teacherId, studentId) { guardianSlotSchedulerPBlock(_,_,_,_,_,_) }
+  }
+  
+  def guardianSlotRequestValidator(sessionId: Long, teacherId: String, studentId: String)
+    (f: (Guardian, Student, Teacher, Session, VisitRequest[_], scalajdo.ScalaPersistenceManager) => play.api.mvc.Result) = Authenticated { implicit req => 
+     dataStore.execute { implicit pm => 
+       val maybeStudent = Student.getByStateId(studentId).orElse(Student.getByStudentNumber(studentId))
+       (req.role, maybeStudent) match {
+          case (guardian: Guardian, Some(student)) => {
+            if(guardian.children.contains(student)) {
+              val maybeTeacher = Teacher.getByPersonId(teacherId).orElse(Teacher.getByStateId(teacherId))
+              val maybeSession = pm.query[Session].filter(QSession.candidate.id.eq(sessionId)).executeOption
+              (maybeTeacher, maybeSession) match {
+                case (_, None) => Redirect(routes.Conferences.index()).flashing(("error", "Session could not be found."))
+                case (None, _) => Redirect(routes.Conferences.index()).flashing(("error", "Teacher could not be found."))
+                case (Some(teacher), Some(session)) => f(guardian, student, teacher, session, req, pm)
+              }
+            }
+            else Redirect(routes.Conferences.index).flashing(("error", "You are not a guardian of the indicated student."))
+          }
+          case (_, Some(student)) => { Redirect(routes.Conferences.index).flashing(("error", "You must be a guardian to use this feature."))}
+          case (_, _) => { Redirect(routes.Conferences.index).flashing(("error", "Student could not be found.")) }
+        }
+     }
+  }
+  
+  def guardianSlotSchedulerBlock(guardian: Guardian, student: Student, teacher: Teacher, session: Session, req: VisitRequest[_], pm: scalajdo.ScalaPersistenceManager) = {
+      implicit val impReq = req
+      implicit val impPm = pm
+      val form = new SlotForm(guardian, student, teacher, session)
+      Ok(templates.conferences.guardianSlotScheduler(Binding(form)))
+   }
+  
+   def guardianSlotSchedulerPBlock(guardian: Guardian, student: Student, teacher: Teacher, session: Session, req: VisitRequest[_], pm: scalajdo.ScalaPersistenceManager) = {
+     implicit val impReq = req
+     implicit val impPm = pm      
+     val slotForm = new SlotForm(guardian, student, teacher, session)
+           Binding(slotForm, req) match  {
+             case ib: InvalidBinding => println("This is an invalid binding"); Ok(templates.conferences.guardianSlotScheduler(ib))
+             case vb: ValidBinding => {
+                 val slot = vb.valueOf(slotForm.slots)
+                 val phone = vb.valueOf(slotForm.phone)
+                 val altphone = vb.valueOf(slotForm.altphone)
+                 val comments = vb.valueOf(slotForm.comments)
+                 slot.phone_=(phone)
+                 slot.alternatePhone_=(altphone)
+                 slot.comment_=(comments)
+                 pm.makePersistent(slot)
+                 Redirect("/itworked")
+             }
+               
+           }
+   }
+  
+  class SlotForm(val guardian: Guardian, val student: Student, val teacher: Teacher, val session: Session) extends Form {
+    val start = session.startTime
+    val end = session.endTime
+    val minuteDifference = ((end.getMillisOfDay() - start.getMillisOfDay()) / 1000) / 60
+    val numOfConferences = minuteDifference / 10
+    val allIntervals = for(i <- 0 to numOfConferences - 1) yield start.plusMinutes(i * 10)
+    val slotsSorted = allIntervals.map(new Slot(session, teacher, _, 10, Set(student), Set(guardian), None,
+    											None, None))
+    val slotsFormatted = slotsSorted.map((slot: Slot) => (Conferences.timeReporter(slot.startTime), slot)).toList
+    val slotsFormattedIndexed = slotsFormatted.zipWithIndex
+    val slotsIndexedByHour = slotsFormattedIndexed.groupBy(_._1._2.startTime.getHourOfDay()).toList.sortBy(_._1)
+    
+    val phone = new PhoneFieldOptional("phone")
+    val altphone = new PhoneFieldOptional("altphone")
+    val comments = new TextFieldOptional("comments") { override def widget = new Textarea(false)}
+    val slots = new RadioField("slots", slotsFormatted)
+    val fields = List(slots, phone, altphone, comments)
+    
+    override def render(bound: Binding, overrideSubmit: Option[FormCall] = None, 
+                        legend: Option[String] = None): NodeSeq = {
+      h1(s"Schedule a Conference with ${teacher.shortName}").toXML ++
+      h2(s"For student ${student.shortName}").toXML ++ 
+      {
+      form.id(s"form ${bound.hasErrors}").attr(("method" -> "POST"))(
+        div.cls("span4")(
+          h3("Scheduled Times"),
+          slotTable(slotsIndexedByHour, session, teacher)
+        ),
+        div.cls("span4")(
+          h3("Optional Info"),
+          phone.render(bound),
+          altphone.render(bound),
+          comments.render(bound),
+          button.attr(("type" -> "submit")).cls("btn btn-primary")("Submit!")
+        )
+      )
+      }.toXML
+    }
+    
+    override def validate(vb: ValidBinding): ValidationError = {
+      println(ValidationError((super.validate(vb) ++ { if(vb.valueOf(slots).validateSlot) ValidationError(Nil) else ValidationError("Time already taken")}).toXML))
+      ValidationError((super.validate(vb) ++ { if(vb.valueOf(slots).validateSlot) ValidationError(Nil) else ValidationError("Time already taken")}).toXML)
+    }
+  }
+  
+  def slotTable(indexedSlotsByHour: List[(Int, List[((String, Slot), Int)])], session: Session, teacher: Teacher): STag = {
+    val collapses = for((hour, slotInfos) <- indexedSlotsByHour) yield {
+      div.cls("accordion-group")(
+        div.cls("accordion-heading")(
+          a.cls("accordion-toggle").attr("data-toggle" -> "collapse"
+          ).attr("data-parent" -> "#confaccordion").href("#collapse" + hour)(
+            Conferences.timeReporter(new LocalTime(hour, 0, 0)) + " - " + Conferences.timeReporter(new LocalTime(hour + 1, 0, 0))
+          )  
+        ),
+        div.id("collapse" + hour).cls("accordion-body collapse")(
+          div.cls("accordion-inner")(
+            table(tr(th("Times"), th("Select")),
+              for(slotInfo <- slotInfos) yield {
+                val slcand = QSlot.candidate
+                val sampleSlot = slotInfo._1._2
+                val isValid = sampleSlot.validateSlot
+                if(isValid) { 
+                  tr.cls("open")(
+                	td(slotInfo._1._1), 
+                    td(input.attr("type" -> "radio").name("slots").value(slotInfo._2))
+                  ) 
+                }
+                else { 
+                  tr.cls("error")(
+                	td(slotInfo._1._1), 
+                    td(input.attr("type" -> "radio").name("slots").value(slotInfo._2).attr("disabled" -> ""), 
+                	   div("Taken").display("inline").attr("style" -> "font-size: 12px;").padding_left("5px"))
+                  )
+                }
+              }    
+            ).cls("table table-striped")
+          )
+        )
+      )
+    }
+    div(collapses.toList)
+  }
+  
   //////////////////////////////////////////////////////////////Admin View////////////////////////////////////////////////////////////////////	
 
   object EventForm extends Form {
@@ -129,9 +256,9 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     val priority = new DateTimeFieldOptional("priority")
     val startTime = new TimeField("start time")
     val endTime = new TimeField("end time")
-    val fields = List(date, cutoff, /*priority,*/ startTime, endTime)
+    val fields = List(date, cutoff, priority, startTime, endTime)
   }
-
+  
   def createSession(eventId: Long) = VisitAction { implicit req =>
     Ok(views.html.conferences.createSession(Binding(SessionForm), eventId))
   }
@@ -170,6 +297,8 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     }
   }
 
+  def myConferences(sessionId: Long) = TODO
+  
   ////////////////////////////////////////////////////////Teacher View////////////////////////////////////////////////////////////////
 
 	def teacherView() = RoleMustPass((role: Role) => role.isInstanceOf[Teacher]) { implicit request =>
@@ -398,4 +527,21 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       }
     }
   }
+}
+
+object Conferences {
+  def timeReporter(time: LocalTime): String = {
+    if(time.getHourOfDay() >= 12) time.toString("h:mm") + " PM"
+    else if(time.getHourOfDay() == 0) "12:" + time.toString("mm") + " AM"
+    else time.toString("h:mm") + " AM"
+  }
+  
+  def getParameter(param: String, map: Map[String, Seq[String]]): String = {
+    map.getOrElse(param, Nil) match {
+      case x :: xs => x
+      case Nil => ""
+    }
+  }
+  
+  def getParam(param: String)(implicit map: Map[String, Seq[String]]): String = getParameter(param, map)
 }

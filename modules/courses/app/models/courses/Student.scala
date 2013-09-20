@@ -5,10 +5,14 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.QRole
 import models.users.Role
-import models.users.User
+import models.users.{User, Gender}
 import models.users.Permission
 import config.users.UsesDataStore
 import models.users.QUser
+import org.dupontmanual.forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.widgets._
+import org.dupontmanual.forms.validators._
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -73,6 +77,56 @@ object Student extends UsesDataStore {
     dataStore.pm.query[Student].filter(cand.stateId.eq(stateId)).executeOption()
   }
   
+  object StudentList {
+    val cand = QStudent.candidate
+    val userVar = QUser.variable("userVar")
+    lazy val students = dataStore.pm.query[Student].filter(
+        cand.user.eq(userVar).and(userVar.isActive.eq(true))).executeList()
+    lazy val studentsIds = students.map(s => {
+          val num = List(s.stateId, s.studentNumber).find(x => x != null && x != "").getOrElse("0000000000")
+          s"${s.formalName} - $num"
+        })
+  }
+  
+  class StudentField(name: String, list: List[String]) extends BaseAutocompleteField[Student](name, list) {
+    def asValue(strs: Seq[String]): Either[ValidationError, Student] = {
+      dataStore.execute { pm =>
+        if (strs.size == 1 && !strs(0).isEmpty) {
+          val s = strs(0)
+          val sId = s.split("-").last.trim
+          val cand = QStudent.candidate
+          val userVar = QUser.variable("userVar")
+          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId)).or(cand.user.eq(userVar).and(userVar.username.eq(sId)))).executeOption() match {
+            case Some(stu) => Right(stu)
+            case _ => Left(ValidationError("Student not found"))
+          }
+        } else {
+          Left(ValidationError("Please enter only one string"))
+        }
+      }
+    }
+  }
+
+  class StudentIdField(name: String, list: List[String]) extends BaseAutocompleteField[String](name, list) {
+    def asValue(strs: Seq[String]): Either[ValidationError, String] = {
+      dataStore.execute { pm =>
+        if (strs.size == 1 && !strs(0).isEmpty) {
+          val s = strs(0)
+          val sId = s.split("-").last.trim
+          val cand = QStudent.candidate
+          pm.query[Student].filter(cand.stateId.eq(sId).or(cand.studentNumber.eq(sId))).executeOption() match {
+            case Some(stu) => Right(sId)
+            case _ => Left(ValidationError("Student not found"))
+          }
+        } else {
+          Left(ValidationError("Please enter only one string"))
+        }
+      }
+    }
+  }
+  
+  val sampleStudent = new Student(new User("", "", None, "", None, Gender.NotListed, "", ""),
+		  						  "", "", 0, "")
 }
 
 trait QStudent extends QRole[Student] {
