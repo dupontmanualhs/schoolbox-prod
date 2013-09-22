@@ -110,10 +110,14 @@ package object conferences {
     def apply(eventsAndSessions: List[(Event, List[Session])])(implicit req: VisitRequest[_], config: Config) = {
       config.main("Conferences")(
         h1("Active Conferences"),
-        div.cls("accordion").id("confaccordion")(
-          collapseMaker(eventsAndSessions.head, true) :: eventsAndSessions.tail.map(collapseMaker(_))   
-        )
-      )
+         if(!eventsAndSessions.isEmpty) {
+           div.cls("accordion").id("confaccordion")(
+             collapseMaker(eventsAndSessions.head, true) :: eventsAndSessions.tail.map(collapseMaker(_))   
+           )
+         } else {
+           h1("No events or session open")
+         }
+      ) 
     }
   }
   
