@@ -74,6 +74,23 @@ object Session extends UsesDataStore {
     val maybeLong = try { Some(id.toLong) } catch { case e: Exception => None}
     maybeLong match { case Some(l) => getById(id); case None => None}
   }
+  
+  def mostCurrentSession: Option[Session] = {
+    dataStore.execute { pm => 
+      val sessions = pm.query[Session].executeList
+      sessions match {
+        case Nil => None
+        case ss => {
+         val active = sessions.filter(s => LocalDate.now().compareTo(s.date) <= 0)
+         if(active.isEmpty) None
+         else {
+           val sorted = active.sortBy(s => s.cutoff.toDateTime().getMillis)
+           Some(sorted.head)
+         }
+        }
+      }
+    }
+  }
 }
 
 trait QSession extends PersistableExpression[Session] {

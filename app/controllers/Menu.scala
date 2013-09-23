@@ -48,14 +48,14 @@ object Menu {
     val locItems = List(currloc, locsearch, locsched, findlocnum)
     val bookItems = List(manage, view, print)
     val courses = CoursesMenu.forRole(maybeRole)
+    val conferences = ConferencesMenu.forRole(maybeRole)
     val lockers = new MenuItem("Lockers", "menu_lockers", None, locItems)
-    val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
     val masteries = new MenuItem("Masteries", "menu_masteries", Some(controllers.routes.Mastery.menuOfTests().toString), Nil)
     val books = new MenuItem("Books", "menu_books", None, bookItems)
     val empty = new MenuItem("", "menu_empty", None, Nil)
     val bar = maybeRole match {
       case None => new MenuBar(Nil)
-      case _ => new MenuBar(List(courses, books))
+      case _ => new MenuBar(List(courses, books, conferences))
     }
     bar.asHtml ++ <div class="pull-right">{ UserMenu.forRole(maybeRole).asHtml }</div>
   }
