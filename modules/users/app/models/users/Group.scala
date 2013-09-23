@@ -43,6 +43,11 @@ class Group extends UsesDataStore {
     dataStore.pm.query[Permission].filter(cand.groups.contains(this)).executeList().toSet
   }
   
+  def addPermission(permission: Permission) {
+    permission.groups_=(permission.groups + this)
+    dataStore.pm.makePersistent(permission)
+  }
+
   def canEqual(that: Any): Boolean = that.isInstanceOf[Group]
   
   override def equals(that: Any): Boolean = that match {
@@ -53,10 +58,23 @@ class Group extends UsesDataStore {
   override def hashCode: Int = this.id.hashCode
 }
 
-object Group {
+object Group extends UsesDataStore {
   @Inject
   def config(conf: Config): Config = conf
   
+  def apply(name: String): Group = {
+    val cand = QGroup.candidate()
+    dataStore.execute { pm =>
+      pm.query[Group].filter(cand.name.eq(name)).executeOption() match {
+        case None => {
+          val newGroup = new Group(name)
+          pm.makePersistent(newGroup)
+          newGroup
+        }
+        case Some(group) => group
+      }  
+    }
+  }
 }
 
 trait QGroup[PC <: Group] extends PersistableExpression[PC] {

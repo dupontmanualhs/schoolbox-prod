@@ -6,8 +6,6 @@ import org.datanucleus.query.typesafe._
 import models.users.Role
 import config.users.UsesDataStore
 
-
-
 @PersistenceCapable(detachable = "true")
 class LabelQueueSet {
   @PrimaryKey

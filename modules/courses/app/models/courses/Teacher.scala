@@ -37,11 +37,6 @@ class Teacher extends Role {
     stateId_=(stateId)
   }
   
-  /*def allStudents(term: Term): List[Student] = {
-    //TODO
-    Nil
-  }*/
-
   def role = "Teacher"
     
   override def canEqual(that: Any): Boolean = that.isInstanceOf[Teacher]

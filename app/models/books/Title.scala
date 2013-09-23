@@ -1,6 +1,5 @@
 package models.books
 
-
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._

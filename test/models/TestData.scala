@@ -87,7 +87,11 @@ object TestData extends UsesDataStore {
         jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
         ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
         reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian))
+        
+      // Permissions
       toddTeacher.addPermission(User.Permissions.ListAll)
+      maryTeacher.addPermission(Book.Permissions.Manage)
+      maryTeacher.addPermission(Book.Permissions.LookUp)
 
       if (debug) println("Creating the blagosphere")
       // blogs

@@ -59,7 +59,7 @@ class Permission {
     groups_=(Set[Group]())
   }
   
-  override def toString: String = s"Permission(${klass}.Permissions.${name}"
+  override def toString: String = s"Permission(${klass}.Permissions.${name})"
   
   def canEqual(that: Any): Boolean = that.isInstanceOf[Permission]
   

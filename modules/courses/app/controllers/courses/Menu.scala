@@ -23,14 +23,14 @@ object Menu {
     new MenuItem("My Students' Schedules", "menu_mystudents", None, Nil, sublist)
   }
   
-  def forRole(maybeRole: Option[Role]) = {
-    val items = { maybeRole match {
-        case Some(t: Teacher) => List(mySchedule, findTeacherSchedule, findStudentSchedule)
-        case Some(s: Student) => List(mySchedule, findTeacherSchedule)
-        case Some(g: Guardian) => List(myStudents(g), findTeacherSchedule)
-        case _ => Nil
+  def forRole(maybeRole: Option[Role]): Option[MenuItem] = {
+    val items: Option[List[MenuItem]] = maybeRole.map((role: Role) =>
+      role match {
+        case t: Teacher => List(mySchedule, findTeacherSchedule, findStudentSchedule)
+        case s: Student => List(mySchedule, findTeacherSchedule)
+        case g: Guardian => List(myStudents(g), findTeacherSchedule)
       }
-    }
-    new MenuItem("Courses", "menu_courses", None, items) 
+    )
+    items.map(ms => new MenuItem("Courses", "menu_courses", None, ms)) 
   }
 }
