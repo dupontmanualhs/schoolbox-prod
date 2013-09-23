@@ -4,8 +4,9 @@ import config.ConfigInjector
 import config.users.ProvidesInjector
 import models.users.Group
 import models.books.Book
+import config.users.UsesDataStore
 
-object Global extends GlobalSettings with ProvidesInjector {
+object Global extends GlobalSettings with ProvidesInjector with UsesDataStore {
   lazy val injector = Guice.createInjector(new ConfigInjector())
  
   def provideInjector(): Injector = Guice.createInjector(new ConfigInjector())
@@ -20,7 +21,6 @@ object Global extends GlobalSettings with ProvidesInjector {
     val student: Group = Group("student")
     val guardian: Group = Group("guardian")
     // Assign default permissions to groups
-    teacher.addPermission(Book.Permissions.LookUp)
-    
+    teacher.addPermission(Book.Permissions.LookUp) 
   }
 }
