@@ -22,7 +22,8 @@ import org.joda.time.LocalDateTime
 import org.joda.time.LocalDate
 import models.courses._
 import config.users.UsesDataStore
-import controllers.users.Authenticated
+import controllers.users.{ Authenticated, PermissionRequired }
+import models.books.Book.Permissions
 
 @Singleton
 class Books @Inject()(implicit config: Config) extends Controller with UsesDataStore {
@@ -32,11 +33,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form that allows users to add information for a new book to the database.
    */
-  def addTitle() = Authenticated { implicit request =>
+  def addTitle() = PermissionRequired(Permissions.Manage) { implicit request =>
     Ok(templates.books.addTitle(Binding(TitleForm)))
   }
   
-  def addTitleP() = Authenticated { implicit request =>
+  def addTitleP() = PermissionRequired(Permissions.Manage) { implicit request =>
     Binding(TitleForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.addTitle(ib))
       case vb: ValidBinding => dataStore.execute { implicit pm =>
@@ -65,11 +66,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * A form that allows users to add a purchase of a certain title, and update
    * information about the number of copies of the book.
    */
-  def addPurchaseGroup() = Authenticated { implicit request =>
+  def addPurchaseGroup() = PermissionRequired(Permissions.Manage) { implicit request =>
     Ok(templates.books.addPurchaseGroup(Binding(AddPurchaseGroupForm)))
   }
 
-  def addPurchaseGroupP() = Authenticated { implicit request =>
+  def addPurchaseGroupP() = PermissionRequired(Permissions.Manage) { implicit request =>
     dataStore.execute { pm =>
       Binding(AddPurchaseGroupForm, request) match {
         case ib: InvalidBinding => Ok(templates.books.addPurchaseGroup(ib))

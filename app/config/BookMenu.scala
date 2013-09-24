@@ -7,10 +7,11 @@ import models.users.Role
 object BookMenu {
   def SomeIf[T](cond: Boolean)(t: => T): Option[T] = if (cond) Some(t) else None
 
-  def forRole(maybeRole: Option[Role]): Option[MenuItem] = maybeRole.map(role => {
-    val perms = role.permissions()
-    new MenuItem("Books", "menu_books", None, 
-        List(
+  def forRole(maybeRole: Option[Role]): Option[MenuItem] = maybeRole match {
+    case None => None
+    case Some(role) => {
+      val perms = role.permissions()
+      val items: List[MenuItem] = List(
           SomeIf(perms.contains(Book.Permissions.Manage)) {
             new MenuItem("Manage", "menu_manage", None, Nil, List(
               new MenuItem("Quick Checkout", "menu_quickChout", Some(controllers.routes.Books.quickCheckout.toString), Nil),
@@ -46,6 +47,7 @@ object BookMenu {
             ))
           }
         ).flatten
-    )}
-  )
+      SomeIf(!items.isEmpty)(new MenuItem("Books", "menu_books", None, items))
+    }
+  }
 }

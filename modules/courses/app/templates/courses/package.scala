@@ -21,7 +21,7 @@ package object courses {
     def apply(teacher: Teacher, term: Term,
       rows: Seq[STag], hasAssignments: Boolean)(implicit req: VisitRequest[_]) = {
       config.main(s"${teacher.displayName}'s Schedule")(
-        div.cls("page-header")(h2(teacher.displayName, " ",small(term.name))),
+        div.cls("page-header")(h2(teacher.displayName, " ", small(term.name))),
         if (hasAssignments) {
           table.cls("table", "table-striped", "table-condensed")(
             thead(th("Period"), th("Course(s)"), th("Room(s)"), th("Students")) +: rows)
@@ -36,7 +36,7 @@ package object courses {
       rows: Seq[STag], hasEnrollments: Boolean, 
       header: STag = studentScheduleHeader)(implicit req: VisitRequest[_], config: Config) = {
       config.main(s"${student.displayName}'s Schedule")(
-        div.cls("page-header")(h2(student.displayName, small(term.name))),
+        div.cls("page-header")(h2(student.displayName, " ", small(term.name))),
         if (hasEnrollments) {
           table.cls("table", "table-striped", "table-condensed")(
             header +: rows)

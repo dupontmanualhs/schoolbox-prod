@@ -13,22 +13,21 @@ object Menu {
   val findStudentSchedule = new MenuItem("Find Student Schedule", "menu_studentschedule",
 		  								  Option(controllers.courses.routes.App.findStudent.toString), Nil)
   
-  def myStudents(guardian: Guardian) = {
-    val students = guardian.children.toList
-    val sublist: List[MenuItem] = if(students.size == 0) List(new MenuItem("You have no students.", "menu_nostudents", None, Nil))
-                  else students.map(s => { 
-                    new MenuItem(s.formalName, "menu_"+s.formalName, 
-                        Option(controllers.courses.routes.App.studentScheduleForUsername(s.user.username).toString), Nil)
-                    })
-    new MenuItem("My Students' Schedules", "menu_mystudents", None, Nil, sublist)
+  def myStudents(guardian: Guardian): List[MenuItem] = {
+    val students = guardian.children.filter(_.user.isActive).toList
+    if(students.size == 0) List(new MenuItem("You have no current students.", "menu_nostudents", None, Nil))
+    else students.map(s => { 
+      new MenuItem(s"Schedule for ${s.formalName}", "menu_"+s.formalName, 
+          Option(controllers.courses.routes.App.studentScheduleForUsername(s.user.username).toString), Nil)
+      })
   }
   
   def forRole(maybeRole: Option[Role]): Option[MenuItem] = {
     val items: Option[List[MenuItem]] = maybeRole.map((role: Role) =>
       role match {
         case t: Teacher => List(mySchedule, findTeacherSchedule, findStudentSchedule)
-        case s: Student => List(mySchedule, findTeacherSchedule)
-        case g: Guardian => List(myStudents(g), findTeacherSchedule)
+        case s: Student => List(mySchedule)
+        case g: Guardian => myStudents(g)
       }
     )
     items.map(ms => new MenuItem("Courses", "menu_courses", None, ms)) 

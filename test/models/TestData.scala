@@ -36,16 +36,12 @@ object TestData extends UsesDataStore {
     dataStore.withTransaction { pm =>
       //create User Data
       if (debug) println("Creating sample users...")
+      // Users
       // teachers
       val mary = new User("mary", "Mary", Some("King"), "Claire", None, Gender.Female, "mary@mary.com", "cla123")
       val christina = new User("christina", "Christina", Some("King"), "Teresa", Some("Tina"), Gender.Female, "christina@christina.com", "ter123")
       val richard = new User("richard", "Richard", Some("King"), "Will", None, Gender.Male, "richard@richard.com", "wil123")
       val todd = new User("todd", "Todd", Some("Allen"), "O'Bryan", None, Gender.Male, "todd@todd.com", "obr123")
-      val maryTeacher = new Teacher(mary, "318508", "4284802048")
-      val christinaTeacher = new Teacher(christina, "542358", "8795177958")
-      val richardTeacher = new Teacher(richard, "423423", "4478340832")
-      val toddTeacher = new Teacher(todd, "323423", "3042093480")
-
       // students
       val jack = new User("jack", "Jack", Some("Oliver"), "Phillips", None, Gender.Male, "jack@jack.com", "phi123")
       val fitzgerald = new User("fitzgerald", "Fitzgerald", Some("Longfellow"), "Pennyworth", Some("Fitz of Fury"), Gender.Male, "fitzgerald@fitzgerald.com", "pen123")
@@ -60,6 +56,23 @@ object TestData extends UsesDataStore {
       val john = new User("john", "John", Some("Francis"), "King", None, Gender.Male, "john@john.com", "kin123")
       val bobby = new User("bobby", "Bobby", None, "Hill", Some("Dangit Bobby"), Gender.Male, "bobby@bobby.com", "hil123")
       val eric = new User("eric", "Eric", None, "McKnight", Some("Dungeon Defenders"), Gender.Male, "eric@eric.com", "mck123")
+      // guardians
+      val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.Male, null, "pen123")
+      val hank = new User("hank", "Hank", None, "Hill", Some("Propane and Propane Accessories"), Gender.Male, null, "hil123")
+      pm.makePersistentAll(List(mary, christina, richard, todd,
+          jack, fitzgerald, tyler, meriadoc, peregrin, mack, andrew,
+          jordan, emma, laura, john, bobby, eric,
+          reg, hank))
+      
+      // Roles
+      // teachers
+      val maryTeacher = new Teacher(mary, "318508", "4284802048")
+      val christinaTeacher = new Teacher(christina, "542358", "8795177958")
+      val richardTeacher = new Teacher(richard, "423423", "4478340832")
+      val toddTeacher = new Teacher(todd, "323423", "3042093480")
+      pm.makePersistentAll(List(maryTeacher, christinaTeacher, richardTeacher, toddTeacher))
+      
+      // students
       val ericStud = new Student(eric, "4208935702", "384979", 6, "MST")
       val jackStud = new Student(jack, "3757202948", "425636", 0, "MST")
       val fitzgeraldStud = new Student(fitzgerald, "8340522509", "382085", 4, "VA")
@@ -73,21 +86,16 @@ object TestData extends UsesDataStore {
       val lauraStud = new Student(laura, "3943334223", "403024", 3, "YPAS")
       val johnStud = new Student(john, "5022165324", "154524", 12, "HSU")
       val bobbyStud = new Student(bobby, "4235612205", "425451", 12, "Propane Studies")
+      pm.makePersistentAll(List(ericStud, jackStud, fitzgeraldStud, tylerStud,
+          meriadocStud, peregrinStud, mackStud, andrewStud,
+          jordanStud, emmaStud, lauraStud, johnStud, bobbyStud))
 
       // guardians
-      val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.Male, null, "pen123")
-      val hank = new User("hank", "Hank", None, "Hill", Some("Propane and Propane Accessories"), Gender.Male, null, "hil123")
       val toddGuardian = new Guardian(todd, None, Set(meriadocStud, peregrinStud))
       val regGuardian = new Guardian(reg, None, Set(fitzgeraldStud))
       val hankGuardian = new Guardian(hank, None, Set(bobbyStud))
-
-      pm.makePersistentAll(List(
-        mary, christina, richard, todd,
-        maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
-        jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
-        ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
-        reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian))
-        
+      pm.makePersistentAll(List(toddGuardian, regGuardian, hankGuardian))
+      
       // Permissions
       toddTeacher.addPermission(User.Permissions.ListAll)
       maryTeacher.addPermission(Book.Permissions.Manage)
