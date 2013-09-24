@@ -17,10 +17,12 @@ object Global extends GlobalSettings with ProvidesInjector with UsesDataStore {
   
   override def onStart(app: Application) {
     // Create Groups
-    val teacher: Group = Group("teacher")
-    val student: Group = Group("student")
-    val guardian: Group = Group("guardian")
-    // Assign default permissions to groups
-    teacher.addPermission(Book.Permissions.LookUp) 
+    dataStore.withTransaction { pm => 
+      val teacher: Group = Group("teacher")
+      val student: Group = Group("student")
+      val guardian: Group = Group("guardian")
+      // Assign default permissions to groups
+      teacher.addPermission(Book.Permissions.LookUp)
+    }
   }
 }
