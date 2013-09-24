@@ -19,7 +19,7 @@ object ApplicationBuild extends Build {
       "com.scalatags" %% "scalatags" % "0.1.4",
       "org.dupontmanual" %% "dm-forms" % "0.1-SNAPSHOT",
       "org.dupontmanual" %% "scalajdo" % "0.1-SNAPSHOT",
-      "org.scalatest" %% "scalatest" % "2.0.M5b",
+      "org.scalatest" %% "scalatest" % "2.0.M8",
       "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
   )
 
