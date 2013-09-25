@@ -119,11 +119,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form page that allows administrators to checkout a copy of a book to a student.
    */
-  def checkout = Authenticated { implicit request =>
+  def checkout = PermissionRequired(Permissions.Manage) { implicit request =>
     Ok(templates.books.checkout(Binding(CheckoutForm)))
   }
 
-  def checkoutP() = Authenticated { implicit request =>
+  def checkoutP() = PermissionRequired(Permissions.Manage) { implicit request =>
     Binding(CheckoutForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.checkout(ib))
       case vb: ValidBinding => dataStore.execute { implicit pm =>
@@ -154,11 +154,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Another form that allows books to be checked out in bulk to a single student
    * Redirects to another page.
    */
-  def checkoutBulk() = Authenticated { implicit request =>
+  def checkoutBulk() = PermissionRequired(Permissions.Manage) { implicit request =>
     Ok(templates.books.checkoutBulk(Binding(CheckoutBulkForm)))
   }
 
-  def checkoutBulkP() = Authenticated { implicit request =>
+  def checkoutBulkP() = PermissionRequired(Permissions.Manage) { implicit request =>
     Binding(CheckoutBulkForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.checkoutBulk(ib))
       case vb: ValidBinding => {
@@ -178,7 +178,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * A form that checkouts multiple copies that are parameters of the request
    * to a student with given id.
    */
-  def checkoutBulkHelper(stu: String) = Authenticated { implicit request =>
+  def checkoutBulkHelper(stu: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     val dName = Student.getByStateId(stu) match {
       case None => "Unknown"
       case Some(s) => s.displayName
@@ -190,7 +190,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
     Ok(templates.books.checkoutBulkHelper(Binding(CheckoutBulkHelperForm), dName, zipped, stu))
   }
 
-  def checkoutBulkHelperP(stu: String) = Authenticated { implicit request =>
+  def checkoutBulkHelperP(stu: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     val dName = Student.getByStateId(stu) match {
       case None => "Unknown"
       case Some(s) => s.displayName
@@ -219,7 +219,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Removes a copy with given barcode (bc) from the student's with given id (stu)
    * checkout list. Redirects back to the checkout helper.
    */
-  def removeCopyFromList(stu: String, barcode: String) = Authenticated { implicit request =>
+  def removeCopyFromList(stu: String, barcode: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     val copies = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
     val newCopies = copies.filter(_ != barcode)
     request.visit.set("checkoutList", newCopies)
@@ -232,7 +232,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Removes all copies from the student's with given id (stu)
    * checkout list. Redirects back to the checkout helper.
    */
-  def removeAllCopiesFromList(stu: String) = Authenticated { implicit request =>
+  def removeAllCopiesFromList(stu: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     request.visit.set("checkoutList", Vector[String]())
     Redirect(routes.Books.checkoutBulkHelper(stu))
   }
@@ -243,7 +243,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Sets the parameter of the request to empty and redirects
    * to the initial bulk checkout form.
    */
-  def cancelBulkCheckout() = Authenticated { implicit request =>
+  def cancelBulkCheckout() = PermissionRequired(Permissions.Manage) { implicit request =>
     request.visit.set("checkoutList", Vector[String]())
     Redirect(routes.Books.checkoutBulk())
   }
@@ -254,7 +254,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Checks out all the books in the checkoutList request parameter to
    * the student with given id (stu)
    */
-  def checkoutBulkSubmit(stu: String) = Authenticated { implicit request =>
+  def checkoutBulkSubmit(stu: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     val copies: Vector[String] = request.visit.getAs[Vector[String]]("checkoutList").getOrElse(Vector[String]())
 
     dataStore.execute { implicit pm =>
@@ -285,11 +285,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form that allows for a book to be checked back in.
    */
-  def checkIn() = Authenticated { implicit request =>
+  def checkIn() = PermissionRequired(Permissions.Manage) { implicit request =>
     Ok(templates.books.checkIn(Binding(CheckInForm)))
   }
 
-  def checkInP() = Authenticated { implicit request =>
+  def checkInP() = PermissionRequired(Permissions.Manage) { implicit request =>
     Binding(CheckInForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.checkIn(ib))
       case vb: ValidBinding => dataStore.execute { pm =>
@@ -315,11 +315,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form that allows multiple books to be checked in simultaneously
    */
-  def checkInBulk() = Authenticated { implicit req =>
+  def checkInBulk() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.checkInBulk(Binding(BulkCheckInForm)))
   }
 
-  def checkInBulkP() = Authenticated { implicit req =>
+  def checkInBulkP() = PermissionRequired(Permissions.Manage) { implicit req =>
     Binding(BulkCheckInForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.checkInBulk(ib))
       case vb: ValidBinding => dataStore.execute { pm =>
@@ -376,11 +376,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * A form that allows the user to find the information on a copy with a given barcode.
    * The post request redirects to /books/copyHistory/:barcode
    */
-  def findCopyHistory() = Authenticated { implicit req =>
+  def findCopyHistory() = PermissionRequired(Permissions.LookUp) { implicit req =>
     Ok(templates.books.findCopyHistory(Binding(ChooseCopyForm)))
   }
 
-  def findCopyHistoryP() = Authenticated { implicit req =>
+  def findCopyHistoryP() = PermissionRequired(Permissions.LookUp) { implicit req =>
     Binding(ChooseCopyForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.findCopyHistory(ib))
       case vb: ValidBinding => singleCopyHistory(vb.valueOf(ChooseCopyForm.copy))
@@ -393,7 +393,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * A page that displays information about the history of the copy
    * with the given barcode.
    */
-  def copyHistory(barcode: String) = Authenticated { implicit req =>
+  def copyHistory(barcode: String) = PermissionRequired(Permissions.LookUp) { implicit req =>
     Copy.getByBarcode(barcode) match {
       case None => NotFound("No copy with the given barcode.")
       case Some(copy) => singleCopyHistory(copy)
@@ -414,10 +414,10 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   /**
    * Regex: /books/checkoutHistory/:studentId
    *
-   * Displays information about the books checkedout to a student
+   * Displays information about the books checked out to a student
    * with the given id (studentId).
    */
-  def checkoutHistory(stateId: String) = Authenticated { implicit req =>
+  def checkoutHistory(stateId: String) = PermissionRequired(Permissions.LookUp) { implicit req =>
     Student.getByStateId(stateId) match {
       case None => NotFound("No student with the given id.")
       case Some(currentStudent) => allStudentCheckouts(currentStudent)
@@ -444,11 +444,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * A form page that allows the user to find the checkout history
    * for a desired student.
    */
-  def findCheckoutHistory() = Authenticated { implicit req =>
+  def findCheckoutHistory() = PermissionRequired(Permissions.LookUp) { implicit req =>
     Ok(templates.books.findCheckoutHistory(Binding(ChooseStudentForm)))
   }
 
-  def findCheckoutHistoryP() = Authenticated { implicit req =>
+  def findCheckoutHistoryP() = PermissionRequired(Permissions.LookUp) { implicit req =>
     Binding(ChooseStudentForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.findCheckoutHistory(ib))
       case vb: ValidBinding => dataStore.execute { implicit pm =>
@@ -463,11 +463,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * A form page that allows users to find books currently
    * checked out to a student they provide.
    */
-  def findCurrentCheckouts() = Authenticated { implicit req =>
+  def findCurrentCheckouts() = PermissionRequired(Permissions.LookUp) { implicit req =>
     Ok(templates.books.findRoleHistory(Binding(ChooseStudentForm)))
   }
 
-  def findCurrentCheckoutsP() = Authenticated { implicit req =>
+  def findCurrentCheckoutsP() = PermissionRequired(Permissions.LookUp) { implicit req =>
     Binding(ChooseStudentForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.findRoleHistory(ib))
       case vb: ValidBinding => {
@@ -482,7 +482,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Displays information about the books currently check out
    * to a student with the given id (studentId).
    */
-  def currentCheckouts(stateId: String) = Authenticated { implicit req =>
+  def currentCheckouts(stateId: String) = PermissionRequired(Permissions.LookUp) { implicit req =>
     Student.getByStateId(stateId) match {
       case None => NotFound("No student with the given id")
       case Some(currentStudent) => checkoutsForStudent(currentStudent)
@@ -507,7 +507,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * Displays information about the status of a copy with given isbn.
    */
-  def copyStatusByTitle(isbn: String) = Authenticated { implicit req =>
+  def copyStatusByTitle(isbn: String) = PermissionRequired(Permissions.Manage) { implicit req =>
     Title.getByIsbn(isbn) match {
       case None => NotFound("Title not found.")
       case Some(t) => singleTitleStatus(t)
@@ -531,11 +531,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form page that allows a user to find a copy by its isbn.
    */
-  def findCopyStatusByTitle() = Authenticated { implicit req =>
+  def findCopyStatusByTitle() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.findCopyStatusByTitle(Binding(ChooseTitleForm)))
   }
 
-  def findCopyStatusByTitleP() = Authenticated { implicit req =>
+  def findCopyStatusByTitleP() = PermissionRequired(Permissions.Manage) { implicit req =>
     Binding(ChooseTitleForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.findCopyStatusByTitle(ib))
       case vb: ValidBinding => singleTitleStatus(vb.valueOf(ChooseTitleForm.title))
@@ -547,7 +547,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * Displays all of the books checked out for a given grade.
    */
-  def allBooksOut(grade: Int) = Authenticated { implicit req =>
+  def allBooksOut(grade: Int) = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { implicit pm =>
       val stu = QStudent.variable("stu")
       val cand = QCheckout.candidate
@@ -563,11 +563,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form page that allows a user to find al the books out for a page.
    */
-  def findAllBooksOut() = Authenticated { implicit req =>
+  def findAllBooksOut() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.findAllBooksOut(Binding(ChooseGradeForm)))
   }
 
-  def findAllBooksOutP() = Authenticated { implicit req =>
+  def findAllBooksOutP() = PermissionRequired(Permissions.Manage) { implicit req =>
     Binding(ChooseGradeForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.findAllBooksOut(ib))
       case vb: ValidBinding => dataStore.execute { implicit pm =>
@@ -582,7 +582,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * Displays information on a copy with given barcode.
    */
-  def copyInfo(barcode: String) = Authenticated { implicit req =>
+  def copyInfo(barcode: String) = PermissionRequired(Permissions.Manage) { implicit req =>
     Copy.getByBarcode(barcode) match {
       case None => NotFound("Copy not found.")
       case Some(cpy) => singleCopyInfo(cpy)
@@ -621,11 +621,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form page that allows users to find info on a copy with a certain barcode.
    */
-  def findCopyInfo() = Authenticated { implicit req =>
+  def findCopyInfo() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.findCopyInfo(Binding(ChooseCopyForm)))
   }
 
-  def findCopyInfoP() = Authenticated { implicit req =>
+  def findCopyInfoP() = PermissionRequired(Permissions.Manage) { implicit req =>
     Binding(ChooseCopyForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.findCopyInfo(ib))
       case vb: ValidBinding => singleCopyInfo(vb.valueOf(ChooseCopyForm.copy))
@@ -637,7 +637,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * Displays all of the titles in stock as well as certain information about each title.
    */
-  def inventory() = Authenticated { implicit req =>
+  def inventory() = PermissionRequired(Permissions.Manage) { implicit req =>
     val titles = dataStore.pm.query[Title].executeList.sortWith((c1, c2) => c1.name < c2.name)
 
     val rows: List[(String, String, String, String, String)] = titles.map(ti => {
@@ -652,14 +652,14 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form that allows the user to alter information about a title with a certain isbn.
    */
-  def editTitleHelper(isbn: String) = Authenticated { implicit request =>
+  def editTitleHelper(isbn: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     Title.getByIsbn(isbn) match {
       case Some(title) => Ok(templates.books.editTitleHelper(Binding(new EditTitleForm(title.name, title.author, title.publisher, title.numPages, title.dimensions, title.weight))))
       case None => Redirect(routes.Books.editTitle()).flashing("error" -> "Title not found")
     }
   }
 
-  def editTitleHelperP(isbn: String) = Authenticated { implicit request =>
+  def editTitleHelperP(isbn: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     Title.getByIsbn(isbn) match {
       case None => Redirect(routes.Books.editTitle()).flashing("error" -> "Title not found")
       case Some(title) => {
@@ -696,11 +696,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form that redirects a user to /books/editTitleHelper/:isbn based on the isbn they enter here.
    */
-  def editTitle() = Authenticated { implicit req =>
+  def editTitle() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.editTitle(Binding(EditTitleHelperForm)))
   }
 
-  def editTitleP() = Authenticated { implicit req =>
+  def editTitleP() = PermissionRequired(Permissions.Manage) { implicit req =>
     Binding(EditTitleHelperForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.editTitle(ib))
       case vb: ValidBinding => {
@@ -715,7 +715,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * Adds a title to the print queue and redirects the user to a print queue helper
    */
-  def addTitleToPrintQueue(isbn: String, copyRange: String) = Authenticated { implicit request =>
+  def addTitleToPrintQueue(isbn: String, copyRange: String) = PermissionRequired(Permissions.Manage) { implicit request =>
     Title.getByIsbn(isbn) match {
       case None => Redirect(routes.Books.addTitleToPrintQueueHelper()).flashing("error" -> "Title not found")
       case Some(t) => {
@@ -738,11 +738,11 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form page that allows the user to add certain titles and page ranges to a printer setup.
    */
-  def addTitleToPrintQueueHelper() = Authenticated { implicit request =>
+  def addTitleToPrintQueueHelper() = PermissionRequired(Permissions.Manage) { implicit request =>
     Ok(templates.books.addTitleToPrintQueueHelper(Binding(AddTitleToPrintQueueForm)))
   }
 
-  def addTitleToPrintQueueHelperP() = Authenticated { implicit request =>
+  def addTitleToPrintQueueHelperP() = PermissionRequired(Permissions.Manage) { implicit request =>
     Binding(AddTitleToPrintQueueForm, request) match {
       case ib: InvalidBinding => Ok(templates.books.addTitleToPrintQueueHelper(ib))
       case vb: ValidBinding => {
@@ -758,12 +758,12 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * Displays the items in the current print queue.
    */
-  def viewPrintQueue() = Authenticated { implicit request =>
+  def viewPrintQueue() = PermissionRequired(Permissions.Manage) { implicit request =>
     val labelSets = dataStore.pm.query[LabelQueueSet].executeList
     Ok(templates.books.viewPrintQueue(Binding(new ViewPrintQueueForm(labelSets))))
   }
 
-  def viewPrintQueueP() = Authenticated { implicit req =>
+  def viewPrintQueueP() = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       val labelSets = pm.query[LabelQueueSet].executeList()
       val f = new ViewPrintQueueForm(labelSets)
@@ -785,7 +785,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Removes the copy with given barcode from the database and redirects the user
    * to the deleteCopyHelper
    */
-  def deleteCopyP() = Authenticated { implicit req =>
+  def deleteCopyP() = PermissionRequired(Permissions.Manage) { implicit req =>
     Binding(ChooseCopyForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.deleteCopy(ib))
       case vb: ValidBinding => {
@@ -815,7 +815,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    *
    * A form page that allows the user to delete the current copy.
    */
-  def deleteCopy() = Authenticated { implicit req =>
+  def deleteCopy() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.deleteCopy(Binding(ChooseCopyForm)))
   }
 
@@ -825,7 +825,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
    * Deletes the title with given isbn from the database and redirects the user
    * to the deleteTitleHelper controller
    */
-  def deleteTitleP() = Authenticated { implicit req =>
+  def deleteTitleP() = PermissionRequired(Permissions.Manage) { implicit req =>
     Binding(ChooseTitleForm, req) match {
       case ib: InvalidBinding => Ok(templates.books.deleteTitle(ib))
       case vb: ValidBinding => dataStore.execute { pm =>
@@ -842,7 +842,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
     }
   }
 
-  def deleteTitle() = Authenticated { implicit req =>
+  def deleteTitle() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.deleteTitle(Binding(ChooseTitleForm)))
   }
 
@@ -851,7 +851,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   *
   * A form page that allows a user to pick a section and then print all of the student labels for that section
   */
-  def printSingleSection() = Authenticated { implicit req =>
+  def printSingleSection() = PermissionRequired(Permissions.Manage) { implicit req =>
     val cand = QSection.candidate()
     val sections = dataStore.pm.query[Section].filter(cand.terms.contains(Term.current)).executeList()
     val m = sections.map(s => (s.displayName, s.sectionId)).toMap
@@ -860,7 +860,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
     Ok(templates.books.printSingleSection(Binding(f)))
   }
 
-  def printSingleSectionP() = Authenticated { implicit req =>
+  def printSingleSectionP() = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       val cand = QSection.candidate()
       val sections = pm.query[Section].filter(cand.terms.contains(Term.current)).executeList()
@@ -883,7 +883,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
     }
   }
 
-  def displaySectionPdf() = Authenticated { implicit req =>
+  def displaySectionPdf() = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       Ok.sendFile(content = new java.io.File("public/sectionBarcodes.pdf"), inline = true)
     }
@@ -894,14 +894,14 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   *
   * Lets the user select a department and then print the student labels for each section in that department
   */
-  def printSectionsByDept() = Authenticated { implicit req =>
+  def printSectionsByDept() = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       val f = new ChooseDeptForm()
       Ok(templates.books.printSectionsByDept(Binding(f)))
     }
   }
 
-  def printSectionsByDeptP() = Authenticated { implicit req =>
+  def printSectionsByDeptP() = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       val f = new ChooseDeptForm()
       Binding(f, req) match {
@@ -932,7 +932,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   *
   * Prints student barcodes for all sections
   */
-  def printAllSections = Authenticated { implicit req =>
+  def printAllSections = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       val secCand = QSection.candidate
       val roomVar = QRoom.variable("roomVar")
@@ -948,7 +948,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   *
   * Reports a copy lost
   */
-  def reportCopyLost(barcode: String) = Authenticated { implicit req =>
+  def reportCopyLost(barcode: String) = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       if (req.visit.redirectUrl == None) {
         req.visit.redirectUrl = routes.App.index
@@ -985,7 +985,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   *
   * Checks a copy out to a student and is the helper method for quickCheckout
   */
-  def quickCheckoutHelper(stuId: String, barcode: String) = Authenticated { implicit req =>
+  def quickCheckoutHelper(stuId: String, barcode: String) = PermissionRequired(Permissions.Manage) { implicit req =>
     dataStore.execute { pm =>
       val cand = QStudent.candidate
       pm.query[Student].filter(cand.stateId.eq(stuId).or(cand.studentNumber.eq(stuId))).executeOption() match {
@@ -1021,7 +1021,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   *
   * Displays the quickCheckout page
   */
-  def quickCheckout() = Authenticated { implicit req =>
+  def quickCheckout() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(templates.books.quickCheckout())
   }
 

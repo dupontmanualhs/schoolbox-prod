@@ -660,7 +660,7 @@ object Conferences {
   def getParam(param: String)(implicit map: Map[String, Seq[String]]): String = getParameter(param, map)
 }
 
-object ConferencesMenu {
+/*object ConferencesMenu {
   val conferencesDefault = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index.toString), Nil)
   val sessions = new MenuItem("Current Sessions", "menu_sessions", Some(controllers.routes.Conferences.index.toString), Nil)
   def myConferences(session: Session) = new MenuItem("My Conferences", "menu_conferences", Some(controllers.routes.Conferences.myConferences(session.id).toString), Nil)
@@ -691,4 +691,4 @@ object ConferencesMenu {
       case _ => conferencesDefault 
     }
   }
-}
+}*/
