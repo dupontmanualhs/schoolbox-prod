@@ -12,8 +12,7 @@ object Menu {
     val books: Option[MenuItem] = BookMenu.forRole(maybeRole)
     val courses: Option[MenuItem] = CoursesMenu.forRole(maybeRole)
     val confs: Option[MenuItem] = ConferencesMenu.forRole(maybeRole)
-    val confr = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index().toString), Nil)
-    val bar = new MenuBar(List(courses, books).flatten)
+    val bar = new MenuBar(List(courses, books, confs).flatten)
     
     bar.asHtml ++ <div class="pull-right">{ UserMenu.forRole(maybeRole).asHtml }</div>
   }

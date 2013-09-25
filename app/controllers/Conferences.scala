@@ -49,7 +49,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     dataStore.execute { implicit pm =>
       val ecand = QEvent.candidate
       val scand = QSession.candidate
-      val events = pm.query[Event].filter(ecand.isActive).executeList()
+      val events = pm.query[Event].executeList()
       val sessions = events.map { event => 
         pm.query[Session].filter(scand.event.eq(event)).executeList
       }
@@ -644,10 +644,9 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
 }
 
 object Conferences {
-  def timeReporter(time: LocalTime): String = {
-    if(time.getHourOfDay() >= 12) time.toString("h:mm") + " PM"
-    else if(time.getHourOfDay() == 0) "12:" + time.toString("mm") + " AM"
-    else time.toString("h:mm") + " AM"
+  def timeReporter(localTime: LocalTime): String = {
+    import util.Helpers.time
+    time.print(localTime)
   }
   
   def getParameter(param: String, map: Map[String, Seq[String]]): String = {

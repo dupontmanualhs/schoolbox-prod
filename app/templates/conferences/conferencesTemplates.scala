@@ -109,13 +109,17 @@ package object conferences {
   object index {
     def apply(eventsAndSessions: List[(Event, List[Session])])(implicit req: VisitRequest[_], config: Config) = {
       config.main("Conferences")(
-        h1("Active Conferences"),
-         if(!eventsAndSessions.isEmpty) {
-           div.cls("accordion").id("confaccordion")(
-             collapseMaker(eventsAndSessions.head, true) :: eventsAndSessions.tail.map(collapseMaker(_))   
-           )
-         } else {
-           h1("No events or session open")
+        h1("List Conferences"),
+         <ul>{ eventsAndSessions.flatMap {
+            case (event: Event, sessions: List[Session]) => {
+              <li>{ event.name + " " }
+                <ul>
+                  { sessions.flatMap((s: Session) => <li>{ s.toString }</li>) } ++
+                  <a href={ controllers.routes.C }>activate</a>
+                </ul>
+              </li>
+            }
+         }</ul>
          }
       ) 
     }
