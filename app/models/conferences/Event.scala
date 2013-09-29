@@ -4,9 +4,11 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.QueryClass
+import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable="true")
-class Event {
+class Event extends UsesDataStore with DbEquality[Event] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -27,6 +29,25 @@ class Event {
     this()
     name_=(name)
     isActive_=(isActive)
+  }
+  
+  def sessions: List[Session] = dataStore.execute { pm => 
+    val cand = QSession.candidate
+    pm.query[Session].filter(cand.event.eq(this)).orderBy(cand.startTime.asc).executeList()
+  }
+  
+  override def toString(): String = s"Conference Event: ${this.name}"
+}
+
+object Event extends UsesDataStore {
+  val cand = QEvent.candidate()
+
+  def getActive(): List[Event] = {
+    dataStore.pm.query[Event].filter(cand.isActive.eq(true)).executeList()
+  }
+  
+  def getById(id: Long): Option[Event] = {
+    dataStore.pm.query[Event].filter(cand.id.eq(id)).executeOption()
   }
 }
 

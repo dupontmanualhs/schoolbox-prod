@@ -9,7 +9,7 @@ import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 @Unique(name="CLASS_WITH_NAME", members=Array("_klass", "_enumId"))
-class Permission {
+class Permission extends DbEquality[Permission] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -60,15 +60,6 @@ class Permission {
   }
   
   override def toString: String = s"Permission(${klass}.Permissions.${name})"
-  
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Permission]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: Permission => this.canEqual(that) && this.id == that.id
-    case _ => false
-  }
-  
-  override def hashCode: Int = id.hashCode
 }
 
 object Permission extends UsesDataStore {

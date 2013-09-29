@@ -52,6 +52,11 @@ class Student extends Role {
   
   def role = "Student"
     
+  def guardians(): List[Guardian] = {
+    val guardCand = QGuardian.candidate()
+    dataStore.pm.query[Guardian].filter(guardCand.children.contains(this)).executeList()
+  }
+    
   override def canEqual(that: Any): Boolean = that.isInstanceOf[Student]
 }
 

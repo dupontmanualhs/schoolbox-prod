@@ -9,6 +9,7 @@ import models.users.Role
 import models.users.User
 import config.users.UsesDataStore
 import models.users.QUser
+import org.dupontmanual.forms.fields.ChoiceFieldOptional
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -27,14 +28,14 @@ class Guardian extends Role {
   @Persistent
   @Element(types=Array(classOf[Student]))
   private[this] var _children: java.util.Set[Student] = _
-  def children: Set[Student] = _children.asScala.toSet
-  def children_=(theChildren: Set[Student]) { _children = theChildren.asJava }
+  def children: java.util.Set[Student] = _children
+  def children_=(theChildren: java.util.Set[Student]) { _children = theChildren }
     
   def this(user: User, contactId: Option[String], children: Set[Student]){
     this()
     user_=(user)
     contactId_=(contactId)
-    children_=(children)
+    children_=(children.asJava)
   }
   
   def role = "Parent/Guardian"
@@ -52,6 +53,14 @@ object Guardian extends UsesDataStore {
   def getByContactId(contactId: String): Option[Guardian] = {
     val cand = QGuardian.candidate
     dataStore.pm.query[Guardian].filter(cand.contactId.eq(contactId)).executeOption()
+  }
+  
+  def ChooseGuardianField(students: List[Student]): ChoiceFieldOptional[Guardian] = {
+    def studentWithGuardian(student: Student, guardian: Guardian) = s"Student: ${student.formalName} - Guardian: ${guardian.formalName}"
+    val guardiansByStudent: List[(String, Guardian)] = students.map((s: Student) => 
+        s.guardians().map((g: Guardian) => (studentWithGuardian(s, g), g))
+    ).flatten
+    new  ChoiceFieldOptional[Guardian]("Guardian", guardiansByStudent)
   }
 }
 

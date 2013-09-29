@@ -1,9 +1,10 @@
 package controllers.courses
 
+import scala.collection.JavaConverters._
 import scala.xml.{ Elem, NodeSeq }
 import controllers.users.{ MenuBar, MenuItem }
 import models.users.Role
-import models.courses.{ Guardian, Teacher, Student}
+import models.courses.{ Guardian, Teacher, Student }
 
 object Menu {
   val mySchedule = new MenuItem("My Schedule", "menu_myschedule", 
@@ -14,7 +15,7 @@ object Menu {
 		  								  Option(controllers.courses.routes.App.findStudent.toString), Nil)
   
   def myStudents(guardian: Guardian): List[MenuItem] = {
-    val students = guardian.children.filter(_.user.isActive).toList
+    val students = guardian.children.asScala.filter(_.user.isActive).toList
     if(students.size == 0) List(new MenuItem("You have no current students.", "menu_nostudents", None, Nil))
     else students.map(s => { 
       new MenuItem(s"Schedule for ${s.formalName}", "menu_"+s.formalName, 

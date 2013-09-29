@@ -66,17 +66,18 @@
              
         <exclude-unlisted-classes/>
         <properties>
-            <property name="datanucleus.ConnectionDriverName" value="org.h2.Driver"/>
-            <property name="datanucleus.ConnectionURL" value="jdbc:h2:data;AUTO_SERVER=true;MVCC=true"/>
+        <!--<property name="datanucleus.ConnectionDriverName" value="org.h2.Driver"/>
+            <property name="datanucleus.ConnectionURL" value="jdbc:h2:data;AUTO_SERVER=true;MVCC=true"/>-->
 
-        <!--<property name="datanucleus.ConnectionDriverName" value="org.postgresql.Driver"/>
+            <property name="datanucleus.ConnectionDriverName" value="org.postgresql.Driver"/>
             <property name="datanucleus.ConnectionURL" value="jdbc:postgresql:schoolbox"/>
             <property name="datanucleus.ConnectionUserName" value="schoolbox"/>
-            <property name="datanucleus.ConnectionPassword" value="schoolbox"/>-->
+            <property name="datanucleus.ConnectionPassword" value="schoolbox"/>
 
+			<property name="datanucleus.query.sql.allowAll" value="true"/>
             <property name="datanucleus.autoCreateSchema" value="true"/>
             <property name="datanucleus.DetachAllOnCommit" value="true"/>
-            <property name="datanucleus.maxFetchDepth" value="1"/>
+            <property name="datanucleus.maxFetchDepth" value="2"/>
             <property name="javax.jdo.PersistenceManagerFactoryClass" value="org.datanucleus.api.jdo.JDOPersistenceManagerFactory"/>
         </properties>
     </persistence-unit>

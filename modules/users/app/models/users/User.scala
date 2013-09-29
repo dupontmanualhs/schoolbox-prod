@@ -9,7 +9,7 @@ import play.api.mvc.Request
 import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
-class User extends Ordered[User] with UsesDataStore {
+class User extends Ordered[User] with UsesDataStore with DbEquality[User] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -135,15 +135,6 @@ class User extends Ordered[User] with UsesDataStore {
     val cand = QRole.candidate
     dataStore.pm.query[Role].filter(cand.user.eq(this)).executeList()
   }
-  
-  def canEqual(that: Any): Boolean = that.isInstanceOf[User]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: User => this.canEqual(that) && this.id == that.id
-    case _ => false
-  }
-  
-  override def hashCode: Int = this.id.hashCode
 }
 
 object User extends UsesDataStore {

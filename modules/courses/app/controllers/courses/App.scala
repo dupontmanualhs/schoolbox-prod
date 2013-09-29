@@ -62,13 +62,26 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
         if (!p.showIfEmpty && sectionsThisPeriod.isEmpty) StringSTag("")
         else {
           tr(td(p.name),
-             td(intersperse(sectionsThisPeriod.map(s => linkToPage(s)), br())),
+             td(intersperse(sectionsThisPeriod.map(s => linkToRoster(s)), br())),
              td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
              td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.numStudents.toString)), br())))
         }
       }
       Ok(templates.courses.TeacherSchedule(teacher, term, table, hasAssignments))
     }
+  }
+  
+  def listTeachers() = Authenticated { implicit req =>
+    val cand = QTeacher.candidate()
+    val taCand = QTeacherAssignment.candidate()
+    val userVar = QUser.variable("userVar")
+    dataStore.execute { pm =>
+      val teachers = pm.query[Teacher].filter(cand.user.eq(userVar).and(
+          userVar.isActive.eq(true))).orderBy(userVar.last.asc, userVar.first.asc).executeList()
+      val teachersWithClasses = teachers.filterNot(t => pm.query[TeacherAssignment].filter(taCand.teacher.eq(t)).executeList().isEmpty)
+      Ok(templates.courses.ListTeachers(teachersWithClasses))
+    }  
+  
   }
 
   def scheduleConstructor(student: Student, term: Term)
@@ -78,20 +91,23 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
       val enrollments: List[StudentEnrollment] = {
         val sectVar = QSection.variable("sectVar")
         val cand = QStudentEnrollment.candidate()
-        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(
+            cand.end.eq(null.asInstanceOf[java.sql.Date])).and(
+            cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
       }
       val hasEnrollments = enrollments.size != 0
       val sections: List[Section] = enrollments.map(_.section)
       val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
       val rows: List[STag] = periods.map { p =>
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-        tr(
-          td(p.name),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.course.name)), br())),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.teachers.map(_.shortName).mkString("; "))), br())),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
-          for(item <- addItems) yield (item(sectionsThisPeriod))
-        )
+        if (!p.showIfEmpty && sectionsThisPeriod.isEmpty) StringSTag("")
+        else {
+          tr(td(p.name),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.course.name)), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.teachers.map(_.shortName).mkString("; "))), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
+             for(item <- addItems) yield (item(sectionsThisPeriod)))
+        }
       }
       (rows, hasEnrollments)
     }
@@ -142,25 +158,30 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
   }
   
   // only the teacher of this section or an admin should be able to see the roster
-  def roster(sectionId: String) = MustPassTest(roleTeachesSection(sectionId)) { implicit req =>
+  def rosterHelper(sectionId: String, includeDrops: Boolean) = MustPassTest(implicit req => req.role.isInstanceOf[Teacher]) { implicit req =>
     val cand = QSection.candidate
     dataStore.pm.query[Section].filter(cand.sectionId.eq(sectionId)).executeOption() match {
       case None => NotFound(config.notFound("No section with that id."))
       case Some(sect) => {
-        Ok(templates.courses.Roster(sect))
+        Ok(templates.courses.Roster(sect, includeDrops))
       }
     }
   }
+  
+  def roster(sectionId: String) = rosterHelper(sectionId, false)
+  
+  def rosterWithDrops(sectionId: String) = rosterHelper(sectionId, true)
+      
+
 
   def linkToPage(section: Section) = {
     //val link = controllers.routes.Grades.home(section.id)
     a.href("#")(section.course.name)
   }
 
-  /*def linkToRoster(section: Section): NodeSeq = {
-    val link = controllers.routes.Courses.roster(section.id)
-    <a href={ link.url }>{ section.course.name }</a>
-  }*/
+  def linkToRoster(section: Section): STag = {
+    a.href(controllers.courses.routes.App.roster(section.sectionId))(section.course.name)
+  }
 
   //TODO: permissions
   def sectionList(masterNumber: String) = VisitAction { implicit req =>

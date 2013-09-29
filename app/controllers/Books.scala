@@ -1317,7 +1317,7 @@ object Books extends UsesDataStore {
     var n = 0
 
     for (section <- sections) {
-      val students = section.students.sortWith((s1, s2) => s1.formalName < s2.formalName)
+      val students = section.students().sortWith((s1, s2) => s1.formalName < s2.formalName)
       val sec = section.labelName
       val line3 = section.teachers.map(t => t.formalName).mkString(", ") + " - " + section.room.name
       document.newPage()

@@ -1,5 +1,6 @@
 package templates
 
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 import scalatags._
 import scalatags.a
@@ -9,12 +10,15 @@ import _root_.config.users.{ Config, ProvidesInjector }
 import controllers.users.VisitRequest
 import models.users.User
 import models.courses.{Teacher, Guardian, Student, Section}
-import models.conferences.{Event, Session, Slot, TeacherActivation}
+import models.conferences.{Event, Session, Slot, TeacherActivation, ScheduleRow, Opening, Appointment}
 import play.api.Play
 import com.google.inject.Inject
 import java.io.File
 import scala.xml.Unparsed
 import controllers.Conferences.timeReporter
+import scala.xml.NodeSeq
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.LocalTime
 
 
 package object conferences {
@@ -26,7 +30,63 @@ package object conferences {
   
   private[conferences] val guardianSchedulerScript = script.attr("type" -> "text/javascript"
 		  												   ).src("/assets/javascripts/gSchedulerScript.js")
+		  												   
+  val longDateFmt = DateTimeFormat.forPattern("MMMM d, y")
+  val timeFmt = DateTimeFormat.forPattern("h:mm a")
+  val dateTimeFmt = DateTimeFormat.forPattern("h:mm a 'on' MMMM d, y")
   
+  def teacherDisplay(teacher: Teacher, event: Event)(implicit req: VisitRequest[_], config: Config) = {
+    config.main(event.name)(
+      h1(s"Conferences: ${event.name}") ::
+      event.sessions.map(s =>
+        sessionInfoForTeacher(teacher, s)  
+      )
+    )
+  }
+  
+  def sessionInfoForTeacher(teacher: Teacher, session: Session)(implicit req: VisitRequest[_], config: Config) = {
+    div(
+      h2(longDateFmt.print(session.date)),
+      h3("Time: ", timeFmt.print(session.startTime), " - ", timeFmt.print(session.endTime)),
+      h3("Scheduling Closes: ", dateTimeFmt.print(session.cutoff)),
+      schedule(teacher, session)
+    )
+  }
+  
+  def schedule(teacher: Teacher, session: Session): STag = {
+    TeacherActivation.get(teacher, session) match {
+      case Some(ta) => {
+        val rows: List[STag] = thead(th("Start Time"), th("Guardian"), th("Student(s)"), th("Phone Number(s)"), th("Comment")) ::
+            ta.scheduleRows().map(_ match {
+              case op: Opening => tr(td.attr("colspan" -> "5")(a.cls("btn").href(controllers.routes.Conferences.reserveSlot(ta.id, op.start.getMillisOfDay()))(timeFmt.print(op.startTime))))
+              case appt: Appointment => tr(td(timeFmt.print(appt.startTime)), td(appt.slot.guardians.toList.map(_.displayName).mkString(", ")),
+                  td(appt.slot.students.toList.map(_.displayName).mkString(", ")),
+                  td(List(appt.slot.phone, appt.slot.alternatePhone).flatten.mkString(", ")),
+                  td(appt.slot.comment.getOrElse[String]("")))
+              }
+            )
+        div(<p>You have activated conferences. Parents will be able to schedule a conference
+            with you until scheduling closes at the time listed above.</p>,
+          table.cls("table", "table-striped", "table-condensed")(rows: _*)
+        )
+      }
+      case None => {
+        <p>You have not activated conferences. When parents try to schedule conferences,
+        they will be given the option of emailing you. To allow parents to schedule
+        conferences using the system, click the button below.<br/>
+        <a class="btn" href={ controllers.routes.Conferences.activateTeacher(session.id, teacher.id).toString }>Activate Scheduling</a></p>
+      }
+    }
+  }
+  
+  object reserveSlot {
+    def apply(form: Binding, start: LocalTime)(implicit req: VisitRequest[_], config: Config) = {
+      config.main(s"Reserve the Slot at ${timeFmt.print(start)}")(
+        form.render()
+      )
+    }    
+  }
+    
   def collapseMaker(ens: (Event, List[Session]), first: Boolean = false)
   				   (implicit req: VisitRequest[_], config: Config) = {
     div.cls("accordion-group")(
@@ -89,7 +149,7 @@ package object conferences {
   }
   
   def teacherChoices(teacher: Teacher, session: Session): STag = {
-    if(TeacherActivation.isActivated(teacher, session)) {
+    if(TeacherActivation.get(teacher, session).isDefined) {
       a.href("/conferences/myConferences/" + session.id).cls("Button")("Manage My Conferences")
     } else {
       Seq(
@@ -102,26 +162,45 @@ package object conferences {
   }
   
   def guardianChoices(guardian: Guardian, session: Session): STag = {
-    for(stu <- guardian.children.toList) yield (a("Schedule a conference for " + stu.formalName
+    for(stu <- guardian.children.asScala.toList) yield (a("Schedule a conference for " + stu.formalName
     									   ).href("/conferences/studentClasses/" + session.id + "/" + {if(stu.stateId != null) stu.stateId else stu.studentNumber}))
   }
   
-  object index {
-    def apply(eventsAndSessions: List[(Event, List[Session])])(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Conferences")(
+  object eventForm {
+    def apply(binding: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Add Conference Event")(
+        h1("Add Conference Event"),
+        binding.render())
+    }
+  }
+  
+  object listEvents {
+    def apply(events: List[Event])(implicit req: VisitRequest[_], config: Config) = {
+      config.main("List Conferences")(
         h1("List Conferences"),
-         <ul>{ eventsAndSessions.flatMap {
-            case (event: Event, sessions: List[Session]) => {
-              <li>{ event.name + " " }
-                <ul>
-                  { sessions.flatMap((s: Session) => <li>{ s.toString }</li>) } ++
-                  <a href={ controllers.routes.C }>activate</a>
-                </ul>
-              </li>
-            }
-         }</ul>
-         }
+        if (events.isEmpty) {
+          p("There are no conference events created, yet.") 
+        } else {
+          ul(events.flatMap(e => infoForEvent(e)))
+        },
+        p(a.href(controllers.routes.Conferences.addEvent)("Add a new conference event"))
       ) 
+    }
+
+    def infoForEvent(event: Event): NodeSeq = {
+      val sessions = event.sessions
+      li(event.name, " - ", if (event.isActive) "ACTIVE" else "not active", 
+          " - ", a.href(controllers.routes.Conferences.deleteEvent(event.id)).cls("confirmLink")("Delete"),
+          if (sessions.isEmpty) {
+            p("There are no sessions for this conference event, yet.")
+          } else {
+            ul(sessions.flatMap(s => infoForSession(s)))
+          },
+          p(a.href(controllers.routes.Conferences.addSession(event.id))("Add a new session for this event."))).toXML
+    }
+    
+    def infoForSession(session: Session): NodeSeq = {
+      li(session.toString).toXML
     }
   }
   

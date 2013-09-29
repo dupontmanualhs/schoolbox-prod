@@ -3,11 +3,11 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable = "true")
-class Room {
+class Room extends DbEquality[Room] {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _

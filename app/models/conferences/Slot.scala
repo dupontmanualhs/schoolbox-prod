@@ -10,9 +10,10 @@ import util.QueryClass
 import util.Helpers.localTime2SqlTime
 import org.joda.time.LocalTime
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable="true")
-class Slot extends UsesDataStore {
+class Slot extends UsesDataStore with DbEquality[Slot] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -42,7 +43,7 @@ class Slot extends UsesDataStore {
   @Column(allowsNull="false")
   private[this] var _slotInterval: Int = _
   def slotInterval: Int = _slotInterval
-  def slotInterval_=(theSlotInterval: Int) {_slotInterval = theSlotInterval}
+  def slotInterval_=(theSlotInterval: Int) { _slotInterval = theSlotInterval }
   
   @Persistent
   private[this] var _students : java.util.Set[Student] = _
@@ -131,8 +132,8 @@ trait QSlot extends PersistableExpression[Slot] {
   private[this] lazy val _startTime: TimeExpression[java.util.Date] = new TimeExpressionImpl[java.sql.Time](this, "_startTime")
   def startTime: TimeExpression[java.util.Date] = _startTime
     
-  private[this] lazy val _slotInterval: NumericExpression[Int] = new NumericExpressionImpl(this, "_slotInterval")
-  def slotInterval: NumericExpression[Int] = _slotInterval
+  private[this] lazy val _length: NumericExpression[Int] = new NumericExpressionImpl(this, "_length")
+  def slotInterval: NumericExpression[Int] = _length
 
   private[this] lazy val _students: CollectionExpression[Set[Student], Student] = new CollectionExpressionImpl[Set[Student], Student](this, "_students")
   def students: CollectionExpression[Set[Student], Student] = _students

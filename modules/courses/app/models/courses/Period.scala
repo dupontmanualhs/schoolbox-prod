@@ -4,9 +4,10 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable="true")
-class Period {
+class Period extends DbEquality[Period] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -40,6 +41,8 @@ class Period {
   def this(name: String, order: Int) = {
     this(name, order, Period.slugFromName(name))
   }
+  
+  override def toString(): String = s"Period: $name"
 }
 
 object Period extends UsesDataStore {

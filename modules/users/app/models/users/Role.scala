@@ -9,7 +9,7 @@ import config.users.UsesDataStore
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.NEW_TABLE)
 @Discriminator(strategy=DiscriminatorStrategy.CLASS_NAME)
-abstract class Role extends Ordered[Role] with UsesDataStore {
+abstract class Role extends Ordered[Role] with UsesDataStore with DbEquality[Role] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -59,15 +59,6 @@ abstract class Role extends Ordered[Role] with UsesDataStore {
     val comp = this.user.compare(that.user)
     if (comp == 0) this.role.compare(that.role) else comp
   }
-  
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Role]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: Role => this.canEqual(that) && this.id == that.id
-    case _ => false
-  }
-  
-  override def hashCode: Int = this.id.hashCode
 }
 
 object Role extends UsesDataStore {

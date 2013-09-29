@@ -11,7 +11,7 @@ import com.google.inject.Inject
 import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
-class Group extends UsesDataStore {
+class Group extends UsesDataStore with DbEquality[Group] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -47,15 +47,6 @@ class Group extends UsesDataStore {
     permission.groups_=(permission.groups + this)
     dataStore.pm.makePersistent(permission)
   }
-
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Group]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: Group => this.canEqual(that) && this.id == that.id
-    case _ => false
-  }
-  
-  override def hashCode: Int = this.id.hashCode
 }
 
 object Group extends UsesDataStore {

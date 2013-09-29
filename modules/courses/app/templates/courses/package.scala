@@ -93,7 +93,7 @@ package object courses {
   }
 
   object Roster {
-    def apply(section: Section)(implicit req: VisitRequest[_], config: Config) = {
+    def apply(section: Section, includeDrops: Boolean)(implicit req: VisitRequest[_], config: Config) = {
       val df = DateTimeFormat.shortDate()
       val active = NavLink.Roster
       config.main(s"${active} for ${section.displayName}")(
@@ -101,9 +101,22 @@ package object courses {
         div.cls("span8")(
           table.cls("table", "table-striped", "table-condensed")(
             thead(th("Student"), th("Start Date"), th("End Date")),
-            tbody(section.enrollments.map { e =>
+            tbody(section.enrollments(includeDrops).map { e =>
               tr(td(e.student.formalName), td(e.start.map(d => StringSTag(df.print(d))).getOrElse("")), td(e.end.map(d => StringSTag(df.print(d))).getOrElse("")))
             }))))
+    }
+  }
+  
+  object ListTeachers {
+    def apply(teachers: List[Teacher])(implicit req: VisitRequest[_], config: Config) = {
+      config.main("List of Teachers")(
+        h1("List of Teachers"),
+        table(
+          tr(th("Last"), th("First"), th("Middle"), th("Username"), th("Email")) +:
+          teachers.map((t: Teacher) => tr(td(t.user.last), td(t.user.first), 
+              td(StringSTag(t.user.middle.getOrElse(""))), td(t.user.username), td(StringSTag(t.user.email.getOrElse("")))))
+        )
+      )
     }
   }
 

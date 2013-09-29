@@ -1,18 +1,16 @@
 package models.courses
 
 import javax.jdo.annotations._
-import scala.collection.mutable
 import scala.collection.JavaConverters._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import scala.xml.NodeSeq
 import org.joda.time.{ LocalDate, ReadablePartial }
 import config.users.UsesDataStore
-
-
+import models.users.DbEquality
 
 @PersistenceCapable(detachable = "true")
-class Section extends UsesDataStore {  
+class Section extends UsesDataStore with DbEquality[Section] {  
   // TODO: this needs to be in a util class; maybe in ScalaJDO once we put in date stuff?
   implicit object LocalDateOrdering extends Ordering[LocalDate] {
     def compare(ld1: LocalDate, ld2: LocalDate) = ld1.compareTo(ld2)
@@ -37,14 +35,14 @@ class Section extends UsesDataStore {
   @Element(types = Array(classOf[Term]))
   @Join
   private[this] var _terms: java.util.Set[Term] = _
-  def terms: mutable.Set[Term] = _terms.asScala
+  def terms: Set[Term] = _terms.asScala.toSet
   def terms_=(theTerms: Set[Term]) { _terms = theTerms.asJava }
 
   @Persistent(defaultFetchGroup="true")
   @Element(types = Array(classOf[Period]))
   @Join
   private[this] var _periods: java.util.Set[Period] = _
-  def periods: mutable.Set[Period] = _periods.asScala
+  def periods: Set[Period] = _periods.asScala.toSet
   def periods_=(thePeriods: Set[Period]) { _periods = thePeriods.asJava }
 
   @Persistent(defaultFetchGroup="true")
@@ -78,20 +76,28 @@ class Section extends UsesDataStore {
   def endDate: LocalDate = {
     terms.map(_.end).max
   }
+  
+  def teacherAssignments(): List[TeacherAssignment] = {
+    val cand = QTeacherAssignment.candidate
+    dataStore.pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
+  }
 
   // TODO: figure out which teachers to get in what order
   def teachers(): List[Teacher] = {
-    val cand = QTeacherAssignment.candidate
-    val assignments = dataStore.pm.query[TeacherAssignment].filter(cand.section.eq(this)).executeList()
-    assignments.map(_.teacher)
+    this.teacherAssignments().map(_.teacher)
   }
 
-  // TODO: figure out which students to get in what order
-  def students(): List[Student] = this.enrollments().map(_.student)
+  def students(includeDrops: Boolean = false): List[Student] = this.enrollments(includeDrops).map(_.student)
 
-  def enrollments(): List[StudentEnrollment] = {
+  def enrollments(includeDrops: Boolean = false): List[StudentEnrollment] = {
     val cand = QStudentEnrollment.candidate
-    dataStore.pm.query[StudentEnrollment].filter(cand.section.eq(this)).executeList()
+    val filter = if (includeDrops) cand.section.eq(this) else cand.section.eq(this).and(cand.end.eq(null.asInstanceOf[java.sql.Date]))
+    val enrs = dataStore.pm.query[StudentEnrollment].filter(filter).executeList()
+    enrs.sortWith((enr1: StudentEnrollment, enr2: StudentEnrollment) => (enr1.end, enr2.end) match {
+      case (Some(d), None) => false
+      case (None, Some(d)) => true
+      case _ => enr1.student.formalName < enr2.student.formalName
+    })
   }
   
   def numStudents(): Long = {

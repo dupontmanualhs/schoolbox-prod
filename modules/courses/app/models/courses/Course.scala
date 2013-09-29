@@ -3,11 +3,11 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable="true")
-class Course {
+class Course extends DbEquality[Course] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -34,16 +34,7 @@ class Course {
     _department = department
   }
   
-  override def toString = "%s (%s)".format(name, masterNumber)
-  
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Course]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: Course => this.canEqual(that) && this.id == that.id
-    case _ => false
-  }
-  
-  override def hashCode: Int = this.id.hashCode
+  override def toString = s"${name} (${masterNumber})"
 }
 
 object Course extends UsesDataStore {

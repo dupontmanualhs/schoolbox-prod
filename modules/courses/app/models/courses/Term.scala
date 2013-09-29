@@ -6,9 +6,10 @@ import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import javax.jdo.JDOHelper
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable = "true")
-class Term {
+class Term extends DbEquality[Term] {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _

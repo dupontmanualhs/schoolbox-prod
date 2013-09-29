@@ -7,6 +7,8 @@ import org.joda.time.{ LocalDate, LocalDateTime }
 import org.joda.time.format.DateTimeFormat
 import org.apache.poi.ss.usermodel.{ Sheet, Row, WorkbookFactory }
 import models.users._
+import models.books._
+import models.conferences._
 import models.courses._
 import models.lockers._
 import util.Helpers
@@ -18,9 +20,6 @@ import java.text.SimpleDateFormat
 import models.books.Title
 import java.text.DateFormat
 import java.text.ParseException
-import models.books.PurchaseGroup
-import models.books.Copy
-import models.books.Checkout
 import models.blogs.Blog
 import models.users.Gender
 import models.users.User
@@ -28,10 +27,11 @@ import org.joda.time.format.DateTimeFormatter
 import config.users.UsesDataStore
 import scala.util.matching.Regex.Match
 import com.typesafe.scalalogging.slf4j.Logging
+import org.joda.time.LocalTime
 
 object ManualData extends UsesDataStore with Logging {
 
-  val folder = "/manual-data-2013-08-14"
+  val folder = "/manual-data-2013-09-23"
 
   // Needs to be updated each year
   val currentYear = dataStore.pm.detachCopy(AcademicYear.getByName("2013-14").get)
@@ -52,13 +52,39 @@ object ManualData extends UsesDataStore with Logging {
     dataStore.storeManager.validateSchema(classes, props)
     // de-activate everyone and re-activate only the users in the data dump
     markAllUsersInactive()
+    purgeCurrentSchedule()
     loadStudents()
     loadGuardians()
     loadTeachers()
+    fixTeacherAccounts()
     loadCourses()
     loadSections()
     loadEnrollments()
-    //deleteEmptySections()
+    createConferenceEvent()
+    addPermissions()
+    // deleteEmptySections()
+  }
+  
+  def fixTeacherAccounts() {
+    usernameToEmail.foreach {
+      case (username: String, email: String) => {
+        dataStore.withTransaction { pm => 
+          val user = User.getByUsername(username).get
+          if (username.matches("\\d+")) {
+            user.username = email.substring(0, email.indexOf("@"))
+          }
+          user.email = Some(email)
+        }
+      }
+    }
+  }
+  
+  def addPermissions() {
+    val tobryan1 = Teacher.getByUsername("tobryan1").get
+    tobryan1.addPermission(Book.Permissions.Manage)
+    tobryan1.addPermission(Conferences.Permissions.Manage)
+    val gregKuhn = Teacher.getByUsername("gkuhn2").get
+    gregKuhn.addPermission(Book.Permissions.Manage)
   }
 
   def markAllUsersInactive() {
@@ -69,6 +95,43 @@ object ManualData extends UsesDataStore with Logging {
         pm.makePersistent(user)
       }
     }
+  }
+
+  def createConferenceEvent() {
+    dataStore.withTransaction { pm =>
+      val event = new Event("Fall 2013", true)
+      pm.makePersistent(event)
+      val session = new Session(event, new LocalDate(2013, 10, 8), new LocalDateTime(2013, 10, 6, 23, 59, 59),
+        None, new LocalTime(7, 40, 0), new LocalTime(14, 20, 0))
+      pm.makePersistent(session)
+    }
+  }
+
+  def purgeCurrentSchedule() {
+    val sectCand = QSection.candidate()
+    val termVar = QTerm.variable("termVar")
+    val enrCand = QStudentEnrollment.candidate()
+    val taCand = QTeacherAssignment.candidate()
+    val currentSections = dataStore.pm.query[Section].filter(sectCand.terms.contains(termVar).and(termVar.year.eq(currentYear))).executeList()
+    val ids = currentSections.map(_.id).sorted
+    ids.foreach(id => {
+      dataStore.withTransaction { pm =>
+        println(s"Working on section with id = $id")
+        println(s"  Deleting StudentEnrollments")
+        val deleteEnrollments = pm.jpm.newQuery("javax.jdo.query.SQL", "DELETE FROM \"STUDENTENROLLMENT\" WHERE \"SECTION_ID_OID\"=?")
+        deleteEnrollments.execute(id)
+        println(s"  Deleting TeacherAssignments")
+        val deleteAssignments = pm.jpm.newQuery("javax.jdo.query.SQL", "DELETE FROM \"TEACHERASSIGNMENT\" WHERE \"SECTION_ID_OID\"=?")
+        deleteAssignments.execute(id)
+        val deletePeriods = pm.jpm.newQuery("javax.jdo.query.SQL", "DELETE FROM \"SECTION__PERIODS\" WHERE \"ID_OID\"=?")
+        deletePeriods.execute(id)
+        val deleteTerms = pm.jpm.newQuery("javax.jdo.query.SQL", "DELETE FROM \"SECTION__TERMS\" WHERE \"ID_OID\"=?")
+        deleteTerms.execute(id)
+        println(s"  Deleting Section")
+        val deleteSection = pm.jpm.newQuery("javax.jdo.query.SQL", "DELETE FROM \"SECTION\" WHERE \"ID\"=?")
+        deleteSection.execute(id)
+      }
+    })
   }
 
   def loadStudents() {
@@ -181,7 +244,7 @@ object ManualData extends UsesDataStore with Logging {
                   guardian.user.email = email
                   guardian.contactId = Some(contactId)
                   if (!guardian.children.contains(student)) {
-                    guardian.children = guardian.children + student
+                    guardian.children.add(student)
                   }
                 }
               }
@@ -297,6 +360,8 @@ object ManualData extends UsesDataStore with Logging {
     logger.info("Importing sections...")
     val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Sections.xml.xz")))
     val sections = doc \\ "curriculum"
+    val sectionsDone = mutable.Set[String]()
+    val taCand = QTeacherAssignment.candidate()
     sections foreach ((section: Node) => {
       dataStore.withTransaction { implicit pm =>
         val sectionId = (section \ "@sectionInfo.sectionID").text
@@ -324,26 +389,19 @@ object ManualData extends UsesDataStore with Logging {
             if (dbSection.course != course) logger.info(s"This section's course changed from ${dbSection.course.name} to ${course.name}. Check on this.")
             else {
               dbSection.room = room
-              dbSection.terms.clear
-              dbSection.terms ++= terms
-              dbSection.periods.clear
-              dbSection.periods ++= periods
-              val oldTeacherAssignment = pm.query[TeacherAssignment].filter(QTeacherAssignment.candidate.section.eq(dbSection)).executeOption()
-              oldTeacherAssignment match {
-                case None if (teacher == None) => logger.info("No teacher assigned to this section.")
-                case None => {
+              dbSection.terms = terms
+              dbSection.periods = periods
+              val oldTeacherAssignments = dbSection.teacherAssignments()
+              if (!sectionsDone.contains(sectionId)) {
+                // first time seeing section with this data, start over
+                pm.deletePersistentAll(oldTeacherAssignments)
+              }
+              teacher match {
+                case None => logger.info("No teacher assigned to this section.")
+                case Some(t) => {
                   logger.info(s"Assigning ${teacher.get.formalName} to this section.")
-                  pm.makePersistent(new TeacherAssignment(teacher.get, dbSection, None, None))
-                }
-                case Some(ta) if (teacher == None) => {
-                  logger.info(s"Section was assigned to ${ta.teacher.formalName}, but not currently assigned. Leaving alone.")
-                }
-                case Some(ta) => if (ta.teacher != teacher.get) {
-                  logger.info(s"Changing teacher from ${ta.teacher.formalName} to ${teacher.get.formalName}.")
-                  pm.deletePersistent(ta)
-                  pm.makePersistent(new TeacherAssignment(teacher.get, dbSection, None, None))
-                } else {
-                  logger.debug(s"Section information is unchanged.")
+                  val newTa = new TeacherAssignment(t, dbSection, None, None)
+                  pm.makePersistent(newTa)
                 }
               }
             }
@@ -357,6 +415,7 @@ object ManualData extends UsesDataStore with Logging {
             }
           }
         }
+        sectionsDone += sectionId
       }
     })
   }
@@ -427,12 +486,12 @@ object ManualData extends UsesDataStore with Logging {
     currentSections foreach { section =>
       dataStore.withTransaction { pm =>
         logger.info(s"Checking section with id=${section.id}, sectionId=${section.sectionId}...")
-        val enrs = pm.query[StudentEnrollment].filter(enrCand.section.eq(section)).executeList()
+        val enrs = section.enrollments(true)
         if (enrs.isEmpty) {
           logger.info("Empty, so deleting.")
-          val tas = pm.query[TeacherAssignment].filter(taCand.section.eq(section)).executeList()
+          val tas = section.teacherAssignments()
           logger.info(s"Deleting ${tas.size} teacher assignments.")
-          tas.foreach { ta => pm.deletePersistent(ta) }
+          pm.deletePersistentAll(tas)
           logger.info("Deleting section.")
           pm.deletePersistent(section)
         } else {
@@ -617,4 +676,41 @@ object ManualData extends UsesDataStore with Logging {
       }
     }
   }
+
+  val usernameToEmail = Map(
+    "rlbaar1" -> "robert.baar@jefferson.kyschools.us",
+    "1016259" -> "yassine.bahmane@jefferson.kyschools.us",
+    "736777" -> "jill.bickel@jefferson.kyschools.us",
+    "741726" -> "yolanda.breeding-hale@jefferson.kyschools.us",
+    "743011" -> "martha.brennan@jefferson.kyschools.us",
+    "acastro1" -> "ana.castro@jefferson.kyschools.us",
+    "jcook4" -> "jacob.cook@jefferson.kyschools.us",
+    "913084" -> "anthony.crush@jefferson.kyschools.us",
+    "tdix1" -> "tiffany.dix@jefferson.kyschools.us",
+    "cdoak1" -> "tiffany.dix@jefferson.kyschools.us",
+    "Todd" -> "kevin.eastridge@jefferson.kyschools.us",
+    "jgrose1" -> "jennifer.groseth@jefferson.kyschools.us",
+    "bhinds1" -> "brian.hinds@jefferson.kyschools.us",
+    "matthew.kingsley" -> "matt.kingsley@jefferson.kyschools.us",
+    "rkraus2" -> "raymund.krause@jefferson.kyschools.us",
+    "clowber1" -> "christopher.lowber@jefferson.kyschools.us",
+    "olucas1" -> "oliver.lucas@jefferson.kyschools.us",
+    "733995" -> "margaret.mattingly@jefferson.kyschools.us",
+    "cynthia.mccarty" -> "cynthia.mccarty@jefferson.kyschools.us",
+    "smille2" -> "sarah.ledrick@jefferson.kyschools.us",
+    "733347" -> "rhonda.nett@jefferson.kyschools.us",
+    "epurvis9" -> "eric.purvis@jefferson.kyschools.us",
+    "grash9" -> "greg.rash@jefferson.kyschools.us",
+    "aRitchie1" -> "amy.ritchie@jefferson.kyschools.us",
+    "lora.ruttan" -> "lora.ruttan@jefferson.kyschools.us",
+    "tsalkel1" -> "tim.salkeld@jefferson.kyschools.us",
+    "rsharp2" -> "richard.sharp@jefferson.kyschools.us",
+    "cshirom1" -> "cynthia.shiroma@jefferson.kyschools.us",
+    "898308" -> "jeffrey.sparks@jefferson.kyschools.us",
+    "dwalsh1" -> "denee.walsh@jefferson.kyschools.us",
+    "lwhite33" -> "lisa.white@jefferson.kyschools.us",
+    "conniewilcox" -> "connie.wilcox@jefferson.kyschools.us",
+    "willdiddy" -> "christopher.williams@jefferson.kyschools.us",
+    "cyoung3" -> "cyndi.young@jefferson.kyschools.us"
+  )
 }

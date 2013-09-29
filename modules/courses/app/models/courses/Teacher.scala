@@ -37,26 +37,40 @@ class Teacher extends Role {
     stateId_=(stateId)
   }
   
+  def studentsTaught(term: Term): List[Student] = {
+    val studCand = QStudent.candidate()
+    val taVar = QTeacherAssignment.variable("taVar")
+    val sectVar = QSection.variable("sectVar")
+    val seVar = QStudentEnrollment.variable("seVar")
+    dataStore.pm.query[Student].filter(taVar.teacher.eq(this).and(taVar.section.eq(sectVar)).and(
+        sectVar.terms.contains(term)).and(seVar.section.eq(sectVar)).and(
+        seVar.end.eq(null.asInstanceOf[java.sql.Date])).and(
+        seVar.student.eq(studCand))).executeList().sortBy(_.formalName)
+  }
+  
   def role = "Teacher"
     
   override def canEqual(that: Any): Boolean = that.isInstanceOf[Teacher]
 }
 
 object Teacher extends UsesDataStore {
+  val cand = QTeacher.candidate
+
   def getByUsername(username: String): Option[Teacher] = {
-    val cand = QTeacher.candidate
     val userVar = QUser.variable("userVar")
     dataStore.pm.query[Teacher].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
   }
   
   def getByStateId(stateId: String): Option[Teacher] = {
-    val cand = QTeacher.candidate
     dataStore.pm.query[Teacher].filter(cand.stateId.eq(stateId)).executeOption()
   }
   
   def getByPersonId(personId: String): Option[Teacher] = {
-    val cand = QTeacher.candidate
     dataStore.pm.query[Teacher].filter(cand.personId.eq(personId)).executeOption()
+  }
+  
+  def getById(id: Long): Option[Teacher] = {
+    dataStore.pm.query[Teacher].filter(cand.id.eq(id)).executeOption()
   }
   
   object TeacherList {
