@@ -11,7 +11,7 @@ import config.users.{ Config, UsesDataStore }
 import org.dupontmanual.forms.{ Binding, Form, InvalidBinding, ValidBinding }
 import org.dupontmanual.forms.fields._
 import org.dupontmanual.forms.validators._
-import models.users.{ QUser, User, Visit }
+import models.users.{ Activation, QUser, User, Visit }
 import scala.xml.NodeSeq
 import scalatags._
 import play.api.libs.json.Json._
@@ -43,7 +43,6 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
   }
 
   def loginP() = VisitAction { implicit request =>
-    dataStore.execute { pm =>
       Binding(LoginForm, request) match {
         case ib: InvalidBinding => Ok(templates.users.Login(ib))
         case vb: ValidBinding => {
@@ -57,10 +56,12 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
             case role :: rest => {
               // TODO: should we have a default role?
               // set the first one
+             dataStore.execute { pm =>
               request.visit.role = Some(role)
               request.visit.permissions = role.permissions
               request.visit.updateMenu()
               pm.makePersistent(request.visit)
+             }
               rest match {
                 // there was only one
                 case Nil => {
@@ -74,7 +75,6 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
           }
         }
       }
-    }
   }
 
   class ChooseRoleForm(visit: Visit) extends Form {
@@ -116,8 +116,8 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
   def logout = VisitAction { implicit req =>
     dataStore.execute { pm =>
       pm.deletePersistent(req.visit)
-      Redirect(config.defaultCall).flashing("message" -> "You have been logged out.")
     }
+    Redirect(config.defaultCall).flashing("message" -> "You have been logged out.")
   }
 
   class ChangePasswordForm(user: User) extends Form {
@@ -136,7 +136,9 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
     def fields = List(currentPassword, newPassword, verifyNewPassword)
 
     override def validate(vb: ValidBinding): ValidationError = {
-      if (vb.valueOf(newPassword) != vb.valueOf(verifyNewPassword)) {
+      if (vb.valueOf(newPassword).length < 8) {
+        ValidationError("Your password must be at least 8 characters long.")
+      } else if (vb.valueOf(newPassword) != vb.valueOf(verifyNewPassword)) {
         ValidationError("New password and verify password must match.")
       } else ValidationError(Nil)
     }
@@ -177,45 +179,49 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
     }
   }
   
-  /**
-   * regex: /changePasswordP
-   *
-   * User inputs old password and new password and submits the form. The password their account then changes to their new selected password.
-   */
-  /*def changePasswordP() = Authenticated { implicit req =>
-    dataStore.execute { pm =>
-      val user = req.role.user
-      val form = new ChangePasswordForm(user)
-      Binding(form, req) match {
-        case ib: InvalidBinding => Ok(templates.users.ChangeSettings(ib, Binding(ChangeTheme)))
-        case vb: ValidBinding => {
-          user.password = vb.valueOf(form.newPassword)
-          pm.makePersistent(user)
-          Redirect(config.defaultCall).flashing("message" -> "Settings successfully changed.")
-        }
-      }
-    }
-  }*/
+  class ActivationForm(uuid: String) extends Form with UsesDataStore {
+    val username = new TextField("username")
+    val newPassword = new PasswordField("newPassword")
+    val verifyNewPassword = new PasswordField("verifyPassword")
+    
+    val defaultError = ValidationError("The username and activation URL do not match. Check and re-try.")
 
-  /**
-   * regex: /changeTheme
-   *
-   * User chooses from drop-down menu and this changes the theme to that selection.
-   */
-  /*def changeTheme = Authenticated { implicit req =>
-    dataStore.execute { pm =>
-      val user = req.role.user
-      val pwForm = new ChangePasswordForm(user)
-      Binding(ChangeTheme, req) match {
-        case ib: InvalidBinding => Ok(templates.users.ChangeSettings(Binding(pwForm), ib))
-        case vb: ValidBinding => {
-          user.theme = vb.valueOf(ChangeTheme.theme)
-          pm.makePersistent(user)
-          Redirect(config.defaultCall).flashing("message" -> "Settings successfully changed.")
-        }
+    override def validate(vb: ValidBinding): ValidationError = Activation.getByUuid(uuid) match {
+      case None => defaultError
+      case Some(act) => User.getByUsername(vb.valueOf(username)) match {
+        case None => defaultError
+        case Some(user) => if (user != act.user) {
+          defaultError
+        } else if (vb.valueOf(newPassword).length < 8) {
+          ValidationError("Your password must be at least 8 characters long.")
+        } else if (vb.valueOf(newPassword) != vb.valueOf(verifyNewPassword)) {
+          ValidationError("New password and verify password must match.")
+        } else ValidationError(Nil)
       }
     }
-  }*/
+    
+    def fields = List(username, newPassword, verifyNewPassword)
+  }
+  
+  def activate(uuid: String) = VisitAction { implicit req =>
+    Ok(templates.users.Activate(Binding(new ActivationForm(uuid))))
+  }
+  
+  def activateP(uuid: String) = VisitAction { implicit req =>
+    val form = new ActivationForm(uuid)
+    Binding(form, req) match {
+      case ib: InvalidBinding => Ok(templates.users.Activate(ib))
+      case vb: ValidBinding => {
+        dataStore.execute( pm => {
+          val activation = Activation.getByUuid(uuid).get
+          activation.user.password = vb.valueOf(form.newPassword)
+          pm.makePersistent(activation.user)
+          pm.deletePersistent(activation)
+        })
+        Redirect(controllers.users.routes.App.login).flashing("message" -> "Your account is activated and your password is set. Please log in.")
+      }
+    }
+  }
   
   object ChangeOtherPasswordForm extends Form {
     val username = new TextField("username") {

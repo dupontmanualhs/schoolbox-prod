@@ -26,16 +26,17 @@ class Guardian extends Role {
   def contactId_=(theContactId: String) { _contactId = theContactId }
   
   @Persistent
+  @Join
   @Element(types=Array(classOf[Student]))
   private[this] var _children: java.util.Set[Student] = _
-  def children: java.util.Set[Student] = _children
-  def children_=(theChildren: java.util.Set[Student]) { _children = theChildren }
+  def children: Set[Student] = _children.asScala.toSet
+  def children_=(theChildren: Set[Student]) { _children = theChildren.asJava }
     
   def this(user: User, contactId: Option[String], children: Set[Student]){
     this()
     user_=(user)
     contactId_=(contactId)
-    children_=(children.asJava)
+    children_=(children)
   }
   
   def role = "Parent/Guardian"

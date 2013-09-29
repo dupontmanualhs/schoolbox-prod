@@ -162,7 +162,7 @@ package object conferences {
   }
   
   def guardianChoices(guardian: Guardian, session: Session): STag = {
-    for(stu <- guardian.children.asScala.toList) yield (a("Schedule a conference for " + stu.formalName
+    for(stu <- guardian.children.toList) yield (a("Schedule a conference for " + stu.formalName
     									   ).href("/conferences/studentClasses/" + session.id + "/" + {if(stu.stateId != null) stu.stateId else stu.studentNumber}))
   }
   

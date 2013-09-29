@@ -123,6 +123,7 @@ GET     /lockers/byRoom/:room             @controllers.Lockers.lockerByRoom(room
 GET		/conferences												@controllers.Conferences.listEvents()
 GET		/conferences/teacher/:eventId								@controllers.Conferences.eventForTeacher(eventId: Long)
 GET		/conferences/reserveSlot/:teacherActivationId/:startTime	@controllers.Conferences.reserveSlot(teacherActivationId: Long, startTime: Int)
+POST	/conferences/reserveSlot/:teacherActivationId/:startTime	@controllers.Conferences.reserveSlotP(teacherActivationId: Long, startTime: Int)
 GET		/conferences/addEvent									    @controllers.Conferences.addEvent()
 POST	/conferences/addEvent									    @controllers.Conferences.addEventP()
 GET		/conferences/addSession/:eventId							@controllers.Conferences.addSession(eventId: Long)

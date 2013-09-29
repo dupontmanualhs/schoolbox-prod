@@ -75,6 +75,29 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       Ok(conferences.reserveSlot(Binding(form), start))
     }
   }
+  
+  def reserveSlotP(teacherActivationId: Long, startAsMillis: Int) = {
+    dataStore.execute { pm =>
+      val ta = TeacherActivation.getById(teacherActivationId)
+      RoleMustPass(r => ta.isDefined && (r.permissions().contains(Permissions.Manage) || ta.get.teacher == r)) { implicit req =>
+        val start: LocalTime = new LocalTime(startAsMillis)
+        val form = new TeacherSlotForm(ta.get, start)
+        Binding(form, req) match {
+          case ib: InvalidBinding => Ok(conferences.reserveSlot(ib, start))
+          case vb: ValidBinding => {
+            val guardian = vb.valueOf(form.guardian)
+            val phone = vb.valueOf(form.phoneNumber)
+            val alt = vb.valueOf(form.altPhone)
+            val comment = vb.valueOf(form.comment)
+            val slot = new Slot(ta.get.session, ta.get.teacher, start, ta.get.slotInterval, Set(), guardian.map(Set(_)).getOrElse(Set()),
+                phone, alt, comment)
+            pm.makePersistent(slot)
+            Redirect(routes.Conferences.eventForTeacher(ta.get.session.event.id))
+          }
+        }  
+      }
+    }
+  }
       
 
   def guardianSlotScheduler(sessionId: Long, teacherId: String, studentId: String) = {
@@ -116,14 +139,13 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
         case (Some(session), Some(teacher)) => {
           val ta = new TeacherActivation(session, teacher, None)
           pm.makePersistent(ta)
+          Redirect(routes.Conferences.eventForTeacher(session.event.id)).flashing("message" -> "Conference scheduling was activated.")
         }
         case (None, Some(teacher)) => NotFound("No conference session with that id.")
         case (Some(session), None) => NotFound("No teacher with that id.")
         case (None, None) => NotFound("Both the conference session and the teacher couldn't be found.")
       }
     }
-    if (req.visit.redirectUrl.isDefined) Redirect(req.visit.redirectUrl.get)
-    else Redirect(config.defaultCall).flashing("message" -> "Conference scheduling was activated.")
   }
   
   def guardianSlotSchedulerBlock(guardian: Guardian, student: Student, teacher: Teacher, session: Session, req: VisitRequest[_], pm: scalajdo.ScalaPersistenceManager) = {

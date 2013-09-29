@@ -26,6 +26,7 @@ class Group extends UsesDataStore with DbEquality[Group] {
   
   @Persistent
   @Element(types=Array(classOf[Role]))
+  @Join
   private[this] var _roles: java.util.Set[Role] = _
   def roles: Set[Role] = _roles.asScala.toSet
   def roles_=(theRoles: Set[Role]) { _roles = theRoles.asJava }

@@ -34,7 +34,7 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _startTime : Time = _
-  def startTime: LocalTime = LocalTime.fromDateFields(_startTime)
+  def startTime: LocalTime = LocalTime.fromMillisOfDay(_startTime.getTime())
   def startTime_=(theStartTime: LocalTime) { _startTime = localTime2SqlTime(theStartTime) }
   
   /**
@@ -46,11 +46,15 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
   def slotInterval_=(theSlotInterval: Int) { _slotInterval = theSlotInterval }
   
   @Persistent
+  @Join
+  @Element(types=Array(classOf[Student]))
   private[this] var _students : java.util.Set[Student] = _
   def students: Set[Student] = _students.asScala.toSet
   def students_=(theStudents: Set[Student]) { _students = theStudents.asJava }
   
   @Persistent
+  @Join
+  @Element(types=Array(classOf[Guardian]))
   private[this] var _guardians: java.util.Set[Guardian] = _
   def guardians: Set[Guardian] = _guardians.asScala.toSet
   def guardians_=(theGuardians: Set[Guardian]) { _guardians = theGuardians.asJava }
@@ -72,7 +76,7 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
   
   def this(session: Session, teacher: Teacher, startTime: LocalTime, slotInterval: Int, 
       students: Set[Student], guardians: Set[Guardian], phone: Option[String], 
-      alternatePhone: Option[String],  comments: Option[String]) = {
+      alternatePhone: Option[String],  comment: Option[String]) = {
     this()
     session_=(session)
     teacher_=(teacher)

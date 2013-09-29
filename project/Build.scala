@@ -11,6 +11,7 @@ object ApplicationBuild extends Build {
   val commonDependencies = Seq(
       "org.apache.directory.studio" % "org.apache.commons.codec" % "1.8",
       "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+      "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
       "ch.qos.logback" % "logback-core" % "1.0.13",
       "ch.qos.logback" % "logback-classic" % "1.0.13",
       "org.slf4j" % "log4j-over-slf4j" % "1.7.5",

@@ -62,7 +62,6 @@ object ManualData extends UsesDataStore with Logging {
     loadEnrollments()
     createConferenceEvent()
     addPermissions()
-    // deleteEmptySections()
   }
   
   def fixTeacherAccounts() {
@@ -203,18 +202,18 @@ object ManualData extends UsesDataStore with Logging {
         val studentNumber = (contact \ "@student.studentNumber").text
         val altNumber = altStudentNumber(studentNumber)
         val isGuardian = ((contact \ "@contacts.guardian").text == "1")
-        logger.trace(s"read guardian for student number $studentNumber")
+        logger.debug(s"read guardian for student number $studentNumber")
         if (isGuardian) {
           logger.trace("processing, because is guardian")
           Student.getByStudentNumber(studentNumber).orElse(altNumber.flatMap(Student.getByStudentNumber(_))) match {
             case None => logger.info(s"No student with studentNumber $studentNumber in database.")
             case Some(student) => {
-              logger.trace(s"guardian belongs to Student: ${student.formalName}")
+              logger.debug(s"guardian belongs to Student: ${student.formalName}")
               val contactId = ((contact \ "@contacts.contactPersonID").text)
               val first = ((contact \ "@contacts.firstName").text)
               val last = ((contact \ "@contacts.lastName").text)
               val email = asOptionString((contact \ "@contacts.email").text)
-              logger.trace(s"Trying to find Guardian (contactId: $contactId, last: $last, first $first")
+              logger.debug(s"Trying to find Guardian (contactId: $contactId, last: $last, first $first")
               val guardianById = if (contactId != "") Guardian.getByContactId(contactId) else None
               val guardianByName = pm.query[Guardian].filter(cand.user.eq(userVar).and(cand.contactId.eq(null.asInstanceOf[String])).and(
                 userVar.first.eq(first)).and(userVar.last.eq(last))).executeOption()
@@ -233,6 +232,7 @@ object ManualData extends UsesDataStore with Logging {
                     Gender.NotListed, email, None, true, false, false)
                   pm.makePersistent(newUser)
                   val newGuardian = new Guardian(newUser, Some(contactId), Set(student))
+                  pm.makePersistent(newGuardian)
                 }
                 case Some(guardian) => {
                   // update with most recent info
@@ -243,15 +243,15 @@ object ManualData extends UsesDataStore with Logging {
                   guardian.user.isActive = true
                   guardian.user.email = email
                   guardian.contactId = Some(contactId)
-                  if (!guardian.children.contains(student)) {
-                    guardian.children.add(student)
-                  }
+                  val newChildren = guardian.children + student
+                  guardian.children = newChildren
+                  pm.makePersistent(guardian)
                 }
               }
             }
           }
         } else {
-          logger.trace("skipped because not guardian")
+          logger.debug("skipped because not guardian")
         }
       }
     })

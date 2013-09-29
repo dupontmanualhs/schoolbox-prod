@@ -6,6 +6,7 @@
 
     <persistence-unit name="schoolbox">
         <!-- users project -->
+        <class>models.users.Activation</class>
         <class>models.users.Group</class>
         <class>models.users.Permission</class>
         <class>models.users.Role</class>
