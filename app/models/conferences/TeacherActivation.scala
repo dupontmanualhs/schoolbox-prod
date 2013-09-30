@@ -75,7 +75,7 @@ class TeacherActivation extends UsesDataStore with DbEquality[TeacherActivation]
     // both must be in ascending order by start time
     def merge(openings: List[Opening], appointments: List[Slot]): List[ScheduleRow] = (openings, appointments) match {
       case (ops, Nil) => ops
-      case (Nil, appts) => throw new Exception("Something strange happened. Openings and appointments should coincide.")
+      case (Nil, appts) => appts.map(Appointment(_))
       case (op1 :: ops, appt1 :: appts) => {
         if (op1.start == appt1.startTime) Appointment(appt1) :: merge(ops, appts)
         else op1 :: merge(ops, appointments)

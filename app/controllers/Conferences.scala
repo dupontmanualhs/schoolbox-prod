@@ -85,12 +85,16 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
         Binding(form, req) match {
           case ib: InvalidBinding => Ok(conferences.reserveSlot(ib, start))
           case vb: ValidBinding => {
-            val guardian = vb.valueOf(form.guardian)
+            val maybeGuardian = vb.valueOf(form.guardian).flatMap(g => pm.query[Guardian].filter(QGuardian.candidate().id.eq(g.id)).executeOption())
             val phone = vb.valueOf(form.phoneNumber)
             val alt = vb.valueOf(form.altPhone)
             val comment = vb.valueOf(form.comment)
-            val slot = new Slot(ta.get.session, ta.get.teacher, start, ta.get.slotInterval, Set(), guardian.map(Set(_)).getOrElse(Set()),
+            val slot = new Slot(ta.get.session, ta.get.teacher, start, ta.get.slotInterval, Set(), Set(),
                 phone, alt, comment)
+            maybeGuardian match {
+              case None => // do nothing
+              case Some(guardian) => slot.guardians = Set(guardian)
+            }
             pm.makePersistent(slot)
             Redirect(routes.Conferences.eventForTeacher(ta.get.session.event.id))
           }

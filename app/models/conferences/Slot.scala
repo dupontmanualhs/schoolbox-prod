@@ -118,7 +118,6 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
       	s.endTime) || (endTime > s.startTime && endTime <= s.endTime))
     }
   }
-  
 }
 
 trait QSlot extends PersistableExpression[Slot] {
