@@ -39,7 +39,12 @@ object SendActivation extends UsesDataStore with Logging {
           userVar.isActive.eq(true))).orderBy(userVar.last.asc, userVar.first.asc).executeList()
       teachers.filterNot(t => pm.query[TeacherAssignment].filter(taCand.teacher.eq(t)).executeList().isEmpty)
     }  
-    teachersWithClasses.foreach(toTeacher(_))
+    teachersWithClasses.foreach(t => {
+      if (!Activation.getByUser(t.user).isDefined) {
+        toTeacher(t)
+        Thread.sleep(5000)
+      }
+    })
   }
   
   def toGuardian(guardian: Guardian) {
