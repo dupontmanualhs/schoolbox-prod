@@ -35,7 +35,7 @@ class Permission extends DbEquality[Permission] {
   def description: String = _description
   def description_=(theDescription: String) { _description = theDescription }
   
-  @Persistent
+  @Persistent(defaultFetchGroup="true")
   @Element(types=Array(classOf[Role]))
   @Join
   private[this] var _roles: java.util.Set[Role] = _

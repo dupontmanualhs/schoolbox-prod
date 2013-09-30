@@ -80,10 +80,16 @@ object ManualData extends UsesDataStore with Logging {
   
   def addPermissions() {
     val tobryan1 = Teacher.getByUsername("tobryan1").get
-    tobryan1.addPermission(Book.Permissions.Manage)
-    tobryan1.addPermission(Conferences.Permissions.Manage)
     val gregKuhn = Teacher.getByUsername("gkuhn2").get
-    gregKuhn.addPermission(Book.Permissions.Manage)
+    val manageBooks = Book.Permissions.Manage
+    val manageConferences = Conferences.Permissions.Manage
+    val manageUsers = User.Permissions.Manage
+    val changePasswords = User.Permissions.ChangePassword
+    tobryan1.addPermission(manageBooks)
+    tobryan1.addPermission(manageConferences)
+    tobryan1.addPermission(manageUsers)
+    tobryan1.addPermission(changePasswords)
+    gregKuhn.addPermission(manageBooks)
   }
 
   def markAllUsersInactive() {
