@@ -20,7 +20,7 @@ object SendActivation extends UsesDataStore with Logging {
         val mail = use[MailerPlugin].email
         mail.setSubject("Schoolbox Account Activation")
         mail.addRecipient(email)
-        mail.addFrom("schoolbox.support@live.com")
+        mail.addFrom("support@dupontmanual.org")
         mail.send(content(user, activation.uuid))
       })
     }
