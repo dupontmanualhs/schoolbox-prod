@@ -55,9 +55,9 @@ class Teacher extends Role {
 
 object Teacher extends UsesDataStore {
   val cand = QTeacher.candidate
+  val userVar = QUser.variable("userVar")
 
   def getByUsername(username: String): Option[Teacher] = {
-    val userVar = QUser.variable("userVar")
     dataStore.pm.query[Teacher].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
   }
   
@@ -73,16 +73,20 @@ object Teacher extends UsesDataStore {
     dataStore.pm.query[Teacher].filter(cand.id.eq(id)).executeOption()
   }
   
+  def getAllActive(): List[Teacher] = {
+    dataStore.pm.query[Teacher].filter(
+        cand.user.eq(userVar).and(userVar.isActive.eq(true))).orderBy(userVar.last.asc, userVar.first.asc).executeList()
+  }
+  
   object TeacherList {
-    val cand = QTeacher.candidate
-    val userVar = QUser.variable("userVar")
-    lazy val teachers = dataStore.pm.query[Teacher].filter(
-        cand.user.eq(userVar).and(userVar.isActive.eq(true))).executeList()
+    lazy val teachers = getAllActive()
     lazy val teacherIds = teachers.map(t => {
     	val num = List(t.stateId, t.personId).find(x => x != null && x != "").getOrElse("0000000000")
         s"${t.formalName} - $num"
     })
   }
+  
+  class ChooseActiveTeacherField(name: String) extends ChoiceField(name, getAllActive().map(t => (t.formalName, t)))
   
   class TeacherField(name: String, list: List[String]) extends BaseAutocompleteField[Teacher](name, list) {
     def asValue(strs: Seq[String]): Either[ValidationError, Teacher] = {

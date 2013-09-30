@@ -153,3 +153,7 @@ GET     /grades/announcements/:sectionId	    	    @controllers.Grades.announceme
 GET     /grades/assignments/:sectionId	    	    	@controllers.Grades.assignments(sectionId: Long)
 # GET     /grades/assignments/deleteAssignment/:id/:assignmentId    @controllers.Grades.deleteAssignment(id: Long, assignmentId: Long)
 GET     /grades/gradebook/:id					@controllers.Grades.gradebook(id: Long)
+
+GET		/admin/sendActivation/teacher								@controllers.MoveMe.sendTeacherActivation()
+POST	/admin/sendActivation/teacher								@controllers.MoveMe.sendTeacherActivationP()
+

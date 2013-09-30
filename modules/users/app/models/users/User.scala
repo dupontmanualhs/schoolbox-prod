@@ -144,6 +144,7 @@ object User extends UsesDataStore {
     val Change = Permission(classOf[User], 2, "Change", "can modify anything about users")
     val ListAll = Permission(classOf[User], 3, "ListAll", "can view the list of all users")
     val ChangePassword = Permission(classOf[User], 4, "ChangePassword", "can change other users' passwords")
+    val Manage = Permission(classOf[User], 5, "Manage", "can manage the user system")
   }
   
   def getById(id: Long): Option[User] = {

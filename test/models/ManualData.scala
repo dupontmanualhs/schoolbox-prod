@@ -687,7 +687,7 @@ object ManualData extends UsesDataStore with Logging {
     "jcook4" -> "jacob.cook@jefferson.kyschools.us",
     "913084" -> "anthony.crush@jefferson.kyschools.us",
     "tdix1" -> "tiffany.dix@jefferson.kyschools.us",
-    "cdoak1" -> "tiffany.dix@jefferson.kyschools.us",
+    "cdoak1" -> "corey.doak@jefferson.kyschools.us",
     "Todd" -> "kevin.eastridge@jefferson.kyschools.us",
     "jgrose1" -> "jennifer.groseth@jefferson.kyschools.us",
     "bhinds1" -> "brian.hinds@jefferson.kyschools.us",
