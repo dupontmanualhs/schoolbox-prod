@@ -28,6 +28,7 @@ import Conferences._
 import controllers.users.VisitRequest
 import controllers.users.PermissionRequired
 import play.api.templates.Html
+import org.joda.time.format.DateTimeFormat
 
 @Singleton
 class Conferences @Inject()(implicit config: Config) extends Controller with UsesDataStore {
@@ -119,14 +120,6 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     def fields = List(guardian, event)
   }
   
-/*  class GuardianSignUpForm(guardian: Guardian, session: Session) extends Form {
-    val allTeachers = guardian.children.flatMap(s => s.activeEnrollments(Term.current).flatMap(enr => enr.section.teachers.toSet))
-    val pickTime = allTeachers.map(t => {
-      
-      new ChoiceField(t.displayName, ))
-    }
-  }*/
-  
   def viewGuardian() = PermissionRequired(Permissions.Manage) { implicit req =>
     Ok(conferences.chooseGuardianAndEvent(Binding(GuardianEventForm)))
   }
@@ -147,6 +140,93 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       case None => NotFound("There is no guardian with the given id.")
       case Some(guardian) => eventHelper(eventId, (event: Event) => conferences.guardianDisplay(guardian, event))
     }  
+  }
+  
+  class GuardianSignUp(session: Session, teacher: Teacher, guardian: Guardian, times: List[LocalTime]) extends Form {
+    val timeFmt = DateTimeFormat.forPattern("h:mm a")
+    val time = new ChoiceField("time", times.map(t => (timeFmt.print(t), t)))
+    val phoneNumber = new PhoneFieldOptional("phoneNumber")
+    val altPhone = new PhoneFieldOptional("alternatePhone")
+    val comment = new TextFieldOptional("comment")
+    
+    def fields = List(time, phoneNumber, altPhone, comment)
+    
+    override def validate(vb: ValidBinding): ValidationError = {
+      Session.getById(session.id) match {
+        case None => ValidationError("No session with the given id.")
+        case Some(session) => Teacher.getById(teacher.id) match {
+          case None => ValidationError("No teacher with the given id.")
+          case Some(teacher) => Guardian.getById(guardian.id) match {
+            case None => ValidationError("No guardian with the given id.")
+            case Some(guardian) => {
+              val slot = new Slot(
+                  session, teacher, vb.valueOf(time), Set(), Set(guardian),
+                  vb.valueOf(phoneNumber), vb.valueOf(altPhone), vb.valueOf(comment))
+              slot.isValid()
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  def scheduleAppt(sessionId: Long, guardianId: Long, teacherId: Long) = 
+      RoleMustPass(r => r.permissions().contains(Permissions.Manage) || (r.isInstanceOf[Guardian] && r.id == guardianId)) { implicit req =>
+    Session.getById(sessionId) match {
+      case None => NotFound("No session with the given id.")
+      case Some(session) => Teacher.getById(teacherId) match {
+        case None => NotFound("No teacher with the given id.")
+        case Some(teacher) => Guardian.getById(guardianId) match {
+          case None => NotFound("No guardian with the given id.")
+          case Some(guardian) => TeacherActivation.get(teacher, session) match {
+            case None => NotFound("This teacher hasn't activated conference scheduling.")
+            case Some(ta) => {
+              val teacherApptTimes = ta.appointments().map(_.startTime)
+              val guardianApptTimes = Slot.getBySessionAndGuardian(session, guardian).map(_.startTime)
+              val apptTimes = teacherApptTimes.toSet ++ guardianApptTimes.toSet
+              val availableTimes = ta.allOpenings().map(
+                  _.startTime).filterNot(time => apptTimes.contains(time))
+              Ok(conferences.guardianSignUp(teacher, Binding(new GuardianSignUp(session, teacher, guardian, availableTimes))))
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  def scheduleApptP(sessionId: Long, guardianId: Long, teacherId: Long) = 
+      RoleMustPass(r => r.permissions().contains(Permissions.Manage) || (r.isInstanceOf[Guardian] && r.id == guardianId)) { implicit req =>
+    dataStore.execute { pm =>
+      Session.getById(sessionId) match {
+      case None => NotFound("No session with the given id.")
+      case Some(session) => Teacher.getById(teacherId) match {
+        case None => NotFound("No teacher with the given id.")
+        case Some(teacher) => Guardian.getById(guardianId) match {
+          case None => NotFound("No guardian with the given id.")
+          case Some(guardian) => TeacherActivation.get(teacher, session) match {
+            case None => NotFound("This teacher hasn't activated conference scheduling.")
+            case Some(ta) => {
+              val teacherApptTimes = ta.appointments().map(_.startTime)
+              val guardianApptTimes = Slot.getBySessionAndGuardian(session, guardian).map(_.startTime)
+              val apptTimes = teacherApptTimes.toSet ++ guardianApptTimes.toSet
+              val availableTimes = ta.allOpenings().map(
+                  _.startTime).filterNot(time => apptTimes.contains(time))
+              val form = new GuardianSignUp(session, teacher, guardian, availableTimes)
+              Binding(form, req) match {
+                case ib: InvalidBinding => Ok(conferences.guardianSignUp(teacher, ib))
+                case vb: ValidBinding => {
+                  val slot = new Slot(session, teacher, vb.valueOf(form.time), Set(), Set(guardian),
+                      vb.valueOf(form.phoneNumber), vb.valueOf(form.altPhone), vb.valueOf(form.comment))
+                  pm.makePersistent(slot)
+                  Redirect(routes.Conferences.eventForGuardian(session.event.id))
+                }
+              }
+            }
+          }
+        }
+      }
+      }
+    }
   }
   
   def viewAsTeacher() = VisitAction { implicit req =>

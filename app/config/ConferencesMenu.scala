@@ -14,7 +14,7 @@ object ConferencesMenu {
       val perms = role.permissions()
       val eventItems: List[MenuItem] = Event.getActive().map(e => role match {
         case role: Teacher => Some(new MenuItem(e.name, s"menu_event${e.id}", Some(controllers.routes.Conferences.eventForTeacher(e.id).toString), Nil))
-        case role: Guardian => Some(new MenuItem(e.name, s"menu_event${e.id}", None, Nil, Nil))
+        case role: Guardian => Some(new MenuItem(e.name, s"menu_event${e.id}", Some(controllers.routes.Conferences.eventForGuardian(e.id).toString), Nil))
         case _ => None
       }).flatten
       val items: List[MenuItem] = if (perms.contains(Conferences.Permissions.Manage)) {

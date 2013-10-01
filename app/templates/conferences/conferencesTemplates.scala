@@ -20,6 +20,8 @@ import scala.xml.NodeSeq
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.LocalTime
 import org.joda.time.LocalDateTime
+import org.dupontmanual.forms.Form
+import models.courses.Term
 
 
 package object conferences {
@@ -123,34 +125,48 @@ package object conferences {
   
   def sessionInfoForGuardian(guardian: Guardian, session: Session)(implicit req: VisitRequest[_], config: Config) = {
     import dateOrdering._
+
     val appts = Slot.getBySessionAndGuardian(session, guardian)
-    def schedule() = if (appts.isEmpty) {
-      p("You don't have any appointments scheduled for this session.")
-    } else {
-      p("You have the following appointments:",
-      ul(appts.map(a => {
-        val time = s"${timeFmt.print(a.startTime)}-${timeFmt.print(a.endTime)}"
-        val teacher = s"${a.teacher.displayName}"
-        val students = a.students.toList.map(_.displayName).mkString(", ")
-        li(s"$time with $teacher about $students")
-      }): _* ))
+    val apptTeachers = appts.map(_.teacher)
+    val unrealDepartments = List("", "Elective")
+    val realSections = guardian.children.flatMap(s => s.activeEnrollments(Term.current)).map(_.section).filterNot(s => unrealDepartments.contains(s.course.department.name))
+    val realTeachers = realSections.flatMap(_.teachers.toSet).toList.sortBy(_.formalName)
+    val (confTeachers, nonConfTeachers) = realTeachers.partition(t => TeacherActivation.get(t, session).isDefined)
+    def schedule() = {
+      if (appts.isEmpty) {
+        p("You don't have any appointments scheduled for this session.")
+      } else {
+        p("You have the following appointments:",
+        ul(appts.map(a => {
+          val time = s"${timeFmt.print(a.startTime)}-${timeFmt.print(a.endTime)}"
+          val teacher = s"${a.teacher.displayName}"
+          val students = a.students.toList.map(_.displayName).mkString(", ")
+          li(s"$time with $teacher about $students")
+        }): _* ))
+      }
     }
     div(
       h2(longDateFmt.print(session.date)),
       schedule,
-      NodeSeq.Empty // if (LocalDateTime.now() < session.cutoff) guardianScheduleForm(guardian, session, appts) else NodeSeq.Empty
+      if (!nonConfTeachers.isEmpty) {
+        div(p("These teachers have not activated conference scheduling. Contact them to schedule a conference."),
+          table.cls("table", "table-striped", "table-condensed")(nonConfTeachers.map(t => 
+            tr(td(t.displayName), td(a.href(s"mailto:${t.user.email.getOrElse("")}")(t.user.email.getOrElse("no email available"): String)))))).toXML()
+      } else {
+        NodeSeq.Empty
+      },
+      if (LocalDateTime.now() < session.cutoff) {
+        div(p("Click the button next to each teacher to schedule a conference."),
+          table.cls("table", "table-striped", "table-condensed")(confTeachers.filterNot(apptTeachers.contains(_)).map(t =>
+            tr(td(t.displayName), td(a.cls("btn").href(controllers.routes.Conferences.scheduleAppt(session.id, guardian.id, t.id))("Schedule Conference"))))))
+      } else NodeSeq.Empty
     )
   }
   
-  /*def guardianScheduleForm(guardian: Guardian, session: Session, apptsAlready: List[Slot]) = {
-    val children = guardian.children
-    val childWord = if (children.size == 1) "child" else "children"
-    div(
-      p(s"You may schedule conferences with your ${childWord}'s teachers below."),
+  def guardianSignUp(teacher: Teacher, form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main(s"Schedule an Appointment with ${teacher.displayName}")(form.render())
+  }
       
-    )
-  }*/
-    
   def collapseMaker(ens: (Event, List[Session]), first: Boolean = false)
   				   (implicit req: VisitRequest[_], config: Config) = {
     div.cls("accordion-group")(
