@@ -1,8 +1,8 @@
 package config.courses
 
 import com.typesafe.scalalogging.slf4j.Logging
-
 import config.users.UsesDataStore
+import models.courses.QGuardian
 
 object SendActivation extends UsesDataStore with Logging {
   import com.typesafe.plugin._
@@ -42,13 +42,26 @@ object SendActivation extends UsesDataStore with Logging {
     teachersWithClasses.foreach(t => {
       if (!Activation.getByUser(t.user).isDefined) {
         toTeacher(t)
-        Thread.sleep(5000)
       }
     })
   }
   
   def toGuardian(guardian: Guardian) {
     toUser(guardian.user, guardianEmail)
+  }
+  
+  def toAllGuardians() {
+    val cand = QGuardian.candidate()
+    val userVar = QUser.variable("userVar")
+    val activeGuardians = dataStore.execute { pm =>
+      pm.query[Guardian].filter(cand.user.eq(userVar).and(
+        userVar.isActive.eq(true))).orderBy(userVar.last.asc, userVar.first.asc).executeList()
+    }
+    activeGuardians.foreach { g =>
+      if (!Activation.getByUser(g.user).isDefined) {
+        toGuardian(g)
+      }
+    }
   }
   
   def teacherEmail(user: User, uuid: String) =  
@@ -130,7 +143,11 @@ object SendActivation extends UsesDataStore with Logging {
        |This email is your activation information from Schoolbox, the new
        |conference scheduling system used by duPont Manual High School.
        |
-       |To allow parents to schedule conferences using the system, follow
+       |Sorry this was so long in coming. This version represents a complete
+       |rewrite of the old system. We expect a few glitches, but bear with
+       |us.
+       |
+       |To schedule conferences with your child's teachers, follow
        |the instructions in this email.
        |
        |ACTIVATE YOUR ACCOUNT, CHOOSE PASSWORD, AND LOG IN
@@ -158,43 +175,27 @@ object SendActivation extends UsesDataStore with Logging {
        |and your password has been set. Enter your username and the password you
        |chose to log in.
        |
-       |ACTIVATE CONFERENCES AND RESERVE BREAK TIMES
-       |============================================
+       |SCHEDULE CONFERENCES
+       |====================
        |
        |1. Click on the Conferences menu and choose Fall 2013.
        |
-       |2. Click on the button labeled "Activate Scheduling". You should see a
-       |message indicating that conference scheduling has been activated and you'll
-       |see a list of all the times from 7:40-2:20 in ten-minute increments.
+       |2. You'll see a list of any conferences you've already scheduled, and a list
+       |of teachers who aren't using the system.
        |
-       |3. To reserve break times for yourself (lunch and restroom breaks, for
-       |example), click the button of the time you'd like to reserve. A new page
-       |will open with fields for the appointment. All of these are optional.
-       |I suggest you simply put a note (like "Lunch") in the comment field.
+       |3. At the bottom, you'll see a list of teachers who are using the system,
+       |with a button next to each one. Click on the button and choose a time
+       |for your conference with that teacher. (Note: only times when both you
+       |and the teacher are available appear in the list of choices.)
        |
-       |4. Click on the other times you'd like to reserve. In addition to reserving
-       |break time for yourself, you can also schedule actual conferences. Simply
-       |use the pull-down list to choose the student and parent you'll be meeting
-       |with. (Please do this if parents email you, since they may have trouble
-       |accessing the new system.)
+       |3. Remember to print your schedule before you come to Conference Day.
        |
-       |FINAL NOTES
-       |===========
-       |
-       |At 11:59 PM next Sunday, the system will close. Parents who have not
-       |scheduled by then will be unable to schedule a conference using the
-       |system. On Monday, you might want to print out your schedule.
-       |
-       |If you have trouble, email me at todd.obryan@jefferson.kyschools.us
-       |and I'll try to help you. If something disastrous happens (like the
-       |system goes down), call my room at x2202.
-       |
-       |If you have suggestions, send those along, too. We may be able to
-       |implement some this week, but we'll definitely try to make things
-       |better for the spring conferences.
+       |4. Send any support requests to support@dupontmanual.org and we'll try to
+       |respond to them as quickly as possible!
        |
        |Thanks!
-       |Todd
+       |Todd O'Bryan and the Special Topics in Computer Science classes
+       |The Schoolbox Team
      """.stripMargin
 
 
