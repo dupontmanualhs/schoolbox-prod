@@ -11,9 +11,15 @@ import util.Helpers.localTime2SqlTime
 import org.joda.time.LocalTime
 import config.users.UsesDataStore
 import models.users.DbEquality
+import models.courses.Term
+import org.dupontmanual.forms.validators.ValidationError
 
 @PersistenceCapable(detachable="true")
 class Slot extends UsesDataStore with DbEquality[Slot] {
+  @NotPersistent
+  val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
+  import dateOrdering._
+
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -49,7 +55,17 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
   @Join
   @Element(types=Array(classOf[Student]))
   private[this] var _students : java.util.Set[Student] = _
-  def students: Set[Student] = _students.asScala.toSet
+  def students: Set[Student] = {
+    if (!_students.isEmpty()) _students.asScala.toSet
+    else {
+      // TODO: term should be based on when the conference is held, not current
+      val fromTeacher = teacher.studentsTaught(Term.current).toSet
+      val fromGuardians = guardians.flatMap(_.children)
+      val intersection = fromTeacher.intersect(fromGuardians)
+      _students = intersection.asJava
+      intersection
+    }
+  }
   def students_=(theStudents: Set[Student]) { _students = theStudents.asJava }
   
   @Persistent
@@ -103,12 +119,29 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
     import timeOrdering._
     (this.startTime < this.session.startTime || this.startTime >= this.session.endTime) ||
     (this.endTime <= this.session.startTime || this.endTime > this.session.endTime)
-  } 
+  }
+  
+  def isValid(): ValidationError = TeacherActivation.get(teacher, session) match {
+    case None => ValidationError("The teacher has not activated conferences for this session.")
+    case Some(ta) => {
+      def startTimeIsBad: Boolean = !ta.allOpenings().contains(startTime)
+      def guardianConflicts: Boolean = {
+        val guardianAppts = guardians.flatMap(g => Slot.getBySessionAndGuardian(session, g))
+        !guardianAppts.exists(s => Slot.timesConflict(s.startTime, s.endTime, this.startTime, this.endTime))
+      }
+      def teacherConflicts: Boolean = {
+        val teacherAppts = ta.appointments
+        !teacherAppts.exists(s => Slot.timesConflict(s.startTime, s.endTime, this.startTime, this.endTime))
+      }
+      if (startTimeIsBad) ValidationError("The start time for this appointment is not valid.")
+      else if (guardianConflicts) ValidationError(s"The guardian has an appointment that conflicts with this one.")
+      else if (teacherConflicts) ValidationError(s"${teacher.displayName} has an appointment that conflicts with this one.")
+      else ValidationError(Nil)
+    }
+  }
   
   //Checks if the slot overlaps another slot's time period
   def validateSlot: Boolean = {
-    val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
-    import dateOrdering._
     val startTime = this.startTime
     val endTime = this.endTime
     dataStore.execute { implicit pm =>
@@ -117,6 +150,22 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
       !slots.exists(s => (startTime >= s.startTime && startTime <
       	s.endTime) || (endTime > s.startTime && endTime <= s.endTime))
     }
+  }
+}
+
+object Slot extends UsesDataStore {
+  val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
+  import dateOrdering._
+  val cand = QSlot.candidate()
+  
+  def getBySessionAndGuardian(session: Session, guardian: Guardian): List[Slot] = {
+    dataStore.execute(pm => {
+      pm.query[Slot].filter(cand.session.eq(session).and(cand.guardians.contains(guardian))).orderBy(cand.startTime.asc).executeList()
+    })
+  }
+  
+  def timesConflict(start1: LocalTime, end1: LocalTime, start2: LocalTime, end2: LocalTime): Boolean = {
+    start1 < end1 && start2 < end2 && (start1 < end2 && start2 < end1)
   }
 }
 

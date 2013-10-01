@@ -27,6 +27,7 @@ import templates.conferences
 import Conferences._
 import controllers.users.VisitRequest
 import controllers.users.PermissionRequired
+import play.api.templates.Html
 
 @Singleton
 class Conferences @Inject()(implicit config: Config) extends Controller with UsesDataStore {
@@ -50,12 +51,89 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     }
   }
   
+  def eventHelper(eventId: Long, template: (Event => Html))(implicit req: VisitRequest[_]) = {
+    Event.getById(eventId) match {
+      case None => NotFound("There is no ConferenceEvent with the given id.")
+      case Some(event) => Ok(template(event))
+    }
+  }
   
   def eventForTeacher(eventId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit req =>
-    Event.getById(eventId) match {
-      case None => NotFound("There is no Conference Event with the given id.")
-      case Some(event) => Ok(conferences.teacherDisplay(req.role.asInstanceOf[Teacher], event))
+    eventHelper(eventId, (event: Event) => conferences.teacherDisplay(req.role.asInstanceOf[Teacher], event))
+  }
+  
+  object TeacherEventForm extends Form {
+    val teacher = new Teacher.ChooseActiveTeacherField("teacher")
+    val event = new ChoiceField("event", Event.getActive().map(e => (e.name, e)))
+    
+    def fields = List(teacher, event)
+  }
+  
+  def viewTeacher() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Ok(conferences.chooseTeacherAndEvent(Binding(TeacherEventForm)))
+  }
+  
+  def viewTeacherP() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Binding(TeacherEventForm, req) match {
+      case ib: InvalidBinding => Ok(conferences.chooseTeacherAndEvent(ib))
+      case vb: ValidBinding => {
+        val teacherId = vb.valueOf(TeacherEventForm.teacher).id
+        val eventId = vb.valueOf(TeacherEventForm.event).id
+        Redirect(routes.Conferences.viewTeacherSchedule(eventId, teacherId))
+      }
+    }  
+  }
+  
+  def viewTeacherSchedule(eventId: Long, teacherId: Long) = PermissionRequired(Permissions.Manage) { implicit req =>
+    Teacher.getById(teacherId) match {
+      case None => NotFound("There is no teacher with the given id.")
+      case Some(teacher) => eventHelper(eventId, (event: Event) => conferences.teacherDisplay(teacher, event))
+    }  
+  }
+  
+  def eventForGuardian(eventId: Long) = RoleMustPass(_.isInstanceOf[Guardian]) { implicit req =>
+    eventHelper(eventId, (event: Event) => conferences.guardianDisplay(req.role.asInstanceOf[Guardian], event))
+  }
+  
+  def eventForGuardianP(eventId: Long) = RoleMustPass(_.isInstanceOf[Guardian]) { implicit req =>
+    NotFound("Not implemented yet.")  
+  }
+  
+  object GuardianEventForm extends Form {
+    val guardian = new Guardian.ChooseActiveGuardianField("guardian")
+    val event = new ChoiceField("event", Event.getActive().map(e => (e.name, e)))
+    
+    def fields = List(guardian, event)
+  }
+  
+/*  class GuardianSignUpForm(guardian: Guardian, session: Session) extends Form {
+    val allTeachers = guardian.children.flatMap(s => s.activeEnrollments(Term.current).flatMap(enr => enr.section.teachers.toSet))
+    val pickTime = allTeachers.map(t => {
+      
+      new ChoiceField(t.displayName, ))
     }
+  }*/
+  
+  def viewGuardian() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Ok(conferences.chooseGuardianAndEvent(Binding(GuardianEventForm)))
+  }
+  
+  def viewGuardianP() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Binding(GuardianEventForm, req) match {
+      case ib: InvalidBinding => Ok(conferences.chooseGuardianAndEvent(ib))
+      case vb: ValidBinding => {
+        val guardianId = vb.valueOf(GuardianEventForm.guardian).id
+        val eventId = vb.valueOf(GuardianEventForm.event).id
+        Redirect(routes.Conferences.viewGuardianSchedule(eventId, guardianId))
+      }
+    }  
+  }
+  
+  def viewGuardianSchedule(eventId: Long, guardianId: Long) = PermissionRequired(Permissions.Manage) { implicit req =>
+    Guardian.getById(guardianId) match {
+      case None => NotFound("There is no guardian with the given id.")
+      case Some(guardian) => eventHelper(eventId, (event: Event) => conferences.guardianDisplay(guardian, event))
+    }  
   }
   
   def viewAsTeacher() = VisitAction { implicit req =>

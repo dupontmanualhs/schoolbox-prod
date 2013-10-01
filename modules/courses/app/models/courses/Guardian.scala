@@ -9,7 +9,7 @@ import models.users.Role
 import models.users.User
 import config.users.UsesDataStore
 import models.users.QUser
-import org.dupontmanual.forms.fields.ChoiceFieldOptional
+import org.dupontmanual.forms.fields.{ ChoiceField, ChoiceFieldOptional }
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.SUPERCLASS_TABLE)
@@ -45,15 +45,19 @@ class Guardian extends Role {
 }
 
 object Guardian extends UsesDataStore {
+  val cand = QGuardian.candidate
+  val userVar = QUser.variable("userVar")
+
   def getByUsername(username: String): Option[Guardian] = {
-    val cand = QGuardian.candidate
-    val userVar = QUser.variable("userVar")
     dataStore.pm.query[Guardian].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
   }
   
   def getByContactId(contactId: String): Option[Guardian] = {
-    val cand = QGuardian.candidate
     dataStore.pm.query[Guardian].filter(cand.contactId.eq(contactId)).executeOption()
+  }
+  
+  def getById(id: Long): Option[Guardian] = {
+    dataStore.pm.query[Guardian].filter(cand.id.eq(id)).executeOption()
   }
   
   def ChooseGuardianField(students: List[Student]): ChoiceFieldOptional[Guardian] = {
@@ -61,8 +65,15 @@ object Guardian extends UsesDataStore {
     val guardiansByStudent: List[(String, Guardian)] = students.map((s: Student) => 
         s.guardians().map((g: Guardian) => (studentWithGuardian(s, g), g))
     ).flatten
-    new  ChoiceFieldOptional[Guardian]("Guardian", guardiansByStudent)
+    new  ChoiceFieldOptional[Guardian]("guardian", guardiansByStudent)
   }
+  
+  def getAllActive(): List[Guardian] = {
+    dataStore.pm.query[Guardian].filter(
+        cand.user.eq(userVar).and(userVar.isActive.eq(true))).orderBy(userVar.last.asc, userVar.first.asc).executeList()    
+  }
+  
+  class ChooseActiveGuardianField(name: String) extends ChoiceField(name, getAllActive().map(t => (t.formalName, t)))
 }
 
 
