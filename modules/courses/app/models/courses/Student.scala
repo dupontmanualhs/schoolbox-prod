@@ -56,6 +56,14 @@ class Student extends Role {
     val guardCand = QGuardian.candidate()
     dataStore.pm.query[Guardian].filter(guardCand.children.contains(this)).executeList()
   }
+  
+  def activeEnrollments(term: Term): List[StudentEnrollment] = {
+    val sectVar = QSection.variable("sectVar")
+    val cand = QStudentEnrollment.candidate()
+    dataStore.pm.query[StudentEnrollment].filter(cand.student.eq(this).and(
+        cand.end.eq(null.asInstanceOf[java.sql.Date])).and(
+        cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+  }
     
   override def canEqual(that: Any): Boolean = that.isInstanceOf[Student]
 }

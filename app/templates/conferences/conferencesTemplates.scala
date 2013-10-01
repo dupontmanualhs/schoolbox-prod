@@ -19,9 +19,12 @@ import controllers.Conferences.timeReporter
 import scala.xml.NodeSeq
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.LocalTime
+import org.joda.time.LocalDateTime
 
 
 package object conferences {
+  val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
+
   private[conferences] class ConfigProvider @Inject() (val config: Config)
   private[conferences] val injector = Play.current.global.asInstanceOf[ProvidesInjector].provideInjector()
   private[conferences] implicit lazy val config: Config = injector.getInstance(classOf[ConfigProvider]).config
@@ -34,6 +37,7 @@ package object conferences {
   val longDateFmt = DateTimeFormat.forPattern("MMMM d, y")
   val timeFmt = DateTimeFormat.forPattern("h:mm a")
   val dateTimeFmt = DateTimeFormat.forPattern("h:mm a 'on' MMMM d, y")
+  val shortDateTimeFmt = DateTimeFormat.forPattern("h:mm a 'on' MMM d")
   
   def teacherDisplay(teacher: Teacher, event: Event)(implicit req: VisitRequest[_], config: Config) = {
     config.main(event.name)(
@@ -86,6 +90,65 @@ package object conferences {
       )
     }    
   }
+  
+  object guardianDisplay{
+    def apply(guardian: Guardian, event: Event)(implicit req: VisitRequest[_], config: Config) = {
+      config.main(event.name)(
+        h1(s"Conferences: ${event.name}") ::
+        event.sessions.map(s =>
+          sessionInfoForGuardian(guardian, s)
+        )
+      )
+    }
+  }
+  
+  object chooseTeacherAndEvent {
+    def apply(form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Choose Teacher and Event")(
+        h1("Choose Teacher and Event"),
+        form.render()
+      )
+    }
+  }
+  
+  object chooseGuardianAndEvent {
+    def apply(form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Choose Guardian and Event")(
+        h1("Choose Guardian and Event"),
+        form.render()
+      )
+    }
+  }
+  
+  def sessionInfoForGuardian(guardian: Guardian, session: Session)(implicit req: VisitRequest[_], config: Config) = {
+    import dateOrdering._
+    val appts = Slot.getBySessionAndGuardian(session, guardian)
+    def schedule() = if (appts.isEmpty) {
+      p("You don't have any appointments scheduled for this session.")
+    } else {
+      p("You have the following appointments:",
+      ul(appts.map(a => {
+        val time = s"${timeFmt.print(a.startTime)}-${timeFmt.print(a.endTime)}"
+        val teacher = s"${a.teacher.displayName}"
+        val students = a.students.toList.map(_.displayName).mkString(", ")
+        li(s"$time with $teacher about $students")
+      }): _* ))
+    }
+    div(
+      h2(longDateFmt.print(session.date)),
+      schedule,
+      NodeSeq.Empty // if (LocalDateTime.now() < session.cutoff) guardianScheduleForm(guardian, session, appts) else NodeSeq.Empty
+    )
+  }
+  
+  /*def guardianScheduleForm(guardian: Guardian, session: Session, apptsAlready: List[Slot]) = {
+    val children = guardian.children
+    val childWord = if (children.size == 1) "child" else "children"
+    div(
+      p(s"You may schedule conferences with your ${childWord}'s teachers below."),
+      
+    )
+  }*/
     
   def collapseMaker(ens: (Event, List[Session]), first: Boolean = false)
   				   (implicit req: VisitRequest[_], config: Config) = {

@@ -19,7 +19,9 @@ object ConferencesMenu {
       }).flatten
       val items: List[MenuItem] = if (perms.contains(Conferences.Permissions.Manage)) {
           new MenuItem("Manage", "menu_manage", None, Nil, List(
-            new MenuItem("List Events", "menu_listevents", Some(controllers.routes.Conferences.listEvents.toString), Nil)
+            new MenuItem("List Events", "menu_listevents", Some(controllers.routes.Conferences.listEvents.toString), Nil),
+            new MenuItem("View Teacher Schedule", "menu_teacherConfSched", Some(controllers.routes.Conferences.viewTeacher().toString), Nil),
+            new MenuItem("View Guardian Schedule", "menu_guardianConfSched", Some(controllers.routes.Conferences.viewGuardian().toString), Nil)
           )) :: eventItems
       } else {
         eventItems

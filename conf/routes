@@ -120,7 +120,15 @@ GET     /lockers/byRoom/:room             @controllers.Lockers.lockerByRoom(room
 
 
 #Conferences
+#Admin
 GET		/conferences												@controllers.Conferences.listEvents()
+GET		/conferences/viewTeacher								    @controllers.Conferences.viewTeacher()
+POST	/conferences/viewTeacher									@controllers.Conferences.viewTeacherP()
+GET		/conferences/viewTeacherSchedule/:eventId/:teacherId		@controllers.Conferences.viewTeacherSchedule(eventId: Long, teacherId: Long)
+GET		/conferences/viewGuardian									@controllers.Conferences.viewGuardian()
+POST	/conferences/viewGuardian									@controllers.Conferences.viewGuardianP()
+GET		/conferences/viewGuardianSchedule/:eventId/:guardianId		@controllers.Conferences.viewGuardianSchedule(eventId: Long, guardianId: Long)		
+
 GET		/conferences/teacher/:eventId								@controllers.Conferences.eventForTeacher(eventId: Long)
 GET		/conferences/reserveSlot/:teacherActivationId/:startTime	@controllers.Conferences.reserveSlot(teacherActivationId: Long, startTime: Int)
 POST	/conferences/reserveSlot/:teacherActivationId/:startTime	@controllers.Conferences.reserveSlotP(teacherActivationId: Long, startTime: Int)
@@ -128,6 +136,8 @@ GET		/conferences/addEvent									    @controllers.Conferences.addEvent()
 POST	/conferences/addEvent									    @controllers.Conferences.addEventP()
 GET		/conferences/addSession/:eventId							@controllers.Conferences.addSession(eventId: Long)
 POST	/conferences/addSession/:eventId							@controllers.Conferences.addSessionP(eventId: Long)
+GET		/conferences/guardian/:eventId								@controllers.Conferences.eventForGuardian(eventId: Long)
+POST	/conferences/guardian/:eventId								@controllers.Conferences.eventForGuardianP(eventId: Long)
 #GET	/conferences/createSlot/:sessionId/:studentId/:teacherId		@controllers.Conferences.createSlot(sessionId: Long, studentId: Long, teacherId: Long)
 #POST	/conferences/createSlot/:sessionId/:studentId/:teacherId		@controllers.Conferences.createSlotP(sessionId: Long, studentId: Long, teacherId: Long)
 GET		/conferences/deleteEvent/:eventId							@controllers.Conferences.deleteEvent(eventId: Long)
