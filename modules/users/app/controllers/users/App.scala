@@ -278,4 +278,72 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
     val cand = QUser.candidate
     Ok(templates.users.ListUsers(dataStore.pm.query[User].orderBy(cand.last.asc, cand.first.asc).executeList()))
   }
+  
+  class ChooseUserForm extends Form {
+    val cand = QUser.candidate()
+    val allUsers = dataStore.pm.query[User].filter(cand.isActive.eq(true)).executeList()
+    val user = new ChoiceField("user", allUsers.map(u => (u.formalName, u.id)))
+    
+    def fields = List(user)
+  }
+  
+  def chooseUserToEdit() = PermissionRequired(User.Permissions.Manage) { implicit req =>
+    Ok(templates.users.ChooseUser(Binding(new ChooseUserForm)))  
+  }
+  
+  def chooseUserToEditP() = PermissionRequired(User.Permissions.Manage) { implicit req =>
+    val form = new ChooseUserForm()
+    Binding(form, req) match {
+      case ib: InvalidBinding => Ok(templates.users.ChooseUser(ib))
+      case vb: ValidBinding => {
+        val userId = vb.valueOf(form.user)
+        Redirect(controllers.users.routes.App.editUser(userId))
+      }
+    }
+  }
+  
+  class UpdateUserForm(user: User) extends Form {
+    // TODO: make sure this is unique
+    val username = new TextField("username") { override def initialVal = Some(user.username) }
+    val lastName = new TextField("lastName") { override def initialVal = Some(user.last) }
+    val firstName = new TextField("firstName") { override def initialVal = Some(user.first) }
+    val middleName = new TextFieldOptional("middleName") { override def initialVal = Some(user.middle) }
+    val preferredName = new TextFieldOptional("preferredName") { override def initialVal = Some(user.preferred) }
+    val email = new TextFieldOptional("email") { override def initialVal = Some(user.email) }
+  
+    def fields = List(username, lastName, firstName, middleName, preferredName, email)
+  }
+  
+  def editUser(userId: Long) = PermissionRequired(User.Permissions.Manage) { implicit req =>
+    User.getById(userId) match {
+      case None => NotFound("No user with the given id.")
+      case Some(user) => {
+        val form = new UpdateUserForm(user)
+        Ok(templates.users.EditUser(Binding(form)))
+      }
+    }
+  }
+  
+  def editUserP(userId: Long) = PermissionRequired(User.Permissions.Manage) { implicit req =>
+    User.getById(userId) match {
+      case None => NotFound("No user with the given id.")
+      case Some(user) => {
+        val form = new UpdateUserForm(user)
+        Binding(form, req) match {
+          case ib: InvalidBinding => Ok(templates.users.EditUser(ib))
+          case vb: ValidBinding => {
+            user.username = vb.valueOf(form.username)
+            user.last = vb.valueOf(form.lastName)
+            user.first = vb.valueOf(form.firstName)
+            user.middle = vb.valueOf(form.middleName)
+            user.preferred = vb.valueOf(form.preferredName)
+            user.email = vb.valueOf(form.email)
+            Redirect(controllers.users.routes.App.chooseUserToEdit()).flashing("message" -> "User has been updated.")
+          }
+        }
+      }
+    }
+    
+  
+  }
 }
