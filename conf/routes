@@ -168,4 +168,5 @@ GET     /grades/gradebook/:id					@controllers.Grades.gradebook(id: Long)
 
 GET		/admin/sendActivation/teacher								@controllers.MoveMe.sendTeacherActivation()
 POST	/admin/sendActivation/teacher								@controllers.MoveMe.sendTeacherActivationP()
-
+GET		/admin/sendActivation/guardian								@controllers.MoveMe.sendGuardianActivation()
+POST	/admin/sendActivation/guardian								@controllers.MoveMe.sendGuardianActivationP()

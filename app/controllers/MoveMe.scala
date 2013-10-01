@@ -12,6 +12,7 @@ import org.dupontmanual.forms._
 import controllers.users.VisitRequest
 import config.users.UsesDataStore
 import config.courses.SendActivation
+import models.courses.Guardian
 
 class MoveMe @Inject()(implicit config: Config) extends Controller with UsesDataStore {
   object TeacherActivation {
@@ -49,6 +50,44 @@ class MoveMe @Inject()(implicit config: Config) extends Controller with UsesData
           }
         }
       }  
+    }
+  }
+  
+  object GuardianActivation {
+    def apply(form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Send Guardian Activation")(
+        form.render()
+      )
+    }
+  }
+  
+  object GuardianForm extends Form {
+    val guardian = new Guardian.ChooseActiveGuardianField("guardian")
+    
+    def fields = List(guardian)
+  }
+  
+  def sendGuardianActivation() = PermissionRequired(User.Permissions.Manage) { implicit req =>
+    Ok(GuardianActivation(Binding(GuardianForm)))  
+  }
+  
+  def sendGuardianActivationP() = PermissionRequired(User.Permissions.Manage) { implicit req =>
+    dataStore.execute { pm =>
+      Binding(GuardianForm, req) match {
+        case ib: InvalidBinding => Ok(GuardianActivation(ib))
+        case vb: ValidBinding => {
+          val guardian: Guardian = vb.valueOf(GuardianForm.guardian)
+          guardian.user.email match {
+            case None => Redirect(controllers.routes.MoveMe.sendTeacherActivation()).flashing(
+                "error" -> s"No activation email was sent, because the user does not have an email address.")
+            case Some(email) => {
+              SendActivation.toGuardian(guardian)
+              Redirect(controllers.routes.MoveMe.sendGuardianActivation()).flashing(
+                  "message" -> s"A new activation email was sent to ${email}")
+            }
+          }
+        }
+      }
     }
   }
 }

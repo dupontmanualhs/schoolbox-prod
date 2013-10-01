@@ -281,7 +281,7 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
   
   class ChooseUserForm extends Form {
     val cand = QUser.candidate()
-    val allUsers = dataStore.pm.query[User].filter(cand.isActive.eq(true)).executeList()
+    val allUsers = dataStore.pm.query[User].filter(cand.isActive.eq(true)).orderBy(cand.last.asc, cand.first.asc).executeList()
     val user = new ChoiceField("user", allUsers.map(u => (u.formalName, u.id)))
     
     def fields = List(user)
