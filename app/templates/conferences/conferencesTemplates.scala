@@ -86,6 +86,7 @@ package object conferences {
   object reserveSlot {
     def apply(form: Binding, start: LocalTime)(implicit req: VisitRequest[_], config: Config) = {
       config.main(s"Reserve the Slot at ${timeFmt.print(start)}")(
+        h1(s"Reserve the Slot at ${timeFmt.print(start)}"),
         form.render()
       )
     }    

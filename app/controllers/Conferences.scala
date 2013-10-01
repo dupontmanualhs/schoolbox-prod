@@ -41,6 +41,19 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     val comment = new TextFieldOptional("comment")
     
     val fields = List(guardian, phoneNumber, altPhone, comment)
+    
+    override def validate(vb: ValidBinding): ValidationError = {
+      val guard = vb.valueOf(guardian)
+      val phone = vb.valueOf(phoneNumber)
+      val alt = vb.valueOf(altPhone)
+      val comm = vb.valueOf(comment)
+      if (!(guard.isDefined || phone.isDefined || alt.isDefined || comm.isDefined)) {
+        ValidationError("You must enter at least one value to reserve the slot.")
+      } else {
+        val slot = new Slot(ta.session, ta.teacher, startTime, ta.slotInterval, Set(), Set(guard).flatten, phone, alt, comm)
+        slot.isValid()
+      }
+    }
   }
   
   def listEvents() = PermissionRequired(Permissions.Manage) { implicit req => 
@@ -148,7 +161,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
   def reserveSlot(teacherActivationId: Long, startAsMillis: Int) = {
     val ta = TeacherActivation.getById(teacherActivationId)
     RoleMustPass(r => ta.isDefined && (r.permissions().contains(Permissions.Manage) || ta.get.teacher == r)) { implicit req =>
-      val start: LocalTime = new LocalTime(startAsMillis)
+      val start: LocalTime = LocalTime.fromMillisOfDay(startAsMillis)
       val form = new TeacherSlotForm(ta.get, start)
       Ok(conferences.reserveSlot(Binding(form), start))
     }
@@ -158,7 +171,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     dataStore.execute { pm =>
       val ta = TeacherActivation.getById(teacherActivationId)
       RoleMustPass(r => ta.isDefined && (r.permissions().contains(Permissions.Manage) || ta.get.teacher == r)) { implicit req =>
-        val start: LocalTime = new LocalTime(startAsMillis)
+        val start: LocalTime = LocalTime.fromMillisOfDay(startAsMillis)
         val form = new TeacherSlotForm(ta.get, start)
         Binding(form, req) match {
           case ib: InvalidBinding => Ok(conferences.reserveSlot(ib, start))
