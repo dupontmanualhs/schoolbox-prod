@@ -78,6 +78,22 @@ object ManualData extends UsesDataStore with Logging {
     }
   }
   
+  def fixSlotTimes() {
+    import util.Helpers.localTime2SqlTime
+    dataStore.withTransaction { pm =>
+      val cand = QSlot.candidate()
+      val sessVar = QSession.variable("sessVar")
+      val eventVar = QEvent.variable("eventVar")
+      val badSlots = pm.query[Slot].filter(cand.session.eq(sessVar).and(sessVar.event.eq(eventVar)).and(eventVar.isActive.eq(true))).executeList()
+      badSlots.foreach { s =>
+        val sql = localTime2SqlTime(s.startTime)
+        val lt = LocalTime.fromMillisOfDay(sql.getTime())
+        s.startTime = lt
+        pm.makePersistent(s)
+      }
+    }
+  }
+  
   def addPermissions() {
     val tobryan1 = Teacher.getByUsername("tobryan1").get
     val gregKuhn = Teacher.getByUsername("gkuhn2").get

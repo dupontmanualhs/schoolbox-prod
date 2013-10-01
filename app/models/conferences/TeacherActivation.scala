@@ -11,7 +11,7 @@ import org.joda.time.LocalTime
 
 @PersistenceCapable(detachable="true")
 class TeacherActivation extends UsesDataStore with DbEquality[TeacherActivation] {
-  @Persistent(persistenceModifier=PersistenceModifier.NONE)
+  @NotPersistent
   val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
   import dateOrdering._
 

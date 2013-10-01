@@ -40,7 +40,7 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _startTime : Time = _
-  def startTime: LocalTime = LocalTime.fromMillisOfDay(_startTime.getTime())
+  def startTime: LocalTime = LocalTime.fromDateFields(_startTime)
   def startTime_=(theStartTime: LocalTime) { _startTime = localTime2SqlTime(theStartTime) }
   
   /**
@@ -124,14 +124,17 @@ class Slot extends UsesDataStore with DbEquality[Slot] {
   def isValid(): ValidationError = TeacherActivation.get(teacher, session) match {
     case None => ValidationError("The teacher has not activated conferences for this session.")
     case Some(ta) => {
-      def startTimeIsBad: Boolean = !ta.allOpenings().contains(startTime)
+      def startTimeIsBad: Boolean = {
+        val openings = ta.allOpenings().map(_.start)
+        !openings.contains(startTime)
+      }
       def guardianConflicts: Boolean = {
         val guardianAppts = guardians.flatMap(g => Slot.getBySessionAndGuardian(session, g))
-        !guardianAppts.exists(s => Slot.timesConflict(s.startTime, s.endTime, this.startTime, this.endTime))
+        guardianAppts.exists(s => Slot.timesConflict(s.startTime, s.endTime, this.startTime, this.endTime))
       }
       def teacherConflicts: Boolean = {
         val teacherAppts = ta.appointments
-        !teacherAppts.exists(s => Slot.timesConflict(s.startTime, s.endTime, this.startTime, this.endTime))
+        teacherAppts.exists(s => Slot.timesConflict(s.startTime, s.endTime, this.startTime, this.endTime))
       }
       if (startTimeIsBad) ValidationError("The start time for this appointment is not valid.")
       else if (guardianConflicts) ValidationError(s"The guardian has an appointment that conflicts with this one.")

@@ -1,7 +1,7 @@
 package config.users
 
 import controllers.users.{ MenuItem, MenuBar }
-import models.users.Role
+import models.users.{ Role, User }
 
 object Menu {
   val login = new MenuItem("Log in", "menu_login", Some(controllers.users.routes.App.login().toString), Nil)
@@ -14,8 +14,12 @@ object Menu {
   def forRole(maybeRole: Option[Role]): MenuBar = maybeRole match {
     case None => new MenuBar(List(login))
     case Some(role) => {
-      val items = if (role.user.roles.size > 1) List(changeRole, settings, logout)
-         else List(settings, logout)
+      val items = List(
+        if (role.user.roles.size > 1) Some(changeRole) else None,
+        Some(settings),
+        if (role.permissions().contains(User.Permissions.ChangePassword)) Some(changeOtherPassword) else None,
+        Some(logout)
+      ).flatten
       new MenuBar(List(new MenuItem(role.displayNameWithRole, "menu_name", None, items)))    
     }
   } 
