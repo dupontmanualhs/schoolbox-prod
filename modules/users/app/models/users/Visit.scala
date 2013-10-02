@@ -92,6 +92,11 @@ class Visit {
     if (_sessionItems.containsKey(key)) Some(_sessionItems.get(key).asInstanceOf[T])
     else None
   }
+  
+  def removeAs[T](key: String): Option[T] = {
+    if (_sessionItems.containsKey(key)) Some(_sessionItems.remove(key).asInstanceOf[T])
+    else None
+  }
 }
 
 object Visit extends UsesDataStore {

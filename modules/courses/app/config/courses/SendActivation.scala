@@ -10,10 +10,13 @@ object SendActivation extends UsesDataStore with Logging {
   import models.users.{ Activation, User, QUser }
   import models.courses.{ Teacher, QTeacher, TeacherAssignment, QTeacherAssignment, Guardian, Student }
 
-  def toUser(user: User, content: (User, String) => String) {
+  def toUser(user: User, content: (User, String) => String): Option[String] = {
     user.email match {
-      case None => logger.info(s"Activation not sent to ${user.username} because s/he has no email address.")
-      case Some(email) => dataStore.execute(pm => {
+      case None => {
+        logger.info(s"Activation not sent to ${user.username} because s/he has no email address.")
+        None
+      }
+      case Some(email) => dataStore.execute { pm => 
         logger.info(s"Sending activation email to ${user.username}.")
         val activation = new Activation(user)
         pm.makePersistent(activation)
@@ -21,12 +24,14 @@ object SendActivation extends UsesDataStore with Logging {
         mail.setSubject("Schoolbox Account Activation")
         mail.addRecipient(email)
         mail.addFrom("support@dupontmanual.org")
-        mail.send(content(user, activation.uuid))
-      })
+        val text = content(user, activation.uuid)
+        mail.send(text)
+        Some(text)
+      }
     }
   }
   
-  def toTeacher(teacher: Teacher) {
+  def toTeacher(teacher: Teacher): Option[String] = {
     toUser(teacher.user, teacherEmail)
   }
   
@@ -46,7 +51,7 @@ object SendActivation extends UsesDataStore with Logging {
     })
   }
   
-  def toGuardian(guardian: Guardian) {
+  def toGuardian(guardian: Guardian): Option[String] = {
     toUser(guardian.user, guardianEmail)
   }
   
