@@ -36,16 +36,12 @@ object TestData extends UsesDataStore {
     dataStore.withTransaction { pm =>
       //create User Data
       if (debug) println("Creating sample users...")
+      // Users
       // teachers
       val mary = new User("mary", "Mary", Some("King"), "Claire", None, Gender.Female, "mary@mary.com", "cla123")
       val christina = new User("christina", "Christina", Some("King"), "Teresa", Some("Tina"), Gender.Female, "christina@christina.com", "ter123")
       val richard = new User("richard", "Richard", Some("King"), "Will", None, Gender.Male, "richard@richard.com", "wil123")
       val todd = new User("todd", "Todd", Some("Allen"), "O'Bryan", None, Gender.Male, "todd@todd.com", "obr123")
-      val maryTeacher = new Teacher(mary, "318508", "4284802048")
-      val christinaTeacher = new Teacher(christina, "542358", "8795177958")
-      val richardTeacher = new Teacher(richard, "423423", "4478340832")
-      val toddTeacher = new Teacher(todd, "323423", "3042093480")
-
       // students
       val jack = new User("jack", "Jack", Some("Oliver"), "Phillips", None, Gender.Male, "jack@jack.com", "phi123")
       val fitzgerald = new User("fitzgerald", "Fitzgerald", Some("Longfellow"), "Pennyworth", Some("Fitz of Fury"), Gender.Male, "fitzgerald@fitzgerald.com", "pen123")
@@ -60,6 +56,23 @@ object TestData extends UsesDataStore {
       val john = new User("john", "John", Some("Francis"), "King", None, Gender.Male, "john@john.com", "kin123")
       val bobby = new User("bobby", "Bobby", None, "Hill", Some("Dangit Bobby"), Gender.Male, "bobby@bobby.com", "hil123")
       val eric = new User("eric", "Eric", None, "McKnight", Some("Dungeon Defenders"), Gender.Male, "eric@eric.com", "mck123")
+      // guardians
+      val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.Male, null, "pen123")
+      val hank = new User("hank", "Hank", None, "Hill", Some("Propane and Propane Accessories"), Gender.Male, null, "hil123")
+      pm.makePersistentAll(List(mary, christina, richard, todd,
+          jack, fitzgerald, tyler, meriadoc, peregrin, mack, andrew,
+          jordan, emma, laura, john, bobby, eric,
+          reg, hank))
+      
+      // Roles
+      // teachers
+      val maryTeacher = new Teacher(mary, "318508", "4284802048")
+      val christinaTeacher = new Teacher(christina, "542358", "8795177958")
+      val richardTeacher = new Teacher(richard, "423423", "4478340832")
+      val toddTeacher = new Teacher(todd, "323423", "3042093480")
+      pm.makePersistentAll(List(maryTeacher, christinaTeacher, richardTeacher, toddTeacher))
+      
+      // students
       val ericStud = new Student(eric, "4208935702", "384979", 6, "MST")
       val jackStud = new Student(jack, "3757202948", "425636", 0, "MST")
       val fitzgeraldStud = new Student(fitzgerald, "8340522509", "382085", 4, "VA")
@@ -73,31 +86,16 @@ object TestData extends UsesDataStore {
       val lauraStud = new Student(laura, "3943334223", "403024", 3, "YPAS")
       val johnStud = new Student(john, "5022165324", "154524", 12, "HSU")
       val bobbyStud = new Student(bobby, "4235612205", "425451", 12, "Propane Studies")
+      pm.makePersistentAll(List(ericStud, jackStud, fitzgeraldStud, tylerStud,
+          meriadocStud, peregrinStud, mackStud, andrewStud,
+          jordanStud, emmaStud, lauraStud, johnStud, bobbyStud))
 
       // guardians
-      val reg = new User("reg", "Reginald", None, "Pennyworth", Some("Reg"), Gender.Male, null, "pen123")
-      val hank = new User("hank", "Hank", None, "Hill", Some("Propane and Propane Accessories"), Gender.Male, null, "hil123")
       val toddGuardian = new Guardian(todd, None, Set(meriadocStud, peregrinStud))
       val regGuardian = new Guardian(reg, None, Set(fitzgeraldStud))
       val hankGuardian = new Guardian(hank, None, Set(bobbyStud))
-
-      pm.makePersistentAll(List(
-        mary, christina, richard, todd,
-        maryTeacher, christinaTeacher, richardTeacher, toddTeacher,
-        jack, john, fitzgerald, emma, laura, tyler, jordan, andrew, mack, meriadoc, peregrin, eric,
-        ericStud, johnStud, fitzgeraldStud, emmaStud, lauraStud, tylerStud, jordanStud, jackStud, andrewStud, mackStud, meriadocStud, peregrinStud,
-        reg, toddGuardian, regGuardian, bobby, bobbyStud, hank, hankGuardian))
-      toddTeacher.addPermission(User.Permissions.ListAll)
-
-      if (debug) println("Creating the blagosphere")
-      // blogs
-      val toddTeacherBlog = new Blog("Todd's Blag", toddTeacher)
-      val toddGuardianBlog = new Blog("Father O'Bryan's Blog", toddGuardian)
-      val tylerBlog = new Blog("Tydar's s'radyT", tylerStud)
-      val jordanBlog = new Blog("Jordan doesn't 'Get It(R)'", jordanStud)
-
-      pm.makePersistentAll(List(toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
-
+      pm.makePersistentAll(List(toddGuardian, regGuardian, hankGuardian))
+      
       //createYearsAndTerms(debug)
       if (debug) println("Creating AcademicYear, Terms, and Periods...")
       val acadYear = new AcademicYear("2012-13")
@@ -225,9 +223,54 @@ object TestData extends UsesDataStore {
           pm.makePersistent(new TeacherAssignment(teacher, sect, None, None))
         }
       }
+      
+      val event1 = new Event("September Conferences", false)
+      pm.makePersistent(event1);
 
+      val session1 = new Session(event1, new LocalDate(2013, 9, 27), new LocalDateTime(2013, 9, 25, 23, 59, 59), None,
+          new LocalTime(9, 0, 0), new LocalTime(15, 0, 0))
+      pm. makePersistent(session1)
+      val session2 = new Session(event1, new LocalDate(2013, 9, 28), new LocalDateTime(2013, 9, 26, 23, 59, 59), None,
+          new LocalTime(13, 0, 0), new LocalTime(18, 0, 0))
+      pm.makePersistent(session2)
+      
+      val ta1_1 = new TeacherActivation(session1, maryTeacher, 15, None)
+      val ta1_2 = new TeacherActivation(session1, toddTeacher, 15, None)
+      val ta1_3 = new TeacherActivation(session2, maryTeacher, 15, None)
+      val ta1_4 = new TeacherActivation(session2, richardTeacher, 15, None)
+      pm.makePersistentAll(List(ta1_1, ta1_2, ta1_3, ta1_4))
+      
+      // TODO: two sessions for one event
+      val event2 = new Event("October Conferences", true)
+      pm.makePersistent(event2)
+      
+      val session3 = new Session(event2, new LocalDate(2013, 10, 8), new LocalDateTime(2013, 10, 6, 23, 59, 59), None,
+          new LocalTime(7, 40, 0), new LocalTime(14, 20, 0))
+      pm.makePersistent(session3)
+      
+      val ta3 = new TeacherActivation(session3, maryTeacher, 10, None)
+      val ta4 = new TeacherActivation(session3, toddTeacher, 10, None)
+      val ta5 = new TeacherActivation(session3, richardTeacher, 10, None)
+      
+      // Permissions
+      toddTeacher.addPermission(User.Permissions.ListAll)
+      maryTeacher.addPermission(Book.Permissions.Manage)
+      maryTeacher.addPermission(Book.Permissions.LookUp)
+      richardTeacher.addPermission(Conferences.Permissions.Manage)
+      maryTeacher.addPermission(Conferences.Permissions.Manage)
+      
       //makeBookData(debug)
-      /*    if (debug) println("Creating Titles...")
+      /*
+      if (debug) println("Creating the blagosphere")
+      // blogs
+      val toddTeacherBlog = new Blog("Todd's Blag", toddTeacher)
+      val toddGuardianBlog = new Blog("Father O'Bryan's Blog", toddGuardian)
+      val tylerBlog = new Blog("Tydar's s'radyT", tylerStud)
+      val jordanBlog = new Blog("Jordan doesn't 'Get It(R)'", jordanStud)
+
+      pm.makePersistentAll(List(toddTeacherBlog, toddGuardianBlog, tylerBlog, jordanBlog))
+
+      if (debug) println("Creating Titles...")
     val algebra1Book = new Title("Algebra 1 (Prentice Hall Mathematics)", Some("Bellman, Bragg and Charles"), 
         Some("Pearson Prentice Hall"), "9780130523167", Some(842), 
         Some("10.9 x 8.8 x 1.6 inches"), Some(4.5), true, new Date(System.currentTimeMillis()), None)
@@ -258,7 +301,7 @@ object TestData extends UsesDataStore {
     val usHistoryBook = new Title("The American Pageant", Some("David M. Kennedy and Lizabeth Cohen"), 
         Some("Wadsworth Publishing"), "9781111349530", Some(1152), 
         Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
-        */
+
 
       //makeMasteryData
       mastery.QuizData.load(debug)
@@ -411,24 +454,7 @@ object TestData extends UsesDataStore {
       val ti8 = new Turnin(jordanStud, isoDatetime.parseLocalDateTime("2012-08-20 14:35:23"), aLVHReview, 94.33)
 
       pm.makePersistentAll(List(ti1, ti2, ti3, ti5, ti6, ti7, ti8))
-
-      val confDate = new LocalDate(2013, 10, 14)
-      val startTime = new LocalTime(9, 0 , 0)
-      val endTime = new LocalTime(18, 0, 0)
-      
-      val registrationCutoff = new LocalDateTime(2013, 10, 12, 23, 59, 59)
-      val priorityCutoff = new LocalDateTime(2013, 10, 9, 23, 59, 59)
-      
-      val e1 = new Event("Fall Conferences", true)
-      val se1 = new Session(e1, confDate, registrationCutoff, Some(priorityCutoff), startTime, endTime)
-      
-      val ta1 = new TeacherActivation(se1, maryTeacher, 15, None)
-      val ta2 = new TeacherActivation(se1, toddTeacher, 15, None)
-      
-      pm.makePersistent(e1)
-      pm.makePersistent(se1)
-      pm.makePersistent(ta1)
-      pm.makePersistent(ta2)
+	  */
       //TODO: make test data for announcements and gradebook
     }
   }

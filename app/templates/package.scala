@@ -12,7 +12,7 @@ package object templates {
 
   object Main extends MainTemplate {
     def apply(pageTitle: String, extraScripts: STag*)(content: STag*)(implicit req: VisitRequest[_]): Html =
-      Html(html(
+      Html("<!DOCTYPE html>") += Html(html(
         head(
           title(pageTitle),
           //Theme.themePick(req.visit.user),
@@ -23,7 +23,7 @@ package object templates {
 
     @deprecated("use the Scalatags version of templates", "2013-07-04")
     def apply(pageTitle: String, extraScripts: Html = Html(""))(content: Html)(implicit req: VisitRequest[_]): Html = {
-      Seq(Html(s"<html><head><title>${pageTitle}</title>"),
+      Seq(Html(s"<!DOCTYPE html><html><head><title>${pageTitle}</title>"),
         seqSTag2html(headAfterTitleBeforeScripts),
         extraScripts,
         Html("</head>"),

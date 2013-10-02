@@ -4,6 +4,7 @@ GET  /teacher/:username/:termSlug				@controllers.courses.App.teacherScheduleFor
 GET  /findTeacher								@controllers.courses.App.findTeacher
 POST /findTeacher								@controllers.courses.App.findTeacherP
 
+GET  /listTeachers								@controllers.courses.App.listTeachers()
 
 # Get student's schedule
 GET  /student/:username							@controllers.courses.App.studentScheduleForUsername(username: String)
@@ -13,6 +14,7 @@ POST /findStudent								@controllers.courses.App.findStudentP
 
 # Get the roster of a particular section
 GET /roster/:sectionId							@controllers.courses.App.roster(sectionId: String)
+GET /roster+/:sectionId							@controllers.courses.App.rosterWithDrops(sectionId: String)
 
 # Get a list of all courses offered
 GET /list		                        		@controllers.courses.App.classList()

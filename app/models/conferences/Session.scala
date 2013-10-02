@@ -6,16 +6,18 @@ import org.joda.time.{ LocalDate, LocalTime, LocalDateTime }
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import util.QueryClass
+import util.Helpers.{ localTime2SqlTime, date => dateFormat, time => timeFormat }
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable="true")
-class Session {
+class Session extends DbEquality[Session] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
   
-  @Persistent
+  @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _event : Event = _
   def event: Event = _event
@@ -43,14 +45,15 @@ class Session {
   @Column(allowsNull="false")
   private[this] var _startTime: java.sql.Time = _
   def startTime: LocalTime = LocalTime.fromDateFields(_startTime)
-  def startTime_=(theStartTime: LocalTime) { _startTime = new Time(theStartTime.getMillisOfDay) }
+  def startTime_=(theStartTime: LocalTime) { _startTime = localTime2SqlTime(theStartTime) }
   
   @Persistent(defaultFetchGroup="true")
   @Column(allowsNull="false")
   private[this] var _endTime: java.sql.Time = _
   def endTime: LocalTime = LocalTime.fromDateFields(_endTime)
-  def endTime_=(theEndTime: LocalTime) { _endTime = new Time(theEndTime.getMillisOfDay) }
+  def endTime_=(theEndTime: LocalTime) { _endTime = localTime2SqlTime(theEndTime) }
   
+  // TODO: should make sure that this session doesn't overlap another session for same event
   def this(theEvent: Event, theDate: LocalDate, theCutoff: LocalDateTime, thePriority: Option[LocalDateTime], theStartTime: LocalTime, theEndTime: LocalTime) = {
     this()
     event_=(theEvent)
@@ -60,6 +63,8 @@ class Session {
     startTime_=(theStartTime)
     endTime_=(theEndTime)
   }
+  
+  override def toString: String = s"${dateFormat.print(date)} from ${timeFormat.print(startTime)} to ${timeFormat.print(endTime)}" 
 }
 
 object Session extends UsesDataStore {

@@ -11,7 +11,7 @@ import com.google.inject.Inject
 import scalajdo.DataStore
 import javax.jdo.JDOHelper
 import org.datanucleus.api.jdo.JDOPersistenceManagerFactory
-
+import com.typesafe.scalalogging.slf4j.Logging
 
 trait Config {
   def defaultCall: Call

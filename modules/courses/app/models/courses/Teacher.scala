@@ -37,43 +37,56 @@ class Teacher extends Role {
     stateId_=(stateId)
   }
   
-  /*def allStudents(term: Term): List[Student] = {
-    //TODO
-    Nil
-  }*/
-
+  def studentsTaught(term: Term): List[Student] = {
+    val studCand = QStudent.candidate()
+    val taVar = QTeacherAssignment.variable("taVar")
+    val sectVar = QSection.variable("sectVar")
+    val seVar = QStudentEnrollment.variable("seVar")
+    dataStore.pm.query[Student].filter(taVar.teacher.eq(this).and(taVar.section.eq(sectVar)).and(
+        sectVar.terms.contains(term)).and(seVar.section.eq(sectVar)).and(
+        seVar.end.eq(null.asInstanceOf[java.sql.Date])).and(
+        seVar.student.eq(studCand))).executeList().sortBy(_.formalName)
+  }
+  
   def role = "Teacher"
     
   override def canEqual(that: Any): Boolean = that.isInstanceOf[Teacher]
 }
 
 object Teacher extends UsesDataStore {
+  val cand = QTeacher.candidate
+  val userVar = QUser.variable("userVar")
+
   def getByUsername(username: String): Option[Teacher] = {
-    val cand = QTeacher.candidate
-    val userVar = QUser.variable("userVar")
     dataStore.pm.query[Teacher].filter(cand.user.eq(userVar).and(userVar.username.eq(username))).executeOption()
   }
   
   def getByStateId(stateId: String): Option[Teacher] = {
-    val cand = QTeacher.candidate
     dataStore.pm.query[Teacher].filter(cand.stateId.eq(stateId)).executeOption()
   }
   
   def getByPersonId(personId: String): Option[Teacher] = {
-    val cand = QTeacher.candidate
     dataStore.pm.query[Teacher].filter(cand.personId.eq(personId)).executeOption()
   }
   
+  def getById(id: Long): Option[Teacher] = {
+    dataStore.pm.query[Teacher].filter(cand.id.eq(id)).executeOption()
+  }
+  
+  def getAllActive(): List[Teacher] = {
+    dataStore.pm.query[Teacher].filter(
+        cand.user.eq(userVar).and(userVar.isActive.eq(true))).orderBy(userVar.last.asc, userVar.first.asc).executeList()
+  }
+  
   object TeacherList {
-    val cand = QTeacher.candidate
-    val userVar = QUser.variable("userVar")
-    lazy val teachers = dataStore.pm.query[Teacher].filter(
-        cand.user.eq(userVar).and(userVar.isActive.eq(true))).executeList()
+    lazy val teachers = getAllActive()
     lazy val teacherIds = teachers.map(t => {
     	val num = List(t.stateId, t.personId).find(x => x != null && x != "").getOrElse("0000000000")
         s"${t.formalName} - $num"
     })
   }
+  
+  class ChooseActiveTeacherField(name: String) extends ChoiceField(name, getAllActive().map(t => (t.formalName, t)))
   
   class TeacherField(name: String, list: List[String]) extends BaseAutocompleteField[Teacher](name, list) {
     def asValue(strs: Seq[String]): Either[ValidationError, Teacher] = {

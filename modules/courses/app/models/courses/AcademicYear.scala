@@ -4,9 +4,10 @@ import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable="true")
-class AcademicYear {
+class AcademicYear extends DbEquality[AcademicYear] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -21,7 +22,9 @@ class AcademicYear {
   def this(name: String) = {
     this()
     _name = name
-  }  
+  }
+  
+  override def toString(): String = s"AcademicYear: $name"
 }
 
 object AcademicYear extends UsesDataStore {

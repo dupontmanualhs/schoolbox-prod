@@ -61,7 +61,7 @@
   <logger name="DataNucleus.MetaData" level="INFO">
     <appender-ref ref="A1"/>
   </logger>
-  <logger name="DataNucleus.SchemaTool" level="INFO">
+  <logger name="DataNucleus.SchemaTool" level="DEBUG">
     <appender-ref ref="A1"/>
   </logger>
   <logger name="DataNucleus.Query" level="INFO">

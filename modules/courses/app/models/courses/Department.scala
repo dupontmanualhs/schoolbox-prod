@@ -3,16 +3,17 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
-
 import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable = "true")
-class Department {
+class Department extends DbEquality[Department] {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
   def id: Long = _id
 
+  @Unique
   private[this] var _name: String = _
   def name: String = _name
   def name_=(theName: String) { _name = theName }

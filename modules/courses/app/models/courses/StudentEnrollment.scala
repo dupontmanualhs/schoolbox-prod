@@ -5,9 +5,11 @@ import org.joda.time.{LocalDate, DateTime}
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import models.users.Permission
+import models.users.DbEquality
+import org.joda.time.format.DateTimeFormat
 
 @PersistenceCapable(detachable="true")
-class StudentEnrollment {
+class StudentEnrollment extends DbEquality[StudentEnrollment] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -45,6 +47,17 @@ class StudentEnrollment {
     section_=(theSection)
     start_=(theStart)
     end_=(theEnd)
+  }
+  
+  override def toString(): String = {
+    val dateFmt = DateTimeFormat.forPattern("M/d/yyyy")
+    val dates = (start, end) match {
+      case (Some(s), Some(e)) => s" from ${dateFmt.print(s)} to ${dateFmt.print(e)}"
+      case (None, None) => ""
+      case (Some(s), None) => s" starting ${dateFmt.print(s)}"
+      case (None, Some(e)) => s" until ${dateFmt.print(e)}"
+    }
+    s"${student.formalName} in ${section.sectionId}${dates}"
   }
 }
 

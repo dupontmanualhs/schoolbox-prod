@@ -1,5 +1,6 @@
 package templates
 
+import scala.collection.JavaConverters._
 import scala.language.implicitConversions
 import scalatags._
 import scalatags.a
@@ -9,15 +10,23 @@ import _root_.config.users.{ Config, ProvidesInjector }
 import controllers.users.VisitRequest
 import models.users.User
 import models.courses.{Teacher, Guardian, Student, Section}
-import models.conferences.{Event, Session, Slot, TeacherActivation}
+import models.conferences.{Event, Session, Slot, TeacherActivation, ScheduleRow, Opening, Appointment}
 import play.api.Play
 import com.google.inject.Inject
 import java.io.File
 import scala.xml.Unparsed
 import controllers.Conferences.timeReporter
+import scala.xml.NodeSeq
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.LocalTime
+import org.joda.time.LocalDateTime
+import org.dupontmanual.forms.Form
+import models.courses.Term
 
 
 package object conferences {
+  val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
+
   private[conferences] class ConfigProvider @Inject() (val config: Config)
   private[conferences] val injector = Play.current.global.asInstanceOf[ProvidesInjector].provideInjector()
   private[conferences] implicit lazy val config: Config = injector.getInstance(classOf[ConfigProvider]).config
@@ -26,7 +35,138 @@ package object conferences {
   
   private[conferences] val guardianSchedulerScript = script.attr("type" -> "text/javascript"
 		  												   ).src("/assets/javascripts/gSchedulerScript.js")
+		  												   
+  val longDateFmt = DateTimeFormat.forPattern("MMMM d, y")
+  val timeFmt = DateTimeFormat.forPattern("h:mm a")
+  val dateTimeFmt = DateTimeFormat.forPattern("h:mm a 'on' MMMM d, y")
+  val shortDateTimeFmt = DateTimeFormat.forPattern("h:mm a 'on' MMM d")
   
+  def teacherDisplay(teacher: Teacher, event: Event)(implicit req: VisitRequest[_], config: Config) = {
+    config.main(event.name)(
+      h1(s"Conferences: ${event.name}") ::
+      event.sessions.map(s =>
+        sessionInfoForTeacher(teacher, s)  
+      )
+    )
+  }
+  
+  def sessionInfoForTeacher(teacher: Teacher, session: Session)(implicit req: VisitRequest[_], config: Config) = {
+    div(
+      h2(longDateFmt.print(session.date)),
+      h3("Time: ", timeFmt.print(session.startTime), " - ", timeFmt.print(session.endTime)),
+      h3("Scheduling Closes: ", dateTimeFmt.print(session.cutoff)),
+      schedule(teacher, session)
+    )
+  }
+  
+  def schedule(teacher: Teacher, session: Session): STag = {
+    TeacherActivation.get(teacher, session) match {
+      case Some(ta) => {
+        val rows: List[STag] = thead(th("Start Time"), th("Guardian"), th("Student(s)"), th("Phone Number(s)"), th("Comment")) ::
+            ta.scheduleRows().map(_ match {
+              case op: Opening => tr(td.attr("colspan" -> "5")(a.cls("btn").href(controllers.routes.Conferences.reserveSlot(ta.id, op.start.getMillisOfDay()))(timeFmt.print(op.startTime))))
+              case appt: Appointment => tr(td(timeFmt.print(appt.startTime)), td(appt.slot.guardians.toList.map(_.displayName).mkString(", ")),
+                  td(appt.slot.students.toList.map(_.displayName).mkString(", ")),
+                  td(List(appt.slot.phone, appt.slot.alternatePhone).flatten.mkString(", ")),
+                  td(appt.slot.comment.getOrElse[String]("")))
+              }
+            )
+        div(<p>You have activated conferences. Parents will be able to schedule a conference
+            with you until scheduling closes at the time listed above.</p>,
+          table.cls("table", "table-striped", "table-condensed")(rows: _*)
+        )
+      }
+      case None => {
+        <p>You have not activated conferences. When parents try to schedule conferences,
+        they will be given the option of emailing you. To allow parents to schedule
+        conferences using the system, click the button below.<br/>
+        <a class="btn" href={ controllers.routes.Conferences.activateTeacher(session.id, teacher.id).toString }>Activate Scheduling</a></p>
+      }
+    }
+  }
+  
+  object reserveSlot {
+    def apply(form: Binding, start: LocalTime)(implicit req: VisitRequest[_], config: Config) = {
+      config.main(s"Reserve the Slot at ${timeFmt.print(start)}")(
+        h1(s"Reserve the Slot at ${timeFmt.print(start)}"),
+        form.render()
+      )
+    }    
+  }
+  
+  object guardianDisplay{
+    def apply(guardian: Guardian, event: Event)(implicit req: VisitRequest[_], config: Config) = {
+      config.main(event.name)(
+        h1(s"Conferences: ${event.name}") ::
+        event.sessions.map(s =>
+          sessionInfoForGuardian(guardian, s)
+        )
+      )
+    }
+  }
+  
+  object chooseTeacherAndEvent {
+    def apply(form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Choose Teacher and Event")(
+        h1("Choose Teacher and Event"),
+        form.render()
+      )
+    }
+  }
+  
+  object chooseGuardianAndEvent {
+    def apply(form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Choose Guardian and Event")(
+        h1("Choose Guardian and Event"),
+        form.render()
+      )
+    }
+  }
+  
+  def sessionInfoForGuardian(guardian: Guardian, session: Session)(implicit req: VisitRequest[_], config: Config) = {
+    import dateOrdering._
+
+    val appts = Slot.getBySessionAndGuardian(session, guardian)
+    val apptTeachers = appts.map(_.teacher)
+    val unrealDepartments = List("", "Elective")
+    val realSections = guardian.children.flatMap(s => s.activeEnrollments(Term.current)).map(_.section).filterNot(s => unrealDepartments.contains(s.course.department.name))
+    val realTeachers = realSections.flatMap(_.teachers.toSet).toList.sortBy(_.formalName)
+    val (confTeachers, nonConfTeachers) = realTeachers.partition(t => TeacherActivation.get(t, session).isDefined)
+    def schedule() = {
+      if (appts.isEmpty) {
+        p("You don't have any appointments scheduled for this session.")
+      } else {
+        p("You have the following appointments:",
+        ul(appts.map(a => {
+          val time = s"${timeFmt.print(a.startTime)}-${timeFmt.print(a.endTime)}"
+          val teacher = s"${a.teacher.displayName}"
+          val students = a.students.toList.map(_.displayName).mkString(", ")
+          li(s"$time with $teacher about $students")
+        }): _* ))
+      }
+    }
+    div(
+      h2(longDateFmt.print(session.date)),
+      schedule,
+      if (!nonConfTeachers.isEmpty) {
+        div(p("These teachers have not activated conference scheduling. Contact them to schedule a conference."),
+          table.cls("table", "table-striped", "table-condensed")(nonConfTeachers.map(t => 
+            tr(td(t.displayName), td(a.href(s"mailto:${t.user.email.getOrElse("")}")(t.user.email.getOrElse("no email available"): String)))))).toXML()
+      } else {
+        NodeSeq.Empty
+      },
+      if (LocalDateTime.now() < session.cutoff) {
+        div(p("Click the button next to each teacher to schedule a conference."),
+          table.cls("table", "table-striped", "table-condensed")(confTeachers.filterNot(apptTeachers.contains(_)).map(t =>
+            tr(td(t.displayName), td(a.cls("btn").href(controllers.routes.Conferences.scheduleAppt(session.id, guardian.id, t.id))("Schedule Conference"))))))
+      } else NodeSeq.Empty
+    )
+  }
+  
+  def guardianSignUp(teacher: Teacher, form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main(s"Schedule an Appointment with ${teacher.displayName}")(form.render())
+  }
+      
   def collapseMaker(ens: (Event, List[Session]), first: Boolean = false)
   				   (implicit req: VisitRequest[_], config: Config) = {
     div.cls("accordion-group")(
@@ -89,7 +229,7 @@ package object conferences {
   }
   
   def teacherChoices(teacher: Teacher, session: Session): STag = {
-    if(TeacherActivation.isActivated(teacher, session)) {
+    if(TeacherActivation.get(teacher, session).isDefined) {
       a.href("/conferences/myConferences/" + session.id).cls("Button")("Manage My Conferences")
     } else {
       Seq(
@@ -106,18 +246,41 @@ package object conferences {
     									   ).href("/conferences/studentClasses/" + session.id + "/" + {if(stu.stateId != null) stu.stateId else stu.studentNumber}))
   }
   
-  object index {
-    def apply(eventsAndSessions: List[(Event, List[Session])])(implicit req: VisitRequest[_], config: Config) = {
-      config.main("Conferences")(
-        h1("Active Conferences"),
-         if(!eventsAndSessions.isEmpty) {
-           div.cls("accordion").id("confaccordion")(
-             collapseMaker(eventsAndSessions.head, true) :: eventsAndSessions.tail.map(collapseMaker(_))   
-           )
-         } else {
-           h1("No events or session open")
-         }
+  object eventForm {
+    def apply(binding: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Add Conference Event")(
+        h1("Add Conference Event"),
+        binding.render())
+    }
+  }
+  
+  object listEvents {
+    def apply(events: List[Event])(implicit req: VisitRequest[_], config: Config) = {
+      config.main("List Conferences")(
+        h1("List Conferences"),
+        if (events.isEmpty) {
+          p("There are no conference events created, yet.") 
+        } else {
+          ul(events.flatMap(e => infoForEvent(e)))
+        },
+        p(a.href(controllers.routes.Conferences.addEvent)("Add a new conference event"))
       ) 
+    }
+
+    def infoForEvent(event: Event): NodeSeq = {
+      val sessions = event.sessions
+      li(event.name, " - ", if (event.isActive) "ACTIVE" else "not active", 
+          " - ", a.href(controllers.routes.Conferences.deleteEvent(event.id)).cls("confirmLink")("Delete"),
+          if (sessions.isEmpty) {
+            p("There are no sessions for this conference event, yet.")
+          } else {
+            ul(sessions.flatMap(s => infoForSession(s)))
+          },
+          p(a.href(controllers.routes.Conferences.addSession(event.id))("Add a new session for this event."))).toXML
+    }
+    
+    def infoForSession(session: Session): NodeSeq = {
+      li(session.toString).toXML
     }
   }
   

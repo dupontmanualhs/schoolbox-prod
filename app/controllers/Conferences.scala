@@ -5,6 +5,7 @@ import controllers.users.{MenuItem, MenuBar}
 import models.users._
 import models.courses._
 import models.conferences._
+import models.conferences.Conferences.Permissions
 import org.dupontmanual.forms.fields._
 import org.dupontmanual.forms.validators.{ ValidationError, Validator }
 import org.dupontmanual.forms.widgets.Textarea
@@ -22,18 +23,210 @@ import controllers.users.{ Authenticated, RoleMustPass, VisitAction }
 import org.joda.time.{LocalDate, LocalTime, LocalDateTime}
 import config.users.UsesDataStore
 import scalatags._
-import templates._
+import templates.conferences
 import Conferences._
 import controllers.users.VisitRequest
+import controllers.users.PermissionRequired
+import play.api.templates.Html
+import org.joda.time.format.DateTimeFormat
 
 @Singleton
 class Conferences @Inject()(implicit config: Config) extends Controller with UsesDataStore {
   val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
   import dateOrdering._
+
+  class TeacherSlotForm(ta: TeacherActivation, startTime: LocalTime) extends Form {
+    val guardian = Guardian.ChooseGuardianField(ta.teacher.studentsTaught(Term.current()))
+    val phoneNumber = new PhoneFieldOptional("phoneNumber")
+    val altPhone = new PhoneFieldOptional("alternatePhone")
+    val comment = new TextFieldOptional("comment")
+    
+    val fields = List(guardian, phoneNumber, altPhone, comment)
+    
+    override def validate(vb: ValidBinding): ValidationError = {
+      val guard = vb.valueOf(guardian)
+      val phone = vb.valueOf(phoneNumber)
+      val alt = vb.valueOf(altPhone)
+      val comm = vb.valueOf(comment)
+      if (!(guard.isDefined || phone.isDefined || alt.isDefined || comm.isDefined)) {
+        ValidationError("You must enter at least one value to reserve the slot.")
+      } else {
+        val slot = new Slot(ta.session, ta.teacher, startTime, ta.slotInterval, Set(), Set(guard).flatten, phone, alt, comm)
+        slot.isValid()
+      }
+    }
+  }
   
+  def listEvents() = PermissionRequired(Permissions.Manage) { implicit req => 
+    dataStore.execute { pm =>
+      // TODO: this should be ordered most recent to least
+      val events: List[Event] = pm.query[Event].executeList()
+      Ok(conferences.listEvents(events))
+    }
+  }
   
-  def displayStub() = VisitAction { implicit req =>
-    Ok(templates.Stub())
+  def eventHelper(eventId: Long, template: (Event => Html))(implicit req: VisitRequest[_]) = {
+    Event.getById(eventId) match {
+      case None => NotFound("There is no ConferenceEvent with the given id.")
+      case Some(event) => Ok(template(event))
+    }
+  }
+  
+  def eventForTeacher(eventId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit req =>
+    eventHelper(eventId, (event: Event) => conferences.teacherDisplay(req.role.asInstanceOf[Teacher], event))
+  }
+  
+  object TeacherEventForm extends Form {
+    val teacher = new Teacher.ChooseActiveTeacherField("teacher")
+    val event = new ChoiceField("event", Event.getActive().map(e => (e.name, e)))
+    
+    def fields = List(teacher, event)
+  }
+  
+  def viewTeacher() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Ok(conferences.chooseTeacherAndEvent(Binding(TeacherEventForm)))
+  }
+  
+  def viewTeacherP() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Binding(TeacherEventForm, req) match {
+      case ib: InvalidBinding => Ok(conferences.chooseTeacherAndEvent(ib))
+      case vb: ValidBinding => {
+        val teacherId = vb.valueOf(TeacherEventForm.teacher).id
+        val eventId = vb.valueOf(TeacherEventForm.event).id
+        Redirect(routes.Conferences.viewTeacherSchedule(eventId, teacherId))
+      }
+    }  
+  }
+  
+  def viewTeacherSchedule(eventId: Long, teacherId: Long) = PermissionRequired(Permissions.Manage) { implicit req =>
+    Teacher.getById(teacherId) match {
+      case None => NotFound("There is no teacher with the given id.")
+      case Some(teacher) => eventHelper(eventId, (event: Event) => conferences.teacherDisplay(teacher, event))
+    }  
+  }
+  
+  def eventForGuardian(eventId: Long) = RoleMustPass(_.isInstanceOf[Guardian]) { implicit req =>
+    eventHelper(eventId, (event: Event) => conferences.guardianDisplay(req.role.asInstanceOf[Guardian], event))
+  }
+  
+  def eventForGuardianP(eventId: Long) = RoleMustPass(_.isInstanceOf[Guardian]) { implicit req =>
+    NotFound("Not implemented yet.")  
+  }
+  
+  object GuardianEventForm extends Form {
+    val guardian = new Guardian.ChooseActiveGuardianField("guardian")
+    val event = new ChoiceField("event", Event.getActive().map(e => (e.name, e)))
+    
+    def fields = List(guardian, event)
+  }
+  
+  def viewGuardian() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Ok(conferences.chooseGuardianAndEvent(Binding(GuardianEventForm)))
+  }
+  
+  def viewGuardianP() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Binding(GuardianEventForm, req) match {
+      case ib: InvalidBinding => Ok(conferences.chooseGuardianAndEvent(ib))
+      case vb: ValidBinding => {
+        val guardianId = vb.valueOf(GuardianEventForm.guardian).id
+        val eventId = vb.valueOf(GuardianEventForm.event).id
+        Redirect(routes.Conferences.viewGuardianSchedule(eventId, guardianId))
+      }
+    }  
+  }
+  
+  def viewGuardianSchedule(eventId: Long, guardianId: Long) = PermissionRequired(Permissions.Manage) { implicit req =>
+    Guardian.getById(guardianId) match {
+      case None => NotFound("There is no guardian with the given id.")
+      case Some(guardian) => eventHelper(eventId, (event: Event) => conferences.guardianDisplay(guardian, event))
+    }  
+  }
+  
+  class GuardianSignUp(session: Session, teacher: Teacher, guardian: Guardian, times: List[LocalTime]) extends Form {
+    val timeFmt = DateTimeFormat.forPattern("h:mm a")
+    val time = new ChoiceField("time", times.map(t => (timeFmt.print(t), t)))
+    val phoneNumber = new PhoneFieldOptional("phoneNumber")
+    val altPhone = new PhoneFieldOptional("alternatePhone")
+    val comment = new TextFieldOptional("comment")
+    
+    def fields = List(time, phoneNumber, altPhone, comment)
+    
+    override def validate(vb: ValidBinding): ValidationError = {
+      Session.getById(session.id) match {
+        case None => ValidationError("No session with the given id.")
+        case Some(session) => Teacher.getById(teacher.id) match {
+          case None => ValidationError("No teacher with the given id.")
+          case Some(teacher) => Guardian.getById(guardian.id) match {
+            case None => ValidationError("No guardian with the given id.")
+            case Some(guardian) => {
+              val slot = new Slot(
+                  session, teacher, vb.valueOf(time), Set(), Set(guardian),
+                  vb.valueOf(phoneNumber), vb.valueOf(altPhone), vb.valueOf(comment))
+              slot.isValid()
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  def scheduleAppt(sessionId: Long, guardianId: Long, teacherId: Long) = 
+      RoleMustPass(r => r.permissions().contains(Permissions.Manage) || (r.isInstanceOf[Guardian] && r.id == guardianId)) { implicit req =>
+    Session.getById(sessionId) match {
+      case None => NotFound("No session with the given id.")
+      case Some(session) => Teacher.getById(teacherId) match {
+        case None => NotFound("No teacher with the given id.")
+        case Some(teacher) => Guardian.getById(guardianId) match {
+          case None => NotFound("No guardian with the given id.")
+          case Some(guardian) => TeacherActivation.get(teacher, session) match {
+            case None => NotFound("This teacher hasn't activated conference scheduling.")
+            case Some(ta) => {
+              val teacherApptTimes = ta.appointments().map(_.startTime)
+              val guardianApptTimes = Slot.getBySessionAndGuardian(session, guardian).map(_.startTime)
+              val apptTimes = teacherApptTimes.toSet ++ guardianApptTimes.toSet
+              val availableTimes = ta.allOpenings().map(
+                  _.startTime).filterNot(time => apptTimes.contains(time))
+              Ok(conferences.guardianSignUp(teacher, Binding(new GuardianSignUp(session, teacher, guardian, availableTimes))))
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  def scheduleApptP(sessionId: Long, guardianId: Long, teacherId: Long) = 
+      RoleMustPass(r => r.permissions().contains(Permissions.Manage) || (r.isInstanceOf[Guardian] && r.id == guardianId)) { implicit req =>
+    dataStore.execute { pm =>
+      Session.getById(sessionId) match {
+      case None => NotFound("No session with the given id.")
+      case Some(session) => Teacher.getById(teacherId) match {
+        case None => NotFound("No teacher with the given id.")
+        case Some(teacher) => Guardian.getById(guardianId) match {
+          case None => NotFound("No guardian with the given id.")
+          case Some(guardian) => TeacherActivation.get(teacher, session) match {
+            case None => NotFound("This teacher hasn't activated conference scheduling.")
+            case Some(ta) => {
+              val teacherApptTimes = ta.appointments().map(_.startTime)
+              val guardianApptTimes = Slot.getBySessionAndGuardian(session, guardian).map(_.startTime)
+              val apptTimes = teacherApptTimes.toSet ++ guardianApptTimes.toSet
+              val availableTimes = ta.allOpenings().map(
+                  _.startTime).filterNot(time => apptTimes.contains(time))
+              val form = new GuardianSignUp(session, teacher, guardian, availableTimes)
+              Binding(form, req) match {
+                case ib: InvalidBinding => Ok(conferences.guardianSignUp(teacher, ib))
+                case vb: ValidBinding => {
+                  val slot = new Slot(session, teacher, vb.valueOf(form.time), Set(), Set(guardian),
+                      vb.valueOf(form.phoneNumber), vb.valueOf(form.altPhone), vb.valueOf(form.comment))
+                  pm.makePersistent(slot)
+                  Redirect(routes.Conferences.eventForGuardian(session.event.id))
+                }
+              }
+            }
+          }
+        }
+      }
+      }
+    }
   }
   
   def viewAsTeacher() = VisitAction { implicit req =>
@@ -44,20 +237,44 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       Redirect(routes.Conferences.teacherView())
     }
   }
-
-  def index() = VisitAction { implicit req =>
-    dataStore.execute { implicit pm =>
-      val ecand = QEvent.candidate
-      val scand = QSession.candidate
-      val events = pm.query[Event].filter(ecand.isActive).executeList()
-      val sessions = events.map { event => 
-        pm.query[Session].filter(scand.event.eq(event)).executeList
-      }
-      val eventsAndSessions = events.zip(sessions).toList
-      Ok(templates.conferences.index(eventsAndSessions))
+  
+  def reserveSlot(teacherActivationId: Long, startAsMillis: Int) = {
+    val ta = TeacherActivation.getById(teacherActivationId)
+    RoleMustPass(r => ta.isDefined && (r.permissions().contains(Permissions.Manage) || ta.get.teacher == r)) { implicit req =>
+      val start: LocalTime = LocalTime.fromMillisOfDay(startAsMillis)
+      val form = new TeacherSlotForm(ta.get, start)
+      Ok(conferences.reserveSlot(Binding(form), start))
     }
   }
   
+  def reserveSlotP(teacherActivationId: Long, startAsMillis: Int) = {
+    dataStore.execute { pm =>
+      val ta = TeacherActivation.getById(teacherActivationId)
+      RoleMustPass(r => ta.isDefined && (r.permissions().contains(Permissions.Manage) || ta.get.teacher == r)) { implicit req =>
+        val start: LocalTime = LocalTime.fromMillisOfDay(startAsMillis)
+        val form = new TeacherSlotForm(ta.get, start)
+        Binding(form, req) match {
+          case ib: InvalidBinding => Ok(conferences.reserveSlot(ib, start))
+          case vb: ValidBinding => {
+            val maybeGuardian = vb.valueOf(form.guardian).flatMap(g => pm.query[Guardian].filter(QGuardian.candidate().id.eq(g.id)).executeOption())
+            val phone = vb.valueOf(form.phoneNumber)
+            val alt = vb.valueOf(form.altPhone)
+            val comment = vb.valueOf(form.comment)
+            val slot = new Slot(ta.get.session, ta.get.teacher, start, ta.get.slotInterval, Set(), Set(),
+                phone, alt, comment)
+            maybeGuardian match {
+              case None => // do nothing
+              case Some(guardian) => slot.guardians = Set(guardian)
+            }
+            pm.makePersistent(slot)
+            Redirect(routes.Conferences.eventForTeacher(ta.get.session.event.id))
+          }
+        }  
+      }
+    }
+  }
+      
+
   def guardianSlotScheduler(sessionId: Long, teacherId: String, studentId: String) = {
     guardianSlotRequestValidator(sessionId, teacherId, studentId) { guardianSlotSchedulerBlock }
   }
@@ -77,34 +294,31 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
               val maybeTeacher = Teacher.getByPersonId(teacherId).orElse(Teacher.getByStateId(teacherId))
               val maybeSession = pm.query[Session].filter(QSession.candidate.id.eq(sessionId)).executeOption
               (maybeTeacher, maybeSession) match {
-                case (_, None) => Redirect(routes.Conferences.index()).flashing(("error", "Session could not be found."))
-                case (None, _) => Redirect(routes.Conferences.index()).flashing(("error", "Teacher could not be found."))
+                case (_, None) => Redirect(routes.Conferences.listEvents()).flashing(("error", "Session could not be found."))
+                case (None, _) => Redirect(routes.Conferences.listEvents()).flashing(("error", "Teacher could not be found."))
                 case (Some(teacher), Some(session)) => f(guardian, student, teacher, session, req, pm)
               }
             }
-            else Redirect(routes.Conferences.index).flashing(("error", "You are not a guardian of the indicated student."))
+            else Redirect(routes.Conferences.listEvents).flashing(("error", "You are not a guardian of the indicated student."))
           }
-          case (_, Some(student)) => { Redirect(routes.Conferences.index).flashing(("error", "You must be a guardian to use this feature."))}
-          case (_, _) => { Redirect(routes.Conferences.index).flashing(("error", "Student could not be found.")) }
+          case (_, Some(student)) => { Redirect(routes.Conferences.listEvents).flashing(("error", "You must be a guardian to use this feature."))}
+          case (_, _) => { Redirect(routes.Conferences.listEvents).flashing(("error", "Student could not be found.")) }
         }
      }
   }
   
-  def activateTeacherSession(id: Long) = Authenticated { implicit req =>
+  def activateTeacher(sessionId: Long, teacherId: Long) = 
+        RoleMustPass(r => r.permissions().contains(Permissions.Manage) || r.id == teacherId) { implicit req =>
     dataStore.execute { pm =>
-      val maybeSession = pm.query[Session].filter(QSession.candidate.id.eq(id)).executeOption()
-      (req.role, maybeSession) match {
-        case (teacher: Teacher, Some(session)) => {
+      (Session.getById(sessionId), Teacher.getById(teacherId)) match {
+        case (Some(session), Some(teacher)) => {
           val ta = new TeacherActivation(session, teacher, None)
           pm.makePersistent(ta)
-          Redirect(routes.Conferences.index)
+          Redirect(routes.Conferences.eventForTeacher(session.event.id)).flashing("message" -> "Conference scheduling was activated.")
         }
-        case (teacher:Teacher, _) => {
-          Redirect(routes.Conferences.index).flashing("error" -> "Session not found")
-        }
-        case (_, _) => {
-          Redirect(routes.Conferences.index).flashing("error" -> "You must be a teacher to activate this.")
-        }
+        case (None, Some(teacher)) => NotFound("No conference session with that id.")
+        case (Some(session), None) => NotFound("No teacher with that id.")
+        case (None, None) => NotFound("Both the conference session and the teacher couldn't be found.")
       }
     }
   }
@@ -227,12 +441,12 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
           if(guardian.children.contains(student)) {
             studentScheduleForConferences(student, session)
           } else {
-            Redirect(routes.Conferences.index).flashing("error" -> "You are not the guardian of the requested student.")
+            Redirect(routes.Conferences.listEvents).flashing("error" -> "You are not the guardian of the requested student.")
           }
         }
-        case (guardian: Guardian, Some(_), _) => Redirect(routes.Conferences.index).flashing("error" -> "Could not find requested session")
-        case (guardian: Guardian, _, _) => Redirect(routes.Conferences.index).flashing("error" -> "Could not find requested student.")
-        case (_, _, _) => Redirect(routes.Conferences.index).flashing("error" -> "You must be a guardian to view a schedule in conferences.")
+        case (guardian: Guardian, Some(_), _) => Redirect(routes.Conferences.listEvents).flashing("error" -> "Could not find requested session")
+        case (guardian: Guardian, _, _) => Redirect(routes.Conferences.listEvents).flashing("error" -> "Could not find requested student.")
+        case (_, _, _) => Redirect(routes.Conferences.listEvents).flashing("error" -> "You must be a guardian to view a schedule in conferences.")
       }
     }
   }
@@ -263,10 +477,10 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     dataStore.execute { implicit pm => 
       val maybeSession = pm.query[Session].filter(QSession.candidate.id.eq(sessionId)).executeOption()
       (req.role, maybeSession) match {
-        case (_, None) => Redirect(routes.Conferences.index).flashing("error" -> "Could not find requested session")
+        case (_, None) => Redirect(routes.Conferences.listEvents).flashing("error" -> "Could not find requested session")
         case (guardian: Guardian, Some(session)) => myConferencesForParents(guardian, session)
-        case (teacher: Teacher, Some(session)) => Redirect(routes.Conferences.index).flashing("error" -> "Functionality not added yet")
-        case (_, _) => Redirect(routes.Conferences.index).flashing("error" -> "You must be a teacher or guardian to access this page.")
+        case (teacher: Teacher, Some(session)) => Redirect(routes.Conferences.listEvents).flashing("error" -> "Functionality not added yet")
+        case (_, _) => Redirect(routes.Conferences.listEvents).flashing("error" -> "You must be a teacher or guardian to access this page.")
       }
     }
   }
@@ -323,31 +537,36 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
   
   //////////////////////////////////////////////////////////////Admin View////////////////////////////////////////////////////////////////////	
 
-  object EventForm extends Form {
+  class EventForm(maybeEvent: Option[Event]) extends Form {
     val name = new TextField("name") {
       override val maxLength = Some(50)
+      override def initialVal = maybeEvent.map(_.name)
     }
-    val isActive = new ChoiceField[Boolean]("active", List(("Yes", true), ("No", true)))
+    val isActive = new BooleanField("isActive") {
+      override def initialVal = maybeEvent.map(_.isActive)
+    }
 
     val fields = List(name, isActive)
   }
 
-  def createEvent() = VisitAction { implicit req =>
-    Ok(views.html.conferences.createEvent(Binding(EventForm)))
+  def addEvent() = PermissionRequired(Permissions.Manage) { implicit req =>
+    Ok(conferences.eventForm(Binding(new EventForm(None))))
   }
-  
-  def createEventP() = VisitAction { implicit req =>
-      Binding(EventForm, req) match {
-        case ib: InvalidBinding => Ok(views.html.conferences.createEvent(ib))
-        case vb: ValidBinding => dataStore.execute { implicit pm =>
-          val theName = vb.valueOf(EventForm.name)
-          val theActivation = vb.valueOf(EventForm.isActive)
-          val e = new Event(theName, theActivation)
-          pm.makePersistent(e)
-          Redirect(routes.Conferences.index()).flashing("message" -> "Event successfully created!")
-        }
+
+  def addEventP() = PermissionRequired(Permissions.Manage) { implicit req =>
+    val form = new EventForm(None)
+    Binding(form, req) match {
+      case ib: InvalidBinding => Ok(conferences.eventForm(ib))
+      case vb: ValidBinding => dataStore.execute { implicit pm =>
+        val theName = vb.valueOf(form.name)
+        val theActivation = vb.valueOf(form.isActive)
+        val e = new Event(theName, theActivation)
+        pm.makePersistent(e)
+        Redirect(routes.Conferences.listEvents()).flashing("message" -> "Event successfully created!")
       }
+    }
   }
+    
   //TODO: Make sure this works
   //TODO: This should be POST
   def deleteEvent(eventId: Long) = VisitAction { implicit req =>
@@ -365,7 +584,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
           pm.deletePersistentAll(sessions)
           val message = "Conference event '%s' was deleted.".format(event.name)
           pm.deletePersistent(event)
-          Redirect(routes.Conferences.index()).flashing("message" -> message)
+          Redirect(routes.Conferences.listEvents()).flashing("message" -> message)
         }
       }
     }
@@ -380,13 +599,14 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     val fields = List(date, cutoff, priority, startTime, endTime)
   }
   
-  def createSession(eventId: Long) = VisitAction { implicit req =>
-    Ok(views.html.conferences.createSession(Binding(SessionForm), eventId))
+  def addSession(eventId: Long) = VisitAction { implicit req =>
+    // TODO
+    Ok("TODO")
   }
   
-  def createSessionP(eventId: Long) = VisitAction { implicit req =>
+  def addSessionP(eventId: Long) = VisitAction { implicit req =>
       Binding(SessionForm, req) match {
-        case ib: InvalidBinding => Ok(views.html.conferences.createSession(ib, eventId))
+        case ib: InvalidBinding => Ok("TODO")
         case vb: ValidBinding => dataStore.execute { implicit pm =>
           val theEvent = pm.query[Event].filter(QEvent.candidate.id.eq(eventId)).executeList()
           val theDate = vb.valueOf(SessionForm.date)
@@ -397,7 +617,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
           println(theDate + " " + theStartTime + " " + theEndTime)
           val s = new models.conferences.Session(theEvent(0), theDate, theCutoff, thePriority, theStartTime, theEndTime)
           pm.makePersistent(s)
-          Redirect(routes.Conferences.index()).flashing("message" -> "Session successfully created!")
+          Redirect(routes.Conferences.listEvents()).flashing("message" -> "Session successfully created!")
         }
       }
   }
@@ -412,7 +632,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
           pm.deletePersistentAll(slots)
           pm.deletePersistentAll(teacherActivations)
           pm.deletePersistent(session)
-          Redirect(routes.Conferences.index()).flashing("message" -> ("Session was deleted."))
+          Redirect(routes.Conferences.listEvents()).flashing("message" -> ("Session was deleted."))
         }
       }
     }
@@ -427,12 +647,13 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
 	  	val events = pm.query[Event].executeList()
 	  	val sessions = pm.query[models.conferences.Session].executeList()
 	  	val priorities = pm.query[PriorityScheduling].filter(QPriorityScheduling.candidate.teacher.eq(teacher)).executeList()
-	  	Ok(views.html.conferences.teachers(teacher, events, sessions, sections, priorities))
+	  	Ok("TODO")
+	  	//Ok(views.html.conferences.teachers(teacher, events, sessions, sections, priorities))
 	  }
 	}
 	
 
-  def teacherSession(sessionId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit request =>
+  /*def teacherSession(sessionId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit request =>
     dataStore.execute { pm =>
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
       val slots = pm.query[Slot].executeList()
@@ -446,9 +667,9 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
         case None => Ok(views.html.conferences.teacherSession(slots, session, sections, None))
       }
     }
-  }
+  }*/
 
-  object TeacherActivationForm extends Form {
+  /*object TeacherActivationForm extends Form {
     val slotInterval = new NumericField[Int]("Default slot interval")
     val note = new TextFieldOptional("note")
 
@@ -472,9 +693,9 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
           }
         }
     }
-  }
+  }*/
 
-  def deactivateTeacherSession(sessionId: Long) = VisitAction { implicit request =>
+  /*def deactivateTeacherSession(sessionId: Long) = VisitAction { implicit request =>
     dataStore.execute { pm =>
       val cand = QTeacherActivation.candidate()
       val session = pm.query[models.conferences.Session].filter(QSession.candidate.id.eq(sessionId)).executeOption().get
@@ -486,7 +707,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       }
       Redirect(routes.Conferences.teacherSession(sessionId)).flashing("message" -> "Session deactivated")
     }
-  }
+  }*/
   
   def enablePriority(studentId: Long) = RoleMustPass(_.isInstanceOf[Teacher]) { implicit request =>
   	dataStore.execute { pm =>
@@ -541,7 +762,8 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
                               <td>{ linkNode }</td>
                               </tr>
                           }
-  			Ok(views.html.conferences.classList(sessionId, table, hasEnrollments, slots))
+  			Ok("TODO")
+  			//Ok(views.html.conferences.classList(sessionId, table, hasEnrollments, slots))
     }
   }
   
@@ -557,7 +779,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
 		      						pm.query[TeacherActivation].filter(QTeacherActivation.candidate.teacher.eq(teacher)).executeOption())
 		    }
 		    if (teacherList.length == 1 && teacherList(0)._2 != None) Redirect(routes.Conferences.slotHandler(sessionId, teacherList(0)._1.id))
-		    else Ok(views.html.conferences.multipleTeacherHandler(sessionId, teacherList))
+		    else Ok("TODO") //Ok(views.html.conferences.multipleTeacherHandler(sessionId, teacherList))
 		}
 	}
   }
@@ -571,9 +793,9 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
 		val teacher = pm.query[Teacher].filter(QTeacher.candidate.id.eq(teacherId)).executeOption().get
 		val cand = QSlot.candidate
 		val slots = pm.query[Slot].filter(cand.students.contains(student).and(cand.session.eq(session)).and(cand.teacher.eq(teacher))).executeList()
-		if (currentTime > session.cutoff) Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
+		if (currentTime > session.cutoff) Ok("TODO") //Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
 		//else if (slots.isEmpty) Redirect(routes.Conferences.createSlot(sessionId, student.id, teacherId))
-		else Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
+		else Ok("TODO") //Ok(views.html.conferences.slotView(slots, session, student.id, teacherId, currentTime))
 		
 	}
   }
@@ -644,10 +866,9 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
 }
 
 object Conferences {
-  def timeReporter(time: LocalTime): String = {
-    if(time.getHourOfDay() >= 12) time.toString("h:mm") + " PM"
-    else if(time.getHourOfDay() == 0) "12:" + time.toString("mm") + " AM"
-    else time.toString("h:mm") + " AM"
+  def timeReporter(localTime: LocalTime): String = {
+    import util.Helpers.time
+    time.print(localTime)
   }
   
   def getParameter(param: String, map: Map[String, Seq[String]]): String = {
@@ -660,7 +881,7 @@ object Conferences {
   def getParam(param: String)(implicit map: Map[String, Seq[String]]): String = getParameter(param, map)
 }
 
-object ConferencesMenu {
+/*object ConferencesMenu {
   val conferencesDefault = new MenuItem("Conferences", "menu_conferences", Some(controllers.routes.Conferences.index.toString), Nil)
   val sessions = new MenuItem("Current Sessions", "menu_sessions", Some(controllers.routes.Conferences.index.toString), Nil)
   def myConferences(session: Session) = new MenuItem("My Conferences", "menu_conferences", Some(controllers.routes.Conferences.myConferences(session.id).toString), Nil)
@@ -691,4 +912,4 @@ object ConferencesMenu {
       case _ => conferencesDefault 
     }
   }
-}
+}*/

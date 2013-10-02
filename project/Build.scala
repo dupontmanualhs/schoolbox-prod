@@ -11,6 +11,7 @@ object ApplicationBuild extends Build {
   val commonDependencies = Seq(
       "org.apache.directory.studio" % "org.apache.commons.codec" % "1.8",
       "com.typesafe" %% "scalalogging-slf4j" % "1.0.1",
+      "com.typesafe" %% "play-plugins-mailer" % "2.1.0",
       "ch.qos.logback" % "logback-core" % "1.0.13",
       "ch.qos.logback" % "logback-classic" % "1.0.13",
       "org.slf4j" % "log4j-over-slf4j" % "1.7.5",
@@ -19,26 +20,10 @@ object ApplicationBuild extends Build {
       "com.scalatags" %% "scalatags" % "0.1.4",
       "org.dupontmanual" %% "dm-forms" % "0.1-SNAPSHOT",
       "org.dupontmanual" %% "scalajdo" % "0.1-SNAPSHOT",
-      "org.scalatest" %% "scalatest" % "2.0.M5b",
+      "org.scalatest" %% "scalatest" % "2.0.M8",
       "org.postgresql" % "postgresql" % "9.2-1003-jdbc4"
   )
 
-/*  val forms = play.Project("forms", appVersion, path = file("modules/forms")).settings(
-    scalaVersion := "2.10.2",
-    javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature"),
-    libraryDependencies ++= Seq(
-      "org.webjars" % "webjars-play_2.10" % "2.1.0-2",
-      "javax.mail" % "mail" % "1.4.7",
-      "com.scalatags" % "scalatags_2.10" % "0.1.2",
-      "org.scalatest" % "scalatest_2.10" % "2.0.M5b",
-      "org.webjars" % "jquery" % "2.0.0",
-      "org.webjars" % "bootstrap" % "2.3.2",
-      "org.webjars" % "jquery-ui" % "1.10.2-1",
-      "org.webjars" % "bootstrap-datepicker" % "1.0.1",
-      "org.webjars" % "bootstrap-timepicker" % "0.2.3"))
-*/
-  
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
     scalaVersion := "2.10.2",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
@@ -95,62 +80,18 @@ object Nucleus {
 
   val settings: Seq[Project.Setting[_]] = Seq(
     ivyConfigurations += Config,
-  /*
-  // implementation
-  val settings: Seq[Project.Setting[_]] = Seq(
-    // let ivy know about our "nucleus" config
-    ivyConfigurations += Config,
-    // add the enhancer dependency to our nucleus ivy config
-    libraryDependencies += "org.datanucleus" % "datanucleus-core" % "3.2.4" % Config.name,
-    // fetch the classpath for our nucleus config
-    // as we inherit Compile this will be the fullClasspath for Compile + "datanucleus-enhancer" jar 
-    //fullClasspath in Config <<= (classpathTypes in enhance, update).map{(ct, report) =>
-    //  Classpaths.managedJars(Config, ct, report)
-    //},
-    // add more parameters as your see fit
-    //enhance in Config <<= (fullClasspath in Config, runner, streams).map{(cp, run, s) =>
-     */
     enhance <<= Seq(compile in Compile).dependOn,
     enhance in Config <<= (fullClasspath in Test, runner, streams) map { (cp, processRunner, str) =>
       val options = Seq("-v", "-pu", "schoolbox")
       val result = processRunner.run("org.datanucleus.enhancer.DataNucleusEnhancer", cp.files, options, str.log)
       result.foreach(sys.error)
     })
-    /*  (fullClasspath in Compile, 
-       classDirectory in Compile, 
-       classDirectory in (ApplicationBuild.users, Compile), 
-       classDirectory in (ApplicationBuild.courses, Compile),
-       runner, streams)
-      map { (cp, mainClasses, userClasses, courseClasses, run, s) =>
-
-        // Properties
-        val classpath = cp.files
-        enhanceClasses(run, classpath, userClasses, s)
-        enhanceClasses(run, classpath, courseClasses, s)
-        enhanceClasses(run, classpath, mainClasses, s)
-
-        /*// the classpath is attributed, we only want the files
-        //val classpath = cp.files
-        // the options passed to the Enhancer... 
-        val mainOptions = Seq("-v") ++ findAllClassesRecursively(mainClasses).map(_.getAbsolutePath)
-
-        // run returns an option of errormessage
-        val mainResult = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, mainOptions, s.log)
-        // if there is an errormessage, throw an exception
-        mainResult.foreach(sys.error)
-        
-        val userOptions = Seq("-v") ++ findAllClassesRecursively(userClasses).map(_.getAbsolutePath)
-        
-        val usersResult = run.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, userOptions, s.log)
-        usersResult.foreach(sys.error) */   
-      }) */
       
-  def enhanceClasses(runner: ScalaRun, classpath: Seq[File], classes: File, streams: TaskStreams) = {
+  /*def enhanceClasses(runner: ScalaRun, classpath: Seq[File], classes: File, streams: TaskStreams) = {
     val options = Seq("-v") ++ findAllClassesRecursively(classes).map(_.getAbsolutePath)
     val result = runner.run("org.datanucleus.enhancer.DataNucleusEnhancer", classpath, options, streams.log)
     result.foreach(sys.error)
   }
-
       
   def findAllClassesRecursively(dir: File): Seq[File] = {
     if (dir.isDirectory) {
@@ -161,5 +102,5 @@ object Nucleus {
     } else {
       Seq.empty
     }
-  }
+  }*/
 }
