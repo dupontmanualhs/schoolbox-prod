@@ -89,7 +89,7 @@ class MoveMe @Inject()(implicit config: Config) extends Controller with UsesData
         case vb: ValidBinding => {
           val guardian: Guardian = vb.valueOf(GuardianForm.guardian)
           guardian.user.email match {
-            case None => Redirect(controllers.routes.MoveMe.sendTeacherActivation()).flashing(
+            case None => Redirect(controllers.routes.MoveMe.sendGuardianActivation()).flashing(
                 "error" -> s"No activation email was sent, because the user does not have an email address.")
             case Some(email) => {
               val text = SendActivation.toGuardian(guardian)

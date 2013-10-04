@@ -108,7 +108,7 @@ object Visit extends UsesDataStore {
   
   def getFromRequest[A](implicit req: Request[A], config: Config): Visit = {
     req.session.get("visit").flatMap(
-        Visit.getByUuid(_)).filter(!_.isExpired).getOrElse(
+        Visit.getByUuid(_)).filterNot(_.isExpired).getOrElse(
             new Visit(System.currentTimeMillis + Visit.visitLength, None, None))
   }
   
