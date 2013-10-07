@@ -1,6 +1,6 @@
 package controllers
 
-import scala.xml.{ NodeSeq, Text }
+import scala.xml.{ Attribute, NodeSeq, Null, Text }
 import controllers.users.{MenuItem, MenuBar}
 import models.users._
 import models.courses._
@@ -8,7 +8,7 @@ import models.conferences._
 import models.conferences.Conferences.Permissions
 import org.dupontmanual.forms.fields._
 import org.dupontmanual.forms.validators.{ ValidationError, Validator }
-import org.dupontmanual.forms.widgets.Textarea
+import org.dupontmanual.forms.widgets.{ Textarea, Widget }
 import org.dupontmanual.forms.FormCall
 import util.Helpers._
 import java.sql.Date
@@ -103,6 +103,46 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       case None => NotFound("There is no teacher with the given id.")
       case Some(teacher) => eventHelper(eventId, (event: Event) => conferences.teacherDisplay(teacher, event))
     }  
+  }
+  
+  class InfoField(name: String, value: String) extends TextField(name) {
+    override def initialVal = Some(value)
+    override def widgetAttrs(widget: Widget) = Attribute("disabled", Text("disabled"), super.widgetAttrs(widget))
+  }
+  
+  class SlotDelete(slot: Slot) extends Form {
+    val time = new InfoField("time", conferences.timeFmt.print(slot.startTime))
+    val teacher = new InfoField("teacher", slot.teacher.displayName)
+    val guardians = new InfoField("guardian(s)", slot.guardians.map(_.displayName).mkString(", "))
+    val students = new InfoField("student(s)", slot.students.map(_.displayName).mkString(", "))
+    val comment = new InfoField("comment", slot.comment.getOrElse(""))
+    val confirm = new BooleanField("confirm", "Check to Confirm Deletion") {
+      override def validate(value: Boolean) = {
+        if (value) Right(true) else Left(ValidationError("You must check the box to confirm deletion or cancel the form."))
+      }
+    }
+    
+    def fields = List(time, teacher, guardians, students, comment, confirm)
+  }
+  
+  def teacherDelete(slotId: Long) = Slot.getById(slotId) match {
+    case None => VisitAction { implicit req => NotFound("No conference slot with the given id.") }
+    case Some(slot) => RoleMustPass(r => r.hasPermission(Permissions.Manage) || 
+        (r.isInstanceOf[Teacher] && r.id == slot.teacher.id)) { implicit req =>
+      val form = Binding(new SlotDelete(slot))
+      Ok(conferences.confirmTeacherDelete(slot, form))      
+    }
+  }
+  
+  def teacherDeleteP(slotId: Long) = Slot.getById(slotId) match {
+    case None => VisitAction { implicit req => NotFound("No conference slot with the given id.") }
+    case Some(slot) => RoleMustPass(r => r.hasPermission(Permissions.Manage) || 
+        (r.isInstanceOf[Teacher] && r.id == slot.teacher.id)) { implicit req =>
+      val redirectUrl = if (req.role.id == slot.teacher.id) controllers.routes.Conferences.eventForTeacher(slot.session.event.id)
+          else controllers.routes.Conferences.viewTeacherSchedule(slot.session.event.id, slot.teacher.id)
+      dataStore.execute(pm => pm.deletePersistent(slot))
+      Redirect(redirectUrl)
+    }
   }
   
   def eventForGuardian(eventId: Long) = RoleMustPass(_.isInstanceOf[Guardian]) { implicit req =>

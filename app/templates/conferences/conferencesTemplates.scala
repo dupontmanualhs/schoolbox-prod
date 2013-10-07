@@ -62,13 +62,15 @@ package object conferences {
   def schedule(teacher: Teacher, session: Session): STag = {
     TeacherActivation.get(teacher, session) match {
       case Some(ta) => {
-        val rows: List[STag] = thead(th("Start Time"), th("Guardian"), th("Student(s)"), th("Phone Number(s)"), th("Comment")) ::
+        val rows: List[STag] = thead(th("Start Time"), th("Guardian"), th("Student(s)"), th("Phone Number(s)"), th("Comment"), td("Edit")) ::
             ta.scheduleRows().map(_ match {
-              case op: Opening => tr(td.attr("colspan" -> "5")(a.cls("btn").href(controllers.routes.Conferences.reserveSlot(ta.id, op.start.getMillisOfDay()))(timeFmt.print(op.startTime))))
+              case op: Opening => tr(td.attr("colspan" -> "6")(a.cls("btn").href(controllers.routes.Conferences.reserveSlot(ta.id, op.start.getMillisOfDay()))(timeFmt.print(op.startTime))))
               case appt: Appointment => tr(td(timeFmt.print(appt.startTime)), td(appt.slot.guardians.toList.map(_.displayName).mkString(", ")),
                   td(appt.slot.students.toList.map(_.displayName).mkString(", ")),
                   td(List(appt.slot.phone, appt.slot.alternatePhone).flatten.mkString(", ")),
-                  td(appt.slot.comment.getOrElse[String]("")))
+                  td(appt.slot.comment.getOrElse[String](""), 
+                  td(a.href(controllers.routes.Conferences.teacherDelete(appt.slot.id).toString).cls("btn", "btn-danger", "btn-mini").title("Delete")(i.cls("icon-white", "icon-remove")),
+                     a.href("#").cls("btn", "btn-mini").title("Edit")(i.cls("icon-edit")))))
               }
             )
         div(<p>You have activated conferences. Parents will be able to schedule a conference
@@ -82,6 +84,19 @@ package object conferences {
         conferences using the system, click the button below.<br/>
         <a class="btn" href={ controllers.routes.Conferences.activateTeacher(session.id, teacher.id).toString }>Activate Scheduling</a></p>
       }
+    }
+  }
+  
+  object confirmTeacherDelete {    
+    def apply(slot: Slot, form: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Delete Conference Appointment")(
+        h1("Really Delete Conference Appointment?"),
+        table(tr(td("Time"), td(timeFmt.print(slot.startTime))),
+              tr(td("Guardian(s)"), td(slot.guardians.mkString(", "))),
+              tr(td("Student(s)", td(slot.students.mkString(", ")))),
+              tr(td("Comment", td(slot.comment.getOrElse(""): String)))),
+        form.render()
+      )
     }
   }
   

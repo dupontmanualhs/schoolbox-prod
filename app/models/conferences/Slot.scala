@@ -161,10 +161,13 @@ object Slot extends UsesDataStore {
   import dateOrdering._
   val cand = QSlot.candidate()
   
-  def getBySessionAndGuardian(session: Session, guardian: Guardian): List[Slot] = {
-    dataStore.execute(pm => {
-      pm.query[Slot].filter(cand.session.eq(session).and(cand.guardians.contains(guardian))).orderBy(cand.startTime.asc).executeList()
-    })
+  def getById(id: Long): Option[Slot] = dataStore.execute { pm =>
+    pm.query[Slot].filter(cand.id.eq(id)).executeOption()  
+  }
+  
+  def getBySessionAndGuardian(session: Session, guardian: Guardian): List[Slot] = dataStore.execute { pm =>
+    pm.query[Slot].filter(cand.session.eq(session).and(
+        cand.guardians.contains(guardian))).orderBy(cand.startTime.asc).executeList()
   }
   
   def timesConflict(start1: LocalTime, end1: LocalTime, start2: LocalTime, end2: LocalTime): Boolean = {
