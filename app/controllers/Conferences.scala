@@ -110,7 +110,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     override def widgetAttrs(widget: Widget) = Attribute("disabled", Text("disabled"), super.widgetAttrs(widget))
   }
   
-  class SlotDelete(slot: Slot) extends Form {
+  class SlotDelete(slot: Slot, role: Role) extends Form {
     val time = new InfoField("time", conferences.timeFmt.print(slot.startTime))
     val teacher = new InfoField("teacher", slot.teacher.displayName)
     val guardians = new InfoField("guardian(s)", slot.guardians.map(_.displayName).mkString(", "))
@@ -122,15 +122,20 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       }
     }
     
-    def fields = List(time, teacher, guardians, students, comment, confirm)
+    def fields = List(Some(time),
+        if (role.id != slot.teacher.id) Some(teacher) else None, 
+        if (!slot.guardians.map(_.id).contains(role.id)) Some(guardians) else None, 
+        Some(students), 
+        Some(comment), 
+        Some(confirm)).flatten
   }
   
   def teacherDelete(slotId: Long) = Slot.getById(slotId) match {
     case None => VisitAction { implicit req => NotFound("No conference slot with the given id.") }
     case Some(slot) => RoleMustPass(r => r.hasPermission(Permissions.Manage) || 
         (r.isInstanceOf[Teacher] && r.id == slot.teacher.id)) { implicit req =>
-      val form = Binding(new SlotDelete(slot))
-      Ok(conferences.confirmTeacherDelete(slot, form))      
+      val form = Binding(new SlotDelete(slot, req.role))
+      Ok(conferences.confirmDelete(slot, form))      
     }
   }
   
@@ -138,10 +143,21 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
     case None => VisitAction { implicit req => NotFound("No conference slot with the given id.") }
     case Some(slot) => RoleMustPass(r => r.hasPermission(Permissions.Manage) || 
         (r.isInstanceOf[Teacher] && r.id == slot.teacher.id)) { implicit req =>
-      val redirectUrl = if (req.role.id == slot.teacher.id) controllers.routes.Conferences.eventForTeacher(slot.session.event.id)
-          else controllers.routes.Conferences.viewTeacherSchedule(slot.session.event.id, slot.teacher.id)
-      dataStore.execute(pm => pm.deletePersistent(slot))
-      Redirect(redirectUrl)
+      val form = Binding(new SlotDelete(slot, req.role), req)    
+      form match {
+        case ib: InvalidBinding => Ok(conferences.confirmDelete(slot, form))
+        case vb: ValidBinding => {
+          val redirectUrl = if (req.role.id == slot.teacher.id) controllers.routes.Conferences.eventForTeacher(slot.session.event.id)
+            else controllers.routes.Conferences.viewTeacherSchedule(slot.session.event.id, slot.teacher.id)
+          dataStore.execute{ pm => 
+            val msg = Slot.getById(slotId).map { s => 
+              pm.deletePersistent(s)
+              "message" -> "The conference appointment was successfully deleted."
+            }.getOrElse("alert" -> "The appointment was not deleted.")
+            Redirect(redirectUrl).flashing(msg)
+          }
+        }
+      }
     }
   }
   
@@ -233,38 +249,70 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       }
     }
   }
-  
-  def scheduleApptP(sessionId: Long, guardianId: Long, teacherId: Long) = 
-      RoleMustPass(r => r.permissions().contains(Permissions.Manage) || (r.isInstanceOf[Guardian] && r.id == guardianId)) { implicit req =>
-    dataStore.execute { pm =>
-      Session.getById(sessionId) match {
-      case None => NotFound("No session with the given id.")
-      case Some(session) => Teacher.getById(teacherId) match {
-        case None => NotFound("No teacher with the given id.")
-        case Some(teacher) => Guardian.getById(guardianId) match {
-          case None => NotFound("No guardian with the given id.")
-          case Some(guardian) => TeacherActivation.get(teacher, session) match {
-            case None => NotFound("This teacher hasn't activated conference scheduling.")
-            case Some(ta) => {
-              val teacherApptTimes = ta.appointments().map(_.startTime)
-              val guardianApptTimes = Slot.getBySessionAndGuardian(session, guardian).map(_.startTime)
-              val apptTimes = teacherApptTimes.toSet ++ guardianApptTimes.toSet
-              val availableTimes = ta.allOpenings().map(
-                  _.startTime).filterNot(time => apptTimes.contains(time))
-              val form = new GuardianSignUp(session, teacher, guardian, availableTimes)
-              Binding(form, req) match {
-                case ib: InvalidBinding => Ok(conferences.guardianSignUp(teacher, ib))
-                case vb: ValidBinding => {
-                  val slot = new Slot(session, teacher, vb.valueOf(form.time), Set(), Set(guardian),
-                      vb.valueOf(form.phoneNumber), vb.valueOf(form.altPhone), vb.valueOf(form.comment))
-                  pm.makePersistent(slot)
-                  Redirect(routes.Conferences.eventForGuardian(session.event.id))
+
+  def scheduleApptP(sessionId: Long, guardianId: Long, teacherId: Long) =
+    RoleMustPass(r => r.permissions().contains(Permissions.Manage) || (r.isInstanceOf[Guardian] && r.id == guardianId)) { implicit req =>
+      dataStore.execute { pm =>
+        Session.getById(sessionId) match {
+          case None => NotFound("No session with the given id.")
+          case Some(session) => Teacher.getById(teacherId) match {
+            case None => NotFound("No teacher with the given id.")
+            case Some(teacher) => Guardian.getById(guardianId) match {
+              case None => NotFound("No guardian with the given id.")
+              case Some(guardian) => TeacherActivation.get(teacher, session) match {
+                case None => NotFound("This teacher hasn't activated conference scheduling.")
+                case Some(ta) => {
+                  val teacherApptTimes = ta.appointments().map(_.startTime)
+                  val guardianApptTimes = Slot.getBySessionAndGuardian(session, guardian).map(_.startTime)
+                  val apptTimes = teacherApptTimes.toSet ++ guardianApptTimes.toSet
+                  val availableTimes = ta.allOpenings().map(
+                    _.startTime).filterNot(time => apptTimes.contains(time))
+                  val form = new GuardianSignUp(session, teacher, guardian, availableTimes)
+                  Binding(form, req) match {
+                    case ib: InvalidBinding => Ok(conferences.guardianSignUp(teacher, ib))
+                    case vb: ValidBinding => {
+                      val slot = new Slot(session, teacher, vb.valueOf(form.time), Set(), Set(guardian),
+                        vb.valueOf(form.phoneNumber), vb.valueOf(form.altPhone), vb.valueOf(form.comment))
+                      pm.makePersistent(slot)
+                      Redirect(routes.Conferences.eventForGuardian(session.event.id))
+                    }
+                  }
                 }
               }
             }
           }
         }
       }
+    }
+  
+  def guardianDelete(slotId: Long) = Slot.getById(slotId) match {
+    case None => VisitAction { implicit req => NotFound("No conference slot with the given id.") }
+    case Some(slot) => RoleMustPass(r => r.hasPermission(Permissions.Manage) ||
+        (r.isInstanceOf[Guardian] && slot.guardians.map(_.id).contains(r.id))) { implicit req =>
+      val form = Binding(new SlotDelete(slot, req.role))
+      Ok(conferences.confirmDelete(slot, form))
+    }
+  }
+  
+  def guardianDeleteP(slotId: Long) = Slot.getById(slotId) match {
+    case None => VisitAction { implicit req => NotFound("No conference slot with the given id.") }
+    case Some(slot) => RoleMustPass(r => r.hasPermission(Permissions.Manage) ||
+        (r.isInstanceOf[Guardian] && slot.guardians.map(_.id).contains(r.id))) { implicit req =>
+      val form = Binding(new SlotDelete(slot, req.role), req)
+      form match {
+        case ib: InvalidBinding => Ok(conferences.confirmDelete(slot, form))
+        case vb: ValidBinding => {
+          val redirectUrl = if (slot.guardians.map(_.id).contains(req.role.id)) controllers.routes.Conferences.eventForGuardian(slot.session.event.id)
+            else if (slot.guardians.size == 1) controllers.routes.Conferences.viewGuardianSchedule(slot.session.event.id, slot.guardians.toList(0).id)
+            else controllers.routes.Conferences.viewGuardian()
+          dataStore.execute{ pm => 
+            val msg = Slot.getById(slotId).map { s => 
+              pm.deletePersistent(s)
+              "message" -> "The conference appointment was successfully deleted."
+            }.getOrElse("alert" -> "The appointment was not deleted.")
+            Redirect(redirectUrl).flashing(msg)
+          }
+        }
       }
     }
   }

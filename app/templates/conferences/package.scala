@@ -23,7 +23,6 @@ import org.joda.time.LocalDateTime
 import org.dupontmanual.forms.Form
 import models.courses.Term
 
-
 package object conferences {
   val dateOrdering = implicitly[Ordering[org.joda.time.ReadablePartial]]
 
@@ -87,14 +86,10 @@ package object conferences {
     }
   }
   
-  object confirmTeacherDelete {    
+  object confirmDelete {    
     def apply(slot: Slot, form: Binding)(implicit req: VisitRequest[_], config: Config) = {
       config.main("Delete Conference Appointment")(
         h1("Really Delete Conference Appointment?"),
-        table(tr(td("Time"), td(timeFmt.print(slot.startTime))),
-              tr(td("Guardian(s)"), td(slot.guardians.mkString(", "))),
-              tr(td("Student(s)", td(slot.students.mkString(", ")))),
-              tr(td("Comment", td(slot.comment.getOrElse(""): String)))),
         form.render()
       )
     }
