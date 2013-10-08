@@ -104,12 +104,7 @@ class Conferences @Inject()(implicit config: Config) extends Controller with Use
       case Some(teacher) => eventHelper(eventId, (event: Event) => conferences.teacherDisplay(teacher, event))
     }  
   }
-  
-  class InfoField(name: String, value: String) extends TextField(name) {
-    override def initialVal = Some(value)
-    override def widgetAttrs(widget: Widget) = Attribute("disabled", Text("disabled"), super.widgetAttrs(widget))
-  }
-  
+
   class SlotDelete(slot: Slot, role: Role) extends Form {
     val time = new InfoField("time", conferences.timeFmt.print(slot.startTime))
     val teacher = new InfoField("teacher", slot.teacher.displayName)
