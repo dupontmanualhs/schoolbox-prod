@@ -3,10 +3,11 @@ package models.courses
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import scalajdo.DataStore
+import config.users.UsesDataStore
+import models.users.DbEquality
 
 @PersistenceCapable(detachable = "true")
-class Room {
+class Room extends DbEquality[Room] {
   @PrimaryKey
   @Persistent(valueStrategy = IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -23,9 +24,9 @@ class Room {
   }
 }
 
-object Room {
+object Room extends UsesDataStore {
   def getOrCreate(name: String): Room = {
-    val pm = DataStore.pm
+    val pm = dataStore.pm
     val cand = QRoom.candidate
     pm.query[Room].filter(cand.name.eq(name)).executeOption() match {
       case Some(room) => room

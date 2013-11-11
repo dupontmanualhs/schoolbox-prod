@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence 
+        http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd" version="2.0">
+
+    <persistence-unit name="schoolbox">
+        <!-- users project -->
+        <class>models.users.Activation</class>
+        <class>models.users.Group</class>
+        <class>models.users.Permission</class>
+        <class>models.users.Role</class>
+        <class>models.users.User</class>
+        <class>models.users.Visit</class>
+        
+        <!-- courses project -->
+        <class>models.courses.AcademicYear</class>
+        <class>models.courses.Course</class>
+        <class>models.courses.Department</class>
+        <class>models.courses.Guardian</class>
+        <class>models.courses.Period</class>
+        <class>models.courses.Room</class>
+        <class>models.courses.Section</class>
+        <class>models.courses.Student</class>
+        <class>models.courses.StudentEnrollment</class>
+        <class>models.courses.Teacher</class>
+        <class>models.courses.TeacherAssignment</class>
+        <class>models.courses.Term</class>
+        
+        <!-- blogs project -->
+        <class>models.blogs.Blog</class>
+        <class>models.blogs.Post</class>
+        
+        <!-- books project -->
+        <class>models.books.Checkout</class>
+        <class>models.books.Copy</class>
+        <class>models.books.LabelQueueSet</class>
+        <class>models.books.PurchaseGroup</class>
+        <class>models.books.Title</class>
+        
+        <!-- conferences project -->
+        <class>models.conferences.Event</class>
+        <class>models.conferences.PriorityScheduling</class>
+        <class>models.conferences.Session</class>
+        <class>models.conferences.Slot</class>
+        <class>models.conferences.TeacherActivation</class>
+        
+        <!-- grades project -->
+        <class>models.grades.Announcement</class>
+        <class>models.grades.Assignment</class>
+        <class>models.grades.Category</class>
+        <class>models.grades.Turnin</class>
+        
+        <!-- lockers project -->
+        <class>models.lockers.Location</class>
+        <class>models.lockers.Locker</class>
+        
+        <!-- mastery project -->
+        <class>models.mastery.Question</class>
+        <class>models.mastery.QuestionSet</class>
+        <class>models.mastery.Quiz</class>
+        <class>models.mastery.QuizSection</class>
+        
+        <!-- payment project -->
+        <class>models.payment.Fees</class>
+        <class>models.payment.Payment</class>
+             
+        <exclude-unlisted-classes/>
+        <properties>
+        <!--<property name="datanucleus.ConnectionDriverName" value="org.h2.Driver"/>
+            <property name="datanucleus.ConnectionURL" value="jdbc:h2:data;AUTO_SERVER=true;MVCC=true"/>-->
+
+            <property name="datanucleus.ConnectionDriverName" value="org.postgresql.Driver"/>
+            <property name="datanucleus.ConnectionURL" value="jdbc:postgresql:schoolbox"/>
+            <property name="datanucleus.ConnectionUserName" value="schoolbox"/>
+            <property name="datanucleus.ConnectionPassword" value="schoolbox"/>
+
+			<property name="datanucleus.query.sql.allowAll" value="true"/>
+            <property name="datanucleus.autoCreateSchema" value="true"/>
+            <property name="datanucleus.DetachAllOnCommit" value="true"/>
+            <property name="datanucleus.maxFetchDepth" value="2"/>
+            <property name="javax.jdo.PersistenceManagerFactoryClass" value="org.datanucleus.api.jdo.JDOPersistenceManagerFactory"/>
+        </properties>
+    </persistence-unit>
+</persistence>

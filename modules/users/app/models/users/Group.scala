@@ -1,17 +1,17 @@
 package models.users
 
 import scala.collection.JavaConverters._
-
 import javax.jdo.annotations._
-
 import scala.collection.JavaConverters._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 
-import scalajdo.DataStore
+import config.users.Config
+import com.google.inject.Inject
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
-class Group {
+class Group extends UsesDataStore with DbEquality[Group] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -26,6 +26,7 @@ class Group {
   
   @Persistent
   @Element(types=Array(classOf[Role]))
+  @Join
   private[this] var _roles: java.util.Set[Role] = _
   def roles: Set[Role] = _roles.asScala.toSet
   def roles_=(theRoles: Set[Role]) { _roles = theRoles.asJava }
@@ -40,21 +41,32 @@ class Group {
   
   def permissions(): Set[Permission] = {
     val cand = QPermission.candidate
-    DataStore.pm.query[Permission].filter(cand.groups.contains(this)).executeList().toSet
+    dataStore.pm.query[Permission].filter(cand.groups.contains(this)).executeList().toSet
   }
   
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Group]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: Group => this.canEqual(that) && this.id == that.id
-    case _ => false
+  def addPermission(permission: Permission) {
+    permission.groups_=(permission.groups + this)
+    dataStore.pm.makePersistent(permission)
   }
-  
-  override def hashCode: Int = this.id.hashCode
 }
 
-object Group {
+object Group extends UsesDataStore {
+  @Inject
+  def config(conf: Config): Config = conf
   
+  def apply(name: String): Group = {
+    val cand = QGroup.candidate()
+    dataStore.execute { pm =>
+      pm.query[Group].filter(cand.name.eq(name)).executeOption() match {
+        case None => {
+          val newGroup = new Group(name)
+          pm.makePersistent(newGroup)
+          newGroup
+        }
+        case Some(group) => group
+      }  
+    }
+  }
 }
 
 trait QGroup[PC <: Group] extends PersistableExpression[PC] {

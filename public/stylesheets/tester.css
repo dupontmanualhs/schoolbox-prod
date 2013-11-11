@@ -5149,9 +5149,6 @@ a.badge:hover {
 .invisible {
   visibility: hidden;
 }
-.affix {
-  position: fixed;
-}
 .custom-modal-size {
 	width: 780px;
     margin-left: -390px; /* - width/2 */

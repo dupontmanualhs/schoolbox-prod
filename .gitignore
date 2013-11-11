@@ -1,4 +1,6 @@
 bin
+conf/manual-data*
+dist
 logs
 project/project
 project/target
@@ -21,4 +23,7 @@ C:\\nppdf32Log\\debuglog.txt
 .target
 .metadata
 
-public/images/books
+public/images/books/*.jpg
+
+conf/manual-data-new
+conf/accuscholar-data.xml.xz

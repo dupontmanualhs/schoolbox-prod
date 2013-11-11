@@ -9,13 +9,11 @@ import scala.xml.NodeSeq
 import scala.xml.NodeSeq.seqToNodeSeq
 import scala.xml.Null
 import scala.xml.transform.BasicTransformer
-import forms.Binding
-import forms.Form
-import forms.InvalidBinding
-import forms.ValidBinding
-import forms.fields.Field
-import forms.fields.TextField
-import forms.widgets.{ TextInput, Widget }
+import org.dupontmanual.forms._
+import org.dupontmanual.forms.validators.ValidationError
+import org.dupontmanual.forms.fields.Field
+import org.dupontmanual.forms.fields.TextField
+import org.dupontmanual.forms.widgets.{ TextInput, Widget }
 import javax.jdo.annotations.PersistenceCapable
 import models.mastery.QQuiz
 import models.mastery.Question
@@ -32,6 +30,7 @@ import scalajdo.DataStore
 import models.users.Visit
 
 import config.Config
+import config.users.UsesDataStore
 import com.google.inject.{ Inject, Singleton }
 
 import controllers.users.VisitAction
@@ -75,8 +74,7 @@ class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) ext
     </script>
     
     <script>
-    
-  (function () {{
+      (function () {{
     var QUEUE = MathJax.Hub.queue; 
     var math = [];
 	var idTable = [];
@@ -156,7 +154,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
         {
           instructionsAndFields.flatMap(instrPlusFields => {
             val instructions: String = instrPlusFields._1
-            val fields: List[forms.fields.Field[_]] = instrPlusFields._2
+            val fields: List[Field[_]] = instrPlusFields._2
             //TODO: Make it so the strings in the list "sectionInstructionList" appear
             <tr>
               <td></td>
@@ -166,7 +164,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
               fields.zip(1 to fields.length).flatMap {
                 case (f, num) => {
                   val name = f.name
-                  val errorList = bound.fieldErrors.get(name).map(_.render)
+                  val errorList = bound.fieldErrors.get(name).map(_.render())
                   <tr>
                     <td><label>{ "%d. ".format(num) }</label></td>
                     <td>{ f.asWidget(bound) }</td>
@@ -186,10 +184,10 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
 }
 
 @Singleton
-class Mastery @Inject()(implicit config: Config) extends Controller {
+class Mastery @Inject()(implicit config: Config) extends Controller with UsesDataStore {
 
   def menuOfTests() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val cand = QQuiz.candidate()
       val listOfMasteries = pm.query[Quiz].orderBy(cand.name.asc).executeList()
       val hasQuizzes = listOfMasteries.size != 0
@@ -252,7 +250,7 @@ class Mastery @Inject()(implicit config: Config) extends Controller {
   }
 
   def testDataBase() = VisitAction { implicit req =>
-    DataStore.execute { pm =>
+    dataStore.execute { pm =>
       val quizCand = QQuiz.candidate()
       val listOfMasteries = pm.query[Quiz].orderBy(quizCand.name.asc).executeList()
       val listOfSections = pm.query[models.mastery.QuizSection].executeList()

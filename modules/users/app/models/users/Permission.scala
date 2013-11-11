@@ -1,17 +1,15 @@
 package models.users
 
 import javax.jdo.annotations._
-
 import scala.collection.JavaConverters._
-
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 @Unique(name="CLASS_WITH_NAME", members=Array("_klass", "_enumId"))
-class Permission {
+class Permission extends DbEquality[Permission] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -37,7 +35,7 @@ class Permission {
   def description: String = _description
   def description_=(theDescription: String) { _description = theDescription }
   
-  @Persistent
+  @Persistent(defaultFetchGroup="true")
   @Element(types=Array(classOf[Role]))
   @Join
   private[this] var _roles: java.util.Set[Role] = _
@@ -61,23 +59,14 @@ class Permission {
     groups_=(Set[Group]())
   }
   
-  override def toString: String = s"Permission(${klass}.Permissions.${name}"
-  
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Permission]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: Permission => this.canEqual(that) && this.id == that.id
-    case _ => false
-  }
-  
-  override def hashCode: Int = id.hashCode
+  override def toString: String = s"Permission(${klass}.Permissions.${name})"
 }
 
-object Permission {
+object Permission extends UsesDataStore {
   def apply(klass: Class[_], enumId: Int, name: String, description: String): Permission = {
     val cand = QPermission.candidate
     val className = klass.getName()
-    DataStore.execute { pm => 
+    dataStore.execute { pm => 
       pm.query[Permission].filter(cand.klass.eq(className).and(cand.enumId.eq(enumId))).executeOption() match {
         case None => val perm = new Permission(className, enumId, name, description)
           pm.makePersistent(perm)

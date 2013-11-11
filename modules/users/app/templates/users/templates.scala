@@ -4,7 +4,7 @@ import scala.language.implicitConversions
 import scalatags._
 import play.api.templates.Html
 
-import forms.{ Binding, FormCall }
+import org.dupontmanual.forms.{ Binding, FormCall }
 
 import config.users.Config
 import controllers.users.VisitRequest
@@ -35,7 +35,43 @@ object ListUsers {
   }
 }
 
-object ChangeSettings {
+object ChangePassword {
+  def apply(pwForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Change Your Password")(pwForm.render())
+  }
+}
+
+object ChangeOtherPassword {
+  def apply(pwForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Change a User's Password")(pwForm.render())
+  }
+}
+
+object Activate {
+  def apply(actForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Activate Your Account")(actForm.render())
+  }
+}
+
+object ChooseUser {
+  def apply(chooseUserForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Choose the User to Edit")(
+      h1("Choose the User to Edit"),
+      chooseUserForm.render()
+     )
+  }
+}
+
+object EditUser {
+  def apply(updateUserForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+    config.main("Update User Information")(
+      h1("Update User Information"),
+      updateUserForm.render()
+    )
+  }
+}
+
+/*object ChangeSettings {
   def apply(pwForm: Binding, themeForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
     config.main("Change Your Settings")(
       pwForm.render(overrideSubmit = Some(FormCall(controllers.users.routes.App.changePassword())),
@@ -44,4 +80,4 @@ object ChangeSettings {
           legend = Some("Set your Theme"))
     )
   }
-}
+}*/

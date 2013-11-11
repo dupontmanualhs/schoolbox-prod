@@ -6,8 +6,9 @@ import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
 import play.api.mvc.{RequestHeader, Session}
 import scala.collection.JavaConverters._
+import config.users.UsesDataStore
 
-import scalajdo.DataStore
+
 
 @PersistenceCapable(detachable = "true")
 class Quiz {
@@ -35,10 +36,10 @@ class Quiz {
   
   override def toString = { name }
 }
-object Quiz {
+object Quiz extends UsesDataStore {
   def getById(id: Long): Option[models.mastery.Quiz] = {
     val cand=QQuiz.candidate()
-    DataStore.pm.query[Quiz].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[Quiz].filter(cand.id.eq(id)).executeOption()
   }
 }
 

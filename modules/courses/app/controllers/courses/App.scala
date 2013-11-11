@@ -6,18 +6,25 @@ import models.courses._
 import models.users._
 import scala.xml.NodeSeq
 import play.api.mvc.Flash._
-import scalajdo.DataStore
+
 import controllers.users.{Authenticated, VisitAction, VisitRequest}
 import com.google.inject.{ Inject, Singleton }
-import config.users.Config
+import config.users.{ Config, UsesDataStore }
 import controllers.users.MustPassTest
 import javax.jdo.annotations.Inheritance
 import javax.jdo.annotations.PersistenceCapable
 import scalatags.stringToNodeable.apply
 import controllers.users.AuthenticatedRequest
+import org.dupontmanual.forms.{ Binding, InvalidBinding, ValidBinding, Call, Method, Form }
+import org.dupontmanual.forms.fields._
+import org.dupontmanual.forms.widgets._
+import org.dupontmanual.forms.validators._
+import templates.users._
 
 @Singleton
-class App @Inject()(implicit config: Config) extends Controller {
+class App @Inject()(implicit config: Config) extends Controller with UsesDataStore {
+  import App._
+  
   // functions that return Results given the right input
   // these are not Actions, and should be called by an Action once the right info has been found
   private[this] def roleSchedule(maybeRole: Option[Role], maybeTerm: Option[Term])(implicit req: VisitRequest[_]) = {
@@ -27,7 +34,12 @@ class App @Inject()(implicit config: Config) extends Controller {
         case None => NotFound(config.notFound("There is no schedule for that user."))
         case Some(role) => role match {
           case teacher: Teacher => teacherSchedule(teacher, term)
-          case student: Student => studentSchedule(student, term)
+          case student: Student => {
+            req.visit.role match {
+              case Some(tchr: Teacher) => studentScheduleForTeacher(student, term)
+              case _ => studentSchedule(student, term)
+            }
+          }
           case _ => NotFound(config.notFound("Only teachers and students have schedules."))
         }
       }
@@ -35,7 +47,7 @@ class App @Inject()(implicit config: Config) extends Controller {
   }
   
   private[this] def teacherSchedule(teacher: Teacher, term: Term)(implicit req: VisitRequest[_]) = {
-    DataStore.execute { pm => 
+    dataStore.execute { pm => 
       val assignments: List[TeacherAssignment] = {
         val sectVar = QSection.variable("sectVar")
         val cand = QTeacherAssignment.candidate
@@ -47,34 +59,71 @@ class App @Inject()(implicit config: Config) extends Controller {
       val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
       val table = periods.map { p =>
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-        tr(td(p.name),
-           td(intersperse(sectionsThisPeriod.map(s => linkToPage(s)), br())),
-           td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())))
+        if (!p.showIfEmpty && sectionsThisPeriod.isEmpty) StringSTag("")
+        else {
+          tr(td(p.name),
+             td(intersperse(sectionsThisPeriod.map(s => linkToRoster(s)), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.numStudents.toString)), br())))
+        }
       }
       Ok(templates.courses.TeacherSchedule(teacher, term, table, hasAssignments))
     }
   }
+  
+  def listTeachers() = Authenticated { implicit req =>
+    val cand = QTeacher.candidate()
+    val taCand = QTeacherAssignment.candidate()
+    val userVar = QUser.variable("userVar")
+    dataStore.execute { pm =>
+      val teachers = pm.query[Teacher].filter(cand.user.eq(userVar).and(
+          userVar.isActive.eq(true))).orderBy(userVar.last.asc, userVar.first.asc).executeList()
+      val teachersWithClasses = teachers.filterNot(t => pm.query[TeacherAssignment].filter(taCand.teacher.eq(t)).executeList().isEmpty)
+      Ok(templates.courses.ListTeachers(teachersWithClasses))
+    }  
+  
+  }
 
-  def studentSchedule(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
-    DataStore.execute { implicit pm =>
+  def scheduleConstructor(student: Student, term: Term)
+  						 (addItems: (List[Section] => STag)*)
+  						 (implicit req: VisitRequest[_]) = {
+    dataStore.execute { implicit pm =>
       val enrollments: List[StudentEnrollment] = {
         val sectVar = QSection.variable("sectVar")
         val cand = QStudentEnrollment.candidate()
-        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
+        pm.query[StudentEnrollment].filter(cand.student.eq(student).and(
+            cand.end.eq(null.asInstanceOf[java.sql.Date])).and(
+            cand.section.eq(sectVar)).and(sectVar.terms.contains(term))).executeList()
       }
       val hasEnrollments = enrollments.size != 0
       val sections: List[Section] = enrollments.map(_.section)
       val periods: List[Period] = pm.query[Period].orderBy(QPeriod.candidate.order.asc).executeList()
       val rows: List[STag] = periods.map { p =>
         val sectionsThisPeriod = sections.filter(_.periods.contains(p))
-        tr(
-          td(p.name),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.course.name)), br())),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.teachers.map(_.shortName).mkString("; "))), br())),
-          td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())))
+        if (!p.showIfEmpty && sectionsThisPeriod.isEmpty) StringSTag("")
+        else {
+          tr(td(p.name),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.course.name)), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.teachers.map(_.shortName).mkString("; "))), br())),
+             td(intersperse(sectionsThisPeriod.map(s => StringSTag(s.room.name)), br())),
+             for(item <- addItems) yield (item(sectionsThisPeriod)))
+        }
       }
-      Ok(templates.courses.StudentSchedule(student, term, rows, hasEnrollments))
+      (rows, hasEnrollments)
     }
+  }
+  
+  def studentSchedule(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
+    val (rows, hasEnrollments) = scheduleConstructor(student, term)()
+    Ok(templates.courses.StudentSchedule(student, term, rows, hasEnrollments))
+  }
+  
+  def studentScheduleForTeacher(student: Student, term: Term)(implicit req: VisitRequest[_]) = {
+    val (rows, hasEnrollments) = 
+      scheduleConstructor(student, term) 
+        { ls => td(intersperse(ls.map(s => StringSTag(s.numStudents.toString)), br())) }
+    
+    Ok(templates.courses.StudentScheduleForTeacher(student, term, rows, hasEnrollments))
   }
   
   // Actions - should be the result of routing and should call the functions above
@@ -109,25 +158,30 @@ class App @Inject()(implicit config: Config) extends Controller {
   }
   
   // only the teacher of this section or an admin should be able to see the roster
-  def roster(sectionId: String) = MustPassTest(roleTeachesSection(sectionId)) { implicit req =>
+  def rosterHelper(sectionId: String, includeDrops: Boolean) = MustPassTest(implicit req => req.role.isInstanceOf[Teacher]) { implicit req =>
     val cand = QSection.candidate
-    DataStore.pm.query[Section].filter(cand.sectionId.eq(sectionId)).executeOption() match {
+    dataStore.pm.query[Section].filter(cand.sectionId.eq(sectionId)).executeOption() match {
       case None => NotFound(config.notFound("No section with that id."))
       case Some(sect) => {
-        Ok(templates.courses.Roster(sect))
+        Ok(templates.courses.Roster(sect, includeDrops))
       }
     }
   }
+  
+  def roster(sectionId: String) = rosterHelper(sectionId, false)
+  
+  def rosterWithDrops(sectionId: String) = rosterHelper(sectionId, true)
+      
+
 
   def linkToPage(section: Section) = {
     //val link = controllers.routes.Grades.home(section.id)
     a.href("#")(section.course.name)
   }
 
-  /*def linkToRoster(section: Section): NodeSeq = {
-    val link = controllers.routes.Courses.roster(section.id)
-    <a href={ link.url }>{ section.course.name }</a>
-  }*/
+  def linkToRoster(section: Section): STag = {
+    a.href(controllers.courses.routes.App.roster(section.sectionId))(section.course.name)
+  }
 
   //TODO: permissions
   def sectionList(masterNumber: String) = VisitAction { implicit req =>
@@ -135,7 +189,7 @@ class App @Inject()(implicit config: Config) extends Controller {
       case None => NotFound(config.notFound(s"There is no course with the master number '${masterNumber}'."))
       case Some(course) => {
         val cand = QSection.candidate
-        val sections = DataStore.pm.query[Section].filter(cand.course.eq(course)).executeList()
+        val sections = dataStore.pm.query[Section].filter(cand.course.eq(course)).executeList()
         Ok(templates.courses.SectionList(course, sections))
       }
     }
@@ -143,12 +197,12 @@ class App @Inject()(implicit config: Config) extends Controller {
   
   //TODO: permissions
   def sectionMasterList() = VisitAction { implicit req =>
-    Ok(templates.courses.MasterList(DataStore.pm.query[Section].executeList()))  
+    Ok(templates.courses.MasterList(dataStore.pm.query[Section].executeList()))  
   }
 
   //TODO: permissions
   def classList() = VisitAction { implicit req =>
-    DataStore.execute { implicit pm =>
+    dataStore.execute { implicit pm =>
       val cand = QCourse.candidate
       val courses = pm.query[Course].orderBy(cand.name.asc).executeList()
       Ok(templates.courses.ListAll(courses))
@@ -162,10 +216,41 @@ class App @Inject()(implicit config: Config) extends Controller {
       case Some(term) => {
         val cand = QCourse.candidate
         val sectVar = QSection.variable("sect")
-        val courses = DataStore.pm.query[Course].filter(sectVar.course.eq(cand).and(sectVar.terms.contains(term))).orderBy(cand.name.asc).executeList()
+        val courses = dataStore.pm.query[Course].filter(sectVar.course.eq(cand).and(sectVar.terms.contains(term))).orderBy(cand.name.asc).executeList()
         Ok(templates.courses.ListAll(courses, Some(term)))
       }
     }
+  }
+    
+  def findTeacher = Authenticated { implicit req =>
+    Ok(templates.courses.FindTeacherSchedule(Binding(TeacherScheduleForm)))  
+  }
+  
+  def findTeacherP = Authenticated { implicit req =>
+  	Binding(TeacherScheduleForm, req) match {
+  	  case ib: InvalidBinding => Ok(templates.courses.FindTeacherSchedule(ib))
+  	  case vb: ValidBinding => dataStore.execute { pm =>
+  	  	val teacher = vb.valueOf(TeacherScheduleForm.name)
+  	  	Redirect(routes.App.teacherScheduleForUsername(teacher.user.username))
+  	  }
+  	}
+  }
+  
+  def findStudent = Authenticated { implicit req =>
+    req.role match {
+      case teacher: Teacher => Ok(templates.courses.FindStudentSchedule(Binding(StudentScheduleForm)))
+      case _ => NotFound(config.notFound("Only teachers can search student schedules.")) 
+    }
+  }
+  
+  def findStudentP = Authenticated { implicit req =>
+    Binding(StudentScheduleForm, req) match {
+      case ib: InvalidBinding => Ok(templates.courses.FindStudentSchedule(ib))
+      case vb: ValidBinding => dataStore.execute { pm =>
+        val student = vb.valueOf(StudentScheduleForm.name)
+        Redirect(routes.App.studentScheduleForUsername(student.user.username))
+      }
+    }  
   }
  
   def intersperse(els: List[STag], sep: STag): List[STag] = {
@@ -175,4 +260,21 @@ class App @Inject()(implicit config: Config) extends Controller {
       }
     }
 
+}
+
+object App extends UsesDataStore {
+  import Teacher.{TeacherList, TeacherField}, 
+  		 Student.{StudentList, StudentField}
+  
+  object TeacherScheduleForm extends Form {
+    val name = new TeacherField("Name", TeacherList.teacherIds)
+    
+    val fields = List(name)
+  }
+  
+  object StudentScheduleForm extends Form {
+    val name = new StudentField("Name", StudentList.studentsIds)
+    
+    val fields = List(name)
+  }
 }

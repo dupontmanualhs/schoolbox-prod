@@ -1,10 +1,12 @@
 package models.mastery
 
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
-object QuizData {
+
+
+object QuizData extends UsesDataStore {
   def load(debug: Boolean = false) {
-    val pm = DataStore.pm
+    val pm = dataStore.pm
     if (debug) println("Creating Masteries")
     val exponents1 = new Question("You can only add monomials if they have the same _____", 
         List("bases with the same exponents", "bases with the same exponents."), false)

@@ -1,12 +1,14 @@
 package models.courses
 
 import javax.jdo.annotations._
+import scala.collection.mutable
 import org.joda.time._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
+import models.users.DbEquality
 
 @PersistenceCapable(detachable="true")
-class TeacherAssignment {
+class TeacherAssignment extends DbEquality[TeacherAssignment] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -45,9 +47,6 @@ class TeacherAssignment {
     start_=(theStart)
     end_=(theEnd)
   }
-  
-  def term: Set[Term] = this.section.terms
-  
 }
 
 trait QTeacherAssignment extends PersistableExpression[TeacherAssignment] {

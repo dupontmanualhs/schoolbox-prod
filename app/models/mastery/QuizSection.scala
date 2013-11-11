@@ -6,8 +6,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import scala.collection.JavaConverters._
-
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
 class QuizSection { //a section is a part of the quiz where students would be doing one sort of problem, so you could have a "simplifing exponents" section, and a "fill in the blank" section for a quiz
@@ -46,9 +45,9 @@ class QuizSection { //a section is a part of the quiz where students would be do
   override def toString = { _instructions }
 }
 
-object QuizSection {
+object QuizSection extends UsesDataStore {
   def getById(id: Long): Option[QuizSection] = {
-    DataStore.pm.query[QuizSection].filter(QQuizSection.candidate.id.eq(id)).executeOption()
+    dataStore.pm.query[QuizSection].filter(QQuizSection.candidate.id.eq(id)).executeOption()
   }
 }
 

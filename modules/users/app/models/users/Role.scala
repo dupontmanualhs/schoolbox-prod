@@ -3,12 +3,13 @@ package models.users
 import javax.jdo.annotations._
 import org.datanucleus.query.typesafe._
 import org.datanucleus.api.jdo.query._
-import scalajdo.DataStore
+
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable="true")
 @Inheritance(strategy=InheritanceStrategy.NEW_TABLE)
 @Discriminator(strategy=DiscriminatorStrategy.CLASS_NAME)
-abstract class Role extends Ordered[Role] {
+abstract class Role extends Ordered[Role] with UsesDataStore with DbEquality[Role] {
   @PrimaryKey
   @Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
   private[this] var _id: Long = _
@@ -30,12 +31,12 @@ abstract class Role extends Ordered[Role] {
   
   def groups(): Set[Group] = {
     val cand = QGroup.candidate
-    DataStore.pm.query[Group].filter(cand.roles.contains(this)).executeList().toSet
+    dataStore.pm.query[Group].filter(cand.roles.contains(this)).executeList().toSet
   }
   
   def rolePermissions(): Set[Permission] = {
     val cand = QPermission.candidate
-    DataStore.pm.query[Permission].filter(cand.roles.contains(this)).executeList().toSet
+    dataStore.pm.query[Permission].filter(cand.roles.contains(this)).executeList().toSet
   }
   
   def permissions(): Set[Permission] = {
@@ -44,7 +45,7 @@ abstract class Role extends Ordered[Role] {
   
   def addPermission(permission: Permission) {
     permission.roles_=(permission.roles + this)
-    DataStore.pm.makePersistent(permission)
+    dataStore.pm.makePersistent(permission)
   }
   
   def displayNameWithRole = "%s (%s)".format(user.displayName, role)
@@ -58,21 +59,12 @@ abstract class Role extends Ordered[Role] {
     val comp = this.user.compare(that.user)
     if (comp == 0) this.role.compare(that.role) else comp
   }
-  
-  def canEqual(that: Any): Boolean = that.isInstanceOf[Role]
-  
-  override def equals(that: Any): Boolean = that match {
-    case that: Role => this.canEqual(that) && this.id == that.id
-    case _ => false
-  }
-  
-  override def hashCode: Int = this.id.hashCode
 }
 
-object Role {
+object Role extends UsesDataStore {
   def getById(id: Long): Option[Role] = {
     val cand = QRole.candidate
-    DataStore.pm.query[Role].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[Role].filter(cand.id.eq(id)).executeOption()
   }
 }
 

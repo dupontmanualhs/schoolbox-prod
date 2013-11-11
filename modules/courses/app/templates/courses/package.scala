@@ -6,7 +6,7 @@ import play.api.templates.Html
 import controllers.users.{ Theme, VisitRequest, AuthenticatedRequest }
 import config.users.Config
 import models.courses.{ Course, Section, Student, StudentEnrollment, Teacher, Term }
-import _root_.forms.{ Call, Method }
+import org.dupontmanual.forms.{ Call, Method, Binding }
 import Call._
 import org.joda.time.format.DateTimeFormat
 import com.google.inject.Inject
@@ -21,10 +21,10 @@ package object courses {
     def apply(teacher: Teacher, term: Term,
       rows: Seq[STag], hasAssignments: Boolean)(implicit req: VisitRequest[_]) = {
       config.main(s"${teacher.displayName}'s Schedule")(
-        div.cls("page-header")(h2(teacher.displayName, small(term.name))),
+        div.cls("page-header")(h2(teacher.displayName, " ", small(term.name))),
         if (hasAssignments) {
           table.cls("table", "table-striped", "table-condensed")(
-            thead(th("Period"), th("Course(s)"), th("Room(s)")) +: rows)
+            thead(th("Period"), th("Course(s)"), th("Room(s)"), th("Students")) +: rows)
         } else {
           p("This teacher is not assigned to any courses during this term.")
         })
@@ -33,15 +33,25 @@ package object courses {
 
   object StudentSchedule {
     def apply(student: Student, term: Term,
-      rows: Seq[STag], hasEnrollments: Boolean)(implicit req: VisitRequest[_], config: Config) = {
+      rows: Seq[STag], hasEnrollments: Boolean, 
+      header: STag = studentScheduleHeader)(implicit req: VisitRequest[_], config: Config) = {
       config.main(s"${student.displayName}'s Schedule")(
-        div.cls("page-header")(h2(student.displayName, small(term.name))),
+        div.cls("page-header")(h2(student.displayName, " ", small(term.name))),
         if (hasEnrollments) {
           table.cls("table", "table-striped", "table-condensed")(
-            thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)")) +: rows)
+            header +: rows)
         } else {
           p("This student is not enrolled in any courses for this term.")
         })
+    }
+  }
+  
+  
+  
+  object StudentScheduleForTeacher {
+    def apply(student: Student, term: Term,
+      rows: Seq[STag], hasEnrollments: Boolean)(implicit req: VisitRequest[_], config: Config) = {
+      StudentSchedule(student, term, rows, hasEnrollments, studentScheduleHeaderForTeacher)
     }
   }
 
@@ -83,7 +93,7 @@ package object courses {
   }
 
   object Roster {
-    def apply(section: Section)(implicit req: VisitRequest[_], config: Config) = {
+    def apply(section: Section, includeDrops: Boolean)(implicit req: VisitRequest[_], config: Config) = {
       val df = DateTimeFormat.shortDate()
       val active = NavLink.Roster
       config.main(s"${active} for ${section.displayName}")(
@@ -91,9 +101,22 @@ package object courses {
         div.cls("span8")(
           table.cls("table", "table-striped", "table-condensed")(
             thead(th("Student"), th("Start Date"), th("End Date")),
-            tbody(section.enrollments.map { e =>
+            tbody(section.enrollments(includeDrops).map { e =>
               tr(td(e.student.formalName), td(e.start.map(d => StringSTag(df.print(d))).getOrElse("")), td(e.end.map(d => StringSTag(df.print(d))).getOrElse("")))
             }))))
+    }
+  }
+  
+  object ListTeachers {
+    def apply(teachers: List[Teacher])(implicit req: VisitRequest[_], config: Config) = {
+      config.main("List of Teachers")(
+        h1("List of Teachers"),
+        table(
+          tr(th("Last"), th("First"), th("Middle"), th("Username"), th("Email")) +:
+          teachers.map((t: Teacher) => tr(td(t.user.last), td(t.user.first), 
+              td(StringSTag(t.user.middle.getOrElse(""))), td(t.user.username), td(StringSTag(t.user.email.getOrElse("")))))
+        )
+      )
     }
   }
 
@@ -155,6 +178,24 @@ package object courses {
                 td(section.periodNames),
                 td(section.terms.map(_.name).mkString(", ")),
                 td(section.numStudents.toString))))))
+    }
+  }
+  
+  def studentScheduleHeader = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"))
+  
+  def studentScheduleHeaderForTeacher = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"), th("Size"))
+  
+  def studentScheduleHeaderForConferences = thead(th("Period"), th("Course(s)"), th("Teacher(s)"), th("Room(s)"), th("Schedule a Conf."))
+  
+  object FindTeacherSchedule {
+    def apply(teacherForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Find Teacher Schedule")(teacherForm.render())
+    }
+  }
+  
+  object FindStudentSchedule {
+    def apply(studentForm: Binding)(implicit req: VisitRequest[_], config: Config) = {
+      config.main("Find Student Schedule")(studentForm.render())
     }
   }
 }

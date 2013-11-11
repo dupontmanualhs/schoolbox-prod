@@ -1,8 +1,8 @@
 package controllers
 
 import play.api.mvc.Controller
-import forms.{ Form, Binding, ValidBinding, InvalidBinding }
-import forms.fields._
+import org.dupontmanual.forms.{ Form, Binding, ValidBinding, InvalidBinding }
+import org.dupontmanual.forms.fields._
 import models.grades._
 import models.courses._
 import models.users._
@@ -13,8 +13,7 @@ import scala.xml.Text
 import play.api.mvc.Result
 import play.api.templates.Html
 import models.grades.Turnin
-import scalajdo.DataStore
-import forms.Form
+
 
 import controllers.users.{ Authenticated, AuthenticatedRequest, VisitAction, VisitRequest }
 import config.Config
@@ -25,7 +24,7 @@ class Grades @Inject()(implicit config: Config) extends Controller {
   class DropMenu(catsMap: List[(String, Category)]) extends Form {
     val category = new ChoiceField("Category", catsMap)
     val title = new TextField("Title")
-    val numPoints = new forms.fields.NumericField[Int]("Points Possible")
+    val numPoints = new NumericField[Int]("Points Possible")
     val dueDate = new DateField("DueDate")
     val locked = new DateField("Hidden Until")
 

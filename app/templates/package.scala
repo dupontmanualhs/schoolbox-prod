@@ -12,10 +12,10 @@ package object templates {
 
   object Main extends MainTemplate {
     def apply(pageTitle: String, extraScripts: STag*)(content: STag*)(implicit req: VisitRequest[_]): Html =
-      Html(html(
+      Html("<!DOCTYPE html>") += Html(html(
         head(
           title(pageTitle),
-          Theme.themePick(req.visit.user),
+          //Theme.themePick(req.visit.user),
           (headAfterTitleBeforeScripts ++ extraScripts)),
         body(
           menu(),
@@ -23,7 +23,7 @@ package object templates {
 
     @deprecated("use the Scalatags version of templates", "2013-07-04")
     def apply(pageTitle: String, extraScripts: Html = Html(""))(content: Html)(implicit req: VisitRequest[_]): Html = {
-      Seq(Html(s"<html><head><title>${pageTitle}</title>${Theme.themePick(req.visit.user)}"),
+      Seq(Html(s"<!DOCTYPE html><html><head><title>${pageTitle}</title>"),
         seqSTag2html(headAfterTitleBeforeScripts),
         extraScripts,
         Html("</head>"),
@@ -38,12 +38,14 @@ package object templates {
       Seq(
         link.rel("icon").ctype("image/png").href(controllers.routes.Assets.at("images/favicon.ico")),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("jquery-ui.css"))),
+        link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap.css"))),
+        link.rel("stylesheet").href(controllers.routes.Assets.at("stylesheets/ourstyle.css")),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("datepicker.css"))),
         link.rel("stylesheet").href(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.css"))),
         <!-- HTML5 shim, for IE6-8 support of HTML5 elements. -->,
-        <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-      <![endif]-->,
+          <!--[if lt IE 9]>
+          <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->,
         script.src(config.webjars("jquery.js")),
         script.src(config.webjars("jquery-ui.js")),
         script.src(config.webjars("bootstrap.js")),
@@ -71,7 +73,7 @@ package object templates {
           div.cls("container")(
             a.cls("btn", "btn-navbar").attr("data-toggle" -> "collapse", "data-target" -> ".nav-collapse")(
               span.cls("icon-bar"), span.cls("icon-bar"), span.cls("icon-bar")),
-            a.cls("brand").href("/")("ABCD eSchool"),
+            a.cls("brand").href(controllers.routes.App.index)("Schoolbox (v0.1)"),
             div.cls("nav-collapse", "collapse").id("main-menu")(
               req.visit.menu))))
     }
@@ -92,10 +94,10 @@ package object templates {
 
   object Index {
     def apply()(implicit req: VisitRequest[_]) =
-      config.main("ABCD eSchool")(
+      config.main("Schoolbox")(
         div.cls("hero-unit")(
-          h1("SVS",sup("ALPHA")),
-          p("We need a name!")))
+          h1("Schoolbox"),
+          p("Everything a school needs in one easy package. (Eventually.)")))
   }
 
   object NotFound extends NotFoundTemplate {

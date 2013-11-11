@@ -4,8 +4,7 @@ import javax.jdo.annotations._
 import org.datanucleus.api.jdo.query._
 import org.datanucleus.query.typesafe._
 import models.users.Role
-
-import scalajdo.DataStore
+import config.users.UsesDataStore
 
 @PersistenceCapable(detachable = "true")
 class LabelQueueSet {
@@ -40,10 +39,10 @@ class LabelQueueSet {
   }
 }
 
-object LabelQueueSet {
+object LabelQueueSet extends UsesDataStore {
   def getById(id: Long): Option[LabelQueueSet] = {
     val cand = QLabelQueueSet.candidate
-    DataStore.pm.query[LabelQueueSet].filter(cand.id.eq(id)).executeOption()
+    dataStore.pm.query[LabelQueueSet].filter(cand.id.eq(id)).executeOption()
   }
 }
 
