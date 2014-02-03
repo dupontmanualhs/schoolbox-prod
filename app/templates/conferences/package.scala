@@ -90,7 +90,6 @@ package object conferences {
     def apply(slot: Slot, form: Binding)(implicit req: VisitRequest[_], config: Config) = {
       config.main("Delete Conference Appointment")(
         h1("Really Delete Conference Appointment?"),
-        p("This should magically appear."),
         form.render()
       )
     }

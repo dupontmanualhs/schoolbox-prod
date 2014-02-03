@@ -35,7 +35,7 @@ object BookMenu {
               new MenuItem("All Sections", "menu_printAllSec", Some(controllers.routes.Books.printAllSections.toString), Nil)
             ))
           },
-          SomeIf(perms.contains(Book.Permissions.LookUp)) {
+          SomeIf(perms.contains(Book.Permissions.Manage)) {
             new MenuItem("View", "menu_view", None, Nil, List(
               new MenuItem("Checkout History", "menu_chkHistory", Some(controllers.routes.Books.findCheckoutHistory.toString), Nil), 
               new MenuItem("Copy History", "menu_copyHistory", Some(controllers.routes.Books.findCopyHistory.toString), Nil), 
