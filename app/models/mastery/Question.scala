@@ -34,9 +34,9 @@ class Question extends Serializable {
   def value = _value
   def value_=(theValue: Int) { _value = theValue }
   
-  private[this] var _isMath: Boolean = _
-  def isMath = _isMath
-  def isMath_=(iM : Boolean) { _isMath = iM }
+  private[this] var _isMath: java.lang.Boolean = _
+  def isMath: Boolean = _isMath
+  def isMath_=(theIsMath : Boolean) { _isMath = theIsMath }
     
   def this(text: String, answer: List[String], isMath: Boolean, value: Int) = {
     this()
@@ -47,7 +47,9 @@ class Question extends Serializable {
   }
   
   def this(text: String, answer: List[String], isMath:Boolean) = this(text, answer, isMath, 1)
-   def this(text: String, answer: List[String]) = this(text, answer, false)
+   
+  def this(text: String, answer: List[String]) = this(text, answer, false)
+  
   override def toString = { text }
 }
 
