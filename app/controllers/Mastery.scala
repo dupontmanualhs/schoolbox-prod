@@ -23,7 +23,7 @@ import models.mastery.QuizSection
 import play.api.mvc.Controller
 import play.api.mvc.PlainResult
 import views.html
-import forms.validators.ValidationError
+import org.dupontmanual.forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
 import scalajdo.DataStore
@@ -36,7 +36,8 @@ import com.google.inject.{ Inject, Singleton }
 import controllers.users.VisitAction
 
 import util.Helpers.string2elem
-import forms.{ Call, FormCall, FormMethod }
+import org.dupontmanual.forms.{ Call, FormCall, FormMethod }
+import scala.language.existentials
 
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
@@ -130,7 +131,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
   val sectionInstructionList: List[String] =
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => sq._1.instructions)
 
-  val instructionsAndFields: List[(String, List[forms.fields.Field[_]])] = {
+  val instructionsAndFields: List[(String, List[org.dupontmanual.forms.fields.Field[_]])] = {
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
       (sq._1.instructions, sq._2.map((q: Question) => {
         if (q.text.contains("___")) {
@@ -142,7 +143,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     })
   }
 
-  val fields: List[forms.fields.Field[_]] = {
+  val fields: List[org.dupontmanual.forms.fields.Field[_]] = {
     instructionsAndFields.flatMap(_._2)
   }
 
@@ -150,7 +151,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
       <table class="table" id="mastery">
-        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render }</td><td></td></tr> }
+        { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render() }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
             val instructions: String = instrPlusFields._1

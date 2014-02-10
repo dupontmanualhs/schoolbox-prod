@@ -130,7 +130,7 @@ class App @Inject()(implicit config: Config) extends Controller with UsesDataSto
         }))
       }
     }
-    val newPassword = new PasswordField("newPassword", true)
+    val newPassword = new PasswordField("newPassword")
     val verifyNewPassword = new PasswordField("verifyNewPassword")
 
     def fields = List(currentPassword, newPassword, verifyNewPassword)
