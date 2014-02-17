@@ -53,8 +53,8 @@ object ApplicationBuild extends Build {
     "com.itextpdf" % "itextpdf" % "5.4.2",
     "org.tukaani" % "xz" % "1.3",
     "javax.mail" % "mail" % "1.4.7",
-    "net.sourceforge.htmlunit" % "htmlunit" % "2.12" % "test",
-    "org.seleniumhq.selenium" % "selenium-java" % "2.33.0" % "test") ++ jsDependencies
+    "net.sourceforge.htmlunit" % "htmlunit" % "2.13" % "test",
+    "org.seleniumhq.selenium" % "selenium-java" % "2.39.0" % "test") ++ jsDependencies
 
   def customLessEntryPoints(base: File): PathFinder = (base / "app" / "assets" / "stylesheets" * "*.less")
 
