@@ -48,6 +48,8 @@ abstract class Role extends Ordered[Role] with UsesDataStore with DbEquality[Rol
     dataStore.pm.makePersistent(permission)
   }
   
+  def hasPermission(permission: Permission) = this.permissions().contains(permission)
+  
   def displayNameWithRole = "%s (%s)".format(user.displayName, role)
   def formalNameWithRole = "%s (%s)".format(user.formalName, role)
   def shortNameWithRole = "%s (%s)".format(user.shortName, role)
