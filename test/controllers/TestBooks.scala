@@ -3,8 +3,6 @@ import org.scalatest.FunSuite
 import models.books.BookData._
 import org.joda.time.LocalDate
 
-import models.books.Title
-
 class TestBooks extends FunSuite {
   test("ISBN check digits") {
     assert(Title.checkDigit("059610199") === Some("6"))
