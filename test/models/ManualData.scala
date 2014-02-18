@@ -380,6 +380,9 @@ object ManualData extends UsesDataStore with Logging {
 
   def loadSections() {
     logger.info("Importing sections...")
+    val cand = QSection.candidate
+    val dbSectionsByNumber = mutable.Map(dataStore.pm.query[Section].filter(
+        cand.terms.contains(fall13).or(cand.terms.contains(spring14))).executeList().map(s => (s.sectionId -> s)): _*)
     val doc = XML.load(new XZInputStream(getClass.getResourceAsStream(s"$folder/Sections.xml.xz")))
     val sections = doc \\ "curriculum"
     val sectionsDone = mutable.Set[String]()

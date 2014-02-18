@@ -49,10 +49,22 @@ package object templates {
         script.src(config.webjars("jquery.js")),
         script.src(config.webjars("jquery-ui.js")),
         script.src(config.webjars("bootstrap.js")),
+        script.src(controllers.routes.Assets.at("javascripts/maskedinput.js")),
+        script.src(controllers.routes.Assets.at("javascripts/jquery.timepicker.js")),
         script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-datepicker.js"))),
         script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("bootstrap-timepicker.min.js"))),
-        script.src(controllers.routes.WebJarAssets.at(controllers.WebJarAssets.locate("jquery.maskedinput.js")))
-      )
+        /*<script type="text/x-mathjax-config">
+      MathJax.Hub.Config({{
+		  tex2jax: {{
+      inlineMath: [['$','$'],['\\(','\\)']]
+		  }}
+		  }});
+    </script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
+    </script>*/
+        script.src("http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full"),
+        script.src("http://js.ceusmedia.com/jquery/pstrength/2.1.0/source/digitalspaghetti.password.js")
+        )
     }
 
     def menu()(implicit req: VisitRequest[_]): STag = {

@@ -16,7 +16,7 @@ import config.users.UsesDataStore
 
 
 class TestLogins extends FunSuite with BeforeAndAfterAll with Matchers with WebBrowser with UsesDataStore {
-  val server = TestServer(3333)
+  val server = TestServer(9000)
   val baseUrl = s"http://localhost:${server.port}"
   implicit val driver = new FirefoxDriver()
   
@@ -33,24 +33,24 @@ class TestLogins extends FunSuite with BeforeAndAfterAll with Matchers with WebB
   
   test("home page has 'Log in' link") {
     goTo(s"$baseUrl/")
-    eventually { pageTitle shouldEqual "ABCD eSchool" }
+    eventually { pageTitle shouldEqual "Schoolbox" }
     find(linkText("Log in")) should be ('defined)
   }
   
   test("allow a student to log in with the correct username and password") {
     goTo(s"$baseUrl/")
-    eventually { pageTitle shouldEqual "ABCD eSchool" }
+    eventually { pageTitle shouldEqual "Schoolbox" }
     clickOn(linkText("Log in"))
     eventually { pageTitle shouldEqual "Log in" }
     cssSelector("#id_username").webElement.sendKeys("john")
     cssSelector("#id_password").webElement.sendKeys("kin123")
     clickOn(cssSelector("button[type=submit]"))
-    eventually { pageTitle shouldEqual "ABCD eSchool" }
+    eventually { pageTitle shouldEqual "Schoolbox" }
     find(cssSelector(".alert-success")).map(_.text).get shouldEqual "You have successfully logged in."
     clickOn(linkText("John King (Student)"))
     eventually { find(linkText("Log out")) should be ('defined) }
     clickOn(linkText("Log out"))
-    eventually { pageTitle shouldEqual "ABCD eSchool" }
+    eventually { pageTitle shouldEqual "Schoolbox" }
     find(cssSelector(".alert-success")).map(_.text).get shouldEqual "You have been logged out."
   }
   

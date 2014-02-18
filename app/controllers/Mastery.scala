@@ -23,8 +23,10 @@ import models.mastery.QuizSection
 import play.api.mvc.Controller
 import play.api.mvc.PlainResult
 import views.html
+import org.dupontmanual.forms.validators.ValidationError
 import scala.xml.UnprefixedAttribute
 import scala.xml.Text
+import scalajdo.DataStore
 import models.users.Visit
 
 import config.Config
@@ -34,6 +36,8 @@ import com.google.inject.{ Inject, Singleton }
 import controllers.users.VisitAction
 
 import util.Helpers.string2elem
+import org.dupontmanual.forms.{ Call, FormCall, FormMethod }
+import scala.language.existentials
 
 class BlanksField(question: Question) extends Field[String](question.id.toString) {
   override def widget = new MultiBlankWidget(question.text)
@@ -55,8 +59,8 @@ class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) ext
   val Name: String = uuid.toString()
   override def render(name: String, value: Seq[String], attrList: MetaData = Null): NodeSeq = {
     <span>
-      { text }{ super.render(name, value, attrList.append(new UnprefixedAttribute("onkeyup", "UpdateMath(this.value)", Null))) }
-      <div id="MathOutput">
+      { text }{ super.render(name, value, attrList.append(new UnprefixedAttribute("onkeyup", "UpdateMath(this)", Null))) }
+      <div id={"MathOutput-" + name} class="carfen">
         You typed: ${{}}$
       </div>
     </span>
@@ -69,19 +73,28 @@ class MathWidget(text: String, attrs: MetaData = Null, uuid: java.util.UUID) ext
 		  }}
 		  }});
     </script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
-    </script>
+    
     <script>
       (function () {{
     var QUEUE = MathJax.Hub.queue; 
-    var math = null;                
-    
-    QUEUE.Push(function () {{
-      math = MathJax.Hub.getAllJax('MathOutput')[0];
+    var math = [];
+	var idTable = [];
+	$(document).ready(function() {{
+        $('div.carfen').each(function(index) {{
+		  var is = this.id;
+		  var theId = is.substring(11).valueOf();
+		  idTable[index] = theId;
+		  QUEUE.Push(function () {{
+	
+		  	math[index] = MathJax.Hub.getAllJax('MathOutput-' + theId)[0];
     }});
-
-    window.UpdateMath = function (TeX) {{
-      QUEUE.Push(['Text',math,'\\displaystyle{{'+TeX+'}}']);
+	}})
+	}});
+	console.log(idTable);
+    window.UpdateMath = function (e) {{
+		  TeX = e.value;
+		  var index = idTable.indexOf(e.name.valueOf());
+		  QUEUE.Push(['Text',math[index],'\\displaystyle{{'+TeX+'}}']);
     }}
   }})();
     </script>
@@ -118,7 +131,7 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
   val sectionInstructionList: List[String] =
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => sq._1.instructions)
 
-  val instructionsAndFields: List[(String, List[Field[_]])] = {
+  val instructionsAndFields: List[(String, List[org.dupontmanual.forms.fields.Field[_]])] = {
     sectionsWithQuestions.map((sq: (QuizSection, List[Question])) => {
       (sq._1.instructions, sq._2.map((q: Question) => {
         if (q.text.contains("___")) {
@@ -130,14 +143,14 @@ class MasteryForm(sectionsWithQuestions: List[(QuizSection, List[Question])]) ex
     })
   }
 
-  val fields: List[Field[_]] = {
+  val fields: List[org.dupontmanual.forms.fields.Field[_]] = {
     instructionsAndFields.flatMap(_._2)
   }
 
   override def render(bound: Binding, overrideSubmit: Option[FormCall] = None, legend: Option[String] = None): Elem = {
     val (method: FormMethod, action: Option[String]) = methodPlusAction(overrideSubmit)
     <form method={ method } action={ action.map(Text(_)) } autocomplete="off">
-      <table class="table">
+      <table class="table" id="mastery">
         { if (bound.formErrors.isEmpty) NodeSeq.Empty else <tr><td></td><td>{ bound.formErrors.render() }</td><td></td></tr> }
         {
           instructionsAndFields.flatMap(instrPlusFields => {
@@ -265,17 +278,19 @@ class Mastery @Inject()(implicit config: Config) extends Controller with UsesDat
     val table: List[NodeSeq] = qsAndAs.map(qa =>
       if (qa._1.answer.contains(removeMult(removeSpaces(qa._2)))) {
         <tr bgcolor="#5EFB6E">
-          <td>{ qa._1.text }</td>
-          <td>{ qa._2 }</td>
-          <td>{ "correct" }</td>
-          <td>{ qa._1.value + "/" + qa._1.value }</td>
+          <td><font color="black">{ qa._1.text }</font></td>
+          <td><font color="black">{ if (!qa._1.isMath) qa._2
+        else "\\(\\displaystyle{" + qa._2 + "}\\)"}</font></td>
+          <td><font color="black">{ "correct" }</font></td>
+          <td><font color="black">{ qa._1.value + "/" + qa._1.value }</font></td>
         </tr>
       } else {
         <tr bgcolor="#F9966B">
-          <td>{ qa._1.text }</td>
-          <td>{ qa._2 }</td>
-          <td>{ "wrong" }</td>
-          <td>{ "0/" + qa._1.value }</td>
+          <td><font color="black">{ qa._1.text }</font></td>
+          <td><font color="black">{ if (!qa._1.isMath) qa._2
+        else "\\(\\displaystyle{" + qa._2 + "}\\)" }</font></td>
+          <td><font color="black">{ "wrong" }</font></td>
+          <td><font color="black">{ "0/" + qa._1.value }</font></td>
         </tr>
       })
     Ok(html.tatro.mastery.displayScore(quiz, totalPointsPossible, numCorrect, table))

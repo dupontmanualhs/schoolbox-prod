@@ -259,6 +259,9 @@ object TestData extends UsesDataStore {
       richardTeacher.addPermission(Conferences.Permissions.Manage)
       maryTeacher.addPermission(Conferences.Permissions.Manage)
       
+      //makeMasteryData
+      mastery.QuizData.load(debug)
+            
       //makeBookData(debug)
       /*
       if (debug) println("Creating the blagosphere")
@@ -303,8 +306,6 @@ object TestData extends UsesDataStore {
         Some("11 x 8.8 x 1.6 inches"), Some(5.2), true, new Date(System.currentTimeMillis()), None)
 
 
-      //makeMasteryData
-      mastery.QuizData.load(debug)
 
       //makeLockerData(debug)
       if (debug) println("Creating Lockers...")
