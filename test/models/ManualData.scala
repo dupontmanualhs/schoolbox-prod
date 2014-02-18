@@ -31,7 +31,24 @@ import org.joda.time.LocalTime
 
 object ManualData extends UsesDataStore with Logging {
 
-  val folder = "/manual-data-2013-09-23"
+  val folder = "/manual-data-2014-02-13"
+    
+  AcademicYear.getByName("2013-14") match {
+    case Some(year) => // everything's fine
+    case None =>
+      val year = new AcademicYear("2013-14")
+      val fall = new Term("Fall 2013", year, "f13", LocalDate.parse("2013-08-01"), LocalDate.parse("2014-01-17"))
+      val spring = new Term("Spring 2014", year, "s14", LocalDate.parse("2014-01-18"), LocalDate.parse("2014-06-30"))
+      dataStore.pm.makePersistentAll(List(year, fall, spring))
+      val periods: List[Period] = List(
+        new Period("Red 1", 1, "r1"), new Period("Red 2", 2, "r2"), new Period("Red 3", 3, "r3"), 
+        new Period("Red 4", 4, "r4"), new Period("Red 5", 5, "r5", false),
+        new Period("Red Activity", 6, "ract", false), new Period("Red Advisory", 7, "radv"),
+        new Period("White 1", 8, "w1"), new Period("White 2", 9, "w2"), new Period("White 3", 10, "w3"),
+        new Period("White 4", 11, "w4"), new Period("White 5", 12, "w5", false),
+        new Period("White Activity", 13, "wact", false), new Period("White Advisory", 14, "wadv"))
+      dataStore.pm.makePersistentAll(periods)
+  }
 
   // Needs to be updated each year
   val currentYear = dataStore.pm.detachCopy(AcademicYear.getByName("2013-14").get)
@@ -51,28 +68,31 @@ object ManualData extends UsesDataStore with Logging {
     val props = new Properties()
     dataStore.storeManager.validateSchema(classes, props)
     // de-activate everyone and re-activate only the users in the data dump
-    markAllUsersInactive()
-    purgeCurrentSchedule()
+    //markAllUsersInactive()
+    //purgeCurrentSchedule()
     loadStudents()
     loadGuardians()
     loadTeachers()
-    fixTeacherAccounts()
+    //fixTeacherAccounts()
     loadCourses()
     loadSections()
     loadEnrollments()
-    createConferenceEvent()
-    addPermissions()
+    //createConferenceEvent()
+    //addPermissions()
   }
   
   def fixTeacherAccounts() {
     usernameToEmail.foreach {
       case (username: String, email: String) => {
         dataStore.withTransaction { pm => 
-          val user = User.getByUsername(username).get
-          if (username.matches("\\d+")) {
-            user.username = email.substring(0, email.indexOf("@"))
+          User.getByUsername(username) match {
+            case Some(user) => 
+              if (username.matches("\\d+")) {
+                user.username = email.substring(0, email.indexOf("@"))
+              }
+              user.email = Some(email)
+            case None => // teacher removed from database
           }
-          user.email = Some(email)
         }
       }
     }
@@ -95,8 +115,10 @@ object ManualData extends UsesDataStore with Logging {
   }
   
   def addPermissions() {
-    val tobryan1 = Teacher.getByUsername("tobryan1").get
-    val gregKuhn = Teacher.getByUsername("gkuhn2").get
+    val tobryan1 = Teacher.getByPersonId("736052").get
+    tobryan1.user.username = "tobryan1"
+    val gregKuhn = Teacher.getByPersonId("733563").get
+    gregKuhn.user.username = "gregKuhn"
     val manageBooks = Book.Permissions.Manage
     val manageConferences = Conferences.Permissions.Manage
     val manageUsers = User.Permissions.Manage
@@ -466,9 +488,11 @@ object ManualData extends UsesDataStore with Logging {
         val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
         maybeSection match {
           case Some(section) => {
+            logger.debug(s"Found section ${section}...")
             logger.trace("Finding any previous enrollments of this student in this section.")
             val prevEnrs = pm.query[StudentEnrollment].filter(
-              enrCand.student.eq(student).and(enrCand.section.eq(section))).executeList()
+              enrCand.student.eq(student).and(enrCand.section.eq(sectionVar).and(sectionVar.id.eq(section.id)))).executeList()
+            logger.debug(s"Previous enrollments: $prevEnrs")
             prevEnrs.find(enr => enr.start == startDate || enr.end == endDate) match {
               case Some(enr) => {
                 logger.debug("Student already enrolled in this section. Modifying.")

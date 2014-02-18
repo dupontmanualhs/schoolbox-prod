@@ -59,7 +59,7 @@ class Section extends UsesDataStore with DbEquality[Section] {
     room_=(room)
   }
 
-  override def toString: String = s"Section(${course.name} - ${periodNames} - ${room.name})"
+  override def toString: String = s"Section(${course.name}-${periodNames}-${room.name})"
 
   def displayName: String = s"${course.name} - ${periodNames}, ${room.name} - ${teachers.mkString(", ")}"
 

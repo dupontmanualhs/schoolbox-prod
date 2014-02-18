@@ -25,16 +25,16 @@ object ApplicationBuild extends Build {
   )
 
   val users = play.Project("users", appVersion, path = file("modules/users")).settings(
-    scalaVersion := "2.10.2",
+    scalaVersion := "2.10.3",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
     scalacOptions ++= Seq("-deprecation", "-feature"),
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",  
     libraryDependencies ++= commonDependencies)
       
   val courses = play.Project("courses", appVersion, path = file("modules/courses")).settings(
-    scalaVersion := "2.10.2",
+    scalaVersion := "2.10.3",
     javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-bootclasspath", "/usr/lib/jvm/java-6-oracle/jre/lib/rt.jar"),
-    scalacOptions ++= Seq("-deprecation", "-feature"),
+    scalacOptions in ThisBuild ++= Seq("-deprecation", "-feature"),
     resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"  
   ).dependsOn(users)
 

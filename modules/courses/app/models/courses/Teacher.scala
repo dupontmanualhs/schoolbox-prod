@@ -62,11 +62,13 @@ object Teacher extends UsesDataStore {
   }
   
   def getByStateId(stateId: String): Option[Teacher] = {
-    dataStore.pm.query[Teacher].filter(cand.stateId.eq(stateId)).executeOption()
+    if (stateId == null) None
+    else dataStore.pm.query[Teacher].filter(cand.stateId.eq(stateId)).executeOption()
   }
   
   def getByPersonId(personId: String): Option[Teacher] = {
-    dataStore.pm.query[Teacher].filter(cand.personId.eq(personId)).executeOption()
+    if (personId == null) None
+    else dataStore.pm.query[Teacher].filter(cand.personId.eq(personId)).executeOption()
   }
   
   def getById(id: Long): Option[Teacher] = {
