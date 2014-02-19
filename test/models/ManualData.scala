@@ -31,7 +31,7 @@ import org.joda.time.LocalTime
 
 object ManualData extends UsesDataStore with Logging {
 
-  val folder = "/manual-data-2013-09-23"
+  val folder = "/manual-data-2014-02-13"
 
   // Needs to be updated each year
   val currentYear = dataStore.pm.detachCopy(AcademicYear.getByName("2013-14").get)
@@ -52,7 +52,7 @@ object ManualData extends UsesDataStore with Logging {
     dataStore.storeManager.validateSchema(classes, props)
     // de-activate everyone and re-activate only the users in the data dump
     markAllUsersInactive()
-    purgeCurrentSchedule()
+    //purgeCurrentSchedule()
     loadStudents()
     loadGuardians()
     loadTeachers()
@@ -60,19 +60,23 @@ object ManualData extends UsesDataStore with Logging {
     loadCourses()
     loadSections()
     loadEnrollments()
-    createConferenceEvent()
-    addPermissions()
+    //createConferenceEvent()
+    //addPermissions()
   }
   
   def fixTeacherAccounts() {
     usernameToEmail.foreach {
       case (username: String, email: String) => {
         dataStore.withTransaction { pm => 
-          val user = User.getByUsername(username).get
-          if (username.matches("\\d+")) {
-            user.username = email.substring(0, email.indexOf("@"))
+          User.getByUsername(username) match {
+            case Some(user) => 
+              if (username.matches("\\d+")) {
+                user.username = email.substring(0, email.indexOf("@"))
+              }
+              user.email = Some(email)
+            case None =>
+              println(s"(${username}, ${email}) is not in the database")
           }
-          user.email = Some(email)
         }
       }
     }
@@ -464,9 +468,10 @@ object ManualData extends UsesDataStore with Logging {
         val student = pm.query[Student].filter(QStudent.candidate.studentNumber.eq(studentNumber)).executeOption().get
         val startDate = asLocalDate((enrollment \ "@roster.startDate").text)
         val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
+        logger.debug(s"Checking sectionId $sectionId and student number $studentNumber (${student.formalName})")
         maybeSection match {
           case Some(section) => {
-            logger.trace("Finding any previous enrollments of this student in this section.")
+            logger.debug("Finding any previous enrollments of this student in this section.")
             val prevEnrs = pm.query[StudentEnrollment].filter(
               enrCand.student.eq(student).and(enrCand.section.eq(section))).executeList()
             prevEnrs.find(enr => enr.start == startDate || enr.end == endDate) match {
@@ -475,6 +480,7 @@ object ManualData extends UsesDataStore with Logging {
                 enr.start = startDate
                 enr.end = endDate
                 if (dbEnrollmentIds.contains(enr.id)) dbEnrollmentIds -= enr.id
+                pm.makePersistent(enr)
               }
               case None => {
                 logger.debug("Creating new enrollment.")
@@ -736,6 +742,13 @@ object ManualData extends UsesDataStore with Logging {
     "lwhite33" -> "lisa.white@jefferson.kyschools.us",
     "conniewilcox" -> "connie.wilcox@jefferson.kyschools.us",
     "willdiddy" -> "christopher.williams@jefferson.kyschools.us",
-    "cyoung3" -> "cyndi.young@jefferson.kyschools.us"
+    "cyoung3" -> "cyndi.young@jefferson.kyschools.us",
+    "740063" -> "prestina.bacala@jefferson.kyschools.us",
+    "268181" -> "megan.gatewood@jefferson.kyschools.us",
+    "789563" -> "donald.glass@jefferson.kyschools.us",
+    "428449" -> "helena.mcdowell@jefferson.kyschools.us",
+    "1037952" -> "aaron.morris@jefferson.kyschools.us",
+    "164812" -> "david.richards@jefferson.kyschools.us",
+    "1011364" -> "michelle.shory@jefferson.kyschools.us"
   )
 }
