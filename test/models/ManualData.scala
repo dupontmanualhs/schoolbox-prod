@@ -32,6 +32,23 @@ import org.joda.time.LocalTime
 object ManualData extends UsesDataStore with Logging {
 
   val folder = "/manual-data-2014-02-13"
+    
+  AcademicYear.getByName("2013-14") match {
+    case Some(year) => // everything's fine
+    case None =>
+      val year = new AcademicYear("2013-14")
+      val fall = new Term("Fall 2013", year, "f13", LocalDate.parse("2013-08-01"), LocalDate.parse("2014-01-17"))
+      val spring = new Term("Spring 2014", year, "s14", LocalDate.parse("2014-01-18"), LocalDate.parse("2014-06-30"))
+      dataStore.pm.makePersistentAll(List(year, fall, spring))
+      val periods: List[Period] = List(
+        new Period("Red 1", 1, "r1"), new Period("Red 2", 2, "r2"), new Period("Red 3", 3, "r3"), 
+        new Period("Red 4", 4, "r4"), new Period("Red 5", 5, "r5", false),
+        new Period("Red Activity", 6, "ract", false), new Period("Red Advisory", 7, "radv"),
+        new Period("White 1", 8, "w1"), new Period("White 2", 9, "w2"), new Period("White 3", 10, "w3"),
+        new Period("White 4", 11, "w4"), new Period("White 5", 12, "w5", false),
+        new Period("White Activity", 13, "wact", false), new Period("White Advisory", 14, "wadv"))
+      dataStore.pm.makePersistentAll(periods)
+  }
 
   // Needs to be updated each year
   val currentYear = dataStore.pm.detachCopy(AcademicYear.getByName("2013-14").get)
@@ -74,8 +91,7 @@ object ManualData extends UsesDataStore with Logging {
                 user.username = email.substring(0, email.indexOf("@"))
               }
               user.email = Some(email)
-            case None =>
-              println(s"(${username}, ${email}) is not in the database")
+            case None => // teacher removed from database
           }
         }
       }
@@ -468,10 +484,9 @@ object ManualData extends UsesDataStore with Logging {
         val student = pm.query[Student].filter(QStudent.candidate.studentNumber.eq(studentNumber)).executeOption().get
         val startDate = asLocalDate((enrollment \ "@roster.startDate").text)
         val endDate = asLocalDate((enrollment \ "@roster.endDate").text)
-        logger.debug(s"Checking sectionId $sectionId and student number $studentNumber (${student.formalName})")
         maybeSection match {
           case Some(section) => {
-            logger.debug("Finding any previous enrollments of this student in this section.")
+            logger.trace("Finding any previous enrollments of this student in this section.")
             val prevEnrs = pm.query[StudentEnrollment].filter(
               enrCand.student.eq(student).and(enrCand.section.eq(section))).executeList()
             prevEnrs.find(enr => enr.start == startDate || enr.end == endDate) match {
@@ -480,7 +495,6 @@ object ManualData extends UsesDataStore with Logging {
                 enr.start = startDate
                 enr.end = endDate
                 if (dbEnrollmentIds.contains(enr.id)) dbEnrollmentIds -= enr.id
-                pm.makePersistent(enr)
               }
               case None => {
                 logger.debug("Creating new enrollment.")
