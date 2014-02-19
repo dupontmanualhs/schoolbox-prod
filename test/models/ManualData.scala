@@ -69,7 +69,7 @@ object ManualData extends UsesDataStore with Logging {
     dataStore.storeManager.validateSchema(classes, props)
     // de-activate everyone and re-activate only the users in the data dump
     markAllUsersInactive()
-    //purgeCurrentSchedule()
+    purgeCurrentSchedule()
     loadStudents()
     loadGuardians()
     loadTeachers()
@@ -488,7 +488,7 @@ object ManualData extends UsesDataStore with Logging {
           case Some(section) => {
             logger.trace("Finding any previous enrollments of this student in this section.")
             val prevEnrs = pm.query[StudentEnrollment].filter(
-              enrCand.student.eq(student).and(enrCand.section.eq(section))).executeList()
+              enrCand.student.eq(student).and(enrCand.section.eq(sectionVar).and(sectionVar.id.eq(section.id)))).executeList()
             prevEnrs.find(enr => enr.start == startDate || enr.end == endDate) match {
               case Some(enr) => {
                 logger.debug("Student already enrolled in this section. Modifying.")
