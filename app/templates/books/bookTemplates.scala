@@ -294,13 +294,14 @@ package object books {
   }
 
   object inventory {
-    def apply(rows: List[(String, String, String, String, String)])(implicit req: VisitRequest[_], config: Config) = {
+    def apply(rows: List[(String, String, String, String, String, String)])(implicit req: VisitRequest[_], config: Config) = {
       config.main("Inventory")(
         div.cls("page-header")(
           h2("Inventory")), table.cls("table", "table-striped", "table-condensed")(
           thead(
             tr(
               th("Title"),
+              th("ISBN"),
               th("Total Copies"),
               th("Copies Checked Out"),
               th("Copies Lost"),
@@ -312,7 +313,8 @@ package object books {
                 td(row._2),
                 td(row._3),
                 td(row._4),
-                td(row._5))
+                td(row._5),
+                td(row._6))
             })))
     }
   }

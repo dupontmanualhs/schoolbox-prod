@@ -640,8 +640,8 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
   def inventory() = PermissionRequired(Permissions.Manage) { implicit req =>
     val titles = dataStore.pm.query[Title].executeList.sortWith((c1, c2) => c1.name < c2.name)
 
-    val rows: List[(String, String, String, String, String)] = titles.map(ti => {
-      (ti.name, (ti.howManyCopies() - ti.howManyDeleted()).toString,
+    val rows: List[(String, String, String, String, String, String)] = titles.map(ti => {
+      (ti.name, ti.isbn, (ti.howManyCopies() - ti.howManyDeleted()).toString,
         ti.howManyCheckedOut().toString, ti.howManyLost().toString, (ti.howManyCopies() - (ti.howManyCheckedOut() + ti.howManyDeleted() + ti.howManyLost())).toString)
     })
     Ok(templates.books.inventory(rows))
