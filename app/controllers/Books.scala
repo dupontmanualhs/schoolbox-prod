@@ -24,6 +24,8 @@ import models.courses._
 import config.users.UsesDataStore
 import controllers.users.{ Authenticated, PermissionRequired }
 import models.books.Book.Permissions
+import play.api.libs.Files.TemporaryFile
+import java.util.UUID
 
 @Singleton
 class Books @Inject()(implicit config: Config) extends Controller with UsesDataStore {
@@ -771,9 +773,9 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
         case ib: InvalidBinding => Ok(templates.books.viewPrintQueue(ib))
         case vb: ValidBinding => {
           val setsToPrint: List[LabelQueueSet] = vb.valueOf(f.cboxes)
-          createPdf(setsToPrint)
+          val tempFile = createPdf(setsToPrint, UUID.randomUUID().toString())
           pm.deletePersistentAll(setsToPrint)
-          Ok.sendFile(content = new java.io.File("public/printable.pdf"), inline = true)
+          Ok.sendFile(content = tempFile.file, fileName = _ => "labels.pdf")
         }
       }
     }
@@ -1363,7 +1365,7 @@ object Books extends UsesDataStore {
   }
 
   // Helper Method
-  def makePdf(barcodes: List[(Barcode, String, String, String)]) { //Barcode, title.name, title.author, title.publisher
+  def makePdf(barcodes: List[(Barcode, String, String, String)], filename: String): TemporaryFile = { //Barcode, title.name, title.author, title.publisher
     // Spacing in points
     // Bottom left: 0,0
     // Top right: 612, 792
@@ -1392,9 +1394,9 @@ object Books extends UsesDataStore {
     val topLeftX = lAndRBorder
     val topLeftY = 792 - halfInch - 10
 
-    val result: String = "public/printable.pdf"
     val document: Document = new Document(PageSize.LETTER)
-    val writer = PdfWriter.getInstance(document, new FileOutputStream(result))
+    val tempFile: TemporaryFile = TemporaryFile(new File(s"/tmp/$filename"))
+    val writer = PdfWriter.getInstance(document, new FileOutputStream(tempFile.file))
     document.open()
     val cb = writer.getDirectContent() //PdfContentByte
     val font = BaseFont.createFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, false)
@@ -1432,12 +1434,12 @@ object Books extends UsesDataStore {
         labelTopLeftY = topLeftY
       }
     }
-
     document.close()
+    tempFile
   }
 
   // Helper Method
-  def createPdf(l: List[LabelQueueSet]) {
+  def createPdf(l: List[LabelQueueSet], filename: String): TemporaryFile = {
     var printList = List[(Barcode, String, String, String)]()
     for (x <- l) {
       val r = Books.sanitizeCopyRange(x.copyRange)
@@ -1446,7 +1448,7 @@ object Books extends UsesDataStore {
         printList = printList :+ (b, x.title.name, x.title.author.getOrElse(""), x.title.publisher.getOrElse(""))
       }
     }
-    makePdf(printList)
+    makePdf(printList, filename)
   }
   
 }
