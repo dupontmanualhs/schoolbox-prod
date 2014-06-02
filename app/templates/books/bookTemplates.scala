@@ -53,13 +53,14 @@ package object books {
   }
 
   object allBooksOut {
-    def apply(header: String, rows: List[(String, String, String)])(implicit req: VisitRequest[_], config: Config) = {
+    def apply(header: String, rows: List[(String, String, String, String)])(implicit req: VisitRequest[_], config: Config) = {
       config.main("All Books Out")(
         div.cls("page-header")(
           h2(header)), table.cls("table", "table-striped", "table-condensed")(
           thead(
             tr(
               th("Title"),
+              th("Copy"),
               th("Date Checked Out"),
               th("Student"))),
           tbody(
@@ -67,7 +68,8 @@ package object books {
               tr(
                 td(row._1),
                 td(row._2),
-                td(row._3))
+                td(row._3),
+                td(row._4))
             })))
     }
   }

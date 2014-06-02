@@ -556,7 +556,7 @@ class Books @Inject()(implicit config: Config) extends Controller with UsesDataS
       val currentBooksOut = pm.query[Checkout].filter(cand.endDate.eq(null.asInstanceOf[java.sql.Date]).and(cand.student.eq(stu)).and(stu.grade.eq(grade))).executeList()
       val booksOut = currentBooksOut.filter(_.student.user.isActive).sortBy(_.student.user.formalName)
       val header = "Current books out for grade " + grade
-      val rows: List[(String, String, String)] = booksOut.map(co => { (co.copy.purchaseGroup.title.name, co.startDate.map(df.print(_)).getOrElse(""), co.student.formalName) })
+      val rows: List[(String, String, String, String)] = booksOut.map(co => { (co.copy.purchaseGroup.title.name, co.copy.number.toString, co.startDate.map(df.print(_)).getOrElse(""), co.student.formalName) })
       Ok(templates.books.allBooksOut(header, rows))
     }
   }
